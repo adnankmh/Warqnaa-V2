@@ -7,9 +7,14 @@ on:
     paths:
       - 'backend-laravel/**'
       - '.github/workflows/backend-ci.yml'
+      - 'tools/**'
+      - 'RELEASE_VERSION.json'
   pull_request:
     paths:
       - 'backend-laravel/**'
+      - 'tools/**'
+      - 'RELEASE_VERSION.json'
+      - '.github/workflows/backend-ci.yml'
 
 permissions:
   contents: read
@@ -25,7 +30,7 @@ jobs:
       run:
         working-directory: backend-laravel
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
         with:
@@ -57,9 +62,12 @@ jobs:
         run: php tools/test-v183-engine-overhaul.php
       - name: Run classic game-rule regressions
         run: php tools/test-v142-rule-cores.php
-      - name: Run V184 official game-rule audit
+      - name: Verify CI release compatibility
+        run: python3 ../tools/test_ci_release_compat_contract.py
+      - name: Verify V200 Full Fusion contract
         run: python3 ../tools/test_v200_full_fusion_contract.py
-          php tools/test-v184-official-rules-audit.php
+      - name: Run V184 official game-rule audit
+        run: php tools/test-v184-official-rules-audit.php
       - name: Stress all registered game engines
         run: php tools/test-v184-engine-stress.php
       - name: Run Laravel tests
@@ -71,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Prepare temporary Compose environment
         working-directory: backend-laravel
         run: |

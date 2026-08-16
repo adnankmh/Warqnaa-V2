@@ -1,24 +1,29 @@
-# Warqnaa V0.4.4+200 — Full Fusion Pro
+# ابدأ من هنا — Warqnaa V0.4.4+200 Full Fusion Pro — CI Fixed R2
 
-> النسخة الكاملة الجديدة مبنية فوق الحزمة الكبيرة مع جميع الـAssets، Laravel + Flutter، وبورتات 8007–8010.
+## Windows / XAMPP
+1. فك الحزمة داخل `C:\xampp\htdocs\`.
+2. افتح مجلد المشروع.
+3. استخدم `START_WARQNA_WINDOWS.bat` أو ملفات التشغيل داخل `scripts/windows/current/`.
+4. البورت الرئيسي المقترح: **8007**. البدائل: **8008، 8009، 8010**.
+5. افتح المتصفح على `http://127.0.0.1:8007` عند اختيار 8007.
 
-# ابدأ من هنا — Warqnaa V0.3.3+184
+## GitHub Desktop
+1. افتح GitHub Desktop.
+2. اختر **File → Add Local Repository** وحدد هذا المجلد.
+3. اعمل Commit ثم Push/Publish للمستودع.
+4. افتح **Actions** وانتظر نجاح Production Release Gate وBackend CI.
+5. شغّل Android يدويًا من workflow **Build Android APK and AAB** للحصول على APK/AAB.
 
-1. انسخ محتويات المشروع إلى مستودع GitHub مع إبقاء مجلد `.git` فقط من النسخة السابقة.
-2. لا تضع ملفات ZIP أو Manifest أو ملاحظات شخصية في جذر المشروع.
-3. نفّذ Commit ثم Push.
-4. افتح تبويب Actions وانتظر نجاح جميع مسارات البناء.
-5. استخدم `CHECK_WARQNA_WINDOWS.bat` للفحص المحلي على Windows.
+## Flutter Web / GitHub Pages
+- Workflow يبني Flutter Web دائمًا.
+- حتى لو GitHub Pages غير مفعّل، لن يفشل الـworkflow لهذا السبب؛ ستحصل على Build داخل **Artifacts**.
+- إذا أردت نشره كصفحة GitHub Pages، فعّل Pages للمستودع واجعل Source = **GitHub Actions**؛ في التشغيل التالي سيكتشفه الـworkflow وينشر تلقائيًا.
 
-أهم تحديثات هذه الحزمة:
-- إصلاح خطأ PIL في GitHub Actions دون الحاجة إلى تثبيت Pillow.
-- 18 لعبة ظاهرة للاعب، والشطرنج مخفي.
-- اختيار اللاعبين والبوتات عند إنشاء الغرفة.
-- اختيار كل مستوى من 1 حتى مستوى المنشئ.
-- إخفاء وإظهار الألعاب من لوحة الإدارة.
-- إيموت متحرك بتأثير ثلاثي الأبعاد.
-- تنظيم كامل لمجلد المشروع الرئيسي.
+## الفحص المحلي
+شغّل:
+- `python tools\validate_release.py`
+- `python tools\test_ci_release_compat_contract.py`
+- `scripts\windows\current\CHECK_V200_WINDOWS.bat`
 
-التقارير الحالية:
-- `docs/ar/releases/current/CHANGELOG_V184_FINAL2_AR.md`
-- `docs/ar/validation/current/VALIDATION_RESULTS_V184_FINAL2.txt`
+## الإصدار
+المصدر المرجعي الوحيد لرقم الإصدار هو `RELEASE_VERSION.json`، والـCI يتحقق من اتساقه مع Flutter وLaravel وManifest.

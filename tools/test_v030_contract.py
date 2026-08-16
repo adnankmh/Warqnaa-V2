@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Warqnaa V0.3 professional-release source contract."""
+"""Historical V0.3 feature contract; compatible with later Warqnaa releases."""
 from __future__ import annotations
 import json, re
 from pathlib import Path
@@ -20,9 +20,14 @@ def req(rel: str, *needles: str) -> str:
 
 def main() -> None:
     meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text(encoding='utf-8'))
-    if meta.get('version')!='0.3.3' or meta.get('build')!=184 or meta.get('display_release')!='V0.3.3':
-        fail('Release metadata is not Warqnaa V0.3.3 build 184')
-    req('flutter_app/pubspec.yaml','version: 0.3.3+184')
+    version=str(meta.get('version','')).strip()
+    build=meta.get('build')
+    full=str(meta.get('full','')).strip()
+    if not version or not isinstance(build,int) or build < 184:
+        fail('V0.3 compatibility contract requires release build 184 or later')
+    if full != f'{version}+{build}':
+        fail('Release metadata full/version/build fields are inconsistent')
+    req('flutter_app/pubspec.yaml',f'version: {full}')
 
     premium=req('flutter_app/lib/premium_v151.dart','const List<(String, String, Color)> v151ThemeOptions')
     theme_block=premium[premium.index('const List<(String, String, Color)> v151ThemeOptions'):premium.index('const List<String> v151AccentColors')]

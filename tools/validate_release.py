@@ -106,6 +106,7 @@ def check_required_files() -> None:
         "tools/test_v176_daily_pack_inventory_contract.py",
         "tools/test_v184_flutter_quality_contract.py",
         "tools/test_v184_official_game_rules_contract.py",
+        "tools/test_ci_release_compat_contract.py",
         "tools/test_v200_full_fusion_contract.py",
         "backend-laravel/tools/test-v184-official-rules-audit.php",
         "backend-laravel/tools/test-v184-engine-stress.php",
@@ -621,7 +622,7 @@ def check_release_and_wallet_regressions() -> None:
 
 def check_android_ci_order() -> None:
     workflow = read(".github/workflows/flutter-android.yml")
-    for needle in ["actions/checkout@v5", "actions/setup-java@v5", "actions/upload-artifact@v6"]:
+    for needle in ["actions/checkout@v6", "actions/setup-java@v5", "actions/upload-artifact@v6"]:
         if needle not in workflow:
             fail(f"Android official action version missing: {needle}")
     java_block = workflow.split("- name: Set up Java 17", 1)[1].split("- name:", 1)[0]
@@ -1330,6 +1331,20 @@ def check_v176_daily_pack_inventory_contract() -> None:
 
 
 
+
+def check_ci_release_compat_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_ci_release_compat_contract.py")],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("CI release compatibility contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] Additive historical release contracts and optional Node-24 Pages deployment")
+
 def check_v184_official_game_rules_contract() -> None:
     result = subprocess.run(
         [sys.executable, str(ROOT / "tools/test_v184_official_game_rules_contract.py")],
@@ -1412,6 +1427,7 @@ def main() -> None:
     check_v174_offline_progression_navigation_contract()
     check_v175_xp_challenges_pasha_designer_contract()
     check_v176_daily_pack_inventory_contract()
+    check_ci_release_compat_contract()
     check_v184_official_game_rules_contract()
     check_secrets()
     check_dart_structure()

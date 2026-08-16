@@ -21,7 +21,18 @@
     "competition_exit_limit_5",
     "system_competition_50_300",
     "admin_no_code_designer",
-    "full_assets_preserved"
+    "full_assets_preserved",
+    "historical_contracts_additive",
+    "node24_actions",
+    "github_pages_optional_deploy"
   ],
-  "framework_ci_required": true
+  "framework_ci_required": true,
+  "ci_hotfix": "R2",
+  "github_actions": {
+    "checkout": "v6",
+    "configure_pages": "v6",
+    "upload_pages_artifact": "v4",
+    "deploy_pages": "v5",
+    "pages_policy": "build_always_deploy_only_if_enabled"
+  }
 }
