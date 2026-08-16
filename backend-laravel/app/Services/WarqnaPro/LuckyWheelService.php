@@ -29,8 +29,6 @@ class LuckyWheelService
             ['key'=>'ticket_500','label_ar'=>'تذكرة 500','label_en'=>'Competition Ticket 500','icon'=>'🎟️','weight'=>10,'color'=>'#7c3aed','reward'=>['type'=>'ticket','value'=>'500','duration_hours'=>0,'rarity'=>'rare','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 500']],
             ['key'=>'pasha_day','label_ar'=>'يوم باشا','label_en'=>'One Pasha Day','icon'=>'👑','weight'=>5,'color'=>'#dc2626','reward'=>['type'=>'pasha_day','value'=>'1','duration_hours'=>24,'rarity'=>'legendary','icon'=>'👑','label_ar'=>'يوم باشا','store_item_key'=>'lucky_wheel_pasha_day_v182']],
             ['key'=>'royal_box','label_ar'=>'غلاف ملكي','label_en'=>'Royal Cover','icon'=>'🎁','weight'=>4,'color'=>'#be123c','reward'=>['type'=>'profile_cover','value'=>'cover_v02_royal','duration_hours'=>72,'rarity'=>'epic','icon'=>'🖼️','label_ar'=>'غلاف شخصي ملكي لمدة 3 أيام','store_item_key'=>'lucky_wheel_royal_cover_v182']],
-            ['key'=>'tokens_500','label_ar'=>'500 توكن','label_en'=>'500 Tokens','icon'=>'💰','weight'=>6,'color'=>'#0f766e','reward'=>['type'=>'tokens','value'=>'500','duration_hours'=>0,'rarity'=>'epic','icon'=>'💰','label_ar'=>'500 توكن مجاني']],
-            ['key'=>'ticket_1000','label_ar'=>'تذكرة 1000','label_en'=>'Competition Ticket 1000','icon'=>'🏆','weight'=>3,'color'=>'#92400e','reward'=>['type'=>'ticket','value'=>'1000','duration_hours'=>0,'rarity'=>'legendary','icon'=>'🏆','label_ar'=>'تذكرة مسابقة 1000']],
         ];
     }
 
@@ -81,7 +79,7 @@ class LuckyWheelService
                 'source_type'=>'lucky_wheel',
                 'source_key'=>$sourceKey,
                 'awarded_date'=>$today,
-                'payload'=>['segment_key'=>$segment['key'],'version'=>'V0.3.3'],
+                'payload'=>['segment_key'=>$segment['key'],'version'=>'V0.4.5'],
             ]);
             $opened = $this->prizeBoxes->open($user,$box,$segment['reward']);
             $spin = LuckyWheelSpin::create([

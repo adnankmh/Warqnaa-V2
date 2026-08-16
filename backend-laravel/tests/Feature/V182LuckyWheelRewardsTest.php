@@ -40,7 +40,7 @@ class V182LuckyWheelRewardsTest extends TestCase
         $service = app(LuckyWheelService::class);
 
         $center = $service->center($user);
-        $this->assertCount(10, $center['segments']);
+        $this->assertCount(8, $center['segments']);
         $this->assertTrue($center['free_available']);
         $this->assertSame(100, $center['token_cost']);
 

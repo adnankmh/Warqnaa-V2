@@ -1,0 +1,34 @@
+{
+  "version": "0.4.5",
+  "build": 201,
+  "full": "0.4.5+201",
+  "release": "v201",
+  "name": "Warqnaa V0.4.5 Gameplay & Admin Pro",
+  "base": "V200 CI Fixed R2 + Hotfix R3",
+  "ports": [
+    8007,
+    8008,
+    8009,
+    8010
+  ],
+  "contracts": [
+    "server_authoritative",
+    "symmetric_balanced_playable_deal",
+    "manual_hand_reorder",
+    "clubs_diamonds_spades_hearts_sort",
+    "primary_admin_unlimited_economy",
+    "delegated_admin_permissions",
+    "abd_admin",
+    "demo_users_min_1m",
+    "responsive_web_100_percent",
+    "nonsticky_admin_tabs",
+    "circular_editable_avatar",
+    "r201_store_collectibles",
+    "full_assets_preserved",
+    "flutter_drag_drop_rummy",
+    "offline_tarneeb_bidding",
+    "eight_segment_reward_wheel",
+    "runtime_legendary_cosmetics"
+  ],
+  "framework_ci_required": true
+}

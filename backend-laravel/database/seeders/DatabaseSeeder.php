@@ -477,4 +477,39 @@ $v105Emoji=[
 foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items')->updateOrInsert(['key'=>$key],[
  'name'=>json_encode(['ar'=>$ar,'en'=>$en],JSON_UNESCAPED_UNICODE),'category'=>'emoji_pack','price'=>$price,'duration_days'=>null,'payload'=>json_encode(['emojis'=>$icons,'emoji_tier'=>$tier,'animated'=>in_array($tier,['animated','vip']),'large'=>in_array($tier,['animated','vip']),'v105'=>true],JSON_UNESCAPED_UNICODE),'active'=>true,'created_at'=>now(),'updated_at'=>now()
 ]);
- }}
+ 
+ // === R201 FINAL NORMALIZATION: runs last so legacy blocks cannot overwrite current rules. ===
+ if (\Illuminate\Support\Facades\Schema::hasColumn('users','admin_role')) {
+   $admin->update(['is_admin'=>true,'admin_role'=>'primary_admin','admin_permissions'=>['all'=>true]]);
+   $abd=User::updateOrCreate(['email'=>'abd@warqna.local'],[
+     'username'=>'Abd','password'=>Hash::make('123AbdAbd'),'is_admin'=>true,'is_banned'=>false,
+     'admin_role'=>'delegated_admin','admin_permissions'=>['users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,'economy'=>true,'security'=>true]
+   ]);
+   Profile::updateOrCreate(['user_id'=>$abd->id],['display_name'=>'Abd','avatar'=>'🛡️','country_code'=>'PS','country_name'=>'Palestine','level'=>90,'xp'=>7800000,'games_played'=>12000,'wins'=>8000,'name_color'=>'#38bdf8','chat_color'=>'#38bdf8','pasha_days'=>365,'badge'=>'admin']);
+   Wallet::updateOrCreate(['user_id'=>$abd->id],['tokens'=>10000000000000000,'gems'=>100000]);
+ }
+ // BIGINT cannot store the requested 10^32 ceremonial Adnan balance, so keep a safe DB reserve and an unlimited primary-admin wallet policy.
+ Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ $admin->profile?->update(['pasha_days'=>36500,'level'=>99,'badge'=>'king']);
+ foreach($seededDemoUsers as $demo){
+   if($demo->wallet && (int)$demo->wallet->tokens<1000000) $demo->wallet->update(['tokens'=>1000000 + ((int)$demo->profile?->level * 25000)]);
+ }
+ try { app(StoreCatalogService::class)->sync(); } catch (\Throwable $e) {}
+ if (\Illuminate\Support\Facades\Schema::hasTable('inventory_items') && \Illuminate\Support\Facades\Schema::hasTable('store_items')) {
+   foreach(\App\Models\StoreItem::where('active',true)->get() as $item){
+     if($item->category==='pasha') continue;
+     \App\Models\InventoryItem::updateOrCreate(['user_id'=>$admin->id,'store_item_id'=>$item->id],[
+       'active'=>false,'activated_at'=>null,'expires_at'=>null
+     ]);
+   }
+ }
+ if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
+   foreach([
+    ['deal_policy','balanced_playable','string','gameplay','توزيع عادل قابل للعب'],
+    ['tarneeb_minimum_playable_honors','2','int','gameplay','أقل جودة يد طرنيب'],
+    ['hand_manual_reorder','1','bool','gameplay','ترتيب يدوي للهاند والبناكل'],
+    ['admin_tabs_sticky','0','bool','appearance','قائمة الإدارة غير ثابتة'],
+    ['profile_avatar_shape','circle','string','appearance','صورة شخصية دائرية']
+   ] as [$key,$value,$type,$group,$label]) \App\Models\SiteSetting::setValue($key,$value,$type,$group,$label);
+ }
+}}

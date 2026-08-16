@@ -10,10 +10,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['username','email','password','is_admin','is_banned','last_seen_at','email_verified_at','deletion_requested_at','last_login_ip','last_login_user_agent'];
+    protected $fillable = ['username','email','password','is_admin','admin_role','admin_permissions','is_banned','last_seen_at','email_verified_at','deletion_requested_at','last_login_ip','last_login_user_agent'];
     protected $hidden = ['password','remember_token'];
     protected $casts = [
         'is_admin' => 'boolean',
+        'admin_permissions' => 'array',
         'is_banned' => 'boolean',
         'last_seen_at' => 'datetime',
         'email_verified_at' => 'datetime',
@@ -38,6 +39,27 @@ class User extends Authenticatable
     public function prizeBoxes(){ return $this->hasMany(PrizeBox::class); }
     public function luckyWheelSpins(){ return $this->hasMany(LuckyWheelSpin::class); }
     public function clubMembership(){ return $this->hasOne(ClubMember::class); }
+
+    public function isPrimaryAdmin(): bool
+    {
+        return (bool)$this->is_admin && strcasecmp(trim((string)$this->username), 'Adnan') === 0;
+    }
+
+    public function hasAdminPermission(string $permission): bool
+    {
+        if ($this->isPrimaryAdmin()) return true;
+        if (!(bool)$this->is_admin) return false;
+        $permissions = (array)($this->admin_permissions ?? []);
+        return !empty($permissions['all']) || !empty($permissions[$permission]);
+    }
+
+    public function displayTokenBalance(): string
+    {
+        // Primary admin has an unlimited economy account. Keep the requested ceremonial balance
+        // as a display string because BIGINT/PHP integers cannot safely hold 10^32.
+        if ($this->isPrimaryAdmin()) return '100000000000000000000000000000000';
+        return (string)($this->wallet?->tokens ?? 0);
+    }
 
     public function publicProfile(): array
     {
@@ -77,6 +99,7 @@ class User extends Authenticatable
             'win_rate'=>($p?->games_played ? round(($p->wins / max(1,$p->games_played))*100,1) : 0),
             'win_rates'=>[],
             'is_admin'=>(bool)$this->is_admin,
+            'admin_role'=>$this->admin_role ?? ($this->is_admin ? 'admin' : 'player'),
             'is_banned'=>(bool)$this->is_banned,
             'email_verified'=>(bool)$this->email_verified_at,
             'deletion_requested_at'=>$this->deletion_requested_at?->toIso8601String(),

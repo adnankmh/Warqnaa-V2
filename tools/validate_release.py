@@ -108,6 +108,7 @@ def check_required_files() -> None:
         "tools/test_v184_official_game_rules_contract.py",
         "tools/test_ci_release_compat_contract.py",
         "tools/test_v200_full_fusion_contract.py",
+        "tools/test_v201_gameplay_admin_contract.py",
         "backend-laravel/tools/test-v184-official-rules-audit.php",
         "backend-laravel/tools/test-v184-engine-stress.php",
         "tools/test_v02_daily_prize_boxes_contract.py",
@@ -1372,6 +1373,20 @@ def check_v02_daily_prize_boxes_contract() -> None:
     print("[OK] V0.2 dedicated prize-box page, 4-win limit, front-opening animation, ticket art and translated rewards")
 
 
+def check_v201_gameplay_admin_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_v201_gameplay_admin_contract.py")],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("Warqna V201 gameplay/admin contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] V201 gameplay, admin delegation, manual hand ordering and responsive UI contract")
+
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1428,6 +1443,7 @@ def main() -> None:
     check_v175_xp_challenges_pasha_designer_contract()
     check_v176_daily_pack_inventory_contract()
     check_ci_release_compat_contract()
+    check_v201_gameplay_admin_contract()
     check_v184_official_game_rules_contract()
     check_secrets()
     check_dart_structure()

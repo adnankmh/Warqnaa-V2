@@ -66,7 +66,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
 <div class="admin-v133-live-strip"><b>v133 Admin Pro</b><span>الغرف والنوادي والمسابقات واللاعبون والمتجر في تبويبات مباشرة.</span><button type="button" onclick="document.querySelector('[data-admin-tab=players]')?.click()">إدارة اللاعبين</button><button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">إدارة المتجر</button></div>
 <div class="stats"><div>الغرف {{$rooms}}</div><div>النوادي {{$clubs}}</div><div>المسابقات {{$tournaments}}</div><div>المقتنيات {{$storeItems->count()}}</div></div>
 <div class="admin-tabs jumbo-tabs">
- <button data-admin-tab="control">تحكم الموقع</button><button data-admin-tab="designer">مصمم شامل</button><button data-admin-tab="games-admin">الألعاب والقوانين</button><button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>
+ @if(auth()->user()?->hasAdminPermission('site_settings'))<button data-admin-tab="control">تحكم الموقع</button>@endif @if(auth()->user()?->hasAdminPermission('site_design'))<button data-admin-tab="designer">مصمم شامل</button>@endif @if(auth()->user()?->hasAdminPermission('game_rules'))<button data-admin-tab="games-admin">الألعاب والقوانين</button>@endif<button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>
 </div>
 
 <section id="admin-v118" class="admin-section">
@@ -349,7 +349,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
    <div class="admin-player-stats-v133">
     <span>Level {{$u->profile?->level ?? 1}}</span>
     <span>XP {{number_format($u->profile?->xp ?? 0)}}</span>
-    <span>🪙 {{number_format($u->wallet?->tokens??0)}}</span>
+    <span>🪙 {{token_display($u)}}</span>
     <span>{{$u->is_banned?'محظور':'نشط'}}</span>
    </div>
    <form class="admin-player-edit-v133" method="post" action="{{route('admin.users.action',$u)}}">
@@ -365,6 +365,9 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
     <form method="post" action="{{route('admin.users.action',$u)}}" data-confirm="هل تريد تغيير حالة الحظر؟">@csrf<input type="hidden" name="action" value="{{$u->is_banned?'unban':'ban'}}"><button>{{$u->is_banned?'فك الحظر':'حظر'}}</button></form>
     <form method="post" action="{{route('admin.users.action',$u)}}" data-confirm="سيتم إرسال توكنز مخفية من الإدارة بدون ظهور اسم المرسل.">@csrf<input type="hidden" name="action" value="credit"><input name="amount" value="1000"><button>توكنز مخفية</button></form>
     <form method="post" action="{{route('admin.users.action',$u)}}">@csrf<input type="hidden" name="action" value="friend_request"><button>إضافة صداقة</button></form>
+    @if(auth()->user()?->isPrimaryAdmin() && $u->is_admin && !$u->isPrimaryAdmin())
+    <form method="post" action="{{route('admin.users.action',$u)}}" class="delegated-admin-permissions-v201">@csrf<input type="hidden" name="action" value="permissions"><input name="permissions_json" value='{{ json_encode($u->admin_permissions ?? ["users"=>true,"store"=>true,"rooms"=>true,"clubs"=>true,"tournaments"=>true,"economy"=>true], JSON_UNESCAPED_UNICODE) }}' title="JSON صلاحيات المدير المفوّض"><button>حفظ صلاحيات المدير</button></form>
+    @endif
     @unless($u->is_admin)<form method="post" action="{{route('admin.users.action',$u)}}" data-confirm="سيتم حذف اللاعب نهائيًا.">@csrf<input type="hidden" name="action" value="delete"><button class="danger">حذف نهائي</button></form>@endunless
    </div>
   </article>

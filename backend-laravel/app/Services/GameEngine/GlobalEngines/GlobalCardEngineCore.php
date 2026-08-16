@@ -46,8 +46,14 @@ class GlobalCardEngineCore
 
         if (in_array($mode, ['trick','trick400','syrian41','trix','trix-complex'], true)) {
             $cardsEach = intdiv(count($deck), count($players));
-            for ($r=0; $r<$cardsEach; $r++) {
-                foreach ($players as $p) $hands[(string)$p['id']][] = array_shift($deck);
+            // Tarneeb-family rooms may request a symmetric playable-hand policy. We reshuffle the
+            // whole deal and accept it only when every player reaches the same minimum quality.
+            // No seat/user is privileged and the deck remains complete and duplicate-free.
+            if (in_array($mode, ['trick','trick400','syrian41'], true) && ($cfg['dealPolicy'] ?? 'balanced_playable') === 'balanced_playable') {
+                [$hands,$deck,$dealQuality] = $this->dealBalancedPlayableTrickHands($players,$cfg,(int)$seed);
+                $cfg['dealQuality']=$dealQuality;
+            } else {
+                for ($r=0; $r<$cardsEach; $r++) { foreach ($players as $p) $hands[(string)$p['id']][] = array_shift($deck); }
             }
             foreach ($hands as $pid => $h) $hands[$pid] = $this->sortCards($h);
             if ($mode === 'syrian41') {
@@ -297,7 +303,7 @@ class GlobalCardEngineCore
     {
         $this->assertPlayer($state, $playerId);
         if ($state['gameOver']) throw new GameEngineException('اللعبة منتهية.');
-        if ($this->currentPlayerId($state) !== $playerId && !in_array(($action['type'] ?? ''), ['set_away','return_from_away'], true)) throw new GameEngineException('ليست دورك.');
+        if ($this->currentPlayerId($state) !== $playerId && !in_array(($action['type'] ?? ''), ['set_away','return_from_away','organize'], true)) throw new GameEngineException('ليست دورك.');
         $type = (string)($action['type'] ?? '');
         $mode = $state['config']['mode'];
         return match($type) {
@@ -313,7 +319,7 @@ class GlobalCardEngineCore
             'meld' => $this->meld($state, $playerId, $action['cards'] ?? []),
             'meld_many' => $this->meldMany($state,$playerId,$action['groups'] ?? []),
             'layoff' => $this->layoff($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), $action['cards'] ?? []),
-            'organize' => $this->organize($state, $playerId, (string)($action['strategy'] ?? 'smart')),
+            'organize' => $this->organize($state, $playerId, (string)($action['strategy'] ?? 'smart'), $action['cards'] ?? []),
             'draw_stock' => $this->solitaireDraw($state, $playerId),
             'move_to_foundation' => $this->solitaireFoundation($state, $playerId, (string)$action['card']),
             'set_away' => $this->setAway($state, $playerId, true),
@@ -902,11 +908,25 @@ class GlobalCardEngineCore
         return $out;
     }
 
-    protected function organize(array $state, string $playerId, string $strategy): array
+    protected function organize(array $state, string $playerId, string $strategy, array $requestedOrder=[]): array
     {
-        $state['hands'][$playerId] = $this->sortCards($state['hands'][$playerId] ?? []);
+        $hand=array_values($state['hands'][$playerId] ?? []);
+        if ($requestedOrder) {
+            $requestedOrder=array_values(array_map('strval',$requestedOrder));
+            if (!$this->sameCardMultiset($hand,$requestedOrder)) throw new GameEngineException('ترتيب اليد المرسل لا يطابق أوراق اللاعب.');
+            $state['hands'][$playerId]=$requestedOrder;
+            $strategy='manual';
+        } else {
+            $state['hands'][$playerId]=$this->sortCards($hand);
+        }
         $state = $this->record($state, 'hand.organized', compact('playerId','strategy'));
         return $this->finalizeState($state);
+    }
+
+    protected function sameCardMultiset(array $left,array $right): bool
+    {
+        if(count($left)!==count($right)) return false;
+        sort($left); sort($right); return $left===$right;
     }
 
     protected function scoreRummyRound(array $state, string $winnerId, bool $meldOut): array
@@ -1078,5 +1098,50 @@ class GlobalCardEngineCore
         if ($mode==='baloot') { $s=$this->suit($card); if($trump && $s===$trump) $map=['J'=>20,'9'=>19,'A'=>18,'10'=>17,'K'=>16,'Q'=>15,'8'=>8,'7'=>7]; else $map=['A'=>14,'10'=>13,'K'=>12,'Q'=>11,'J'=>10,'9'=>9,'8'=>8,'7'=>7]; }
         return $map[$rank] ?? 0;
     }
-    protected function sortCards(array $cards): array { usort($cards, fn($a,$b)=>[$this->suit($a),$this->rankValue($b)] <=> [$this->suit($b),$this->rankValue($a)]); return $cards; }
+    protected function sortCards(array $cards): array
+    {
+        // Requested visual order RTL: clubs (سنك), diamonds (ديناري), spades (بستوني), hearts (كبة), high to low.
+        $suitOrder=['C'=>0,'D'=>1,'S'=>2,'H'=>3];
+        usort($cards,function($a,$b) use($suitOrder){
+            $sa=$suitOrder[$this->suit((string)$a)] ?? 9; $sb=$suitOrder[$this->suit((string)$b)] ?? 9;
+            return $sa===$sb ? ($this->rankValue((string)$b)<=>$this->rankValue((string)$a)) : ($sa<=>$sb);
+        });
+        return array_values($cards);
+    }
+
+    protected function playableHonorQuality(array $hand): int
+    {
+        $bySuit=['C'=>[],'D'=>[],'S'=>[],'H'=>[]];
+        foreach($hand as $card){ $s=$this->suit((string)$card); if(isset($bySuit[$s])) $bySuit[$s][]=$this->rank((string)$card); }
+        $quality=0;
+        foreach($bySuit as $ranks){
+            $n=count($ranks);
+            if($n>=5 && in_array('J',$ranks,true)) $quality++;
+            if($n>=4 && in_array('Q',$ranks,true)) $quality++;
+            if($n>=3 && in_array('K',$ranks,true)) $quality++;
+            if($n>=2 && in_array('A',$ranks,true)) $quality++;
+        }
+        return $quality;
+    }
+
+    protected function dealBalancedPlayableTrickHands(array $players,array $cfg,int $seed): array
+    {
+        $minimum=max(1,min(4,(int)($cfg['minimumPlayableHonors'] ?? 2)));
+        $attempts=max(1,min(250,(int)($cfg['dealQualityAttempts'] ?? 160)));
+        $best=null; $bestFloor=-1;
+        for($attempt=0;$attempt<$attempts;$attempt++){
+            mt_srand($seed+$attempt*7919);
+            $candidateDeck=$this->makeDeck($cfg['deck'] ?? '52',count($players));
+            $this->shuffleDeck($candidateDeck);
+            $candidateHands=[]; foreach($players as $p) $candidateHands[(string)$p['id']]=[];
+            $cardsEach=intdiv(count($candidateDeck),count($players));
+            for($r=0;$r<$cardsEach;$r++) foreach($players as $p) $candidateHands[(string)$p['id']][]=array_shift($candidateDeck);
+            $scores=[]; foreach($candidateHands as $pid=>$hand) $scores[$pid]=$this->playableHonorQuality($hand);
+            $floor=min($scores);
+            if($floor>$bestFloor){ $best=[$candidateHands,$candidateDeck,$scores,$attempt+1]; $bestFloor=$floor; }
+            if($floor >= $minimum) return [$candidateHands,$candidateDeck,['minimum'=>$minimum,'scores'=>$scores,'attempts'=>$attempt+1,'policy'=>'symmetric_balanced_playable']];
+        }
+        [$candidateHands,$candidateDeck,$scores,$used]=$best;
+        return [$candidateHands,$candidateDeck,['minimum'=>$minimum,'scores'=>$scores,'attempts'=>$used,'policy'=>'symmetric_best_effort','target_met'=>false]];
+    }
 }

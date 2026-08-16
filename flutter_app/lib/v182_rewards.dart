@@ -9,8 +9,6 @@ const List<Map<String, dynamic>> luckyWheelSegmentsV182 = <Map<String, dynamic>>
   <String, dynamic>{'key':'ticket_500','label_ar':'تذكرة 500','label_en':'Ticket 500','icon':'🎟️','weight':10,'color':'#7c3aed','reward':<String,dynamic>{'type':'ticket','value':'500','duration_hours':0,'rarity':'rare','icon':'🎟️','label_ar':'تذكرة مسابقة 500'}},
   <String, dynamic>{'key':'pasha_day','label_ar':'يوم باشا','label_en':'Pasha Day','icon':'👑','weight':5,'color':'#dc2626','reward':<String,dynamic>{'type':'pasha_day','value':'1','duration_hours':24,'rarity':'legendary','icon':'👑','label_ar':'يوم باشا','store_item_key':'lucky_wheel_pasha_day_v182'}},
   <String, dynamic>{'key':'royal_box','label_ar':'غلاف ملكي','label_en':'Royal Cover','icon':'🎁','weight':4,'color':'#be123c','reward':<String,dynamic>{'type':'profile_cover','value':'cover_v02_royal','duration_hours':72,'rarity':'epic','icon':'🖼️','label_ar':'غلاف شخصي ملكي لمدة 3 أيام','store_item_key':'lucky_wheel_royal_cover_v182'}},
-  <String, dynamic>{'key':'tokens_500','label_ar':'500 توكن','label_en':'500 Tokens','icon':'💰','weight':6,'color':'#0f766e','reward':<String,dynamic>{'type':'tokens','value':'500','duration_hours':0,'rarity':'epic','icon':'💰','label_ar':'500 توكن مجاني'}},
-  <String, dynamic>{'key':'ticket_1000','label_ar':'تذكرة 1000','label_en':'Ticket 1000','icon':'🏆','weight':3,'color':'#92400e','reward':<String,dynamic>{'type':'ticket','value':'1000','duration_hours':0,'rarity':'legendary','icon':'🏆','label_ar':'تذكرة مسابقة 1000'}},
 ];
 
 String _todayV182() {

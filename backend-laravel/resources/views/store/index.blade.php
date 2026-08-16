@@ -27,7 +27,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
    <h1>متجر ورقنا المنظم</h1>
    <p>كل قسم منفصل لوحده: الباشا وحده، الطاولات وحدها، ظهر الورق وحده، الألوان وحدها، الإيموجي وحده، والمشتريات وحدها.</p>
   </div>
-  <div class="store-wallet-v127"><b>🪙 {{ number_format(auth()->user()?->wallet?->tokens ?? 0) }}</b><span>رصيدك</span></div>
+  <div class="store-wallet-v127"><b>🪙 {{ token_display(auth()->user()) }}</b><span>رصيدك</span></div>
  </header>
 
  <nav class="store-category-tabs-v127">

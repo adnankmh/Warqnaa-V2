@@ -32,6 +32,7 @@ class StoreCatalogService
         // Keep exactly the seven color boosters active. Legacy booster rows remain for historical inventory only.
         $boostKeep=array_column(array_filter($this->v183Items(),fn(array $i)=>($i['category'] ?? '')==='xp_booster'),'key');
         DB::table('store_items')->where('category','xp_booster')->whereNotIn('key',$boostKeep)->update(['active'=>false,'updated_at'=>now()]);
+        foreach($this->v201Items() as $item) $this->upsert($item);
 
     }
 
@@ -71,6 +72,21 @@ class StoreCatalogService
         return (int)(ceil($raised/500)*500);
     }
 
+
+    /** @return array<int,array<string,mixed>> */
+    public function v201Items(): array
+    {
+        return [
+            ['key'=>'table_whale_motion_v201','ar'=>'طاولة الحوت المتحرك','en'=>'Swimming Whale Table','category'=>'table','price'=>260000,'duration_days'=>null,'payload'=>['tier'=>'legendary','animated'=>true,'preview_icon'=>'🐋','table'=>'table-v201-whale','table_class'=>'table-v201-whale','motion'=>'swim']],
+            ['key'=>'table_wings_motion_v201','ar'=>'طاولة الأجنحة الملكية','en'=>'Royal Wings Table','category'=>'table','price'=>320000,'duration_days'=>null,'payload'=>['tier'=>'legendary','animated'=>true,'preview_icon'=>'🪽','table'=>'table-v201-wings','table_class'=>'table-v201-wings','motion'=>'float']],
+            ['key'=>'table_signature_v201','ar'=>'طاولة الاسم الأسطورية','en'=>'Signature Name Table','category'=>'table','price'=>600000,'duration_days'=>null,'payload'=>['tier'=>'legendary','animated'=>true,'preview_icon'=>'👑','table'=>'table-v201-signature','table_class'=>'table-v201-signature','personalized'=>true]],
+            ['key'=>'cardback_phoenix_motion_v201','ar'=>'ظهر العنقاء المتوهجة','en'=>'Glowing Phoenix Back','category'=>'card_back','price'=>95000,'duration_days'=>null,'payload'=>['tier'=>'legendary','animated'=>true,'preview_icon'=>'🔥','card_back'=>'cardback-v201-phoenix']],
+            ['key'=>'emoji_v201_reactions','ar'=>'تفاعلات متحركة فخمة','en'=>'Premium Animated Reactions','category'=>'emoji_pack','price'=>52000,'duration_days'=>null,'payload'=>['tier'=>'animated','animated'=>true,'large'=>true,'sound'=>true,'emojis'=>'🤣🔥👑🐉🦅💎⚡🎉🌪️🫡']],
+            ['key'=>'badge_v201_master','ar'=>'شارة سيد الورق','en'=>'Card Master Badge','category'=>'badge','price'=>65000,'duration_days'=>null,'payload'=>['tier'=>'legendary','preview_icon'=>'🏅','badge'=>'card-master-v201']],
+            ['key'=>'cover_v201_galaxy','ar'=>'غلاف المجرة الملكية','en'=>'Royal Galaxy Cover','category'=>'profile_cover','price'=>85000,'duration_days'=>null,'payload'=>['tier'=>'legendary','preview_icon'=>'🌌','cover'=>'cover-v201-galaxy']],
+            ['key'=>'theme_v201_midnight_gold','ar'=>'ثيم منتصف الليل الذهبي','en'=>'Midnight Gold Theme','category'=>'effect','price'=>70000,'duration_days'=>null,'payload'=>['tier'=>'legendary','preview_icon'=>'🌙','theme'=>'midnight-gold','theme_colors'=>['bg'=>'#05070f','panel'=>'#111827','accent'=>'#facc15']]],
+        ];
+    }
     /** @return array<int,array<string,mixed>> */
     public function v183Items(): array
     {

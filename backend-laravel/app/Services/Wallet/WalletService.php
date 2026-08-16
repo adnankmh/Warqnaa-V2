@@ -7,7 +7,7 @@ use RuntimeException;
 
 class WalletService
 {
-    private const MAX_TRANSACTION_AMOUNT = 1000000000000; // 1 trillion per operation guardrail.
+    private const MAX_TRANSACTION_AMOUNT = 10000000000000000; // delegated-admin ceiling; primary Adnan remains unlimited.
 
     private function validateAmount(int $amount): void
     {
@@ -20,8 +20,12 @@ class WalletService
     {
         $this->validateAmount($amount);
         DB::transaction(function() use($user,$amount,$type,$meta){
-            $w=$user->wallet()->lockForUpdate()->first();
-            if(!$w || $w->tokens < $amount) throw new RuntimeException('Insufficient tokens');
+            $w=$user->wallet()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],['tokens'=>50]);
+            if ($user->isPrimaryAdmin()) {
+                $user->walletTransactions()->create(['type'=>$type,'amount'=>-$amount,'meta'=>array_merge($meta,['primary_admin_unlimited'=>true])]);
+                return;
+            }
+            if($w->tokens < $amount) throw new RuntimeException('Insufficient tokens');
             if($amount > 0) $w->decrement('tokens',$amount);
             $user->walletTransactions()->create(['type'=>$type,'amount'=>-$amount,'meta'=>$meta]);
         });

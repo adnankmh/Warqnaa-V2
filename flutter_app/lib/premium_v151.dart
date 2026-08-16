@@ -1,19 +1,20 @@
 part of 'main.dart';
 
 const Map<String, Map<String, Object>> demoAccounts = <String, Map<String, Object>>{
-  'adnan': <String, Object>{'password': 'Adnan123', 'name': 'Adnan', 'coins': '1000000000000000000', 'admin': true, 'level': 99},
-  'kareem': <String, Object>{'password': 'Kareem123', 'name': 'كريم', 'coins': '250000', 'admin': false, 'level': 42},
-  'rami': <String, Object>{'password': 'Rami12345', 'name': 'رامي', 'coins': '180000', 'admin': false, 'level': 35},
-  'lina': <String, Object>{'password': 'Lina12345', 'name': 'لينا', 'coins': '120000', 'admin': false, 'level': 28},
-  'samar': <String, Object>{'password': 'Samar12345', 'name': 'سمر', 'coins': '95000', 'admin': false, 'level': 24},
-  'layla': <String, Object>{'password': 'Layla12345', 'name': 'ليلى', 'coins': '110000', 'admin': false, 'level': 31},
-  'jameel': <String, Object>{'password': 'Jameel12345', 'name': 'جميل', 'coins': '88000', 'admin': false, 'level': 22},
-  'nour': <String, Object>{'password': 'Nour12345', 'name': 'نور', 'coins': '76000', 'admin': false, 'level': 19},
-  'omar': <String, Object>{'password': 'Omar12345', 'name': 'عمر', 'coins': '68000', 'admin': false, 'level': 27},
-  'sara': <String, Object>{'password': 'Sara12345', 'name': 'سارة', 'coins': '72000', 'admin': false, 'level': 29},
-  'basel': <String, Object>{'password': 'Basel12345', 'name': 'باسل', 'coins': '84000', 'admin': false, 'level': 33},
-  'hala': <String, Object>{'password': 'Hala12345', 'name': 'هالة', 'coins': '61000', 'admin': false, 'level': 25},
-  'yazan': <String, Object>{'password': 'Yazan12345', 'name': 'يزن', 'coins': '79000', 'admin': false, 'level': 30},
+  'adnan': <String, Object>{'password': 'Adnan123', 'name': 'Adnan', 'coins': '100000000000000000000000000000000', 'admin': true, 'primary_admin': true, 'level': 99},
+  'abd': <String, Object>{'password': '123AbdAbd', 'name': 'Abd', 'coins': '10000000000000000', 'admin': true, 'delegated_admin': true, 'level': 90},
+  'kareem': <String, Object>{'password': 'Kareem123', 'name': 'كريم', 'coins': '1250000', 'admin': false, 'level': 42},
+  'rami': <String, Object>{'password': 'Rami12345', 'name': 'رامي', 'coins': '1180000', 'admin': false, 'level': 35},
+  'lina': <String, Object>{'password': 'Lina12345', 'name': 'لينا', 'coins': '1120000', 'admin': false, 'level': 28},
+  'samar': <String, Object>{'password': 'Samar12345', 'name': 'سمر', 'coins': '1095000', 'admin': false, 'level': 24},
+  'layla': <String, Object>{'password': 'Layla12345', 'name': 'ليلى', 'coins': '1110000', 'admin': false, 'level': 31},
+  'jameel': <String, Object>{'password': 'Jameel12345', 'name': 'جميل', 'coins': '1088000', 'admin': false, 'level': 22},
+  'nour': <String, Object>{'password': 'Nour12345', 'name': 'نور', 'coins': '1076000', 'admin': false, 'level': 19},
+  'omar': <String, Object>{'password': 'Omar12345', 'name': 'عمر', 'coins': '1068000', 'admin': false, 'level': 27},
+  'sara': <String, Object>{'password': 'Sara12345', 'name': 'سارة', 'coins': '1072000', 'admin': false, 'level': 29},
+  'basel': <String, Object>{'password': 'Basel12345', 'name': 'باسل', 'coins': '1084000', 'admin': false, 'level': 33},
+  'hala': <String, Object>{'password': 'Hala12345', 'name': 'هالة', 'coins': '1061000', 'admin': false, 'level': 25},
+  'yazan': <String, Object>{'password': 'Yazan12345', 'name': 'يزن', 'coins': '1079000', 'admin': false, 'level': 30},
 };
 
 String demoAvatarFor(String username) => switch (username.trim().toLowerCase()) {

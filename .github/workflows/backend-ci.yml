@@ -66,6 +66,8 @@ jobs:
         run: python3 ../tools/test_ci_release_compat_contract.py
       - name: Verify V200 Full Fusion contract
         run: python3 ../tools/test_v200_full_fusion_contract.py
+      - name: Verify V201 Gameplay & Admin contract
+        run: python3 ../tools/test_v201_gameplay_admin_contract.py
       - name: Run V184 official game-rule audit
         run: php tools/test-v184-official-rules-audit.php
       - name: Stress all registered game engines

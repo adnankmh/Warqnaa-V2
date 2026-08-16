@@ -3565,7 +3565,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> chooseDemoAccount() async {
     const accounts = <(String, String, String)>[
-      ('Adnan', 'Adnan123', 'مدير • 1,000,000,000,000,000,000 توكن'),
+      ('Adnan', 'Adnan123', 'مدير رئيسي • رصيد إدارة غير محدود'),
+      ('Abd', '123AbdAbd', 'مدير مفوّض • 10,000,000,000,000,000 توكن'),
       ('Kareem', 'Kareem123', 'لاعب مستوى 42'),
       ('Rami', 'Rami12345', 'لاعب مستوى 35'),
       ('Lina', 'Lina12345', 'لاعبة مستوى 28'),
@@ -6653,6 +6654,15 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     );
   }
 
+  Future<void> _reorderServerHand(int fromIndex, int toIndex) async {
+    if (sending || fromIndex == toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= hand.length || toIndex >= hand.length) return;
+    final next = List<String>.from(hand);
+    final moving = next.removeAt(fromIndex);
+    final insertAt = toIndex > fromIndex ? toIndex - 1 : toIndex;
+    next.insert(insertAt.clamp(0, next.length).toInt(), moving);
+    await _action('organize', <String, dynamic>{'cards': next, 'strategy': 'manual'});
+  }
+
   Future<void> _quickPlayCard(String card) async {
     if (sending || (legal.isNotEmpty && !legal.contains(card))) return;
     final match = availableActions.cast<Map<String,dynamic>?>().firstWhere((item)=>item?['card']?.toString()==card && {'play_card','discard','move_to_foundation','play_tile'}.contains(item?['type']?.toString()),orElse:()=>null);
@@ -6663,12 +6673,13 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Widget _serverHand() {
     if (hand.isEmpty) return const SizedBox(height: 55, child: Center(child: Text('لا توجد أوراق ظاهرة في هذه المرحلة', style: TextStyle(color: Colors.white38, fontSize: 10))));
+    final reorderable = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = visibleCardWidthV021(constraints.maxWidth, hand.length, preferred: 54, gap: 2);
         final cardHeight = cardWidth * 1.5;
         return SizedBox(
-          height: cardHeight + 23,
+          height: cardHeight + 27,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             child: Row(
@@ -6677,17 +6688,40 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                 for (var index = 0; index < hand.length; index++)
                   Padding(
                     padding: EdgeInsets.only(right: index == hand.length - 1 ? 0 : 2),
-                    child: Transform.translate(
-                      offset: Offset(0, selectedCard == hand[index] ? -7 : 0),
-                      child: GestureDetector(
-                        onTap: () => setState(() => selectedCard = selectedCard == hand[index] ? null : hand[index]),
-                        onDoubleTap: () => _quickPlayCard(hand[index]),
-                        onVerticalDragEnd: (details) { if ((details.primaryVelocity ?? 0) < -180) _quickPlayCard(hand[index]); },
-                        child: Opacity(
-                          opacity: legal.isNotEmpty && !legal.contains(hand[index]) ? .42 : 1,
-                          child: PlayingCard(label: _cardLabel(hand[index]), width: cardWidth, height: cardHeight, selected: selectedCard == hand[index]),
-                        ),
-                      ),
+                    child: DragTarget<int>(
+                      onWillAcceptWithDetails: (details) => reorderable && !sending && details.data != index,
+                      onAcceptWithDetails: (details) => _reorderServerHand(details.data, index),
+                      builder: (context, candidate, rejected) {
+                        final card = Transform.translate(
+                          offset: Offset(0, selectedCard == hand[index] ? -7 : 0),
+                          child: GestureDetector(
+                            onTap: () => setState(() => selectedCard = selectedCard == hand[index] ? null : hand[index]),
+                            onDoubleTap: () => _quickPlayCard(hand[index]),
+                            onVerticalDragEnd: (details) { if ((details.primaryVelocity ?? 0) < -180) _quickPlayCard(hand[index]); },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 120),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(7),
+                                boxShadow: candidate.isEmpty ? const [] : [BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: .7), blurRadius: 10, spreadRadius: 1)],
+                              ),
+                              child: Opacity(
+                                opacity: legal.isNotEmpty && !legal.contains(hand[index]) ? .42 : 1,
+                                child: PlayingCard(label: _cardLabel(hand[index]), width: cardWidth, height: cardHeight, selected: selectedCard == hand[index]),
+                              ),
+                            ),
+                          ),
+                        );
+                        if (!reorderable) return card;
+                        return LongPressDraggable<int>(
+                          data: index,
+                          feedback: Material(
+                            color: Colors.transparent,
+                            child: PlayingCard(label: _cardLabel(hand[index]), width: cardWidth, height: cardHeight, selected: true),
+                          ),
+                          childWhenDragging: Opacity(opacity: .25, child: card),
+                          child: card,
+                        );
+                      },
                     ),
                   ),
               ],
@@ -7931,7 +7965,7 @@ void showSettings(BuildContext context, AppController controller) {
           const ListTile(leading: Icon(Icons.restore_rounded), title: Text('مهلة استعادة الحساب'), subtitle: Text('بعد إلغاء الحساب يمكنك استعادته بمجرد تسجيل الدخول خلال 30 يوماً؛ لا تُحذف الحسابات العادية بسبب عدم النشاط.')),
           const Divider(),
           if (!controller.isAdmin) OutlinedButton.icon(onPressed: () => showCancelAccountDialog(context, controller), icon: const Icon(Icons.person_off_rounded, color: Colors.redAccent), label: Text(L.t(controller.localeCode, 'deleteAccount'), style: const TextStyle(color: Colors.redAccent))),
-          if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('Adnan: مستوى 99، 1000 يوم باشا، ورصيد إدارة غير محدود.')),
+          if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('Adnan: مدير رئيسي ورصيد غير محدود • Abd: مدير مفوّض حسب صلاحيات Adnan.')),
           const SizedBox(height: 8),
           FilledButton(onPressed: () { Navigator.pop(context); showToast(context, 'تم حفظ الإعدادات وتطبيقها على التطبيق.'); }, child: Text(L.t(controller.localeCode, 'save'))),
         ],

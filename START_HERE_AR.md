@@ -1,4 +1,4 @@
-# ابدأ من هنا — Warqnaa V0.4.4+200 Full Fusion Pro — CI Fixed R2
+# ابدأ من هنا — Warqnaa V0.4.5+201 Gameplay & Admin Pro
 
 ## Windows / XAMPP
 1. فك الحزمة داخل `C:\xampp\htdocs\`.

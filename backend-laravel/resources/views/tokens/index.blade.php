@@ -16,7 +16,7 @@ $summary=[
 <section class="token-ledger-v136">
  <header class="token-ledger-hero-v136 pro-card">
   <div><span class="v127-kicker">Token Ledger</span><h1>سجل التوكنز</h1><p>سجل الشراء، التحويل، الإنفاق، المكافآت والعمولات في مكان واحد واضح وسهل القراءة.</p></div>
-  <div class="token-balance-pill-v136"><small>رصيدك الحالي</small><b>🪙 {{number_format($user->wallet?->tokens ?? 0)}}</b></div>
+  <div class="token-balance-pill-v136"><small>رصيدك الحالي</small><b>🪙 {{token_display($user)}}</b></div>
  </header>
  <div class="token-summary-grid-v136">
   <div class="pro-card"><b>{{number_format($summary['in'])}}</b><span>إجمالي الداخل</span></div>

@@ -84,6 +84,7 @@ class LocalGameSession {
   String? winnerKey;
   int _lastCaptureSeat = 0;
   bool _starterDiscardPending = false;
+  bool _manualRummyOrder = false;
 
   bool get _isRummy =>
       gameId == 'hand' ||
@@ -148,6 +149,7 @@ class LocalGameSession {
     winnerKey = null;
     round = 1;
     _starterDiscardPending = false;
+    _manualRummyOrder = false;
 
     if (_isRummy) {
       _setupRummy();
@@ -203,6 +205,10 @@ class LocalGameSession {
       enginePhase = 'bidding';
       trump = 'H';
       _messages.add('طرنيب 400: أعلن طلبك المستقل من 2 إلى 13، والكبة ♥ هي الحكم الثابت.');
+    } else if (gameId == 'tarneeb') {
+      phase = 'bidding';
+      enginePhase = 'bidding';
+      _messages.add('طرنيب: ابدأ الطلب من 7 إلى 13 أو مرّر. بعد تثبيت أعلى طلب يختار صاحبه نوع الطرنيب.');
     } else if (_isTrix) {
       phase = 'choose_contract';
       enginePhase = 'choose_contract';
@@ -218,27 +224,53 @@ class LocalGameSession {
   }
 
   void _balancePremiumHands() {
-    bool high(String card) {
-      final rank = _cardRank(card);
-      return rank == 'A' || rank == 'K' || rank == 'Q';
-    }
-    int highCount(List<String> hand) => hand.where(high).length;
-    for (var receiver = 0; receiver < _hands.length; receiver++) {
-      var guard = 0;
-      while (highCount(_hands[receiver]) < 2 && guard++ < 12) {
-        int? donor;
-        for (var index = 0; index < _hands.length; index++) {
-          if (index != receiver && highCount(_hands[index]) > 3) { donor = index; break; }
+    // The no-fresh policy is deliberately symmetric: the entire Tarneeb deal
+    // is retried until every seat reaches the same minimum playable-honor
+    // quality. No username, seat, Pasha status, purchase or level is favored.
+    if (!(gameId == 'tarneeb' || _isSyrianTarneeb || _isTarneeb400)) return;
+    const minimumQuality = 2;
+    var bestMinimum = -1;
+    List<List<String>>? best;
+    for (var attempt = 0; attempt < 160; attempt++) {
+      final cards = _makeDeck();
+      final candidate = List<List<String>>.generate(4, (_) => <String>[]);
+      for (var card = 0; card < 13; card++) {
+        for (var seat = 0; seat < 4; seat++) {
+          candidate[seat].add(cards.removeLast());
         }
-        if (donor == null) break;
-        final donorHighIndex = _hands[donor].indexWhere(high);
-        final receiverLowIndex = _hands[receiver].indexWhere((card) => !high(card));
-        if (donorHighIndex < 0 || receiverLowIndex < 0) break;
-        final temp = _hands[receiver][receiverLowIndex];
-        _hands[receiver][receiverLowIndex] = _hands[donor][donorHighIndex];
-        _hands[donor][donorHighIndex] = temp;
+      }
+      final qualities = candidate.map(_playableHonorQuality).toList(growable: false);
+      final minQuality = qualities.reduce(min);
+      if (minQuality > bestMinimum) {
+        bestMinimum = minQuality;
+        best = candidate.map((hand) => List<String>.from(hand)).toList(growable: false);
+      }
+      if (minQuality >= minimumQuality) {
+        best = candidate;
+        break;
       }
     }
+    if (best == null) return;
+    for (var seat = 0; seat < 4; seat++) {
+      _hands[seat]
+        ..clear()
+        ..addAll(best[seat]);
+    }
+    _deck.clear();
+  }
+
+  int _playableHonorQuality(List<String> hand) {
+    var quality = 0;
+    for (final suit in _suits) {
+      final suited = hand.where((card) => !card.startsWith('JOKER') && _cardSuit(card) == suit).toList();
+      final ranks = suited.map(_cardRank).toSet();
+      final length = suited.length;
+      if (ranks.contains('J') && length >= 5) quality++;
+      if (ranks.contains('Q') && length >= 4) quality++;
+      if (ranks.contains('K') && length >= 3) quality++;
+      if (ranks.contains('A') && length >= 2) quality++;
+    }
+    return quality;
   }
 
   void _setupRummy() {
@@ -456,6 +488,12 @@ class LocalGameSession {
       return room();
     }
     if (gameOver) {
+      return room();
+    }
+    // Hand/Banakil organization is a presentation action. It must never consume
+    // a turn or force bots to play simply because the player rearranged cards.
+    if (_isRummy && action == 'organize') {
+      _rummyAction(action, payload ?? const <String, dynamic>{});
       return room();
     }
     if (currentSeat != 0) {
@@ -1118,7 +1156,19 @@ class LocalGameSession {
 
   void _rummyAction(String action, Map<String, dynamic> payload) {
     if (action == 'organize') {
-      _sortHand(_hands[0]);
+      final requested = (payload['cards'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
+      if (requested.isNotEmpty) {
+        if (requested.length != _hands[0].length || !_containsAll(_hands[0], requested) || !_containsAll(requested, _hands[0])) {
+          throw StateError('ترتيب اليد غير صالح. لا يمكن إضافة أو حذف ورق أثناء إعادة الترتيب.');
+        }
+        _hands[0]
+          ..clear()
+          ..addAll(requested);
+        _manualRummyOrder = true;
+      } else {
+        _manualRummyOrder = false;
+        _sortHand(_hands[0]);
+      }
       return;
     }
     if (phase == 'draw') {
@@ -1132,7 +1182,7 @@ class LocalGameSession {
       }
       phase = 'discard';
       enginePhase = 'discard';
-      _sortHand(_hands[0]);
+      if (!_manualRummyOrder) _sortHand(_hands[0]);
       return;
     }
     if (_starterDiscardPending && action != 'discard' && action != 'organize') {
@@ -1530,12 +1580,21 @@ class LocalGameSession {
   }
 
   void _sortHand(List<String> hand) {
+    const suitOrder = <String, int>{'C': 0, 'D': 1, 'S': 2, 'H': 3};
+    const rankOrder = <String, int>{
+      '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
+      '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
+    };
     hand.sort((a, b) {
-      final suit = _cardSuit(a).compareTo(_cardSuit(b));
-      if (suit != 0) {
-        return suit;
+      final aJoker = a.startsWith('JOKER');
+      final bJoker = b.startsWith('JOKER');
+      if (aJoker || bJoker) {
+        if (aJoker && bJoker) return a.compareTo(b);
+        return aJoker ? 1 : -1;
       }
-      return _cardPoints(a).compareTo(_cardPoints(b));
+      final suitCompare = (suitOrder[_cardSuit(a)] ?? 99).compareTo(suitOrder[_cardSuit(b)] ?? 99);
+      if (suitCompare != 0) return suitCompare;
+      return (rankOrder[_cardRank(b)] ?? 0).compareTo(rankOrder[_cardRank(a)] ?? 0);
     });
   }
 

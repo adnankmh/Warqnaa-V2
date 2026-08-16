@@ -12,10 +12,14 @@ use Illuminate\Support\Str;
 class AdminController
 {
     private function guard(){ abort_unless(auth()->user()?->is_admin,403); }
-    private function guardPrimaryDesigner(): void
+    private function guardPermission(string $permission): void
     {
         $this->guard();
-        abort_unless(strcasecmp(trim((string)auth()->user()?->username), 'Adnan') === 0, 403, 'المصمم الشامل والمزامنة متاحان لحساب المدير الرئيسي Adnan فقط.');
+        abort_unless(auth()->user()?->hasAdminPermission($permission),403,'هذه الصلاحية تحتاج موافقة المدير الرئيسي Adnan.');
+    }
+    private function guardPrimaryDesigner(): void
+    {
+        $this->guardPermission('site_design');
     }
 
     public function index(StoreCatalogService $catalog)
@@ -49,9 +53,9 @@ class AdminController
     {
         $this->guard();
         $data=$r->validate([
-            'action'=>['required', Rule::in(['ban','unban','admin','credit','reset_password','delete','update_profile','friend_request'])],
+            'action'=>['required', Rule::in(['ban','unban','admin','credit','reset_password','delete','update_profile','friend_request','permissions'])],
             'amount'=>'nullable|integer|min:1|max:1000000000',
-            'password'=>'nullable|string|min:8|max:120','display_name'=>'nullable|string|max:80','level'=>'nullable|integer|min:1|max:999','xp'=>'nullable|integer|min:0|max:1000000000','name_color'=>'nullable|string|max:30',
+            'password'=>'nullable|string|min:8|max:120','permissions_json'=>'nullable|string|max:4000','display_name'=>'nullable|string|max:80','level'=>'nullable|integer|min:1|max:999','xp'=>'nullable|integer|min:0|max:1000000000','name_color'=>'nullable|string|max:30',
         ]);
         $action=$data['action'];
         if($action==='ban') $user->update(['is_banned'=>true]);
@@ -59,6 +63,14 @@ class AdminController
         if($action==='admin') $user->update(['is_admin'=>true]);
         if($action==='credit') $wallet->credit($user,(int)($data['amount'] ?? 0),'admin_silent_gift',['visible_sender'=>false]);
         if($action==='reset_password') $user->update(['password'=>Hash::make($data['password'] ?? 'Warqna12345')]);
+        if($action==='permissions'){
+            abort_unless(auth()->user()?->isPrimaryAdmin(),403,'فقط Adnan يستطيع تفويض صلاحيات الإدارة.');
+            $decoded=json_decode((string)($data['permissions_json'] ?? '{}'),true);
+            if(!is_array($decoded)) return back()->withErrors(['permissions_json'=>'JSON الصلاحيات غير صالح']);
+            $allowed=['users','store','rooms','clubs','tournaments','economy','site_settings','site_design','game_rules','security'];
+            $clean=[]; foreach($allowed as $key) if(!empty($decoded[$key])) $clean[$key]=true;
+            $user->update(['is_admin'=>true,'admin_role'=>'delegated_admin','admin_permissions'=>$clean]);
+        }
 
         if($action==='update_profile'){
             if(!$user->profile) $user->profile()->create(['display_name'=>$user->username,'country_code'=>'PS','country_name'=>'Palestine','level'=>1,'xp'=>0]);
@@ -88,7 +100,7 @@ class AdminController
 
     public function saveSite(Request $r)
     {
-        $this->guard();
+        $this->guardPermission('site_settings');
         $themes=array_keys($this->themeOptions());
         $data=$r->validate([
             'default_theme'=>'required|in:'.implode(',',$themes),
@@ -258,7 +270,7 @@ class AdminController
 
     public function createGame(Request $r)
     {
-        $this->guard();
+        $this->guardPermission('game_rules');
         $data=$r->validate([
             'key'=>'required|string|max:60|unique:games,key','name_ar'=>'required|string|max:120','name_en'=>'nullable|string|max:120',
             'min_players'=>'required|integer|min:1|max:8','max_players'=>'required|integer|min:1|max:8','partnership'=>'nullable|boolean','active'=>'nullable|boolean',
@@ -271,7 +283,7 @@ class AdminController
 
     public function updateGame(Game $game, Request $r)
     {
-        $this->guard();
+        $this->guardPermission('game_rules');
         $data=$r->validate([
             'name_ar'=>'required|string|max:120','name_en'=>'nullable|string|max:120','min_players'=>'required|integer|min:1|max:8','max_players'=>'required|integer|min:1|max:8',
             'partnership'=>'nullable|boolean','active'=>'nullable|boolean','icon'=>'nullable|string|max:12','family'=>'nullable|string|max:60','engine'=>'nullable|string|max:100',

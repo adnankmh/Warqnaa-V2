@@ -44,8 +44,8 @@ class GlobalCardEngineRules implements GameRuleContract
     {
         try{
             $g=$this->globalState($state); if(!$g) return false;
-            if(($state['turn'] ?? null)!==$playerId) return false;
             $a=$this->normalizeAction($action,$payload,$state,$playerId);
+            if(($state['turn'] ?? null)!==$playerId && ($a['type'] ?? '')!=='organize') return false;
             $available=$this->engine->availableActions($g,$playerId);
             foreach($available as $x){
                 if(($x['type'] ?? '')!==($a['type'] ?? '')) continue;
@@ -219,7 +219,11 @@ class GlobalCardEngineRules implements GameRuleContract
                 'meld_index'=>(int)($payload['meld_index'] ?? $payload['meldIndex'] ?? 0),
                 'cards'=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)($payload['cards'] ?? [])),
             ],
-            'organize' => ['type'=>'organize','strategy'=>'smart'],
+            'organize' => [
+                'type'=>'organize',
+                'strategy'=>(string)($payload['strategy'] ?? 'manual'),
+                'cards'=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)($payload['cards'] ?? [])),
+            ],
             'draw_stock' => ['type'=>'draw_stock'],
             'move_to_foundation' => ['type'=>'move_to_foundation','card'=>$this->toShortCard($this->cardPayload($payload),$state['hands'][$playerId] ?? [])],
             default => ['type'=>$action],

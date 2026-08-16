@@ -9,7 +9,7 @@ def ok(cond,msg):
     print('[PASS]',msg)
 
 m=json.loads(text('RELEASE_VERSION.json'))
-ok(m['full']=='0.4.4+200','release metadata 0.4.4+200')
+ok(int(m.get('build',0))>=200,'release remains at build 200 or newer')
 for port in (8007,8008,8009,8010):
     ok((ROOT/f'scripts/windows/current/START_WARQNA_V200_PORT_{port}.bat').is_file(),f'Windows launcher {port}')
 ok('min:10' in text('backend-laravel/app/Http/Controllers/WalletController.php'),'wallet transfer minimum is 10')

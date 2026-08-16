@@ -70,7 +70,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
   <a class="btn big-action" href="{{route('rooms.index',$room->game->key)}}">العودة للغرف</a>
  </aside>
  <section class="table-wrap">
-  <div class="game-table premium-table seats-{{$room->max_players}}  square-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}}" @if(!empty($activeTableImage)) style="background-image:linear-gradient(rgba(3,7,18,.22),rgba(3,7,18,.38)),url('{{$activeTableImage}}');background-size:cover;background-position:center;" @endif>
+  <div class="game-table premium-table seats-{{$room->max_players}}  square-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="background-image:linear-gradient(rgba(3,7,18,.22),rgba(3,7,18,.38)),url('{{$activeTableImage}}');background-size:cover;background-position:center;" @endif>
    <div class="table-aura"></div>
    <div class="deck-stack"><span></span><span></span><span></span></div>
    @if(($room->owner_id===auth()->id() || auth()->user()->is_admin) && $phase==='waiting')

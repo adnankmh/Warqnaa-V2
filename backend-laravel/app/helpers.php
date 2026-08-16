@@ -85,3 +85,12 @@ if(!function_exists('bot_avatar_url')){
   return $bot['avatar'] ?? asset('assets/bots/bot01.svg');
  }
 }
+
+if (!function_exists('token_display')) {
+ function token_display($user): string {
+  if(!$user) return '0';
+  $raw=method_exists($user,'displayTokenBalance') ? $user->displayTokenBalance() : (string)($user->wallet?->tokens ?? 0);
+  if(strlen($raw)>18) return $raw;
+  return number_format((int)$raw);
+ }
+}

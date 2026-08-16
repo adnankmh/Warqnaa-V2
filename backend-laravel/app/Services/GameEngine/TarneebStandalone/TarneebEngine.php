@@ -87,6 +87,9 @@ final class TarneebEngine
         'redealOnAllPass' => true,
         'advanceDealerEachRound' => true,
         'sortHands' => true,
+        'dealPolicy' => 'balanced_playable',
+        'minimumPlayableHonors' => 2,
+        'dealQualityAttempts' => 160,
         'scoreMode' => 'standard',
         'bonusForThirteenBidAndMakeAll' => 0,
         'allowBotForAway' => true,
@@ -605,12 +608,14 @@ final class TarneebEngine
             $state['dealerSeat'] = $this->nextSeat((int)$state['dealerSeat']);
         }
         $roundSeed = ((int)$state['seed']) + ((int)$state['round'] * 9973);
-        $deck = $this->buildDeck();
-        $deck = $this->shuffleDeterministic($deck, $roundSeed);
-        $state['hands'] = [0 => [], 1 => [], 2 => [], 3 => []];
-        for ($i = 0; $i < 52; $i++) {
-            $seat = $i % 4;
-            $state['hands'][$seat][] = $deck[$i];
+        if (($state['rules']['dealPolicy'] ?? 'balanced_playable') === 'balanced_playable') {
+            [$dealtHands,$quality] = $this->balancedPlayableDeal($roundSeed,(int)($state['rules']['minimumPlayableHonors'] ?? 2),(int)($state['rules']['dealQualityAttempts'] ?? 160));
+            $state['hands']=$dealtHands;
+            $state['dealQuality']=$quality;
+        } else {
+            $deck = $this->shuffleDeterministic($this->buildDeck(), $roundSeed);
+            $state['hands'] = [0 => [], 1 => [], 2 => [], 3 => []];
+            for ($i = 0; $i < 52; $i++) { $state['hands'][$i % 4][] = $deck[$i]; }
         }
         if (!empty($state['rules']['sortHands'])) {
             for ($seat = 0; $seat < 4; $seat++) {
@@ -1005,6 +1010,38 @@ final class TarneebEngine
         return ($seat + 1) % 4;
     }
 
+
+    /** Symmetric quality-conditioned Tarneeb deal: every seat is checked against the same rule. */
+    private function balancedPlayableDeal(int $seed,int $minimum=2,int $attempts=160): array
+    {
+        $minimum=max(1,min(4,$minimum)); $attempts=max(1,min(250,$attempts));
+        $bestHands=null; $bestScores=[]; $bestFloor=-1; $bestAttempt=1;
+        for($attempt=0;$attempt<$attempts;$attempt++){
+            $deck=$this->shuffleDeterministic($this->buildDeck(),$seed+($attempt*7919));
+            $hands=[0=>[],1=>[],2=>[],3=>[]];
+            foreach($deck as $i=>$card) $hands[$i%4][]=$card;
+            $scores=[]; for($seat=0;$seat<4;$seat++) $scores[$seat]=$this->playableHonorQuality($hands[$seat]);
+            $floor=min($scores);
+            if($floor>$bestFloor){$bestHands=$hands;$bestScores=$scores;$bestFloor=$floor;$bestAttempt=$attempt+1;}
+            if($floor>=$minimum) return [$hands,['minimum'=>$minimum,'scores'=>$scores,'attempts'=>$attempt+1,'policy'=>'symmetric_balanced_playable','target_met'=>true]];
+        }
+        return [$bestHands,['minimum'=>$minimum,'scores'=>$bestScores,'attempts'=>$bestAttempt,'policy'=>'symmetric_best_effort','target_met'=>$bestFloor>=$minimum]];
+    }
+
+    private function playableHonorQuality(array $hand): int
+    {
+        $bySuit=['C'=>[],'D'=>[],'S'=>[],'H'=>[]];
+        foreach($hand as $card) $bySuit[$this->cardSuit((string)$card)][]=$this->cardRank((string)$card);
+        $quality=0;
+        foreach($bySuit as $ranks){
+            $n=count($ranks);
+            if($n>=5 && in_array('J',$ranks,true)) $quality++;
+            if($n>=4 && in_array('Q',$ranks,true)) $quality++;
+            if($n>=3 && in_array('K',$ranks,true)) $quality++;
+            if($n>=2 && in_array('A',$ranks,true)) $quality++;
+        }
+        return $quality;
+    }
     /** @return array<int,string> */
     private function buildDeck(): array
     {

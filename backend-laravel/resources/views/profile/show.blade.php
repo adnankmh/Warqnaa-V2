@@ -44,3 +44,11 @@
  </div>
 </section>
 @endsection
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const input=document.querySelector('input[type=file][name=avatar],input[type=file][name=avatar_file]');
+ const img=document.querySelector('.profile-edit-preview .avatar-lg,.profile-head .avatar-lg');
+ if(input&&img) input.addEventListener('change',()=>{const f=input.files?.[0];if(!f)return;const u=URL.createObjectURL(f);img.src=u;img.id='warqnaAvatarPreview201';});
+});
+</script>

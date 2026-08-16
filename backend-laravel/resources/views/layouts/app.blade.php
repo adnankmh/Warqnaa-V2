@@ -176,7 +176,7 @@
                 <span>{{ $currentUser->username }}</span>
             </button>
             <span class="pasha pasha-days-chip-v136"><img class="pasha-mini-icon-v136" src="/assets/store/basha1.png" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
-            <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="سجل التوكنز">🪙 {{ number_format($currentUser->wallet?->tokens ?? 0) }}</a>
+            <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="سجل التوكنز">🪙 {{ token_display($currentUser) }}</a>
             <span id="siteClock" class="site-clock">--:--</span>
             <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="الثيمات">🎨</button>
             <button type="button" class="language-switch-btn" onclick="toggleTopPanel('languagePanel')" title="اللغات">🌐</button>
