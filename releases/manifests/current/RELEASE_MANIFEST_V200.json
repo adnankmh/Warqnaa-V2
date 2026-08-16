@@ -1,0 +1,27 @@
+{
+  "version": "0.4.4",
+  "build": 200,
+  "full": "0.4.4+200",
+  "release": "v200",
+  "name": "Warqnaa V0.4.4 Full Fusion Pro",
+  "base": "Warqnaa-main.zip",
+  "ports": [
+    8007,
+    8008,
+    8009,
+    8010
+  ],
+  "contracts": [
+    "server_authoritative",
+    "fair_unbiased_shuffle",
+    "wallet_min_transfer_10",
+    "transfer_fee_10_percent",
+    "xp_10_pasha_20",
+    "booster_multiplier",
+    "competition_exit_limit_5",
+    "system_competition_50_300",
+    "admin_no_code_designer",
+    "full_assets_preserved"
+  ],
+  "framework_ci_required": true
+}
