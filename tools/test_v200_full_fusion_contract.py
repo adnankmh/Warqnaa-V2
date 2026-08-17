@@ -11,7 +11,9 @@ def ok(cond,msg):
 m=json.loads(text('RELEASE_VERSION.json'))
 ok(int(m.get('build',0))>=200,'release remains at build 200 or newer')
 for port in (8007,8008,8009,8010):
-    ok((ROOT/f'scripts/windows/current/START_WARQNA_V200_PORT_{port}.bat').is_file(),f'Windows launcher {port}')
+    current = ROOT / f'scripts/windows/current/START_WARQNA_V{int(m.get("build", 200))}_PORT_{port}.bat'
+    legacy = ROOT / f'scripts/windows/current/START_WARQNA_V200_PORT_{port}.bat'
+    ok(current.is_file() or legacy.is_file(), f'Windows launcher {port}')
 ok('min:10' in text('backend-laravel/app/Http/Controllers/WalletController.php'),'wallet transfer minimum is 10')
 p=text('backend-laravel/app/Services/Progression/ProgressionService.php')
 ok("'round_complete' => 10" in p and 'pashaMultiplier' in p and 'boosterMultiplier' in p,'XP = 10 base + Pasha + booster contract')

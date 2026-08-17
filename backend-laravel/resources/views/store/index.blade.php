@@ -1,21 +1,27 @@
 @extends('layouts.app')
 @section('content')
 @php
-$labels=[
- 'pasha'=>'أيام الباشا',
- 'table'=>'الطاولات',
- 'card_back'=>'ظهر الورق',
- 'text_color'=>'ألوان الكتابة',
- 'name_color'=>'ألوان الأسماء',
- 'emoji_pack'=>'الإيموجي',
- 'badge'=>'الشارات',
- 'effect'=>'المؤثرات',
- 'xp_booster'=>'مسرعات XP',
- 'inventory'=>'مشترياتي'
+$locale=app()->getLocale();
+$copy=[
+ 'ar'=>[
+  'pasha'=>'أيام الباشا','table'=>'الطاولات','card_back'=>'ظهر الورق','text_color'=>'ألوان الكتابة','name_color'=>'ألوان الأسماء','emoji_pack'=>'الإيموجي','badge'=>'الشارات','effect'=>'المؤثرات والثيمات','profile_cover'=>'أغلفة البروفايل','competition_ticket'=>'تذاكر المنافسات','xp_booster'=>'مسرعات XP','inventory'=>'مشترياتي','all'=>'الكل','beginner'=>'مبتدئ','medium'=>'متوسط','featured'=>'مميز','pro'=>'محترف','legendary'=>'أسطوري','animated'=>'متحرك','free'=>'مجاني','laugh'=>'ضحك','happy'=>'فرح','angry'=>'غضب','sad'=>'حزن','vip'=>'VIP'],
+ 'en'=>[
+  'pasha'=>'Pasha Days','table'=>'Tables','card_back'=>'Card Backs','text_color'=>'Chat Colors','name_color'=>'Name & Glow','emoji_pack'=>'Emojis','badge'=>'Badges','effect'=>'Effects & Themes','profile_cover'=>'Profile Covers','competition_ticket'=>'Competition Tickets','xp_booster'=>'XP Boosters','inventory'=>'My Items','all'=>'All','beginner'=>'Beginner','medium'=>'Medium','featured'=>'Featured','pro'=>'Professional','legendary'=>'Legendary','animated'=>'Animated','free'=>'Free','laugh'=>'Laugh','happy'=>'Happy','angry'=>'Angry','sad'=>'Sad','vip'=>'VIP'],
+ 'fr'=>[
+  'pasha'=>'Jours Pacha','table'=>'Tables','card_back'=>'Dos de cartes','text_color'=>'Couleurs du chat','name_color'=>'Nom et halo','emoji_pack'=>'Émojis','badge'=>'Badges','effect'=>'Effets et thèmes','profile_cover'=>'Couvertures de profil','competition_ticket'=>'Billets de compétition','xp_booster'=>'Boosters XP','inventory'=>'Mes objets','all'=>'Tout','beginner'=>'Débutant','medium'=>'Moyen','featured'=>'En vedette','pro'=>'Professionnel','legendary'=>'Légendaire','animated'=>'Animé','free'=>'Gratuit','laugh'=>'Rire','happy'=>'Joie','angry'=>'Colère','sad'=>'Triste','vip'=>'VIP'],
+ 'tr'=>[
+  'pasha'=>'Paşa Günleri','table'=>'Masalar','card_back'=>'Kart Arkaları','text_color'=>'Sohbet Renkleri','name_color'=>'İsim ve Parıltı','emoji_pack'=>'Emojiler','badge'=>'Rozetler','effect'=>'Efektler ve Temalar','profile_cover'=>'Profil Kapakları','competition_ticket'=>'Yarışma Biletleri','xp_booster'=>'XP Hızlandırıcıları','inventory'=>'Eşyalarım','all'=>'Tümü','beginner'=>'Başlangıç','medium'=>'Orta','featured'=>'Öne Çıkan','pro'=>'Profesyonel','legendary'=>'Efsanevi','animated'=>'Animasyonlu','free'=>'Ücretsiz','laugh'=>'Kahkaha','happy'=>'Mutlu','angry'=>'Kızgın','sad'=>'Üzgün','vip'=>'VIP'],
+ 'de'=>[
+  'pasha'=>'Pasha-Tage','table'=>'Tische','card_back'=>'Kartenrückseiten','text_color'=>'Chatfarben','name_color'=>'Name & Glow','emoji_pack'=>'Emojis','badge'=>'Abzeichen','effect'=>'Effekte & Themes','profile_cover'=>'Profil-Cover','competition_ticket'=>'Wettbewerbstickets','xp_booster'=>'XP-Booster','inventory'=>'Meine Items','all'=>'Alle','beginner'=>'Anfänger','medium'=>'Mittel','featured'=>'Empfohlen','pro'=>'Profi','legendary'=>'Legendär','animated'=>'Animiert','free'=>'Gratis','laugh'=>'Lachen','happy'=>'Freude','angry'=>'Wut','sad'=>'Traurig','vip'=>'VIP'],
+ 'es'=>[
+  'pasha'=>'Días Pasha','table'=>'Mesas','card_back'=>'Dorsos de cartas','text_color'=>'Colores del chat','name_color'=>'Nombre y brillo','emoji_pack'=>'Emojis','badge'=>'Insignias','effect'=>'Efectos y temas','profile_cover'=>'Portadas de perfil','competition_ticket'=>'Entradas de competición','xp_booster'=>'Potenciadores XP','inventory'=>'Mis objetos','all'=>'Todo','beginner'=>'Principiante','medium'=>'Medio','featured'=>'Destacado','pro'=>'Profesional','legendary'=>'Legendario','animated'=>'Animado','free'=>'Gratis','laugh'=>'Risa','happy'=>'Feliz','angry'=>'Enojo','sad'=>'Triste','vip'=>'VIP'],
 ];
-$icons=['pasha'=>'👑','table'=>'🟩','card_back'=>'🂠','text_color'=>'✍️','name_color'=>'🌈','emoji_pack'=>'😄','badge'=>'🏅','effect'=>'✨','xp_booster'=>'🚀','inventory'=>'🎒'];
-$tierLabels=['all'=>'الكل','beginner'=>'مبتدئ','medium'=>'متوسط','featured'=>'مميز','pro'=>'Pro','legendary'=>'أسطوري','animated'=>'متحرك'];
-$emojiTiers=['all'=>'الكل','free'=>'مجاني','laugh'=>'ضحك','happy'=>'فرح','angry'=>'غضب','sad'=>'حزن','vip'=>'VIP','animated'=>'متحرك'];
+$t=$copy[$locale] ?? $copy['en'];
+$labels=[];
+foreach(['pasha','table','card_back','text_color','name_color','emoji_pack','badge','effect','profile_cover','competition_ticket','xp_booster','inventory'] as $key) $labels[$key]=$t[$key];
+$icons=['pasha'=>'👑','table'=>'🟩','card_back'=>'🂠','text_color'=>'✍️','name_color'=>'🌈','emoji_pack'=>'😄','badge'=>'🏅','effect'=>'✨','profile_cover'=>'🖼️','competition_ticket'=>'🎟️','xp_booster'=>'🚀','inventory'=>'🎒'];
+$tierLabels=['all'=>$t['all'],'beginner'=>$t['beginner'],'medium'=>$t['medium'],'featured'=>$t['featured'],'pro'=>$t['pro'],'legendary'=>$t['legendary'],'animated'=>$t['animated']];
+$emojiTiers=['all'=>$t['all'],'free'=>$t['free'],'laugh'=>$t['laugh'],'happy'=>$t['happy'],'angry'=>$t['angry'],'sad'=>$t['sad'],'vip'=>$t['vip'],'animated'=>$t['animated']];
 $firstActive='pasha';
 foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->count())){ $firstActive=$k; break; } }
 @endphp
@@ -88,7 +94,9 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
        @elseif($cat==='name_color') ألوان الأسماء والـ Glow هنا فقط.
        @elseif($cat==='emoji_pack') باقات الإيموجي هنا فقط.
        @elseif($cat==='badge') الشارات والهوية هنا فقط.
-       @elseif($cat==='effect') مؤثرات الفوز والحركة هنا فقط.
+       @elseif($cat==='effect') مؤثرات الفوز والثيمات الأسطورية هنا فقط.
+       @elseif($cat==='profile_cover') أغلفة البروفايل الفاخرة هنا فقط.
+       @elseif($cat==='competition_ticket') تذاكر الدخول إلى المنافسات هنا فقط.
        @elseif($cat==='xp_booster') مسرعات XP هنا فقط.
        @else منتجات هذا القسم هنا فقط.
        @endif
@@ -105,7 +113,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         $emblem=$payload['emblem'] ?? 'WZ';
         $tier=$payload['tier'] ?? $payload['tab'] ?? 'pro';
         $emojiTier=$payload['emoji_tier'] ?? (($item->price==0)?'free':'vip');
-        $name=$item->name['ar'] ?? $item->key;
+        $name=$item->name[$locale] ?? $item->name['en'] ?? $item->name['ar'] ?? $item->key;
         $previewIcon=$payload['preview_icon'] ?? $payload['icon'] ?? $icons[$cat] ?? '🎁';
         $assetUrl=$payload['asset_url'] ?? $payload['table_image'] ?? $payload['card_back_image'] ?? null;
        @endphp
@@ -116,13 +124,15 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         data-emoji-tier="{{$emojiTier}}"
         data-color="{{$color}}"
         data-item-key="{{$item->key}}"
+        data-animated="{{ !empty($payload['animated']) ? '1' : '0' }}"
+        data-sound-key="{{$payload['sound_key'] ?? ''}}"
         data-name="{{ strtolower($name.' '.$item->key.' '.$cat) }}">
         @csrf
         <div class="product-preview-v127 type-{{$cat}}" style="--item-color:{{$color}};--item-color2:{{$color2}};--item-pattern:{{$pattern}}">
          @if($cat==='table')
-          <div class="product-table-v127 table-real-preview-v128" @if($assetUrl) style="background-image:linear-gradient(#0003,#0005),url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$emblem}}</i></div>
+          <div class="product-table-v127 table-real-preview-v128 {{$payload['table_class'] ?? $payload['table'] ?? ''}}" @if($assetUrl) style="background-image:linear-gradient(#0003,#0005),url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$emblem}}</i></div>
          @elseif($cat==='card_back')
-          <div class="product-cardback-v127 cardback-real-preview-v128" @if($assetUrl) style="background-image:url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
+          <div class="product-cardback-v127 cardback-real-preview-v128 {{$payload['card_back_class'] ?? $payload['card_back'] ?? ''}}" @if($assetUrl) style="background-image:url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
          @elseif($cat==='emoji_pack')
           <div class="emoji-store-icon product-emoji-v127">{{ $payload['emojis'] ?? $previewIcon }}</div>
          @elseif($cat==='xp_booster')
@@ -182,14 +192,14 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
    const on=sec.dataset.storeSectionV127===cat;
    sec.hidden=!on; sec.classList.toggle('active',on);
   });
-  tierBox?.classList.toggle('hidden', !['table','card_back','xp_booster','effect','badge'].includes(cat));
+  tierBox?.classList.toggle('hidden', !['table','card_back','xp_booster','effect','badge','profile_cover'].includes(cat));
   emojiBox?.classList.toggle('hidden', cat!=='emoji_pack');
 
   const section=document.querySelector(`[data-store-section-v127="${CSS.escape(cat)}"]`);
   if(!section) return;
   section.querySelectorAll('.store-product-card-v127').forEach(card=>{
    const okText=!q||(card.dataset.name||'').includes(q);
-   const okTier=!['table','card_back','xp_booster','effect','badge'].includes(cat) || tier==='all' || (card.dataset.tier||'pro')===tier;
+   const okTier=!['table','card_back','xp_booster','effect','badge','profile_cover'].includes(cat) || tier==='all' || (card.dataset.tier||'pro')===tier;
    const okEmoji=cat!=='emoji_pack' || emoji==='all' || (card.dataset.emojiTier||'vip')===emoji;
    card.hidden=!(okText&&okTier&&okEmoji);
   });

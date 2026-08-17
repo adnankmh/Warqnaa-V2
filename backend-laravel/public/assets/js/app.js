@@ -3793,3 +3793,19 @@
   document.addEventListener('click',e=>{const b=e.target.closest('[data-theme-pick]'); if(b){e.preventDefault(); setSiteTheme(b.dataset.themePick);} const l=e.target.closest('[data-lang-pick]'); if(l){e.preventDefault(); translateAll(l.dataset.langPick);} if(e.target.closest('.theme-switch-btn') && e.detail===2){cycleTheme();}});
   document.addEventListener('DOMContentLoaded',()=>{setSiteTheme(localStorage.siteTheme||localStorage.warqnaTheme||document.body.dataset.theme||'royal'); translateAll(localStorage.warqnaLang||window.WARQNA_LOCALE||document.documentElement.lang||'ar'); observeLanguage(); initAdminDesignerV138(); hardenQuickReactions();});
 })();
+
+
+// V201 R4: richer emoji audio personalities without external copyrighted audio.
+(function(){
+  const oldSend=window.sendEmojiChat;
+  const soundFor=(e)=>{
+    const s=String(e||'');
+    if(/[🐉🦁🐯🦅🐺🐆]/u.test(s)) return 'win';
+    if(/[😡🤬😤💢🌋🥊💥]/u.test(s)) return 'discard';
+    if(/[🏆🥇👑🎆🎇🎉💯]/u.test(s)) return 'win';
+    if(/[🌌🪐🚀☄️🌠✨💫👽🛸]/u.test(s)) return 'notify';
+    if(/[😢😭🥺💔😞😔]/u.test(s)) return 'lose';
+    return 'message';
+  };
+  window.sendEmojiChat=function(e){ try{window.WarqnaSound?.play?.(soundFor(e));}catch(_e){} return oldSend?oldSend(e):undefined; };
+})();

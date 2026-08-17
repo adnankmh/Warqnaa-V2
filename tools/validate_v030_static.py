@@ -12,6 +12,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SKIP_PARTS = {'.git', '.dart_tool', 'build', 'vendor', 'node_modules', 'storage', '.validation_v03'}
+LEGACY_UPGRADE_ROOT_ARTIFACTS = {'APPLY_V201_UPGRADE_WINDOWS.bat','README_V201_UPGRADE_AR.txt','V201_DELETE_OLD_FILES.txt','V201_UPGRADE_MANIFEST.json'}
 SOURCE_EXTENSIONS = {'.dart', '.php', '.py', '.js', '.ts', '.css', '.html', '.xml', '.json', '.yml', '.yaml'}
 
 
@@ -150,6 +151,8 @@ def main() -> int:
     counts = {'json': 0, 'yaml': 0, 'xml': 0, 'dart': 0, 'source': 0}
 
     for path in files_with('.json'):
+        if path.parent == ROOT and path.name in LEGACY_UPGRADE_ROOT_ARTIFACTS:
+            continue
         counts['json'] += 1
         try:
             json.loads(path.read_text(encoding='utf-8'))

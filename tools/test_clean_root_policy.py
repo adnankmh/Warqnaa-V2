@@ -22,6 +22,7 @@ assert module.unexpected_root_entries({
     "FILES_MANIFEST.txt",
     "VALIDATION_V0.2.1.txt",
 }) == [], "Known patch metadata must be accepted"
+assert module.unexpected_root_entries(module.LEGACY_UPGRADE_ROOT_ARTIFACTS) == [], "Legacy V201 upgrade helper files must be tolerated until cleanup"
 assert module.unexpected_root_entries({"rogue.txt"}) == ["rogue.txt"], "Unexpected root files must remain rejected"
 assert module.unexpected_root_entries({".git", "rogue.txt"}) == ["rogue.txt"]
 print("[PASS] Clean-root policy accepts Git metadata and still rejects project-root clutter")

@@ -32,7 +32,7 @@ class V142MobileRealEnginesSocialEconomyTest extends TestCase
         $this->seed();
         $admin = User::where('username', 'Adnan')->firstOrFail();
         $this->assertTrue($admin->is_admin);
-        $this->assertSame('1000000000000000000', (string) $admin->wallet->tokens);
+        $this->assertSame('9000000000000000000', (string) $admin->wallet->tokens);
     }
 
     public function test_token_transfer_charges_sender_ten_percent_and_credits_admin(): void

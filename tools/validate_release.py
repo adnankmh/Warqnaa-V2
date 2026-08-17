@@ -109,6 +109,8 @@ def check_required_files() -> None:
         "tools/test_ci_release_compat_contract.py",
         "tools/test_v200_full_fusion_contract.py",
         "tools/test_v201_gameplay_admin_contract.py",
+        "tools/test_v201_r4_hotfix_contract.py",
+        "tools/test_v201_r5_ci_stability_contract.py",
         "backend-laravel/tools/test-v184-official-rules-audit.php",
         "backend-laravel/tools/test-v184-engine-stress.php",
         "tools/test_v02_daily_prize_boxes_contract.py",
@@ -200,10 +202,16 @@ PATCH_ARTIFACT_PREFIXES = (
     "VALIDATION_RESULTS_V",
 )
 PATCH_ARTIFACT_SUFFIXES = (".txt", ".md")
+LEGACY_UPGRADE_ROOT_ARTIFACTS = {
+    "APPLY_V201_UPGRADE_WINDOWS.bat",
+    "README_V201_UPGRADE_AR.txt",
+    "V201_DELETE_OLD_FILES.txt",
+    "V201_UPGRADE_MANIFEST.json",
+}
 
 
 def is_known_patch_artifact(name: str) -> bool:
-    return (
+    return name in LEGACY_UPGRADE_ROOT_ARTIFACTS or (
         name.endswith(PATCH_ARTIFACT_SUFFIXES)
         and name.startswith(PATCH_ARTIFACT_PREFIXES)
     )
@@ -224,6 +232,8 @@ def check_clean_root_policy_self_test() -> None:
         fail("Clean-root policy rejected standard repository metadata")
     if unexpected_root_entries({"APPLY_PATCH_AR.txt", "FILES_MANIFEST.txt", "VALIDATION_V0.2.1.txt"}):
         fail("Clean-root policy rejected known patch metadata")
+    if unexpected_root_entries(LEGACY_UPGRADE_ROOT_ARTIFACTS):
+        fail("Clean-root policy rejected legacy V201 upgrade metadata")
     if unexpected_root_entries({"unexpected.tmp"}) != ["unexpected.tmp"]:
         fail("Clean-root policy stopped rejecting real unexpected root files")
     print("[OK] Clean-root policy self-test (Git/patch metadata accepted, clutter rejected)")
@@ -341,6 +351,8 @@ def check_json() -> None:
     count = 0
     for path in ROOT.rglob("*.json"):
         if any(part in SKIP_DIRS for part in path.parts):
+            continue
+        if path.parent == ROOT and path.name in LEGACY_UPGRADE_ROOT_ARTIFACTS:
             continue
         try:
             json.loads(path.read_text(encoding="utf-8"))
@@ -1387,6 +1399,17 @@ def check_v201_gameplay_admin_contract() -> None:
     print("[OK] V201 gameplay, admin delegation, manual hand ordering and responsive UI contract")
 
 
+
+def check_v201_r4_hotfix_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_v201_r4_hotfix_contract.py")],
+        cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("Warqna V201 R4 hotfix contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] V201 R4 CI/cache, expanded legendary store and translation contract")
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1444,6 +1467,7 @@ def main() -> None:
     check_v176_daily_pack_inventory_contract()
     check_ci_release_compat_contract()
     check_v201_gameplay_admin_contract()
+    check_v201_r4_hotfix_contract()
     check_v184_official_game_rules_contract()
     check_secrets()
     check_dart_structure()

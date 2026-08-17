@@ -33,13 +33,16 @@ class StoreCatalogService
         $boostKeep=array_column(array_filter($this->v183Items(),fn(array $i)=>($i['category'] ?? '')==='xp_booster'),'key');
         DB::table('store_items')->where('category','xp_booster')->whereNotIn('key',$boostKeep)->update(['active'=>false,'updated_at'=>now()]);
         foreach($this->v201Items() as $item) $this->upsert($item);
+        foreach($this->v201R4Items() as $item) $this->upsert($item);
 
     }
 
     private function upsert(array $item): void
     {
+        $names=['ar'=>$item['ar'],'en'=>$item['en'] ?? $item['key']];
+        foreach(['fr','tr','de','es'] as $locale) if(isset($item[$locale])) $names[$locale]=$item[$locale];
         DB::table('store_items')->updateOrInsert(['key'=>$item['key']],[
-            'name'=>json_encode(['ar'=>$item['ar'],'en'=>$item['en'] ?? $item['key']],JSON_UNESCAPED_UNICODE),
+            'name'=>json_encode($names,JSON_UNESCAPED_UNICODE),
             'category'=>$item['category'],
             'price'=>$this->v183Price($item),
             'duration_days'=>$item['duration_days'] ?? null,
@@ -72,6 +75,61 @@ class StoreCatalogService
         return (int)(ceil($raised/500)*500);
     }
 
+
+
+    /** @return array<int,array<string,mixed>> */
+    public function v201R4Items(): array
+    {
+        $items=[];
+        $emoji=[
+            ['emoji_r4_royal_laugh','ضحكات القصر','Royal Palace Laughs','Rires du palais','Saray Kahkahaları','Palast-Lachen','Risas del palacio','😂🤣😹😆😜🤭🥳😎🙌🎉',28000,'laugh','royal_laugh'],
+            ['emoji_r4_legend_beasts','وحوش الأساطير المتحركة','Animated Legend Beasts','Bêtes légendaires animées','Animasyonlu Efsane Canavarları','Animierte Legendenbestien','Bestias legendarias animadas','🐉🦁🐯🦅🐺🐆🦂🦈🐋🦚',78000,'animated','beast'],
+            ['emoji_r4_cosmic','تفاعلات المجرة','Cosmic Reactions','Réactions cosmiques','Kozmik Tepkiler','Kosmische Reaktionen','Reacciones cósmicas','🌌🪐🚀☄️🌠✨💫👽🛸⚡',68000,'animated','cosmic'],
+            ['emoji_r4_victory','احتفال النخبة','Elite Victory','Victoire élite','Elit Zafer','Elite-Sieg','Victoria élite','🏆🥇👑🎆🎇🎉💯🔥💎⚡',72000,'vip','victory'],
+            ['emoji_r4_arabic','مجلس عربي فاخر','Luxury Arabic Majlis','Majlis arabe luxueux','Lüks Arap Meclisi','Luxus-Arabischer Majlis','Majlis árabe de lujo','☕🫖🌙🧿🫒🤍🕊️🌹✨👑',42000,'vip','majlis'],
+            ['emoji_r4_rage','غضب العاصفة','Storm Rage','Colère de tempête','Fırtına Öfkesi','Sturmwut','Ira de tormenta','😡🤬😤💢🌋🌪️⚡🔥🥊💥',52000,'angry','rage'],
+            ['emoji_r4_magic','سحر ورقنا','Warqnaa Magic','Magie Warqnaa','Warqnaa Büyüsü','Warqnaa-Magie','Magia Warqnaa','🪄✨🔮🧙‍♂️🌟💫🃏♠️♥️♦️',56000,'animated','magic'],
+            ['emoji_r4_calm','هدوء فاخر','Luxury Calm','Calme luxueux','Lüks Sakinlik','Luxus-Ruhe','Calma de lujo','😌☕🌙🌹🕊️🤍🌿🫶🙂✨',24000,'happy','calm'],
+            ['emoji_r4_sad','مشاعر عميقة','Deep Emotions','Émotions profondes','Derin Duygular','Tiefe Emotionen','Emociones profundas','😢😭🥺💔😞😔🫂🌧️🕯️🤍',26000,'sad','sad'],
+            ['emoji_r4_free_plus','مجانية بلس','Free Plus','Gratuit Plus','Ücretsiz Plus','Gratis Plus','Gratis Plus','😀😄😁👍👏👋🙌👌😉😊',0,'free','soft'],
+        ];
+        foreach($emoji as [$key,$ar,$en,$fr,$tr,$de,$es,$icons,$price,$tier,$sound]) $items[]=[
+            'key'=>$key,'ar'=>$ar,'en'=>$en,'fr'=>$fr,'tr'=>$tr,'de'=>$de,'es'=>$es,'category'=>'emoji_pack','price'=>$price,
+            'payload'=>['emojis'=>$icons,'emoji_tier'=>$tier,'tier'=>$tier,'animated'=>in_array($tier,['animated','vip'],true),'large'=>true,'sound'=>true,'sound_key'=>$sound,'preview_icon'=>'✨','collection'=>'r4_legendary']
+        ];
+        $items=array_merge($items,[
+            ['key'=>'table_r4_phoenix','ar'=>'طاولة العنقاء الملكية','en'=>'Royal Phoenix Table','fr'=>'Table Phénix Royal','tr'=>'Kraliyet Anka Masası','de'=>'Königlicher Phönix-Tisch','es'=>'Mesa Fénix Real','category'=>'table','price'=>520000,'payload'=>['table'=>'table-r4-phoenix','table_class'=>'table-r4-phoenix','tier'=>'legendary','animated'=>true,'preview_icon'=>'🔥','motion'=>'flame']],
+            ['key'=>'table_r4_leviathan','ar'=>'طاولة ليفياثان المحيط','en'=>'Ocean Leviathan Table','fr'=>'Table Léviathan Océan','tr'=>'Okyanus Leviathan Masası','de'=>'Ozean-Leviathan-Tisch','es'=>'Mesa Leviatán Oceánico','category'=>'table','price'=>610000,'payload'=>['table'=>'table-r4-leviathan','table_class'=>'table-r4-leviathan','tier'=>'legendary','animated'=>true,'preview_icon'=>'🐋','motion'=>'wave']],
+            ['key'=>'table_r4_black_diamond','ar'=>'طاولة الألماس الأسود','en'=>'Black Diamond Table','fr'=>'Table Diamant Noir','tr'=>'Siyah Elmas Masası','de'=>'Schwarzer-Diamant-Tisch','es'=>'Mesa Diamante Negro','category'=>'table','price'=>700000,'payload'=>['table'=>'table-r4-black-diamond','table_class'=>'table-r4-black-diamond','tier'=>'legendary','animated'=>true,'preview_icon'=>'💎']],
+            ['key'=>'table_r4_celestial_crown','ar'=>'طاولة التاج السماوي','en'=>'Celestial Crown Table','fr'=>'Table Couronne Céleste','tr'=>'Göksel Taç Masası','de'=>'Himmlische-Krone-Tisch','es'=>'Mesa Corona Celestial','category'=>'table','price'=>850000,'payload'=>['table'=>'table-r4-celestial','table_class'=>'table-r4-celestial','tier'=>'legendary','animated'=>true,'preview_icon'=>'👑']],
+            ['key'=>'card_r4_phoenix','ar'=>'ظهر العنقاء الملكي','en'=>'Royal Phoenix Card Back','fr'=>'Dos Phénix Royal','tr'=>'Kraliyet Anka Kart Arkası','de'=>'Königlicher Phönix-Kartenrücken','es'=>'Dorso Fénix Real','category'=>'card_back','price'=>155000,'payload'=>['card_back'=>'card-r4-phoenix','tier'=>'legendary','animated'=>true,'preview_icon'=>'🔥']],
+            ['key'=>'card_r4_obsidian','ar'=>'ظهر أوبسيديان ألماسي','en'=>'Obsidian Diamond Back','fr'=>'Dos Diamant Obsidienne','tr'=>'Obsidyen Elmas Kart Arkası','de'=>'Obsidian-Diamant-Kartenrücken','es'=>'Dorso Diamante Obsidiana','category'=>'card_back','price'=>175000,'payload'=>['card_back'=>'card-r4-obsidian','tier'=>'legendary','preview_icon'=>'💎']],
+            ['key'=>'card_r4_nebula','ar'=>'ظهر سديم متحرك','en'=>'Animated Nebula Back','fr'=>'Dos Nébuleuse Animé','tr'=>'Animasyonlu Bulutsu Kart Arkası','de'=>'Animierter Nebel-Kartenrücken','es'=>'Dorso Nebulosa Animado','category'=>'card_back','price'=>205000,'payload'=>['card_back'=>'card-r4-nebula','tier'=>'legendary','animated'=>true,'preview_icon'=>'🌌']],
+            ['key'=>'card_r4_royal_palestine','ar'=>'ظهر فلسطين الملكي','en'=>'Royal Palestine Back','fr'=>'Dos Palestine Royal','tr'=>'Kraliyet Filistin Kart Arkası','de'=>'Königlicher Palästina-Kartenrücken','es'=>'Dorso Palestina Real','category'=>'card_back','price'=>190000,'payload'=>['card_back'=>'card-r4-palestine','tier'=>'legendary','preview_icon'=>'🇵🇸']],
+            ['key'=>'name_r4_aurora','ar'=>'Glow الشفق الأسطوري','en'=>'Legendary Aurora Glow','fr'=>'Halo Aurore Légendaire','tr'=>'Efsanevi Aurora Parıltısı','de'=>'Legendärer Aurora-Glow','es'=>'Brillo Aurora Legendario','category'=>'name_color','price'=>95000,'payload'=>['color'=>'#67e8f9','frame'=>'glow-r4-aurora','tier'=>'legendary','animated'=>true,'preview_icon'=>'🌈']],
+            ['key'=>'name_r4_inferno','ar'=>'Glow الجحيم الملكي','en'=>'Royal Inferno Glow','fr'=>'Halo Inferno Royal','tr'=>'Kraliyet Cehennem Parıltısı','de'=>'Königlicher Inferno-Glow','es'=>'Brillo Inferno Real','category'=>'name_color','price'=>110000,'payload'=>['color'=>'#ff5a36','frame'=>'glow-r4-inferno','tier'=>'legendary','animated'=>true,'preview_icon'=>'🔥']],
+            ['key'=>'name_r4_diamond','ar'=>'Glow الألماس الجليدي','en'=>'Ice Diamond Glow','fr'=>'Halo Diamant de Glace','tr'=>'Buz Elmas Parıltısı','de'=>'Eisdiamant-Glow','es'=>'Brillo Diamante de Hielo','category'=>'name_color','price'=>125000,'payload'=>['color'=>'#e0f2fe','frame'=>'glow-r4-diamond','tier'=>'legendary','animated'=>true,'preview_icon'=>'💎']],
+            ['key'=>'name_r4_royal_gold','ar'=>'Glow الذهب الملكي','en'=>'Royal Gold Glow','fr'=>'Halo Or Royal','tr'=>'Kraliyet Altın Parıltısı','de'=>'Königlicher Gold-Glow','es'=>'Brillo Oro Real','category'=>'name_color','price'=>140000,'payload'=>['color'=>'#facc15','frame'=>'glow-r4-gold','tier'=>'legendary','animated'=>true,'preview_icon'=>'👑']],
+            ['key'=>'chat_r4_neon_cyan','ar'=>'كتابة سيان نيون','en'=>'Neon Cyan Chat','fr'=>'Chat Cyan Néon','tr'=>'Neon Camgöbeği Sohbet','de'=>'Neon-Cyan-Chat','es'=>'Chat Cian Neón','category'=>'text_color','price'=>62000,'payload'=>['color'=>'#22d3ee','tier'=>'legendary','gradient'=>true,'preview_icon'=>'✍️']],
+            ['key'=>'chat_r4_royal_gold','ar'=>'كتابة ذهب ملكي','en'=>'Royal Gold Chat','fr'=>'Chat Or Royal','tr'=>'Kraliyet Altın Sohbet','de'=>'Königlicher Gold-Chat','es'=>'Chat Oro Real','category'=>'text_color','price'=>76000,'payload'=>['color'=>'#facc15','tier'=>'legendary','gradient'=>true,'preview_icon'=>'✍️']],
+            ['key'=>'chat_r4_crimson','ar'=>'كتابة قرمزية متوهجة','en'=>'Glowing Crimson Chat','fr'=>'Chat Cramoisi Lumineux','tr'=>'Parlayan Kızıl Sohbet','de'=>'Glühender Karmesin-Chat','es'=>'Chat Carmesí Brillante','category'=>'text_color','price'=>70000,'payload'=>['color'=>'#fb3f5c','tier'=>'legendary','gradient'=>true,'preview_icon'=>'✍️']],
+            ['key'=>'chat_r4_violet','ar'=>'كتابة بنفسجي ملكي','en'=>'Royal Violet Chat','fr'=>'Chat Violet Royal','tr'=>'Kraliyet Mor Sohbet','de'=>'Königlicher Violett-Chat','es'=>'Chat Violeta Real','category'=>'text_color','price'=>68000,'payload'=>['color'=>'#c084fc','tier'=>'legendary','gradient'=>true,'preview_icon'=>'✍️']],
+            ['key'=>'badge_r4_phoenix','ar'=>'شارة العنقاء','en'=>'Phoenix Badge','fr'=>'Badge Phénix','tr'=>'Anka Rozeti','de'=>'Phönix-Abzeichen','es'=>'Insignia Fénix','category'=>'badge','price'=>115000,'payload'=>['badge'=>'badge-r4-phoenix','tier'=>'legendary','preview_icon'=>'🔥']],
+            ['key'=>'badge_r4_ace','ar'=>'شارة سيد الآص','en'=>'Ace Master Badge','fr'=>'Badge Maître As','tr'=>'As Ustası Rozeti','de'=>'Ass-Meister-Abzeichen','es'=>'Insignia Maestro del As','category'=>'badge','price'=>130000,'payload'=>['badge'=>'badge-r4-ace','tier'=>'legendary','preview_icon'=>'🂡']],
+            ['key'=>'badge_r4_crown','ar'=>'شارة التاج السماوي','en'=>'Celestial Crown Badge','fr'=>'Badge Couronne Céleste','tr'=>'Göksel Taç Rozeti','de'=>'Himmelskronen-Abzeichen','es'=>'Insignia Corona Celestial','category'=>'badge','price'=>145000,'payload'=>['badge'=>'badge-r4-crown','tier'=>'legendary','preview_icon'=>'👑']],
+            ['key'=>'badge_r4_guardian','ar'=>'شارة حارس الطاولة','en'=>'Table Guardian Badge','fr'=>'Badge Gardien de Table','tr'=>'Masa Muhafızı Rozeti','de'=>'Tischwächter-Abzeichen','es'=>'Insignia Guardián de Mesa','category'=>'badge','price'=>98000,'payload'=>['badge'=>'badge-r4-guardian','tier'=>'pro','preview_icon'=>'🛡️']],
+            ['key'=>'effect_r4_fireworks','ar'=>'مؤثر فوز الألعاب النارية','en'=>'Fireworks Victory Effect','fr'=>'Effet Victoire Feux d’Artifice','tr'=>'Havai Fişek Zafer Efekti','de'=>'Feuerwerk-Siegeffekt','es'=>'Efecto Victoria Fuegos Artificiales','category'=>'effect','price'=>120000,'payload'=>['effect'=>'effect-r4-fireworks','tier'=>'legendary','animated'=>true,'preview_icon'=>'🎆']],
+            ['key'=>'effect_r4_lightning','ar'=>'مؤثر فوز البرق','en'=>'Lightning Victory Effect','fr'=>'Effet Victoire Éclair','tr'=>'Şimşek Zafer Efekti','de'=>'Blitz-Siegeffekt','es'=>'Efecto Victoria Relámpago','category'=>'effect','price'=>135000,'payload'=>['effect'=>'effect-r4-lightning','tier'=>'legendary','animated'=>true,'preview_icon'=>'⚡']],
+            ['key'=>'theme_r4_royal_obsidian','ar'=>'ثيم الأوبسيديان الملكي','en'=>'Royal Obsidian Theme','fr'=>'Thème Obsidienne Royale','tr'=>'Kraliyet Obsidyen Teması','de'=>'Königliches Obsidian-Theme','es'=>'Tema Obsidiana Real','category'=>'effect','price'=>160000,'payload'=>['theme'=>'obsidian','tier'=>'legendary','preview_icon'=>'◆']],
+            ['key'=>'theme_r4_aurora','ar'=>'ثيم الشفق الأسطوري','en'=>'Legendary Aurora Theme','fr'=>'Thème Aurore Légendaire','tr'=>'Efsanevi Aurora Teması','de'=>'Legendäres Aurora-Theme','es'=>'Tema Aurora Legendaria','category'=>'effect','price'=>175000,'payload'=>['theme'=>'aurora','tier'=>'legendary','preview_icon'=>'🌈']],
+            ['key'=>'cover_r4_phoenix','ar'=>'غلاف العنقاء الملكية','en'=>'Royal Phoenix Cover','fr'=>'Couverture Phénix Royale','tr'=>'Kraliyet Anka Kapağı','de'=>'Königliches Phönix-Cover','es'=>'Portada Fénix Real','category'=>'profile_cover','price'=>125000,'payload'=>['cover'=>'cover-r4-phoenix','tier'=>'legendary','preview_icon'=>'🔥']],
+            ['key'=>'cover_r4_nebula','ar'=>'غلاف السديم','en'=>'Nebula Cover','fr'=>'Couverture Nébuleuse','tr'=>'Bulutsu Kapağı','de'=>'Nebel-Cover','es'=>'Portada Nebulosa','category'=>'profile_cover','price'=>138000,'payload'=>['cover'=>'cover-r4-nebula','tier'=>'legendary','preview_icon'=>'🌌']],
+            ['key'=>'cover_r4_palace','ar'=>'غلاف القصر الذهبي','en'=>'Golden Palace Cover','fr'=>'Couverture Palais Doré','tr'=>'Altın Saray Kapağı','de'=>'Goldpalast-Cover','es'=>'Portada Palacio Dorado','category'=>'profile_cover','price'=>150000,'payload'=>['cover'=>'cover-r4-palace','tier'=>'legendary','preview_icon'=>'🏰']],
+            ['key'=>'frame_r4_celestial','ar'=>'إطار الاسم السماوي','en'=>'Celestial Name Frame','fr'=>'Cadre de Nom Céleste','tr'=>'Göksel İsim Çerçevesi','de'=>'Himmlischer Namensrahmen','es'=>'Marco de Nombre Celestial','category'=>'name_frame','price'=>105000,'payload'=>['frame'=>'frame-r4-celestial','color'=>'#67e8f9','tier'=>'legendary','animated'=>true,'preview_icon'=>'✨']],
+            ['key'=>'frame_r4_dragon','ar'=>'إطار التنين الملكي','en'=>'Royal Dragon Frame','fr'=>'Cadre Dragon Royal','tr'=>'Kraliyet Ejderha Çerçevesi','de'=>'Königlicher Drachenrahmen','es'=>'Marco Dragón Real','category'=>'name_frame','price'=>120000,'payload'=>['frame'=>'frame-r4-dragon','color'=>'#ef4444','tier'=>'legendary','animated'=>true,'preview_icon'=>'🐉']],
+        ]);
+        return $items;
+    }
 
     /** @return array<int,array<string,mixed>> */
     public function v201Items(): array

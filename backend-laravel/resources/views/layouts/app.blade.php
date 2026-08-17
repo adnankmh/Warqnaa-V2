@@ -25,6 +25,7 @@
     </script>
     <link rel="stylesheet" href="/assets/css/app.css?v=139-mobile-app-no-studio">
     <link rel="stylesheet" href="/assets/css/mobile-app.css?v=139-mobile-app-no-studio">
+    <link rel="stylesheet" href="/assets/css/v201-r4-store.css?v=4">
     <script>window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
@@ -40,7 +41,7 @@
     $siteTheme = $forceGlobalTheme ? $globalTheme : ($currentProfile?->active_site_theme ?? $globalTheme ?? 'royal');
     $nameFrame = $currentProfile?->active_name_frame ?? 'glow-gold';
     $ownedEmojis = $currentUser ? $currentUser->inventoryItems()->with('storeItem')->whereHas('storeItem', fn($q)=>$q->where('category','emoji_pack'))->get()->flatMap(fn($inv)=>preg_split('//u', (string)($inv->storeItem?->payload['emojis'] ?? ''), -1, PREG_SPLIT_NO_EMPTY))->filter()->values()->all() : [];
-    $freeEmojis = ['😂','🤣','😍','👋','👍','😡','😢','😭','😱','🤔','☕','🌹'];
+    $freeEmojis = ['😂','🤣','😍','👋','👍','😡','😢','😭','😱','🤔','☕','🌹','😀','😄','😁','👏','🙌','👌','😉','😊'];
     $emojiList = array_values(array_unique(array_merge($freeEmojis,$ownedEmojis)));
     $navGames = $currentUser ? \App\Models\Game::where('active',true)->orderBy('id')->get() : collect();
     $recentNotifs = $currentUser ? $currentUser->notifications()->latest()->limit(8)->get() : collect();
