@@ -38,7 +38,7 @@ class CompetitionService
                 'entry_mode'=>'ticket_or_tokens',
                 'ad_entry_enabled'=>$preset['fee'] <= 500,
                 'featured'=>$preset['featured'],
-                'settings'=>['anti_cheat'=>true,'disconnect_grace_seconds'=>45,'entry_fee_locked'=>true],
+                'settings'=>['anti_cheat'=>true,'disconnect_grace_seconds'=>45,'entry_fee_locked'=>true,'category'=>$preset['category'] ?? 'cup','prizes'=>$preset['prizes'] ?? ['1st'=>($preset['prize'] ?? 0)]],
             ]
         );
 
@@ -85,13 +85,16 @@ class CompetitionService
     private function preset(string $key, int $requestedFee): array
     {
         $presets = [
-            'system_50'=>['name_ar'=>'منافسة النظام السريعة','name_en'=>'System Quick Cup','description_ar'=>'منافسة دورية برسوم 50 توكنز وجائزة 300 توكنز','description_en'=>'Recurring system competition with 50-token entry and 300-token prize','fee'=>50,'prize'=>300,'max_players'=>4,'rounds'=>1,'turn_seconds'=>7,'game'=>'tarneeb','featured'=>true],
-            'champions'=>['name_ar'=>'بطولة الأبطال','name_en'=>'Champions Cup','description_ar'=>'بطولة طرنيب من أربع جولات','description_en'=>'Four-round Tarneeb tournament','fee'=>2000,'max_players'=>64,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true],
-            'weekend'=>['name_ar'=>'كأس نهاية الأسبوع','name_en'=>'Weekend Cup','description_ar'=>'منافسة أسبوعية سريعة','description_en'=>'Fast weekly competition','fee'=>1000,'max_players'=>32,'rounds'=>3,'turn_seconds'=>10,'game'=>'trix','featured'=>true],
-            'elite'=>['name_ar'=>'دوري النخبة','name_en'=>'Elite League','description_ar'=>'دوري مصنف للنخبة','description_en'=>'Ranked elite league','fee'=>5000,'max_players'=>128,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true],
-            'clubs_war'=>['name_ar'=>'حرب المجموعات','name_en'=>'Club Wars','description_ar'=>'بطولة فرق المجموعات','description_en'=>'Club team competition','fee'=>10000,'max_players'=>64,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true],
-            'quick'=>['name_ar'=>'المواجهة السريعة','name_en'=>'Quick Clash','description_ar'=>'مواجهة قصيرة بزمن 8 ثوانٍ','description_en'=>'Eight-second quick clash','fee'=>500,'max_players'=>16,'rounds'=>2,'turn_seconds'=>8,'game'=>'basra','featured'=>false],
-            'legend'=>['name_ar'=>'كأس الأساطير','name_en'=>'Legends Cup','description_ar'=>'أعلى منافسة موسمية','description_en'=>'Top seasonal tournament','fee'=>20000,'max_players'=>256,'rounds'=>5,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true],
+            'system_50'=>['name_ar'=>'منافسة النظام السريعة','name_en'=>'System Quick Cup','description_ar'=>'منافسة دورية برسوم 50 توكنز وجائزة 300 توكنز','description_en'=>'Recurring system competition with 50-token entry and 300-token prize','fee'=>50,'prize'=>300,'max_players'=>4,'rounds'=>1,'turn_seconds'=>7,'game'=>'tarneeb','featured'=>true,'category'=>'quick','prizes'=>['1st'=>300]],
+            'champions'=>['name_ar'=>'بطولة الأبطال','name_en'=>'Champions Cup','description_ar'=>'بطولة طرنيب من أربع جولات','description_en'=>'Four-round Tarneeb tournament','fee'=>2000,'max_players'=>64,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true,'category'=>'cup','prizes'=>['1st'=>50000,'2nd'=>15000,'3rd'=>5000]],
+            'weekend'=>['name_ar'=>'كأس نهاية الأسبوع','name_en'=>'Weekend Cup','description_ar'=>'منافسة أسبوعية سريعة','description_en'=>'Fast weekly competition','fee'=>1000,'max_players'=>32,'rounds'=>3,'turn_seconds'=>10,'game'=>'trix','featured'=>true,'category'=>'cup','prizes'=>['1st'=>12000,'2nd'=>4000]],
+            'elite'=>['name_ar'=>'دوري النخبة','name_en'=>'Elite League','description_ar'=>'دوري مصنف للنخبة','description_en'=>'Ranked elite league','fee'=>5000,'max_players'=>128,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true,'category'=>'league','prizes'=>['1st'=>150000,'2nd'=>40000,'3rd'=>20000]],
+            'clubs_war'=>['name_ar'=>'حرب المجموعات','name_en'=>'Club Wars','description_ar'=>'بطولة فرق المجموعات','description_en'=>'Club team competition','fee'=>10000,'max_players'=>64,'rounds'=>4,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true,'category'=>'groups','prizes'=>['1st'=>200000,'2nd'=>50000]],
+            'quick'=>['name_ar'=>'المواجهة السريعة','name_en'=>'Quick Clash','description_ar'=>'مواجهة قصيرة بزمن 8 ثوانٍ','description_en'=>'Eight-second quick clash','fee'=>500,'max_players'=>16,'rounds'=>2,'turn_seconds'=>8,'game'=>'basra','featured'=>false,'category'=>'quick','prizes'=>['1st'=>4000]],
+            'legend'=>['name_ar'=>'كأس الأساطير','name_en'=>'Legends Cup','description_ar'=>'أعلى منافسة موسمية','description_en'=>'Top seasonal tournament','fee'=>20000,'max_players'=>256,'rounds'=>5,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true,'category'=>'seasonal','prizes'=>['1st'=>500000,'2nd'=>150000,'3rd'=>75000]],
+            'royal_league'=>['name_ar'=>'الدوري الملكي','name_en'=>'Royal League','description_ar'=>'دوري احترافي بنظام مجموعات وتصفيات','description_en'=>'Professional league with groups and playoffs','fee'=>7500,'max_players'=>96,'rounds'=>5,'turn_seconds'=>10,'game'=>'tarneeb','featured'=>true,'category'=>'league','prizes'=>['1st'=>250000,'2nd'=>90000,'3rd'=>30000]],
+            'night_challenge'=>['name_ar'=>'تحدي الليل السريع','name_en'=>'Night Turbo Challenge','description_ar'=>'بطولة ليلية خاطفة بجائزة فورية','description_en'=>'Fast nightly challenge with instant rewards','fee'=>750,'max_players'=>24,'rounds'=>2,'turn_seconds'=>7,'game'=>'tarneeb','featured'=>false,'category'=>'challenge','prizes'=>['1st'=>8000,'2nd'=>2500]],
+            'masters_cup'=>['name_ar'=>'كأس المحترفين','name_en'=>'Masters Cup','description_ar'=>'بطولة للمتمرسين مع جوائز وتصنيف','description_en'=>'Advanced competition with rewards and ranking points','fee'=>12000,'max_players'=>48,'rounds'=>4,'turn_seconds'=>8,'game'=>'hand_partner','featured'=>true,'category'=>'cup','prizes'=>['1st'=>160000,'2nd'=>50000,'3rd'=>20000]],
         ];
         $preset = $presets[$key] ?? $presets['quick'];
         if ($requestedFee > 0 && $requestedFee !== $preset['fee']) throw new RuntimeException('قيمة دخول المنافسة غير مطابقة لإعدادات الخادم.');

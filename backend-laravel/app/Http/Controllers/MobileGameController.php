@@ -80,6 +80,7 @@ class MobileGameController extends Controller
                     'max_players' => $room->max_players,
                     'turn_seconds' => (int) ($state['turn_seconds'] ?? 10),
                     'min_level' => (int) ($room->min_level ?? 1),
+                    'single_round' => (bool) ($state['single_round'] ?? false),
                     'game' => $room->game?->key,
                     'owner' => $room->owner?->username,
                     'avatars' => $room->players->where('is_bot', false)->take(4)->map(fn ($player) => [
@@ -189,6 +190,7 @@ class MobileGameController extends Controller
             'min_level' => 'nullable|integer|min:1|max:200',
             'allow_owner_kick' => 'nullable|boolean',
             'player_count' => 'nullable|integer|min:2|max:6',
+            'single_round' => 'nullable|boolean',
         ]);
         if (!empty($data['voice_enabled']) && !$productionConfig->enabled('voice_rooms', true)) {
             return response()->json(['ok'=>false,'message'=>'الغرف الصوتية متوقفة مؤقتًا.'], 503);
@@ -236,12 +238,13 @@ class MobileGameController extends Controller
             $playerKeys[] = 'bot:' . $this->botName(count($playerKeys) - 1);
         }
 
-        $target = (int) ($data['target'] ?? $this->defaultTarget($data['game']));
+        $target = (int) ($data['target'] ?? ((in_array($data['game'], ['banakil','pinochle'], true) && $maxPlayers === 2) ? 150 : $this->defaultTarget($data['game'])));
         $engine = GameFactory::make($data['game']);
         $state = $engine->initialState($playerKeys, [
             'target' => $target,
             'turn_seconds' => (int) ($data['turn_seconds'] ?? 10),
             'partners' => (bool) $game->partnership,
+            'single_round' => (bool) ($data['single_round'] ?? false),
         ]);
         $state['game'] = $data['game'];
         $state['play_direction'] = 'counterclockwise';
@@ -254,6 +257,7 @@ class MobileGameController extends Controller
         $state['voice_room'] = $state['voice_enabled'];
         $state['voice_fee'] = 0;
         $state['turn_seconds'] = (int) ($data['turn_seconds'] ?? 10);
+        $state['single_round'] = (bool) ($data['single_round'] ?? false);
         $state['allow_owner_kick'] = (bool) ($data['allow_owner_kick'] ?? true);
         $state['kicked_user_ids'] = [];
         $state['min_level'] = (int) ($data['min_level'] ?? 1);
@@ -381,6 +385,7 @@ class MobileGameController extends Controller
 
         $next = $engine->apply($state, $playerKey, $data['action'], $payload);
         $next = $this->advanceAutomatedTurns($engine, $next, (string) $room->game->key);
+        $next = $this->advanceRoundWithoutPause($engine, $next, (string)$room->game->key);
         $next['_revision'] = $currentRevision + 1;
         $progressionPopup = $this->awardProgressionTransition($progression, $room, $state, $next);
         if ($progressionPopup !== []) $next['progression_popup'] = $progressionPopup;
@@ -415,6 +420,7 @@ class MobileGameController extends Controller
             ? $engine->onTurnTimeout($state)
             : $this->automaticMove($engine, $state, (string)$room->game->key);
         $state = $this->advanceAutomatedTurns($engine, $state, (string)$room->game->key);
+        $state = $this->advanceRoundWithoutPause($engine, $state, (string)$room->game->key);
         $state['_revision'] = (int)($before['_revision'] ?? 0) + 1;
 
         if ($wasUsersTurn && $player && !$awayMode && (int)$player->fresh()->missed_turns >= 3) {
@@ -547,6 +553,7 @@ class MobileGameController extends Controller
             'is_owner' => (int)$room->owner_id === $userId,
             'allow_owner_kick' => (bool)($state['allow_owner_kick'] ?? false),
             'min_level' => (int)($room->min_level ?? $state['min_level'] ?? 1),
+            'single_round' => (bool)($state['single_round'] ?? false),
             'max_players' => (int)$room->max_players,
             'entry_fee' => 0,
             'room_name' => $state['room_name'] ?? ($room->game?->name ?? 'غرفة ورقنا'),
@@ -663,6 +670,25 @@ class MobileGameController extends Controller
         $copy['you'] = $myKey;
         $copy['free_play'] = true;
         return $copy;
+    }
+
+    /** @param array<string,mixed> $state @return array<string,mixed> */
+    private function advanceRoundWithoutPause(GameRuleContract $engine, array $state, string $gameKey): array
+    {
+        if(!empty($state['single_round'])) return $state;
+        if(empty($state['next_round_available'])) return $state;
+        $player=(string)($state['players'][0] ?? '');
+        if($player==='') return $state;
+        foreach(['next_round','new_round'] as $action){
+            try{
+                if($engine->validate($state,$player,$action,[])){
+                    $state=$engine->apply($state,$player,$action,[]);
+                    $state['messages'][]='✅ تم احتساب الجولة والانتقال مباشرة إلى الجولة التالية بدون انتظار.';
+                    return $this->advanceAutomatedTurns($engine,$state,$gameKey);
+                }
+            }catch(\Throwable){}
+        }
+        return $state;
     }
 
     /**

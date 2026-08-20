@@ -73,8 +73,17 @@ jobs:
         run: python3 ../tools/test_v201_r4_hotfix_contract.py
       - name: Verify V201 R5 CI stability
         run: python3 ../tools/test_v201_r5_ci_stability_contract.py
+      - name: Verify R8 engine integrity contract
+        run: python3 ../tools/test_v208_r8_contract.py
+      - name: Run R8 deep Tarneeb Hand Banakil audit
+        run: php tools/test-v208-r8-rules.php
       - name: Run V184 official game-rule audit
         run: php tools/test-v184-official-rules-audit.php
+      - name: Run R8 multi-step engine playthrough stress
+        env:
+          WARQNA_PLAYTHROUGH_RUNS: 4
+          WARQNA_PLAYTHROUGH_STEPS: 80
+        run: php tools/test-v208-r8-playthrough-stress.php
       - name: Stress all registered game engines
         run: php tools/test-v184-engine-stress.php
       - name: Run Laravel tests

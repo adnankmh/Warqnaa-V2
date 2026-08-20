@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '0.4.5');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 201);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '0.4.8');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 208);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -155,6 +155,7 @@ class WarqnaApiClient {
     int minLevel = 1,
     bool allowOwnerKick = true,
     int? playerCount,
+    bool singleRound = false,
   }) =>
       post('/games/session', {
         'game': game,
@@ -165,6 +166,7 @@ class WarqnaApiClient {
         'min_level': minLevel,
         'allow_owner_kick': allowOwnerKick,
         if (playerCount != null) 'player_count': playerCount,
+        'single_round': singleRound,
         if (roomName != null && roomName.trim().isNotEmpty) 'room_name': roomName.trim(),
         if (visibility == 'private' && password != null && password.isNotEmpty) 'password': password,
       });

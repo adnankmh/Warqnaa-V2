@@ -9,14 +9,18 @@ use RuntimeException;
 
 class DailyPackService
 {
+    public const CLAIM_COOLDOWN_HOURS = 12;
+
     public function __construct(private readonly WalletService $wallet) {}
 
     /** @return array<string,mixed> */
     public function open(User $user, ?array $forcedReward = null): array
     {
         $today = now()->toDateString();
-        if (DailyPackClaim::where('user_id', $user->id)->whereDate('claim_date', $today)->exists()) {
-            throw new RuntimeException('تم فتح حزمة اليوم مسبقاً.');
+        $latestClaim = DailyPackClaim::where('user_id', $user->id)->latest('created_at')->first();
+        $nextClaimAt = $latestClaim?->created_at?->copy()?->addHours(self::CLAIM_COOLDOWN_HOURS);
+        if ($nextClaimAt && $nextClaimAt->isFuture()) {
+            throw new RuntimeException('حزمة الجوائز والصندوق المجاني متاحان كل 12 ساعة.');
         }
 
         $reward = $forcedReward ?: $this->weighted(self::catalog());
@@ -92,6 +96,7 @@ class DailyPackService
         });
 
         $reward['inventory_item'] = $inventoryPayload;
+        $reward['next_claim_after_hours'] = self::CLAIM_COOLDOWN_HOURS;
         return $reward;
     }
 

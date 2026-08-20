@@ -1,4 +1,4 @@
-# ابدأ من هنا — Warqnaa V0.4.5+201 Gameplay & Admin Pro
+# ابدأ من هنا — Warqnaa V0.4.8+208 R8 Engine Integrity
 
 ## Windows / XAMPP
 1. فك الحزمة داخل `C:\xampp\htdocs\`.

@@ -51,9 +51,9 @@ foreach([2,3,4,5] as $count){
 $engine=new HandPartnershipEngine();
 $state=$engine->newGame(auditPlayers(4),['seed'=>184]);
 $state['phase']='discard';$state['starterDiscardPending']=false;$state['currentIndex']=0;
-$state['hands']['p0']=['A_C','A_D','A_S','A_H','2_C'];
-$state=$engine->applyAction($state,'p0',['type'=>'meld','cards'=>['A_C','A_D','A_S','A_H']]);
-auditCheck(($state['teamOpened'][0]??false)===true && (int)($state['teamOpeningThresholds'][1]??0)===61,'Partnership Hand raises the second team opening above the first team value');
+$state['hands']['p0']=['A_C','A_D','A_S','A_H','10_C','J_C','Q_C','2_C'];
+$state=$engine->applyAction($state,'p0',['type'=>'meld_many','groups'=>[['A_C','A_D','A_S','A_H'],['10_C','J_C','Q_C']]]);
+auditCheck(($state['teamOpened'][0]??false)===true && (int)($state['teamOpeningThresholds'][1]??0)===75,'Partnership Hand accepts a 74-point multi-meld opening and raises the second team threshold to 75');
 
 // Banakil: 18+19, no opening floor, 2/4 players, target 222.
 $engine=new BanakilEngine();

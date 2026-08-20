@@ -11,6 +11,7 @@ class LuckyWheelService
 {
     public const TOKEN_COST = 100;
     public const MAX_TOKEN_SPINS_PER_DAY = 5;
+    public const FREE_SPIN_COOLDOWN_HOURS = 12;
 
     public function __construct(
         private readonly PrizeBoxService $prizeBoxes,
@@ -36,15 +37,18 @@ class LuckyWheelService
     public function center(User $user): array
     {
         $today = now()->toDateString();
-        $freeUsed = LuckyWheelSpin::where('user_id',$user->id)->whereDate('spin_date',$today)->where('source','free')->exists();
+        $lastFree = LuckyWheelSpin::where('user_id',$user->id)->where('source','free')->latest('created_at')->first();
+        $nextFreeAt = $lastFree?->created_at?->copy()?->addHours(self::FREE_SPIN_COOLDOWN_HOURS);
+        $freeAvailable = !$nextFreeAt || $nextFreeAt->isPast();
         $tokenSpins = LuckyWheelSpin::where('user_id',$user->id)->whereDate('spin_date',$today)->where('source','tokens')->count();
         return [
             'segments'=>self::segments(),
-            'free_available'=>!$freeUsed,
+            'free_available'=>$freeAvailable,
+            'free_cooldown_hours'=>self::FREE_SPIN_COOLDOWN_HOURS,
             'token_cost'=>self::TOKEN_COST,
             'token_spins_today'=>$tokenSpins,
             'token_spins_remaining'=>max(0,self::MAX_TOKEN_SPINS_PER_DAY-$tokenSpins),
-            'next_free_at'=>now()->addDay()->startOfDay()->toIso8601String(),
+            'next_free_at'=>($nextFreeAt ?: now())->toIso8601String(),
         ];
     }
 
@@ -59,8 +63,10 @@ class LuckyWheelService
             $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
             $today = now()->toDateString();
             $spins = LuckyWheelSpin::where('user_id',$user->id)->whereDate('spin_date',$today)->lockForUpdate()->get();
-            if ($source === 'free' && $spins->contains(fn($spin)=>$spin->source === 'free')) {
-                throw new RuntimeException('تم استخدام التدويرة المجانية اليوم.');
+            $lastFree = $spins->where('source','free')->sortByDesc('created_at')->first() ?: LuckyWheelSpin::where('user_id',$user->id)->where('source','free')->latest('created_at')->first();
+            $nextFreeAt = $lastFree?->created_at?->copy()?->addHours(self::FREE_SPIN_COOLDOWN_HOURS);
+            if ($source === 'free' && $nextFreeAt && $nextFreeAt->isFuture()) {
+                throw new RuntimeException('التدويرة المجانية متاحة كل 12 ساعة.');
             }
             if ($source === 'tokens' && $spins->where('source','tokens')->count() >= self::MAX_TOKEN_SPINS_PER_DAY) {
                 throw new RuntimeException('وصلت إلى الحد اليومي للتدوير بالتوكنز.');
@@ -79,7 +85,7 @@ class LuckyWheelService
                 'source_type'=>'lucky_wheel',
                 'source_key'=>$sourceKey,
                 'awarded_date'=>$today,
-                'payload'=>['segment_key'=>$segment['key'],'version'=>'V0.4.5'],
+                'payload'=>['segment_key'=>$segment['key'],'version'=>'V0.4.6','cooldown_hours'=>self::FREE_SPIN_COOLDOWN_HOURS],
             ]);
             $opened = $this->prizeBoxes->open($user,$box,$segment['reward']);
             $spin = LuckyWheelSpin::create([

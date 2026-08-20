@@ -19,7 +19,7 @@ $keys = [
     'hand','hand_partner','saudi_hand','banakil','pinochle','baloot',
     'solitaire_multiplayer','domino','basra','backgammon','jackaroo','chess',
 ];
-$iterations = 20;
+$iterations = max(1, min(250, (int)(getenv('WARQNA_STRESS_ITERATIONS') ?: 20)));
 $checks = 0;
 $errors = [];
 foreach ($keys as $key) {

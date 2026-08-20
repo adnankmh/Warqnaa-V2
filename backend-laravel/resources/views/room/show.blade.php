@@ -9,6 +9,9 @@ $score = $state['score'] ?? ['teamA'=>0,'teamB'=>0];
 $roundTricks = $state['round_tricks'] ?? ['teamA'=>0,'teamB'=>0];
 $bid = $state['bid'] ?? null;
 $trump = $state['trump'] ?? null;
+$singleRound = (bool)($state['single_round'] ?? false);
+$lastTrick = $state['last_trick'] ?? [];
+$lastActionText = $state['messages'][count($state['messages'] ?? [])-1] ?? ($state['last_action']['action'] ?? 'لم تبدأ الحركة بعد');
 $gameKey = $room->game->key;
 $handLike = in_array($gameKey,['hand','hand_partner','saudi_hand','banakil','pinochle','solitaire_multiplayer'],true);
 $needsBid = in_array($gameKey,['tarneeb','tarneeb_400','tarneeb_41','estimation','hokm','kout4','kout6'],true);
@@ -60,6 +63,8 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
    @if($needsTrump)
     <div class="score-meta trump-only">الطرنيب: <b id="currentTrump">{{$trump ? ($suitNames[$trump] ?? $trump) : 'لم يحدد'}}</b></div>
    @endif
+   <div class="score-meta">نمط المباراة: <b>{{ $singleRound ? 'جولة واحدة' : 'متعددة الجولات' }}</b></div>
+   <div class="score-meta">آخر حركة: <b id="lastActionMeta">{{$lastActionText}}</b></div>
   </div>
   @if((auth()->user()->profile?->pasha_days ?? 0)>0)
    @php $isAway = !empty(($state['away_players'] ?? [])[$myKey]); @endphp
@@ -70,7 +75,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
   <a class="btn big-action" href="{{route('rooms.index',$room->game->key)}}">العودة للغرف</a>
  </aside>
  <section class="table-wrap">
-  <div class="game-table premium-table seats-{{$room->max_players}}  square-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="background-image:linear-gradient(rgba(3,7,18,.22),rgba(3,7,18,.38)),url('{{$activeTableImage}}');background-size:cover;background-position:center;" @endif>
+  <div class="game-table premium-table responsive-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="background-image:linear-gradient(rgba(3,7,18,.22),rgba(3,7,18,.38)),url('{{$activeTableImage}}');background-size:cover;background-position:center;" @endif>
    <div class="table-aura"></div>
    <div class="deck-stack"><span></span><span></span><span></span></div>
    @if(($room->owner_id===auth()->id() || auth()->user()->is_admin) && $phase==='waiting')
@@ -83,7 +88,13 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
    @endforeach
    <div class="center-board">
     <div class="phase-title" id="phaseTitle">{{ $phase==='waiting' ? 'بانتظار بدء الجولة' : ($phase==='bidding' ? 'مرحلة الطلب' : ($phase==='choose_trump' ? 'اختيار الطرنيب' : ($phase==='finished' ? 'انتهت الجولة' : 'اللعب جارٍ'))) }}</div>
-    <div class="last-trick" id="lastAction">{{ $state['messages'][count($state['messages'] ?? [])-1] ?? ($state['last_action']['action'] ?? 'لم تبدأ الحركة بعد') }}</div>
+    <div class="last-trick" id="lastAction">{{$lastActionText}}</div>
+    <div class="center-status-grid">
+      <div><small>نمط الغرفة</small><b>{{ $singleRound ? 'جولة واحدة' : 'متعددة الجولات' }}</b></div>
+      <div><small>السرعة</small><b>{{$fixedTimeout}} ثوانٍ</b></div>
+      <div><small>الطرنيب</small><b>{{ $trump ? ($suitNames[$trump] ?? $trump) : 'بانتظار الاختيار' }}</b></div>
+      <div><small>آخر حركة</small><b id="lastActionCenter">{{$lastActionText}}</b></div>
+    </div>
     <div id="tableTrick" class="table-trick"></div>
     <div class="quick-reactions-mini-v132">
      <button type="button" class="reaction-toggle-v132" onclick="document.getElementById('quickReactionsV132')?.classList.toggle('hidden')">⚡</button>

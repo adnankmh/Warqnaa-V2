@@ -34,6 +34,7 @@ class StoreCatalogService
         DB::table('store_items')->where('category','xp_booster')->whereNotIn('key',$boostKeep)->update(['active'=>false,'updated_at'=>now()]);
         foreach($this->v201Items() as $item) $this->upsert($item);
         foreach($this->v201R4Items() as $item) $this->upsert($item);
+        foreach($this->v202Items() as $item) $this->upsert($item);
 
     }
 
@@ -252,4 +253,21 @@ class StoreCatalogService
     }
 
     public function nameFrames(): array { return json_decode('[{"key": "nameframe_gold_aura", "ar": "إطار اسم هالة ذهبية", "en": "Gold Aura Name Frame", "category": "name_color", "price": 9000, "duration_days": null, "payload": {"color": "#f5c542", "frame": "name-frame-gold-aura", "glow": "name-frame-gold-aura", "preview_icon": "✨", "tier": "featured"}}, {"key": "nameframe_emerald_lux", "ar": "إطار اسم زمرد فاخر", "en": "Emerald Lux Name Frame", "category": "name_color", "price": 11000, "duration_days": null, "payload": {"color": "#10b981", "frame": "name-frame-emerald-lux", "glow": "name-frame-emerald-lux", "preview_icon": "💚", "tier": "featured"}}, {"key": "nameframe_ruby_flash", "ar": "إطار اسم روبي لامع", "en": "Ruby Flash Name Frame", "category": "name_color", "price": 13000, "duration_days": null, "payload": {"color": "#ef4444", "frame": "name-frame-ruby-flash", "glow": "name-frame-ruby-flash", "preview_icon": "❤️", "tier": "legendary"}}, {"key": "nameframe_diamond_pulse", "ar": "إطار اسم ألماس نابض", "en": "Diamond Pulse Name Frame", "category": "name_color", "price": 17000, "duration_days": null, "payload": {"color": "#e0f2fe", "frame": "name-frame-diamond-pulse", "glow": "name-frame-diamond-pulse", "preview_icon": "💎", "tier": "legendary"}}]', true); }
+
+    /** @return array<int,array<string,mixed>> */
+    public function v202Items(): array
+    {
+        return [
+            ['key'=>'table_v202_obsidian_vertical','ar'=>'طاولة أوبسيديان طولية','en'=>'Obsidian Vertical Table','fr'=>'Table verticale obsidienne','tr'=>'Obsidyen Dikey Masa','de'=>'Vertikaler Obsidian-Tisch','es'=>'Mesa vertical obsidiana','category'=>'table','price'=>980000,'payload'=>['table'=>'table-v202-obsidian-vertical','table_class'=>'table-v202-obsidian-vertical','tier'=>'legendary','animated'=>true,'preview_icon'=>'🖤','preferred_orientation'=>'portrait']],
+            ['key'=>'table_v202_royal_square','ar'=>'طاولة رويال مربعة','en'=>'Royal Square Table','fr'=>'Table carrée royale','tr'=>'Kraliyet Kare Masa','de'=>'Königlicher quadratischer Tisch','es'=>'Mesa real cuadrada','category'=>'table','price'=>1020000,'payload'=>['table'=>'table-v202-royal-square','table_class'=>'table-v202-royal-square','tier'=>'legendary','animated'=>true,'preview_icon'=>'👑','preferred_orientation'=>'portrait']],
+            ['key'=>'table_v202_arena_landscape','ar'=>'طاولة أرينا عريضة','en'=>'Arena Landscape Table','fr'=>'Table arène paysage','tr'=>'Arena Yatay Masa','de'=>'Breiter Arena-Tisch','es'=>'Mesa arena horizontal','category'=>'table','price'=>950000,'payload'=>['table'=>'table-v202-arena-landscape','table_class'=>'table-v202-arena-landscape','tier'=>'legendary','animated'=>true,'preview_icon'=>'🏟️','preferred_orientation'=>'landscape']],
+            ['key'=>'card_v202_midnight_glass','ar'=>'ظهر زجاج منتصف الليل','en'=>'Midnight Glass Back','fr'=>'Dos verre minuit','tr'=>'Gece Camı Kart Arkası','de'=>'Mitternachtsglas-Kartenrücken','es'=>'Dorso cristal medianoche','category'=>'card_back','price'=>210000,'payload'=>['card_back'=>'card-v202-midnight-glass','tier'=>'legendary','preview_icon'=>'🌙']],
+            ['key'=>'effect_v202_victory_burst','ar'=>'مؤثر انفجار الفوز','en'=>'Victory Burst Effect','fr'=>'Effet explosion de victoire','tr'=>'Zafer Patlaması Efekti','de'=>'Siegsexplosion-Effekt','es'=>'Efecto explosión de victoria','category'=>'effect','price'=>125000,'payload'=>['effect'=>'victory-burst','preview_icon'=>'🎆','tier'=>'legendary']],
+            ['key'=>'badge_v202_grandmaster','ar'=>'شارة الجراند ماستر','en'=>'Grandmaster Badge','fr'=>'Badge grand maître','tr'=>'Büyük Usta Rozeti','de'=>'Großmeister-Abzeichen','es'=>'Insignia gran maestro','category'=>'badge','price'=>88000,'payload'=>['badge'=>'grandmaster','preview_icon'=>'🏅','tier'=>'legendary']],
+            ['key'=>'cover_v202_galaxy','ar'=>'غلاف مجرة فخم','en'=>'Luxury Galaxy Cover','fr'=>'Couverture galaxie luxe','tr'=>'Lüks Galaksi Kapağı','de'=>'Luxus-Galaxie-Cover','es'=>'Portada galaxia de lujo','category'=>'profile_cover','price'=>99000,'payload'=>['cover'=>'galaxy-lux','preview_icon'=>'🌌','tier'=>'legendary']],
+            ['key'=>'nameframe_v202_aurora','ar'=>'إطار أورورا للاسم','en'=>'Aurora Name Frame','fr'=>'Cadre nom Aurora','tr'=>'Aurora İsim Çerçevesi','de'=>'Aurora-Namensrahmen','es'=>'Marco de nombre Aurora','category'=>'name_frame','price'=>74000,'payload'=>['frame'=>'aurora-name','preview_icon'=>'✨','tier'=>'featured']],
+            ['key'=>'emoji_v202_majestic','ar'=>'إيموجي المجلس الأسطوري','en'=>'Majestic Majlis Emojis','fr'=>'Emojis majlis majestueux','tr'=>'Görkemli Meclis Emojileri','de'=>'Majestätische Majlis-Emojis','es'=>'Emojis majlis majestuosos','category'=>'emoji_pack','price'=>59000,'payload'=>['emojis'=>'👑☕🔥🦅🤝🎴🏆💎','emoji_tier'=>'vip','animated'=>true,'preview_icon'=>'😎','collection'=>'v202_elite']],
+        ];
+    }
+
 }

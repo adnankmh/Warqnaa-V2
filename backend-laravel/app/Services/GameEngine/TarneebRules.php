@@ -31,6 +31,7 @@ class TarneebRules implements GameRuleContract
         $state=$this->engine->newGameWithTarget($standalonePlayers,$target,random_int(1,PHP_INT_MAX),[
             'turnSeconds'=>max(5,min(10,(int)($options['turn_seconds'] ?? 7))),
             'targetScore'=>$target,
+            'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
             'redealOnAllPass'=>true,
             'sortHands'=>true,
             'allowBotForAway'=>true,
@@ -180,6 +181,7 @@ class TarneebRules implements GameRuleContract
                 'teamB'=>(int)($s['scores'][1] ?? 0),
             ],
             'target'=>(int)($s['rules']['targetScore'] ?? 41),
+            'single_round'=>(bool)($s['rules']['singleRound'] ?? false),
             'round'=>(int)($s['round'] ?? 1),
             'started_at'=>isset($s['createdAt']) ? date('c',(int)$s['createdAt']) : (function_exists('now')?now()->toIso8601String():date('c')),
             'turn_timeout_seconds'=>max(5,min(10,(int)($s['rules']['turnSeconds'] ?? 7))),

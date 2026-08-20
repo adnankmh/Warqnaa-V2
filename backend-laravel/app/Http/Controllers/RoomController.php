@@ -27,7 +27,7 @@ class RoomController
    $data=$r->validate([
     'game_id'=>'required|exists:games,id','room_type'=>'nullable|in:public,private,voice','visibility'=>'nullable|in:public,friends,private',
     'password'=>'nullable|string|max:80','max_players'=>'nullable|integer|min:2|max:6','min_level'=>'nullable|integer|min:1|max:100',
-    'target_score'=>'nullable|string|max:20','voice_room'=>'nullable|boolean','speed'=>'nullable|in:slow,medium,fast','allow_owner_kick'=>'nullable|boolean','leave_xp_penalty'=>'nullable|boolean'
+    'target_score'=>'nullable|string|max:20','voice_room'=>'nullable|boolean','speed'=>'nullable|in:slow,medium,fast','allow_owner_kick'=>'nullable|boolean','leave_xp_penalty'=>'nullable|boolean','single_round'=>'nullable|boolean'
    ]);
    $user=auth()->user();
    if(!$user) return $this->friendlyRoomFail('يجب تسجيل الدخول أولًا.');
@@ -61,10 +61,10 @@ class RoomController
    // v142: gameplay and voice rooms are free. Tokens are deducted only for confirmed store purchases.
 
    $room=DB::transaction(function() use($game,$user,$visibility,$data,$max,$target,$voiceRoom){
-    $state=['phase'=>'waiting','score'=>['teamA'=>0,'teamB'=>0],'voice_room'=>$voiceRoom,'voice_fee'=>0,'allow_owner_kick'=>!empty($data['allow_owner_kick']),'leave_xp_penalty'=>!empty($data['leave_xp_penalty']),'leave_xp_penalty_amount'=>200,
+    $state=['phase'=>'waiting','score'=>['teamA'=>0,'teamB'=>0],'voice_room'=>$voiceRoom,'voice_fee'=>0,'allow_owner_kick'=>!empty($data['allow_owner_kick']),'single_round'=>!empty($data['single_round']),'leave_xp_penalty'=>!empty($data['leave_xp_penalty']),'leave_xp_penalty_amount'=>200,
      'speed'=>$this->normalizeSpeed($data['speed'] ?? 'medium')[0],'turn_timeout_seconds'=>$this->normalizeSpeed($data['speed'] ?? 'medium')[1],
      'plain_room_password'=>$visibility==='private' ? (string)$data['password'] : null,
-     'log'=>[],'messages'=>['تم إنشاء الغرفة بنجاح. اضغط بدء اللعبة للجولة الأولى فقط، وبعدها تنتقل الجولات تلقائيًا.']];
+     'log'=>[],'messages'=>['تم إنشاء الغرفة بنجاح. اضغط بدء اللعبة للجولة الأولى فقط، وبعدها تنتقل الجولات تلقائيًا.', !empty($data['single_round']) ? '⚡ هذه الغرفة مضبوطة على جولة واحدة فقط.' : '🏁 هذه الغرفة تسمح بعدة جولات بحسب هدف اللعبة.']];
     $room=Room::create($this->safeColumns('rooms',[
      'code'=>$this->uniqueRoomCode(),'game_id'=>$game->id,'owner_id'=>$user->id,'visibility'=>$visibility,
      'password'=>($visibility==='private') ? Hash::make((string)$data['password']) : null,'entry_fee'=>0,'min_level'=>$data['min_level']??1,
@@ -225,7 +225,7 @@ class RoomController
    $players=$room->players->sortBy(fn($p)=>array_search($p->seat,$this->seatOrder,true))->map(fn($p)=>$this->playerKey($p))->values()->all();
    $engine=GameFactory::make($room->game->key);
    $oldState=$room->state ?: [];
-   $engineOptions=['target'=>$room->target_score ?: ($room->game->rules['targets'][0] ?? 31),'partners'=>(bool)$room->game->partnership,'deal_nonce'=>bin2hex(random_bytes(6))];
+   $engineOptions=['target'=>$room->target_score ?: ($room->game->rules['targets'][0] ?? 31),'partners'=>(bool)$room->game->partnership,'deal_nonce'=>bin2hex(random_bytes(6)),'single_round'=>(bool)($oldState['single_round'] ?? false)];
    if(in_array($room->game->key,['hand','hand_partner','pinochle','banakil','konkan'],true) && !empty($oldState['scores'])){ $engineOptions['previous_scores']=$oldState['scores']; $engineOptions['round']=min(((int)($oldState['round'] ?? 1))+1, 5); }
    $state=$engine->initialState($players,$engineOptions);
    if(!empty($oldState['score']) && empty($oldState['winner_team'])) { $state['score']=$oldState['score']; $state['round']=(int)($oldState['round'] ?? 1)+1; }
@@ -233,6 +233,7 @@ class RoomController
    $state['game'] = $room->game->key;
    $state['seat_partners'] = $this->partnerMap($room->max_players);
    $state['play_direction'] = 'counterclockwise';
+   $state['single_round'] = (bool)($oldState['single_round'] ?? $state['single_round'] ?? false);
    $state['next_player_side'] = 'right';
    if(!empty($oldState['tournament_id'])){ $state['tournament_id']=$oldState['tournament_id']; $state['tournament_stage']=$oldState['tournament_stage'] ?? null; $state['recording_enabled']=true; $state['video_frames']=$oldState['video_frames'] ?? []; }
    [$fixedSpeed,$fixedTimeout]=$this->normalizeSpeed($oldState['speed'] ?? ($room->state['speed'] ?? 'medium'));
@@ -709,13 +710,14 @@ class RoomController
 
  private function autoAdvanceNextRound(Room $room,array $state): array{
   if(($state['phase'] ?? '')!=='finished') return $state;
+  if(!empty($state['single_round'])) return $state;
   if(!empty($state['winner_team']) || !empty($state['game_over']) || !empty($state['overall_winner']) || !empty($state['winner_final'])) return $state;
   if(!empty($state['auto_advanced_at']) && (time() - strtotime($state['auto_advanced_at'])) < 2) return $state;
   try{
    $players=array_values($state['players'] ?? []);
    if(count($players)<2) return $state;
    $engine=GameFactory::make($room->game->key);
-   $options=['target'=>$state['target'] ?? ($room->target_score ?: ($room->game->rules['targets'][0] ?? 31)),'partners'=>(bool)$room->game->partnership];
+   $options=['target'=>$state['target'] ?? ($room->target_score ?: ($room->game->rules['targets'][0] ?? 31)),'partners'=>(bool)$room->game->partnership,'single_round'=>(bool)($state['single_round'] ?? false)];
    if(in_array($room->game->key,['hand','hand_partner','pinochle','banakil','konkan'],true)){
     $options['previous_scores']=$state['scores'] ?? array_fill_keys($players,0);
     $options['round']=((int)($state['round'] ?? 1))+1;
@@ -725,7 +727,7 @@ class RoomController
    if(isset($state['scores'])) $new['scores']=$state['scores'];
    $new['round']=((int)($state['round'] ?? 1))+1;
    $new['room_code']=$room->code; $new['game']=$room->game->key; $new['seat_partners']=$state['seat_partners'] ?? $this->partnerMap($room->max_players);
-   $new['voice_room']=$state['voice_room'] ?? false; $new['voice_fee']=$state['voice_fee'] ?? 0;
+   $new['voice_room']=$state['voice_room'] ?? false; $new['voice_fee']=$state['voice_fee'] ?? 0; $new['single_round']=(bool)($state['single_round'] ?? false);
    $new['speed']=$state['speed'] ?? 'medium'; $new['turn_timeout_seconds']=$this->normalizeSpeed($new['speed'])[1];
    foreach(['tournament_id','tournament_stage','recording_enabled'] as $k) if(isset($state[$k])) $new[$k]=$state[$k];
    $new['video_frames']=$state['video_frames'] ?? [];

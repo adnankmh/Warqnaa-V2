@@ -272,6 +272,7 @@ class AppController extends ChangeNotifier {
   bool activeRoomVoice = false;
   String activeRoomVisibility = 'public';
   int activeRoomTurnSeconds = 10;
+  bool activeRoomSingleRound = false;
   RoundRewardReport? lastRoundReport;
   final Set<String> rewardedMatches = <String>{};
   String localeCode = 'ar';
@@ -529,6 +530,7 @@ class AppController extends ChangeNotifier {
     await prefs.setBool(_accountKey('activeRoomVoice'), activeRoomVoice);
     await prefs.setString(_accountKey('activeRoomVisibility'), activeRoomVisibility);
     await prefs.setInt(_accountKey('activeRoomTurnSeconds'), activeRoomTurnSeconds);
+    await prefs.setBool(_accountKey('activeRoomSingleRound'), activeRoomSingleRound);
     await prefs.setStringList(_accountKey('owned'), owned.toList());
     await prefs.setString(_accountKey('gameExitCounts'), jsonEncode(gameExitCounts));
     await prefs.setBool(_accountKey('awayMode'), awayMode);
@@ -783,6 +785,7 @@ class AppController extends ChangeNotifier {
     activeRoomVoice = prefs.getBool('activeRoomVoice') ?? false;
     activeRoomVisibility = prefs.getString('activeRoomVisibility') ?? 'public';
     activeRoomTurnSeconds = prefs.getInt('activeRoomTurnSeconds') ?? 10;
+    activeRoomSingleRound = prefs.getBool('activeRoomSingleRound') ?? false;
     owned
       ..clear()
       ..addAll(prefs.getStringList('owned') ?? const ['emoji_fun']);
@@ -916,6 +919,7 @@ class AppController extends ChangeNotifier {
     await prefs.setBool('activeRoomVoice', activeRoomVoice);
     await prefs.setString('activeRoomVisibility', activeRoomVisibility);
     await prefs.setInt('activeRoomTurnSeconds', activeRoomTurnSeconds);
+    await prefs.setBool('activeRoomSingleRound', activeRoomSingleRound);
     await prefs.setStringList('owned', owned.toList());
     await prefs.setString('storePriceOverrides', jsonEncode(storePriceOverrides));
     await prefs.setString('storeNameOverrides', jsonEncode(storeNameOverrides));
@@ -1796,7 +1800,7 @@ class AppController extends ChangeNotifier {
       }
       await _prepareDirectInviteTransfer(normalized);
       final game = gamesCatalog.firstWhere((item) => item.id == gameId, orElse: () => gamesCatalog.first);
-      final options = RoomLaunchOptions(roomCode: normalized, roomName: roomName, voiceEnabled: voice, visibility: visibility, turnSeconds: turnSeconds);
+      final options = RoomLaunchOptions(roomCode: normalized, roomName: roomName, voiceEnabled: voice, visibility: visibility, turnSeconds: turnSeconds, singleRound: false);
       activeRoomCode = normalized;
       activeRoomName = roomName;
       _pendingRoomCodeV174 = null;
@@ -1830,6 +1834,7 @@ class AppController extends ChangeNotifier {
     activeRoomCode = null;
     activeRoomName = null;
     activeRoomVoice = false;
+    activeRoomSingleRound = false;
     await _save();
     notifyListeners();
     return gameExitCounts[gameId]!;
@@ -1842,6 +1847,7 @@ class AppController extends ChangeNotifier {
     activeRoomCode = null;
     activeRoomName = null;
     activeRoomVoice = false;
+    activeRoomSingleRound = false;
     await _save();
     notifyListeners();
   }
@@ -1976,6 +1982,7 @@ class AppController extends ChangeNotifier {
     activeRoomVoice = options.voiceEnabled;
     activeRoomVisibility = options.visibility;
     activeRoomTurnSeconds = options.turnSeconds;
+    activeRoomSingleRound = options.singleRound;
     _save();
     notifyListeners();
   }
@@ -1986,6 +1993,7 @@ class AppController extends ChangeNotifier {
     visibility: activeRoomVisibility,
     turnSeconds: activeRoomTurnSeconds,
     roomCode: activeRoomCode,
+    singleRound: activeRoomSingleRound,
   );
 
   void leaveGame([String? id]) {
@@ -1994,6 +2002,7 @@ class AppController extends ChangeNotifier {
       activeRoomCode = null;
       activeRoomName = null;
       activeRoomVoice = false;
+      activeRoomSingleRound = false;
     }
     _save();
     notifyListeners();
@@ -4688,7 +4697,7 @@ class GameRoomPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final room = game.id == 'tarneeb' && !options.voiceEnabled && !options.joiningExisting && !controller.serverConnected
-        ? TarneebRoomPage(controller: controller, game: game)
+        ? TarneebRoomPage(controller: controller, game: game, options: options)
         : ServerEngineRoomPage(controller: controller, game: game, options: options);
     return PopScope<bool>(
       canPop: false,
@@ -4721,8 +4730,9 @@ class GameRoomPage extends StatelessWidget {
 class TarneebRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
+  final RoomLaunchOptions options;
 
-  const TarneebRoomPage({super.key, required this.controller, required this.game});
+  const TarneebRoomPage({super.key, required this.controller, required this.game, this.options = const RoomLaunchOptions()});
 
   @override
   State<TarneebRoomPage> createState() => _TarneebRoomPageState();
@@ -4759,6 +4769,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   void _newGame() {
     engine = TarneebLocalEngine(
       targetScore: 41,
+      singleRound: widget.options.singleRound,
       playerNames: [widget.controller.displayName, botProfiles[3].name(widget.controller.localeCode), botProfiles[2].name(widget.controller.localeCode), botProfiles[1].name(widget.controller.localeCode)],
       difficulty: widget.controller.botDifficultyCode,
     );
@@ -4766,7 +4777,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     rewardGranted = false;
     autoNextRoundScheduled = false;
     awardedProgressRounds.clear();
-    seconds = 10;
+    seconds = widget.options.turnSeconds;
     WidgetsBinding.instance.addPostFrameCallback((_) => _runBots());
   }
 
@@ -4797,7 +4808,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         if (legal.isNotEmpty) engine.playCard(0, legal.first);
       }
       selectedCode = null;
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       if (inactive && !awayMode) {
         autoPlayedTurns += 1;
         if (autoPlayedTurns >= 3) {
@@ -4821,7 +4832,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       }
       await _runBots();
     } catch (_) {
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       if (mounted) setState(() {});
     }
   }
@@ -4894,7 +4905,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       await Future<void>.delayed(const Duration(milliseconds: 720));
       if (!mounted) break;
       engine.autoActCurrentSeat();
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       setState(() {});
       guard += 1;
     }
@@ -4908,7 +4919,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       engine.bid(0, value);
       AppSounds.fire('bid');
       autoPlayedTurns = 0;
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       setState(() {});
       await _runBots();
     } catch (e) {
@@ -4920,7 +4931,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     try {
       engine.chooseTrump(0, suit);
       autoPlayedTurns = 0;
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       setState(() {});
       await _runBots();
     } catch (e) {
@@ -4950,7 +4961,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       AppSounds.fire('card_play');
       autoPlayedTurns = 0;
       selectedCode = null;
-      seconds = 10;
+      seconds = widget.options.turnSeconds;
       _maybeAwardRoundProgress();
       _maybeRewardWin();
       setState(() {});
@@ -4965,7 +4976,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     engine.startNextRound();
     autoNextRoundScheduled = false;
     selectedCode = null;
-    seconds = 10;
+    seconds = widget.options.turnSeconds;
     setState(() {});
     _runBots();
   }
@@ -4980,9 +4991,53 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     return engine.currentSeat == seat ? 'دوره' : '—';
   }
 
+  String _lastCardLabel(int seat) => engine.lastPlayedCardForSeat(seat)?.label ?? '—';
+
+  String _seatRoundGain(int seat) {
+    final tricks = engine.seatTricks[seat];
+    final team = engine.teamOf(seat);
+    final delta = engine.lastRoundScoreDelta[team];
+    final signed = delta == 0 ? '0' : (delta > 0 ? '+$delta' : '$delta');
+    return '$tricks لَمّة • $signed';
+  }
+
+  Widget _tableStatusStrip(BuildContext context) {
+    final bidder = engine.bidWinnerSeat == null ? 'لم يحسم بعد' : '${engine.playerNames[engine.bidWinnerSeat!]} • طلب ${engine.highestBid ?? '-'}';
+    final trump = engine.trump == null ? 'بانتظار اختيار الطرنيب' : engine.suitName(engine.trump!);
+    final trickOwner = engine.lastTrickWinner == null ? '—' : engine.playerNames[engine.lastTrickWinner!];
+    final items = <Map<String, String>>[
+      {'title': 'صاحب الطلب', 'value': bidder},
+      {'title': 'نوع الطرنيب', 'value': trump},
+      {'title': 'آخر لَمّة', 'value': trickOwner},
+      {'title': 'جولة اللعب', 'value': widget.options.singleRound ? 'جولة واحدة' : 'الجولة ${engine.round}'},
+    ];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      children: items.map((item) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: .08)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(item['title']!, style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: .72), fontWeight: FontWeight.w700)),
+            const SizedBox(height: 2),
+            Text(item['value']!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final landscape = widget.controller.landscapeMode || isDesktopWebV183(MediaQuery.sizeOf(context).width);
+    final mediaLandscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+    final landscape = mediaLandscape || widget.controller.landscapeMode || isDesktopWebV183(MediaQuery.sizeOf(context).width);
     final body = landscape
         ? Row(
             children: [
@@ -5006,7 +5061,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         title: Column(
           children: [
             const Text('طرنيب احترافي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-            Text('13 ورقة • فريقان • الهدف 41 • لعب مجاني', style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.primary)),
+            Text(widget.options.singleRound ? '13 ورقة • فريقان • جولة واحدة • لعب مجاني' : '13 ورقة • فريقان • الهدف 41 • لعب مجاني', style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.primary)),
           ],
         ),
         centerTitle: true,
@@ -5058,9 +5113,9 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                 children: [
                   Positioned.fill(
                     top: compact ? 36 : 48,
-                    bottom: compact ? 72 : 92,
-                    left: landscape ? 86 : 44,
-                    right: landscape ? 86 : 44,
+                    bottom: compact ? 74 : 96,
+                    left: landscape ? 86 : 28,
+                    right: landscape ? 86 : 28,
                     child: _LuxuryTable(
                       trump: engine.trump,
                       phase: engine.phase.name,
@@ -5071,10 +5126,10 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                   Positioned(top: compact ? 38 : 51, left: 0, right: 0, child: Center(child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, controller: widget.controller))),
                   Positioned(left: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
                   Positioned(right: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-                  Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: _seatBid(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
-                  Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: _seatBid(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
-                  Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: _seatBid(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
-                  Positioned(bottom: compact ? 64 : 78, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[0], letter: widget.controller.displayName.isEmpty ? '?' : widget.controller.displayName.substring(0, 1), bid: _seatBid(0), nameColor: colorFromHex(widget.controller.selectedNameColor), badge: storeProductById(widget.controller.selectedBadge)?.icon, avatarEmoji: widget.controller.avatarEmoji, onProfileTap: () => showProfile(context, widget.controller))),
+                  Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: '${_seatBid(2)} • آخر كرت ${_lastCardLabel(2)}', meta: _seatRoundGain(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
+                  Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: '${_seatBid(1)} • ${_lastCardLabel(1)}', meta: _seatRoundGain(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
+                  Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: '${_seatBid(3)} • ${_lastCardLabel(3)}', meta: _seatRoundGain(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
+                  Positioned(bottom: compact ? 64 : 78, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[0], letter: widget.controller.displayName.isEmpty ? '?' : widget.controller.displayName.substring(0, 1), bid: '${_seatBid(0)} • آخر كرت ${_lastCardLabel(0)}', meta: _seatRoundGain(0), nameColor: colorFromHex(widget.controller.selectedNameColor), badge: storeProductById(widget.controller.selectedBadge)?.icon, avatarEmoji: widget.controller.avatarEmoji, onProfileTap: () => showProfile(context, widget.controller))),
                   Positioned(
                     right: landscape ? 92 : 48,
                     bottom: compact ? 92 : 112,
@@ -5087,8 +5142,8 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                   Positioned.fill(
                     top: compact ? 80 : 108,
                     bottom: compact ? 145 : 170,
-                    left: landscape ? 160 : 90,
-                    right: landscape ? 160 : 90,
+                    left: landscape ? 160 : 68,
+                    right: landscape ? 160 : 68,
                     child: _trickCenter(context),
                   ),
                   if (floatingReaction != null)
@@ -5482,40 +5537,58 @@ class _LuxuryTable extends StatelessWidget {
     final dark = Color.lerp(c1, Colors.black, .62)!;
     final customBytes = decodeDataImage(controller?.customTableBackgroundData);
     final assetImage = customBytes == null && skin?.imageAsset != null ? AssetImage(skin!.imageAsset!) : null;
-    return Container(
-      decoration: BoxDecoration(
-        color: customBytes != null || assetImage != null ? dark : null,
-        borderRadius: BorderRadius.circular(30),
-        gradient: customBytes == null && assetImage == null ? RadialGradient(center: const Alignment(0, -.25), radius: .95, colors: [c2.withValues(alpha: .72), c1, dark]) : null,
-        image: customBytes != null
-            ? DecorationImage(image: MemoryImage(customBytes), fit: BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x33000000), BlendMode.darken))
-            : assetImage != null
-                ? DecorationImage(image: assetImage, fit: BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x22000000), BlendMode.darken))
-                : null,
-        border: Border.all(color: c2, width: 5),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: .62), blurRadius: 32, offset: const Offset(0, 18)),
-          BoxShadow(color: c2.withValues(alpha: .28), blurRadius: 22, spreadRadius: 2),
-        ],
-      ),
-      child: Stack(
-        children: [
-          if (assetImage == null && customBytes == null)
-            Positioned.fill(child: CustomPaint(painter: _TablePatternPainter(color: c2))),
-          if (controller?.tableAmbientEffects ?? true) const Positioned.fill(child: AmbientTableFX(density: 9, subtle: true)),
-          if (assetImage == null && customBytes == null)
-            Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final portrait = constraints.maxHeight > constraints.maxWidth;
+        final radius = portrait ? 38.0 : 30.0;
+        final overlay = portrait ? LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .08), Colors.transparent, Colors.black.withValues(alpha: .14)]) : null;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: customBytes != null || assetImage != null ? dark : null,
+            borderRadius: BorderRadius.circular(radius),
+            gradient: customBytes == null && assetImage == null ? RadialGradient(center: portrait ? const Alignment(0, -.38) : const Alignment(0, -.25), radius: portrait ? 1.08 : .95, colors: [c2.withValues(alpha: portrait ? .78 : .72), c1, dark]) : null,
+            image: customBytes != null
+                ? DecorationImage(image: MemoryImage(customBytes), fit: portrait ? BoxFit.cover : BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x33000000), BlendMode.darken))
+                : assetImage != null
+                    ? DecorationImage(image: assetImage, fit: portrait ? BoxFit.cover : BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x22000000), BlendMode.darken))
+                    : null,
+            border: Border.all(color: c2, width: portrait ? 4.2 : 5),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: .62), blurRadius: portrait ? 28 : 32, offset: Offset(0, portrait ? 12 : 18)),
+              BoxShadow(color: c2.withValues(alpha: .28), blurRadius: portrait ? 18 : 22, spreadRadius: 2),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Stack(
               children: [
-                Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: 78, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 4),
-                Text(trump == null ? phase.toUpperCase() : 'TRUMP ${TarneebCard('A', trump!).symbol}', style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 10)),
+                if (assetImage == null && customBytes == null)
+                  Positioned.fill(child: CustomPaint(painter: _TablePatternPainter(color: c2))),
+                if (overlay != null)
+                  Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: overlay))),
+                if (controller?.tableAmbientEffects ?? true) Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
+                if (assetImage == null && customBytes == null)
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: portrait ? 60 : 78, fontWeight: FontWeight.w900)),
+                        SizedBox(height: portrait ? 8 : 4),
+                        Text(trump == null ? phase.toUpperCase() : 'TRUMP ${TarneebCard('A', trump!).symbol}', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, letterSpacing: portrait ? 2 : 3, fontSize: portrait ? 11 : 10)),
+                        if (portrait) Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text('PORTRAIT ELITE TABLE', style: TextStyle(color: Colors.white.withValues(alpha: .18), fontWeight: FontWeight.w800, fontSize: 9, letterSpacing: 2.4)),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -5713,6 +5786,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               minLevel: widget.options.minLevel,
               allowOwnerKick: widget.options.allowOwnerKick,
               playerCount: widget.options.playerCount,
+              singleRound: widget.options.singleRound,
             );
       if (!mounted) return;
       final updatedRoom = Map<String, dynamic>.from(data['room'] as Map);
@@ -6099,7 +6173,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                       if (isVoiceRoom) _voicePanel(context),
                       Expanded(
                         child: OrientationBuilder(builder: (context, _) {
-                          final landscape = widget.controller.landscapeMode || isDesktopWebV183(MediaQuery.sizeOf(context).width);
+                          final mediaLandscape = MediaQuery.orientationOf(context) == Orientation.landscape;
+    final landscape = mediaLandscape || widget.controller.landscapeMode || isDesktopWebV183(MediaQuery.sizeOf(context).width);
                           return landscape
                               ? Row(children: [Expanded(flex: 7, child: _engineBoard(context)), if (chatOpen) SizedBox(width: 285 * widget.controller.uiChatScale, child: _engineChat())])
                               : Column(children: [Expanded(child: _engineBoard(context)), if (chatOpen) SizedBox(height: 165 * widget.controller.uiChatScale, child: _engineChat())]);
@@ -6258,13 +6333,19 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 3),
-          child: Row(
+          child: Wrap(
+            spacing: 6,
+            runSpacing: 5,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Chip(label: Text('المرحلة: $phase')),
-              const Spacer(),
               Chip(label: Text('⏱ ${seconds.toString().padLeft(2, '0')}')),
-              const SizedBox(width: 6),
               const Chip(label: Text('🛡️ بدون رسوم')),
+              if (room?['single_round'] == true || state['single_round'] == true) const Chip(label: Text('⚡ جولة واحدة')),
+              if ((widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle') && state['opening_thresholds'] is Map)
+                Chip(label: Text('نزول: ${((state['opening_thresholds'] as Map).values.isNotEmpty ? (state['opening_thresholds'] as Map).values.first : 51)}')),
+              if (state['rummy_turn_meta'] is Map && ((state['rummy_turn_meta'] as Map)[state['you']] as Map?)?['must_meld'] == true)
+                const Chip(avatar: Icon(Icons.warning_amber_rounded, size: 17), label: Text('يجب التنزيل قبل الرمي')),
             ],
           ),
         ),
@@ -6846,6 +6927,18 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     if (melds.isNotEmpty) {
       widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeld(melds), icon: const Icon(Icons.layers_outlined, size: 17), label: const Text('تنزيل مجموعة')));
     }
+    final meldMany = availableActions.where((item) => item['type'] == 'meld_many' && item['groups'] is List).toList();
+    if (meldMany.isNotEmpty) {
+      widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeldMany(meldMany), icon: const Icon(Icons.dashboard_customize_outlined, size: 17), label: const Text('تنزيل عدة مجموعات')));
+    }
+    final layoffs = availableActions.where((item) => item['type'] == 'layoff').toList();
+    if (layoffs.isNotEmpty) {
+      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseLayoff(layoffs), icon: const Icon(Icons.add_link_rounded, size: 17), label: const Text('تركيب على مجموعة')));
+    }
+    final replacements = availableActions.where((item) => item['type'] == 'replace_wild').toList();
+    if (replacements.isNotEmpty) {
+      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseWildReplacement(replacements), icon: const Icon(Icons.swap_horiz_rounded, size: 17), label: const Text('استبدال الجوكر')));
+    }
 
     if (widget.game.id == 'domino') {
       final boneyardCount = int.tryParse(state['boneyard_count']?.toString() ?? '') ?? 0;
@@ -6957,6 +7050,92 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       ),
     );
     if (selected != null) _action('meld', {'cards': selected['cards']});
+  }
+
+  Future<void> _chooseMeldMany(List<Map<String, dynamic>> options) async {
+    final selected = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('اختر تنزيل المجموعات'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 440),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: options.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, index) {
+              final groups = (options[index]['groups'] as List?) ?? const [];
+              final label = groups.map((group) => group is List ? group.map((c) => _cardLabel(c.toString())).join(' ') : '').join('  |  ');
+              return ListTile(title: Text(label, textDirection: TextDirection.ltr), subtitle: Text('${groups.length} مجموعات'), onTap: () => Navigator.pop(dialogContext, options[index]));
+            },
+          ),
+        ),
+      ),
+    );
+    if (selected != null) _action('meld_many', {'groups': selected['groups']});
+  }
+
+  Future<void> _chooseLayoff(List<Map<String, dynamic>> options) async {
+    final selected = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تركيب قانوني على مجموعة'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 440),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: options.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, index) {
+              final cards = (options[index]['cards'] as List?)?.map((c) => _cardLabel(c.toString())).join(' ') ?? '';
+              return ListTile(
+                leading: const Icon(Icons.add_link_rounded),
+                title: Text(cards, textDirection: TextDirection.ltr),
+                subtitle: Text('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}'),
+                onTap: () => Navigator.pop(dialogContext, options[index]),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    if (selected != null) {
+      _action('layoff', {
+        'target_player': selected['target_player'],
+        'meld_index': selected['meld_index'],
+        'cards': selected['cards'],
+      });
+    }
+  }
+
+  Future<void> _chooseWildReplacement(List<Map<String, dynamic>> options) async {
+    final selected = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('استبدال الجوكر'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450, maxHeight: 420),
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: options.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, index) => ListTile(
+              leading: const Text('🃏', style: TextStyle(fontSize: 26)),
+              title: Text('استبدل الجوكر بـ ${_cardLabel(options[index]['card']?.toString() ?? '')}', textDirection: TextDirection.rtl),
+              subtitle: Text('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}'),
+              onTap: () => Navigator.pop(dialogContext, options[index]),
+            ),
+          ),
+        ),
+      ),
+    );
+    if (selected != null) {
+      _action('replace_wild', {
+        'target_player': selected['target_player'],
+        'meld_index': selected['meld_index'],
+        'card': selected['card'],
+      });
+    }
   }
 
   Future<void> _playJackarooCard(String card, Map<String, dynamic>? action) async {
@@ -7239,6 +7418,7 @@ class PlayerSeat extends StatelessWidget {
   final String name;
   final String letter;
   final String bid;
+  final String? meta;
   final bool vertical;
   final Color? nameColor;
   final String? badge;
@@ -7246,7 +7426,7 @@ class PlayerSeat extends StatelessWidget {
   final BotProfile? botProfile;
   final VoidCallback? onProfileTap;
 
-  const PlayerSeat({super.key, required this.name, required this.letter, required this.bid, this.vertical = false, this.nameColor, this.badge, this.avatarEmoji, this.botProfile, this.onProfileTap});
+  const PlayerSeat({super.key, required this.name, required this.letter, required this.bid, this.meta, this.vertical = false, this.nameColor, this.badge, this.avatarEmoji, this.botProfile, this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -7258,7 +7438,16 @@ class PlayerSeat extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(color: Colors.black.withValues(alpha: .72), borderRadius: BorderRadius.circular(9), border: Border.all(color: Colors.white.withValues(alpha: .09))),
-        child: Text('${badge ?? ''}${badge == null ? '' : ' '}$name • $bid', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: nameColor ?? Colors.white)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${badge ?? ''}${badge == null ? '' : ' '}$name • $bid', textAlign: TextAlign.center, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: nameColor ?? Colors.white)),
+            if (meta != null && meta!.trim().isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(meta!, textAlign: TextAlign.center, style: TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: .78))),
+            ],
+          ],
+        ),
       ),
     ];
     final seat = vertical
@@ -8405,6 +8594,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
   var turnSeconds = 10;
   var minLevel = 1;
   var allowOwnerKick = true;
+  var singleRound = false;
   var playerCount = v170AllowedPlayerCounts(game.id).first;
   var botCount = (playerCount - 1).clamp(0, 7).toInt();
   final selectedInviteeIds = <int>{};
@@ -8545,6 +8735,13 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             title: const Text('السماح لمنشئ الغرفة بإخراج لاعب'),
             subtitle: const Text('اللاعب المُخرج لا يستطيع العودة إلى نفس المباراة.'),
           ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: singleRound,
+            onChanged: (value) => setLocalState(() => singleRound = value),
+            title: const Text('مباراة من جولة واحدة فقط'),
+            subtitle: const Text('تنتهي المباراة مباشرة بعد انتهاء الجولة الحالية وإظهار النتيجة.'),
+          ),
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: () async {
@@ -8566,6 +8763,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 allowOwnerKick: allowOwnerKick,
                 playerCount: playerCount,
                 botCount: botCount,
+                singleRound: singleRound,
                 inviteeIds: selectedInviteeIds.toList(growable: false),
               );
               final navigationContext = warqnaNavigatorKey.currentContext;

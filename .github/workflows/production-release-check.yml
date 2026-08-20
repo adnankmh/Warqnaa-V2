@@ -33,6 +33,7 @@ jobs:
           python3 tools/test_v201_gameplay_admin_contract.py
           python3 tools/test_v201_r4_hotfix_contract.py
           python3 tools/test_v201_r5_ci_stability_contract.py
+          python3 tools/test_v208_r8_contract.py
           python3 tools/test_v184_flutter_quality_contract.py
           python3 tools/test_v184_official_game_rules_contract.py
           python3 tools/test_v174_offline_progression_navigation_contract.py
@@ -46,8 +47,15 @@ jobs:
         run: php backend-laravel/tools/test-v183-engine-overhaul.php
       - name: Run classic game-rule regressions
         run: php backend-laravel/tools/test-v142-rule-cores.php
+      - name: Run R8 deep rules audit
+        run: php backend-laravel/tools/test-v208-r8-rules.php
       - name: Run V184 official game-rule audit
         run: php backend-laravel/tools/test-v184-official-rules-audit.php
+      - name: Run R8 multi-step playthrough stress
+        env:
+          WARQNA_PLAYTHROUGH_RUNS: 4
+          WARQNA_PLAYTHROUGH_STEPS: 80
+        run: php backend-laravel/tools/test-v208-r8-playthrough-stress.php
       - name: Stress all registered game engines
         run: php backend-laravel/tools/test-v184-engine-stress.php
 

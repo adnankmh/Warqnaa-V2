@@ -125,12 +125,14 @@ class MobileEngagementController extends Controller
     private function packStatus(int $userId): array
     {
         $claim = DailyPackClaim::where('user_id', $userId)->latest('claim_date')->first();
+        $nextAvailable = $claim?->created_at?->copy()->addHours(DailyPackService::CLAIM_COOLDOWN_HOURS);
         return [
-            'available'=>!$claim || !$claim->claim_date?->isToday(),
-            'last_opened'=>$claim?->claim_date?->toDateString(),
+            'available'=>!$nextAvailable || $nextAvailable->isPast(),
+            'last_opened'=>$claim?->created_at?->toIso8601String(),
             'last_reward'=>data_get($claim?->payload, 'label_ar'),
             'last_rarity'=>data_get($claim?->payload, 'rarity'),
-            'next_available_at'=>$claim?->claim_date?->copy()->addDay()->startOfDay()->toIso8601String(),
+            'next_available_at'=>$nextAvailable?->toIso8601String(),
+            'cooldown_hours'=>DailyPackService::CLAIM_COOLDOWN_HOURS,
             'possible_rewards'=>DailyPackService::catalog(),
         ];
     }

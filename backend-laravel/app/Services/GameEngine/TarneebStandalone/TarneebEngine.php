@@ -91,6 +91,7 @@ final class TarneebEngine
         'minimumPlayableHonors' => 2,
         'dealQualityAttempts' => 160,
         'scoreMode' => 'standard',
+        'singleRound' => false,
         'bonusForThirteenBidAndMakeAll' => 0,
         'allowBotForAway' => true,
         'maxMissedTurnsBeforeAway' => 3,
@@ -706,14 +707,21 @@ final class TarneebEngine
         $made = $bidTricks >= $bidAmount;
         $delta = [0 => 0, 1 => 0];
 
+        // Jawaker-style Tarneeb scoring:
+        // - If the bidding team makes its contract, only that team scores.
+        // - A 13-trick sweep without bidding 13 scores 16.
+        // - Bidding 13 and taking all 13 scores 26.
+        // - Failing a bid of 13 deducts 16; other failed contracts deduct the bid.
+        // - When the bidding team fails, the opponents score the tricks they captured.
         if ($made) {
-            $delta[$bidTeam] = $bidTricks;
-            $delta[$oppTeam] = $oppTricks;
-            if ($bidAmount === 13 && $bidTricks === 13) {
-                $delta[$bidTeam] += (int)$state['rules']['bonusForThirteenBidAndMakeAll'];
+            if ($bidTricks === 13) {
+                $delta[$bidTeam] = $bidAmount === 13 ? 26 : 16;
+            } else {
+                $delta[$bidTeam] = $bidTricks;
             }
+            $delta[$oppTeam] = 0;
         } else {
-            $delta[$bidTeam] = -$bidAmount;
+            $delta[$bidTeam] = $bidAmount === 13 ? -16 : -$bidAmount;
             $delta[$oppTeam] = $oppTricks;
         }
         $state['scores'][0] = (int)$state['scores'][0] + $delta[0];
@@ -731,12 +739,12 @@ final class TarneebEngine
         ]);
 
         $target = (int)$state['rules']['targetScore'];
-        if ((int)$state['scores'][0] >= $target || (int)$state['scores'][1] >= $target) {
+        if (!empty($state['rules']['singleRound']) || (int)$state['scores'][0] >= $target || (int)$state['scores'][1] >= $target) {
             $state['phase'] = 'game_over';
             $state['winnerTeam'] = (int)$state['scores'][0] === (int)$state['scores'][1]
                 ? null
                 : ((int)$state['scores'][0] > (int)$state['scores'][1] ? 0 : 1);
-            $state = $this->record($state, 'game_over', ['winnerTeam' => $state['winnerTeam'], 'scores' => $state['scores']]);
+            $state = $this->record($state, 'game_over', ['winnerTeam' => $state['winnerTeam'], 'scores' => $state['scores'], 'singleRound'=>(bool)($state['rules']['singleRound'] ?? false)]);
         }
         return $this->touch($state);
     }

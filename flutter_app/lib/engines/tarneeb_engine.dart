@@ -64,6 +64,7 @@ class TarneebLocalEngine {
   final math.Random _random;
   final List<String> playerNames;
   final String difficulty;
+  final bool singleRound;
 
   bool get _easyAi => difficulty == 'easy';
   bool get _normalAi => difficulty == 'normal';
@@ -85,6 +86,9 @@ class TarneebLocalEngine {
   final List<List<TarneebPlay>> completedTricks = <List<TarneebPlay>>[];
   final List<int> scores = [0, 0];
   final List<int> roundTricks = [0, 0];
+  final List<int> seatTricks = [0, 0, 0, 0];
+  final List<int> lastRoundScoreDelta = [0, 0];
+  final List<TarneebCard?> lastPlayedBySeat = List<TarneebCard?>.filled(4, null);
   final List<String> messages = <String>[];
   int? winnerTeam;
 
@@ -93,6 +97,7 @@ class TarneebLocalEngine {
     math.Random? random,
     List<String>? playerNames,
     this.difficulty = 'pro',
+    this.singleRound = false,
   })  : _random = random ?? math.Random.secure(),
         playerNames = playerNames ?? const ['أحمد', 'عاصم', 'ليلى', 'جميل'] {
     startNextRound();
@@ -104,6 +109,7 @@ class TarneebLocalEngine {
 
   /// Backwards-compatible read-only team score view used by UI and challenge markers.
   List<int> get teamScores => List<int>.unmodifiable(scores);
+  TarneebCard? lastPlayedCardForSeat(int seat) => seat >= 0 && seat < lastPlayedBySeat.length ? lastPlayedBySeat[seat] : null;
 
   void startNextRound() {
     round += 1;
@@ -121,6 +127,12 @@ class TarneebLocalEngine {
     completedTricks.clear();
     roundTricks[0] = 0;
     roundTricks[1] = 0;
+    for (var i = 0; i < seatTricks.length; i++) {
+      seatTricks[i] = 0;
+      lastPlayedBySeat[i] = null;
+    }
+    lastRoundScoreDelta[0] = 0;
+    lastRoundScoreDelta[1] = 0;
     for (final hand in hands) {
       hand.clear();
     }
@@ -207,6 +219,7 @@ class TarneebLocalEngine {
 
     final played = hands[seat].removeAt(handIndex);
     trick.add(TarneebPlay(seat, played));
+    lastPlayedBySeat[seat] = played;
     messages.add('${playerNames[seat]} رمى ${played.label}');
 
     if (trick.length < 4) {
@@ -223,6 +236,7 @@ class TarneebLocalEngine {
     lastTrickWinner = winner;
     trick.clear();
     roundTricks[teamOf(winner)] += 1;
+    seatTricks[winner] += 1;
     currentSeat = winner;
     messages.add('${playerNames[winner]} فاز باللّمّة.');
 
@@ -350,18 +364,29 @@ class TarneebLocalEngine {
 
     final biddingTeam = teamOf(biddingSeat);
     final otherTeam = 1 - biddingTeam;
+    lastRoundScoreDelta[0] = 0;
+    lastRoundScoreDelta[1] = 0;
     if (roundTricks[biddingTeam] >= contract) {
-      scores[biddingTeam] += roundTricks[biddingTeam];
-      scores[otherTeam] += roundTricks[otherTeam];
-      messages.add('نجح فريق ${teamName(biddingTeam)} بالطلب $contract.');
+      final bidTeamDelta = roundTricks[biddingTeam] == 13
+          ? (contract == 13 ? 26 : 16)
+          : roundTricks[biddingTeam];
+      scores[biddingTeam] += bidTeamDelta;
+      lastRoundScoreDelta[biddingTeam] += bidTeamDelta;
+      lastRoundScoreDelta[otherTeam] = 0;
+      messages.add('نجح فريق ${teamName(biddingTeam)} بالطلب $contract وحصل على $bidTeamDelta نقطة.');
     } else {
-      scores[biddingTeam] -= contract;
+      final failedDelta = contract == 13 ? -16 : -contract;
+      scores[biddingTeam] += failedDelta;
       scores[otherTeam] += roundTricks[otherTeam];
-      messages.add('فشل فريق ${teamName(biddingTeam)} بالطلب $contract وخُصمت قيمة الطلب.');
+      lastRoundScoreDelta[biddingTeam] += failedDelta;
+      lastRoundScoreDelta[otherTeam] += roundTricks[otherTeam];
+      messages.add('فشل فريق ${teamName(biddingTeam)} بالطلب $contract وخُصمت ${failedDelta.abs()} نقطة.');
     }
 
-    if (scores[0] >= targetScore || scores[1] >= targetScore) {
-      winnerTeam = scores[0] == scores[1] ? (roundTricks[0] >= roundTricks[1] ? 0 : 1) : (scores[0] > scores[1] ? 0 : 1);
+    if (singleRound || scores[0] >= targetScore || scores[1] >= targetScore) {
+      winnerTeam = singleRound
+          ? (roundTricks[0] == roundTricks[1] ? (scores[0] >= scores[1] ? 0 : 1) : (roundTricks[0] > roundTricks[1] ? 0 : 1))
+          : (scores[0] == scores[1] ? (roundTricks[0] >= roundTricks[1] ? 0 : 1) : (scores[0] > scores[1] ? 0 : 1));
       phase = TarneebPhase.gameOver;
       messages.add('انتهت المباراة: فاز فريق ${teamName(winnerTeam!)}.');
     } else {

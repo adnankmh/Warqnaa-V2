@@ -6,7 +6,7 @@ def ok(cond,msg):
         print('[FAIL]',msg); sys.exit(1)
     print('[PASS]',msg)
 meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text(encoding='utf-8'))
-ok(meta.get('full')=='0.4.5+201','release is 0.4.5+201')
+ok(int(meta.get('build',0))>=201,'current release preserves V201 or later')
 core=(ROOT/'backend-laravel/app/Services/GameEngine/GlobalEngines/GlobalCardEngineCore.php').read_text(encoding='utf-8')
 ok('dealBalancedPlayableTrickHands' in core and 'minimumPlayableHonors' in core,'symmetric playable Tarneeb deal policy')
 ok("['C'=>0,'D'=>1,'S'=>2,'H'=>3]" in core,'requested clubs-diamonds-spades-hearts sort order')

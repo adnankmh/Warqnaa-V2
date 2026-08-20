@@ -144,6 +144,7 @@ class GlobalCardEngineCore
             ],
             'trixFinishOrder'=>[],
             'starterDiscardPending'=>!empty($cfg['starterMustDiscard']),
+            'rummyTurnMeta'=>[],
             'trick'=>[],
             'tricksWon'=>[],
             'scores'=>$this->initialScores($players, $cfg),
@@ -270,7 +271,11 @@ class GlobalCardEngineCore
         }
         if ($state['phase'] === 'draw') {
             $actions[] = ['type'=>'draw_deck'];
-            if (!empty($state['discard'])) $actions[] = ['type'=>'draw_discard'];
+            if (!empty($state['discard'])) {
+                if (!empty($state['config']['banakilScoring']) || $this->canDrawDiscardLegally($state,$playerId)) {
+                    $actions[] = ['type'=>'draw_discard'];
+                }
+            }
             return $actions;
         }
         // rummy discard/meld phase
@@ -289,13 +294,18 @@ class GlobalCardEngineCore
                         if ($this->isValidMeld(array_merge((array)($existing['cards'] ?? []), [$card]))) {
                             $actions[] = ['type'=>'layoff','target_player'=>(string)$targetPlayer,'meld_index'=>(int)$meldIndex,'cards'=>[$card]];
                         }
+                        if ($this->canReplaceJoker((array)($existing['cards'] ?? []), (string)$card)) {
+                            $actions[] = ['type'=>'replace_wild','target_player'=>(string)$targetPlayer,'meld_index'=>(int)$meldIndex,'card'=>(string)$card];
+                        }
                     }
                 }
             }
         }
         $suggested=$this->suggestMelds($state['hands'][$playerId] ?? [], $this->rummyOpeningRequirement($state,$playerId));
         if(count($suggested)>=2) $actions[]=['type'=>'meld_many','groups'=>array_values(array_map(fn($m)=>$m['cards'],array_slice($suggested,0,3)))];
-        foreach (($state['hands'][$playerId] ?? []) as $card) $actions[] = ['type'=>'discard','card'=>$card];
+        if (empty($state['rummyTurnMeta'][$playerId]['must_meld'])) {
+            foreach (($state['hands'][$playerId] ?? []) as $card) $actions[] = ['type'=>'discard','card'=>$card];
+        }
         return $actions;
     }
 
@@ -319,6 +329,7 @@ class GlobalCardEngineCore
             'meld' => $this->meld($state, $playerId, $action['cards'] ?? []),
             'meld_many' => $this->meldMany($state,$playerId,$action['groups'] ?? []),
             'layoff' => $this->layoff($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), $action['cards'] ?? []),
+            'replace_wild' => $this->replaceWild($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), (string)($action['card'] ?? '')),
             'organize' => $this->organize($state, $playerId, (string)($action['strategy'] ?? 'smart'), $action['cards'] ?? []),
             'draw_stock' => $this->solitaireDraw($state, $playerId),
             'move_to_foundation' => $this->solitaireFoundation($state, $playerId, (string)$action['card']),
@@ -696,6 +707,13 @@ class GlobalCardEngineCore
         if (!$card) throw new GameEngineException('لا يوجد ورق للسحب.');
         $state['hands'][$playerId][] = $card;
         $state['phase'] = 'discard';
+        $state['rummyTurnMeta'][$playerId] = [
+            'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'drew_discard'=>false,
+            'must_meld'=>false,
+            'melded'=>false,
+            'layoff'=>false,
+        ];
         $state = $this->record($state, 'rummy.draw_deck', compact('playerId'));
         return $this->finalizeState($state);
     }
@@ -707,6 +725,13 @@ class GlobalCardEngineCore
         $card = array_pop($state['discard']);
         $state['hands'][$playerId][] = $card;
         $state['phase'] = 'discard';
+        $state['rummyTurnMeta'][$playerId] = [
+            'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'drew_discard'=>true,
+            'must_meld'=>empty($state['config']['banakilScoring']),
+            'melded'=>false,
+            'layoff'=>false,
+        ];
         $state = $this->record($state, 'rummy.draw_discard', ['playerId'=>$playerId,'card'=>$card]);
         return $this->finalizeState($state);
     }
@@ -714,13 +739,14 @@ class GlobalCardEngineCore
     protected function discardCard(array $state, string $playerId, string $card): array
     {
         if ($state['phase'] !== 'discard') throw new GameEngineException('يجب السحب قبل الرمي.');
+        if (!empty($state['rummyTurnMeta'][$playerId]['must_meld'])) throw new GameEngineException('بعد سحب آخر ورقة من كومة الرمي يجب تنزيل مجموعة قانونية قبل إنهاء الدور.');
         if (!in_array($card, $state['hands'][$playerId] ?? [], true)) throw new GameEngineException('الورقة ليست في اليد.');
         $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $card);
         $state['discard'][] = $card;
         $state['starterDiscardPending'] = false;
         $state = $this->record($state, 'rummy.discard', compact('playerId','card'));
         if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, false);
-        else { $state['phase']='draw'; $state=$this->advance($state); }
+        else { unset($state['rummyTurnMeta'][$playerId]); $state['phase']='draw'; $state=$this->advance($state); }
         return $this->finalizeState($state);
     }
 
@@ -737,8 +763,10 @@ class GlobalCardEngineCore
         foreach ($cards as $c) $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $c);
         $state['melds'][$playerId][] = ['cards'=>$cards, 'value'=>$value];
         $state = $this->recordRummyOpening($state,$playerId,$value);
+        $state['rummyTurnMeta'][$playerId]['melded'] = true;
+        $state['rummyTurnMeta'][$playerId]['must_meld'] = false;
         $state = $this->record($state, 'rummy.meld', compact('playerId','cards','value'));
-        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, true);
+        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, $this->isFullHandFinish($state,$playerId));
         return $this->finalizeState($state);
     }
 
@@ -758,8 +786,10 @@ class GlobalCardEngineCore
         foreach($all as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
         foreach($normalized as $cards) $state['melds'][$playerId][]=['cards'=>$cards,'value'=>$this->meldValue($cards)];
         $state=$this->recordRummyOpening($state,$playerId,$total);
+        $state['rummyTurnMeta'][$playerId]['melded']=true;
+        $state['rummyTurnMeta'][$playerId]['must_meld']=false;
         $state=$this->record($state,'rummy.meld_many',['playerId'=>$playerId,'groups'=>$normalized,'value'=>$total]);
-        if(empty($state['hands'][$playerId])) $state=$this->scoreRummyRound($state,$playerId,true);
+        if(empty($state['hands'][$playerId])) $state=$this->scoreRummyRound($state,$playerId,$this->isFullHandFinish($state,$playerId));
         return $this->finalizeState($state);
     }
 
@@ -779,8 +809,9 @@ class GlobalCardEngineCore
         if (count($combined) > 13 || !$this->isValidMeld($combined)) throw new GameEngineException('هذه الأوراق لا تركب قانونيًا على المجموعة المختارة.');
         foreach ($cards as $c) $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $c);
         $state['melds'][$targetPlayer][$meldIndex] = ['cards'=>array_values($combined), 'value'=>$this->meldValue($combined)];
+        $state['rummyTurnMeta'][$playerId]['layoff'] = true;
         $state = $this->record($state, 'rummy.layoff', compact('playerId','targetPlayer','meldIndex','cards'));
-        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, true);
+        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, false);
         return $this->finalizeState($state);
     }
 
@@ -861,13 +892,100 @@ class GlobalCardEngineCore
 
     protected function meldValue(array $cards): int
     {
-        return array_sum(array_map(function ($card): int {
-            if (str_starts_with($card, 'JOKER')) return 25;
-            if (!empty($this->config['wildTwos']) && $this->rank($card)==='2') return 20;
-            $rank = $this->rank($card);
-            if ($rank === 'A') return 15;
-            return min(10, $this->rankValue($card));
-        }, $cards));
+        if (!empty($this->config['banakilScoring'])) {
+            return (int)round(array_sum(array_map(fn($card)=>$this->banakilCardPoints((string)$card), $cards)) * 10);
+        }
+        return $this->handMeldOpeningValue($cards);
+    }
+
+    protected function handCardPoints(string $card): int
+    {
+        if (str_starts_with($card,'JOKER')) return 15;
+        $rank=$this->rank($card);
+        return match($rank){
+            'A'=>11,'K','Q','J','10'=>10,
+            '9'=>9,'8'=>8,'7'=>7,'6'=>6,'5'=>5,'4'=>4,'3'=>3,'2'=>2,
+            default=>0,
+        };
+    }
+
+    protected function handMeldOpeningValue(array $cards): int
+    {
+        $natural=array_values(array_filter($cards,fn($c)=>!str_starts_with((string)$c,'JOKER')));
+        $jokers=count($cards)-count($natural);
+        $sum=array_sum(array_map(fn($c)=>$this->handCardPoints((string)$c),$natural));
+        if($jokers<=0 || !$natural) return $sum;
+        $ranks=array_map(fn($c)=>$this->rank((string)$c),$natural);
+        if(count(array_unique($ranks))===1){
+            return $sum + ($jokers * $this->handCardPoints($ranks[0].'_C'));
+        }
+        $suits=array_map(fn($c)=>$this->suit((string)$c),$natural);
+        if(count(array_unique($suits))===1){
+            $vals=array_map(fn($c)=>$this->rankValue((string)$c),$natural); sort($vals);
+            $missing=[];
+            for($i=1;$i<count($vals);$i++) for($v=$vals[$i-1]+1;$v<$vals[$i];$v++) $missing[]=$v;
+            foreach(array_slice($missing,0,$jokers) as $v) $sum+=$this->handValueByRankNumber($v);
+            $left=$jokers-count($missing);
+            while($left-->0){
+                $candidate=max($vals)+1;
+                if($candidate>14) $candidate=max(2,min($vals)-1);
+                $sum+=$this->handValueByRankNumber($candidate);
+                $vals[]=$candidate; sort($vals);
+            }
+            return $sum;
+        }
+        return $sum + ($jokers*10);
+    }
+
+    protected function handValueByRankNumber(int $value): int
+    {
+        if($value>=11 && $value<=13) return 10;
+        if($value===14 || $value===1) return 11;
+        return max(2,min(10,$value));
+    }
+
+    protected function isFullHandFinish(array $state,string $playerId): bool
+    {
+        $meta=(array)($state['rummyTurnMeta'][$playerId] ?? []);
+        return empty($meta['opened_before']) && !empty($meta['melded']) && empty($meta['layoff']);
+    }
+
+    protected function canDrawDiscardLegally(array $state,string $playerId): bool
+    {
+        if(empty($state['discard'])) return false;
+        $top=(string)end($state['discard']);
+        $hand=array_values(array_merge($state['hands'][$playerId] ?? [],[$top]));
+        return !empty($this->suggestMelds($hand,$this->rummyOpeningRequirement($state,$playerId)));
+    }
+
+    protected function canReplaceJoker(array $meld,string $replacement): bool
+    {
+        $jokerIndex=null;
+        foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
+        if($jokerIndex===null || str_starts_with($replacement,'JOKER')) return false;
+        $candidate=$meld; $candidate[$jokerIndex]=$replacement;
+        return $this->isValidMeld(array_values($candidate));
+    }
+
+    protected function replaceWild(array $state,string $playerId,string $targetPlayer,int $meldIndex,string $replacement): array
+    {
+        if($state['phase']!=='discard') throw new GameEngineException('يمكن استبدال الجوكر بعد السحب فقط.');
+        if(!$this->hasRummyOpened($state,$playerId)) throw new GameEngineException('يجب أن تكون قد افتتحت قبل استبدال الجوكر.');
+        if(!in_array($replacement,$state['hands'][$playerId] ?? [],true)) throw new GameEngineException('ورقة الاستبدال ليست في اليد.');
+        if(!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
+        if(!empty($state['config']['partnership']) && $this->teamOf($state,$targetPlayer)!==$this->teamOf($state,$playerId)) throw new GameEngineException('لا يمكن استبدال جوكر في مجموعات الخصم.');
+        if(empty($state['config']['partnership']) && $targetPlayer!==$playerId) throw new GameEngineException('يمكن استبدال الجوكر في مجموعاتك فقط.');
+        $meld=(array)$state['melds'][$targetPlayer][$meldIndex]['cards'];
+        if(!$this->canReplaceJoker($meld,$replacement)) throw new GameEngineException('هذه الورقة لا تستبدل الجوكر قانونيًا في المجموعة المحددة.');
+        $jokerIndex=null; foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
+        $joker=(string)$meld[$jokerIndex];
+        $meld[$jokerIndex]=$replacement;
+        $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$replacement);
+        $state['hands'][$playerId][]=$joker;
+        $state['hands'][$playerId]=$this->sortCards($state['hands'][$playerId]);
+        $state['melds'][$targetPlayer][$meldIndex]=['cards'=>array_values($meld),'value'=>$this->meldValue($meld)];
+        $state=$this->record($state,'rummy.replace_joker',compact('playerId','targetPlayer','meldIndex','replacement','joker'));
+        return $this->finalizeState($state);
     }
 
     protected function containsCards(array $hand, array $selected): bool
@@ -929,43 +1047,75 @@ class GlobalCardEngineCore
         sort($left); sort($right); return $left===$right;
     }
 
-    protected function scoreRummyRound(array $state, string $winnerId, bool $meldOut): array
+    protected function scoreRummyRound(array $state, string $winnerId, bool $fullHand): array
     {
-        if (!empty($state['config']['banakilScoring'])) return $this->scoreBanakilRound($state, $winnerId, $meldOut);
-        foreach ($state['players'] as $p) {
-            $pid=(string)$p['id'];
-            if ($pid === $winnerId) $delta = $meldOut ? -60 : -30;
-            else $delta = array_sum(array_map(fn($c)=>min(10,$this->rankValue($c)), $state['hands'][$pid] ?? []));
-            $key = ($state['config']['partnership'] ?? false) ? $this->teamOf($state, $pid) : $pid;
-            $state['scores'][$key] = ($state['scores'][$key] ?? 0) + $delta;
+        if (!empty($state['config']['banakilScoring'])) return $this->scoreBanakilRound($state, $winnerId, $fullHand);
+        $partnership=!empty($state['config']['partnership']);
+        $winnerKey=$partnership ? $this->teamOf($state,$winnerId) : $winnerId;
+        $multiplier=$fullHand ? 2 : 1;
+        $roundDelta=[];
+        if($partnership){
+            $roundDelta=[0=>0,1=>0];
+            $roundDelta[$winnerKey]=$fullHand ? -60 : -30;
+            foreach($state['players'] as $p){
+                $pid=(string)$p['id']; $team=$this->teamOf($state,$pid);
+                if($team===$winnerKey) continue;
+                $penalty=array_sum(array_map(fn($c)=>$this->handCardPoints((string)$c),$state['hands'][$pid] ?? []));
+                if(empty($state['melds'][$pid] ?? [])) $penalty+=100;
+                $roundDelta[$team]+=$penalty*$multiplier;
+            }
+            foreach($roundDelta as $team=>$delta) $state['scores'][$team]=($state['scores'][$team] ?? 0)+$delta;
+        } else {
+            foreach($state['players'] as $p){
+                $pid=(string)$p['id'];
+                if($pid===$winnerId) $delta=$fullHand ? -60 : -30;
+                else {
+                    $delta=array_sum(array_map(fn($c)=>$this->handCardPoints((string)$c),$state['hands'][$pid] ?? []));
+                    if(empty($state['melds'][$pid] ?? [])) $delta+=100;
+                    $delta*=$multiplier;
+                }
+                $roundDelta[$pid]=$delta;
+                $state['scores'][$pid]=($state['scores'][$pid] ?? 0)+$delta;
+            }
         }
-        $state = $this->record($state, 'rummy.round_scored', ['winner'=>$winnerId,'scores'=>$state['scores']]);
-        if (($state['round'] ?? 1) >= (int)($state['config']['rounds'] ?? 5)) { $state['gameOver']=true; $state['winner']=$this->bestScoreKey($state['scores']); }
-        else $state = $this->newRoundFromState($state);
+        unset($state['rummyTurnMeta'][$winnerId]);
+        $state = $this->record($state, 'rummy.round_scored', ['winner'=>$winnerId,'full_hand'=>$fullHand,'round_delta'=>$roundDelta,'scores'=>$state['scores']]);
+        $singleRound=!empty($state['config']['singleRound']);
+        if ($singleRound || ($state['round'] ?? 1) >= (int)($state['config']['rounds'] ?? 5)) {
+            $state['gameOver']=true; $state['winner']=$this->bestScoreKey($state['scores']);
+        } else $state = $this->newRoundFromState($state);
         return $state;
     }
 
-
-    protected function scoreBanakilRound(array $state, string $winnerId, bool $meldOut): array
+    protected function scoreBanakilRound(array $state, string $winnerId, bool $fullHand): array
     {
         $roundScores=[0=>0.0,1=>0.0];
-        foreach((array)($state['melds'] ?? []) as $pid=>$meldList){
-            $team=(int)$this->teamOf($state,(string)$pid);
-            foreach((array)$meldList as $meld) foreach((array)($meld['cards'] ?? []) as $card) $roundScores[$team]+=$this->banakilCardPoints((string)$card);
-        }
-        foreach($state['players'] as $player){
-            $pid=(string)$player['id']; $team=(int)$this->teamOf($state,$pid);
-            foreach((array)($state['hands'][$pid] ?? []) as $card) $roundScores[$team]-=$this->banakilCardPoints((string)$card);
-        }
         $winnerTeam=(int)$this->teamOf($state,$winnerId);
-        $roundScores[$winnerTeam]+=20;
-        if($meldOut){
-            $priorMeldEvents=array_values(array_filter($state['events'] ?? [],fn($e)=>in_array(($e['type'] ?? ''),['rummy.meld','rummy.meld_many','rummy.layoff'],true) && (($e['data']['playerId'] ?? '')===$winnerId)));
-            if(count($priorMeldEvents)<=1) $roundScores[$winnerTeam]+=51;
+        $otherTeam=$winnerTeam===0?1:0;
+        if($fullHand){
+            $opponentHasMelds=false;
+            foreach((array)($state['melds'] ?? []) as $pid=>$meldList){
+                if($this->teamOf($state,(string)$pid)===$otherTeam && !empty($meldList)){ $opponentHasMelds=true; break; }
+            }
+            $roundScores[$winnerTeam]=$opponentHasMelds ? 51.0 : 102.0;
+            $roundScores[$otherTeam]=0.0;
+        } else {
+            foreach((array)($state['melds'] ?? []) as $pid=>$meldList){
+                $team=(int)$this->teamOf($state,(string)$pid);
+                foreach((array)$meldList as $meld) foreach((array)($meld['cards'] ?? []) as $card) $roundScores[$team]+=$this->banakilCardPoints((string)$card);
+            }
+            foreach($state['players'] as $player){
+                $pid=(string)$player['id']; $team=(int)$this->teamOf($state,$pid);
+                foreach((array)($state['hands'][$pid] ?? []) as $card) $roundScores[$team]-=$this->banakilCardPoints((string)$card);
+            }
+            $roundScores[$winnerTeam]+=20;
         }
         foreach($roundScores as $team=>$points) $state['scores'][$team]=round((float)($state['scores'][$team] ?? 0)+$points,1);
-        $state=$this->record($state,'banakil.round_scored',['winner'=>$winnerId,'round_scores'=>$roundScores,'scores'=>$state['scores']]);
-        foreach($state['scores'] as $team=>$score) if((float)$score>=(float)($state['config']['targetScore'] ?? 222)){ $state['gameOver']=true; $state['winner']=$team; }
+        unset($state['rummyTurnMeta'][$winnerId]);
+        $state=$this->record($state,'banakil.round_scored',['winner'=>$winnerId,'full_hand'=>$fullHand,'round_scores'=>$roundScores,'scores'=>$state['scores']]);
+        $singleRound=!empty($state['config']['singleRound']);
+        if($singleRound){ $state['gameOver']=true; $state['winner']=$winnerTeam; }
+        else foreach($state['scores'] as $team=>$score) if((float)$score>=(float)($state['config']['targetScore'] ?? 222)){ $state['gameOver']=true; $state['winner']=$team; }
         if(!$state['gameOver']) $state=$this->newRoundFromState($state);
         return $state;
     }

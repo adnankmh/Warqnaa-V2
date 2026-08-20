@@ -32,9 +32,12 @@ class GlobalCardEngineRules implements GameRuleContract
         while(count($players)<$cfgPlayers) $players[]='bot:global_'.count($players);
         $enginePlayers=[];
         foreach($players as $i=>$p) $enginePlayers[]=['id'=>(string)$p,'name'=>$this->shortName((string)$p),'bot'=>str_starts_with((string)$p,'bot:')];
+        $target=(int)($options['target'] ?? $this->defaultTarget($this->key));
+        if(in_array($this->key,['banakil','pinochle'],true) && $cfgPlayers===2 && $target===222) $target=150;
         $g=$this->engine->newGame($enginePlayers,[
             'seed'=>random_int(100000,999999999),
-            'targetScore'=>(int)($options['target'] ?? $this->defaultTarget($this->key)),
+            'targetScore'=>$target,
+            'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
         ]);
         $g=$this->autoBots($g,30);
         return $this->fromGlobal($g,$players,['messages'=>['تم تشغيل '.$this->arabicName($this->key).' بمحرك الألعاب العالمي النهائي final-v1.']]);
@@ -45,17 +48,11 @@ class GlobalCardEngineRules implements GameRuleContract
         try{
             $g=$this->globalState($state); if(!$g) return false;
             $a=$this->normalizeAction($action,$payload,$state,$playerId);
-            if(($state['turn'] ?? null)!==$playerId && ($a['type'] ?? '')!=='organize') return false;
-            $available=$this->engine->availableActions($g,$playerId);
-            foreach($available as $x){
-                if(($x['type'] ?? '')!==($a['type'] ?? '')) continue;
-                if(isset($x['card']) && isset($a['card']) && $x['card']!==$a['card']) continue;
-                if(isset($x['amount']) && isset($a['amount']) && (int)$x['amount']!==(int)$a['amount']) continue;
-                if(isset($x['suit']) && isset($a['suit']) && $x['suit']!==$a['suit']) continue;
-                return true;
-            }
-            // Structured helpers are validated authoritatively by the engine.
-            return in_array(($a['type'] ?? ''), ['organize', 'layoff', 'meld_many', 'pass_trix'], true);
+            if(($state['turn'] ?? null)!==$playerId && !in_array(($a['type'] ?? ''),['organize','set_away','return_from_away'],true)) return false;
+            // R8: authoritative dry-run validation. The move is valid only if the
+            // engine can apply the exact payload on a copy of the state.
+            $this->engine->applyAction($g,$playerId,$a);
+            return true;
         }catch(\Throwable $e){ return false; }
     }
 
@@ -179,6 +176,10 @@ class GlobalCardEngineRules implements GameRuleContract
             'deck_count'=>count($g['deck'] ?? []),
             'discard'=>$this->longDiscard($g['discard'] ?? []),
             'melds'=>$this->longMelds($g['melds'] ?? []),
+            'team_opened'=>$g['teamOpened'] ?? null,
+            'opening_thresholds'=>$g['teamOpeningThresholds'] ?? null,
+            'rummy_turn_meta'=>$g['rummyTurnMeta'] ?? null,
+            'single_round'=>(bool)($g['config']['singleRound'] ?? false),
             'tableau'=>$g['tableau'] ?? [],
             'trix_board'=>$g['trixBoard'] ?? null,
             'trix_finish_order'=>$g['trixFinishOrder'] ?? [],
@@ -218,6 +219,12 @@ class GlobalCardEngineRules implements GameRuleContract
                 'target_player'=>(string)($payload['target_player'] ?? $payload['targetPlayer'] ?? $playerId),
                 'meld_index'=>(int)($payload['meld_index'] ?? $payload['meldIndex'] ?? 0),
                 'cards'=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)($payload['cards'] ?? [])),
+            ],
+            'replace_wild','replace_joker' => [
+                'type'=>'replace_wild',
+                'target_player'=>(string)($payload['target_player'] ?? $payload['targetPlayer'] ?? $playerId),
+                'meld_index'=>(int)($payload['meld_index'] ?? $payload['meldIndex'] ?? 0),
+                'card'=>$this->toShortCard((string)($payload['card'] ?? ''),$state['hands'][$playerId] ?? []),
             ],
             'organize' => [
                 'type'=>'organize',
