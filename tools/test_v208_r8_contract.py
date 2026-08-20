@@ -33,7 +33,7 @@ flutter=read('flutter_app/lib/main.dart')
 ok('MediaQuery.orientationOf(context) == Orientation.landscape' in flutter,'Flutter room responds to real device orientation')
 ok('_chooseMeldMany' in flutter and '_chooseLayoff' in flutter and '_chooseWildReplacement' in flutter,'Flutter exposes advanced Hand/Banakil actions')
 ok('مباراة من جولة واحدة فقط' in flutter and 'singleRound: singleRound' in flutter,'Flutter room creation exposes one-round mode')
-ok('_lastCardLabel' in flutter and '_tableStatusStrip' in flutter,'Tarneeb UI exposes bid/trump/last-card status')
+ok('_lastCardLabel' in flutter and flutter.count('_tableStatusStrip(') >= 2,'Tarneeb UI renders bid/trump/last-card status strip')
 
 blade=read('backend-laravel/resources/views/room/show.blade.php')
 ok('responsive-table' in blade,'Laravel game room uses responsive directional table')

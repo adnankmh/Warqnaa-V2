@@ -5091,19 +5091,25 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(10, compact ? 2 : 7, 10, 4),
-              child: Row(
+              child: Column(
                 children: [
-                  Expanded(child: ScoreBox(label: 'نحن', score: engine.scores[0])),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      children: [
-                        Text('جولة ${engine.round}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                        Text('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات', style: const TextStyle(color: Colors.white60, fontSize: 9)),
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      Expanded(child: ScoreBox(label: 'نحن', score: engine.scores[0])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
+                          children: [
+                            Text('جولة ${engine.round}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                            Text('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات', style: const TextStyle(color: Colors.white60, fontSize: 9)),
+                          ],
+                        ),
+                      ),
+                      Expanded(child: ScoreBox(label: 'هم', score: engine.scores[1])),
+                    ],
                   ),
-                  Expanded(child: ScoreBox(label: 'هم', score: engine.scores[1])),
+                  SizedBox(height: compact ? 4 : 7),
+                  _tableStatusStrip(context),
                 ],
               ),
             ),
