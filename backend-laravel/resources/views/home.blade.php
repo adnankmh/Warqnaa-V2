@@ -3,7 +3,8 @@
 @section('content')
 @php
   $isAuthed = auth()->check();
-  $games = class_exists('\App\Models\Game') ? \App\Models\Game::where('active',true)->orderBy('id')->take(7)->get() : collect();
+  $publicKeys=array_keys(\App\Services\Games\GameCatalog::all());
+  $games = class_exists('\App\Models\Game') ? \App\Models\Game::where('active',true)->whereIn('key',$publicKeys)->orderBy('id')->take(8)->get() : collect();
   $openRooms = $isAuthed && class_exists('\App\Models\Room') ? \App\Models\Room::whereIn('status',['waiting','bidding','playing'])->count() : 0;
   $friendsOnline = 0;
   $activeTournaments = class_exists('\App\Models\Tournament') ? \App\Models\Tournament::whereIn('status',['open','running'])->count() : 0;
@@ -31,9 +32,9 @@
     <article class="r9-panel wide">
       <h2>{{ app()->getLocale()==='ar' ? 'ألعابك في مكان واحد' : 'Your games, one lobby' }}</h2>
       <p>{{ app()->getLocale()==='ar' ? 'دخول سريع، غرف عامة وخاصة، وبوتات واضحة الهوية عند الحاجة.' : 'Fast entry, public/private rooms and clearly identified bots when needed.' }}</p>
-      <div class="r9-game-chips">
+      <div class="r101-home-games">
         @forelse($games as $game)
-          <a href="{{ $isAuthed ? route('rooms.index',$game->key) : route('login') }}">{{ $game->rules['icon'] ?? game_icon($game->key) }} {{ $game->name[app()->getLocale()] ?? $game->name['en'] ?? $game->key }}</a>
+          <a href="{{ $isAuthed ? route('rooms.index',$game->key) : route('login') }}"><img loading="lazy" decoding="async" src="{{ game_art_url($game->key) }}" alt=""><span>{{ $game->name[app()->getLocale()] ?? $game->name['en'] ?? $game->key }}</span></a>
         @empty
           <span class="muted">Warqnaa</span>
         @endforelse

@@ -35,24 +35,94 @@ class StoreCatalogService
         foreach($this->v201Items() as $item) $this->upsert($item);
         foreach($this->v201R4Items() as $item) $this->upsert($item);
         foreach($this->v202Items() as $item) $this->upsert($item);
+        $this->normalizeAllActivePricesR91();
         $this->normalizeBilingualNames();
         $this->deactivateExactDuplicates();
+        $this->grantPrimaryAdminAllCollectibles();
 
+    }
+
+
+    /** R9.1: the primary admin is treated as having purchased every current collectible. */
+    public function grantPrimaryAdminAllCollectibles(): void
+    {
+        if(!Schema::hasTable('users') || !Schema::hasTable('store_items') || !Schema::hasTable('inventory_items')) return;
+        $admin=\App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
+        if(!$admin) return;
+        $items=\App\Models\StoreItem::where('active',true)->whereNotIn('category',['pasha','competition_ticket'])->get();
+        foreach($items as $item) $this->grantPrimaryAdminItem((int)$item->id, $admin);
+    }
+
+    public function grantPrimaryAdminItem(int $storeItemId, ?\App\Models\User $admin=null): void
+    {
+        if(!Schema::hasTable('inventory_items')) return;
+        $admin ??= \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
+        $item=\App\Models\StoreItem::find($storeItemId);
+        if(!$admin || !$item || !$item->active || in_array($item->category,['pasha','competition_ticket'],true)) return;
+        \App\Models\InventoryItem::updateOrCreate(
+            ['user_id'=>$admin->id,'store_item_id'=>$item->id],
+            ['active'=>false,'activated_at'=>null,'expires_at'=>null]
+        );
     }
 
     private function upsert(array $item): void
     {
         $names=['ar'=>$item['ar'],'en'=>$item['en'] ?? $item['key']];
+        $payload=(array)($item['payload'] ?? []);
+        if(($item['category'] ?? '')!=='pasha'){
+            $payload['r91_price_normalized']=true;
+            $payload['r91_base_price']=(int)($item['price'] ?? 0);
+        }
         DB::table('store_items')->updateOrInsert(['key'=>$item['key']],[
             'name'=>json_encode($names,JSON_UNESCAPED_UNICODE),
             'category'=>$item['category'],
             'price'=>$this->v183Price($item),
             'duration_days'=>$item['duration_days'] ?? null,
-            'payload'=>json_encode($item['payload'] ?? [],JSON_UNESCAPED_UNICODE),
+            'payload'=>json_encode($payload,JSON_UNESCAPED_UNICODE),
             'active'=>true,
             'created_at'=>now(),
             'updated_at'=>now(),
         ]);
+    }
+
+    private function priceFactorR91(string $category): float
+    {
+        return match($category){
+            'table'=>5.25,
+            'card_back'=>3.50,
+            'emoji_pack'=>3.25,
+            'effect'=>3.50,
+            'profile_cover'=>3.10,
+            'badge'=>3.00,
+            'name_color','text_color','name_frame'=>2.85,
+            'xp_booster'=>2.25,
+            'competition_ticket'=>1.10,
+            default=>3.00,
+        };
+    }
+
+    private function luxuryRoundR91(int $raised): int
+    {
+        if($raised<1000) return (int)(ceil($raised/50)*50);
+        if($raised<10000) return (int)(ceil($raised/250)*250);
+        return (int)(ceil($raised/500)*500);
+    }
+
+    /** R9.1: catch legacy active rows that are not part of the curated PHP catalog, exactly once. */
+    private function normalizeAllActivePricesR91(): void
+    {
+        DB::table('store_items')->where('active',true)->where('category','!=','pasha')->orderBy('id')->chunkById(100,function($rows){
+            foreach($rows as $row){
+                $payload=json_decode((string)($row->payload ?? '{}'),true);
+                if(!is_array($payload)) $payload=[];
+                if(!empty($payload['r91_price_normalized'])) continue;
+                $base=(int)($row->price ?? 0);
+                $price=$base>0?$this->luxuryRoundR91((int)round($base*$this->priceFactorR91((string)$row->category))):0;
+                $payload['r91_price_normalized']=true;
+                $payload['r91_base_price']=$base;
+                DB::table('store_items')->where('id',$row->id)->update(['price'=>$price,'payload'=>json_encode($payload,JSON_UNESCAPED_UNICODE),'updated_at'=>now()]);
+            }
+        });
     }
 
     private function v183Price(array $item): int
@@ -60,21 +130,10 @@ class StoreCatalogService
         $price=(int)($item['price'] ?? 0);
         if($price<=0) return $price;
         $category=(string)($item['category'] ?? '');
-        if(in_array($category,['pasha','competition_ticket','xp_booster'],true)) return $price;
-        $factor=match($category){
-            'table'=>2.40,
-            'card_back'=>2.10,
-            'emoji_pack'=>2.20,
-            'effect'=>2.25,
-            'profile_cover'=>2.05,
-            'badge'=>2.00,
-            'name_color','text_color','name_frame'=>1.85,
-            default=>2.00,
-        };
-        $raised=(int)round($price*$factor);
-        if($raised<1000) return (int)(ceil($raised/50)*50);
-        if($raised<10000) return (int)(ceil($raised/250)*250);
-        return (int)(ceil($raised/500)*500);
+        if($category==='pasha') return $price;
+        // R9.1 luxury economy. Pasha remains unchanged; tables are the premium anchor.
+        $raised=(int)round($price*$this->priceFactorR91($category));
+        return $this->luxuryRoundR91($raised);
     }
 
 

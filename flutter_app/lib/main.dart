@@ -16,10 +16,12 @@ import 'engines/tarneeb_engine.dart';
 import 'engines/local_game_engine.dart';
 import 'services/api_client.dart';
 import 'services/rewarded_ads.dart';
+import 'services/interstitial_ads.dart';
 import 'services/voice_room_service.dart';
 import 'services/app_sounds.dart';
 import 'services/app_notifications.dart';
 import 'services/connection_diagnostics.dart';
+import 'services/r10_asset_delivery.dart';
 import 'models/room_launch_options.dart';
 import 'r9_design_system.dart';
 import 'data/countries.dart';
@@ -37,6 +39,7 @@ part 'v021_patch.dart';
 part 'v182_rewards.dart';
 part 'v183_overhaul.dart';
 part 'r9_release.dart';
+part 'r10_1_release.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -128,10 +131,7 @@ class _WarqnaAppState extends State<WarqnaApp> {
               child: ClipRect(child: child ?? const SizedBox.shrink()),
             );
           },
-          theme: R9Design.theme(
-            light: isLight,
-            accent: colorFromHex(controller.uiAccentHex),
-          ),
+          theme: r101Theme(controller.themeCode, controller.uiAccentHex),
           home: !controller.ready
               ? const AppLoadingScreen()
               : controller.isAuthenticated
@@ -205,7 +205,10 @@ class AppController extends ChangeNotifier {
   final List<Map<String, dynamic>> designerOfflineEntitiesV182 = <Map<String, dynamic>>[];
   final Map<String, List<String>> clubPermissionsV182 = <String, List<String>>{};
   final List<Map<String, dynamic>> clubActivityV182 = <Map<String, dynamic>>[];
+  // Legacy game-wide counter is kept only for old saved-state compatibility.
+  // R9.1 enforces the five-exit rule per exact room code, never per game type.
   final Map<String, int> gameExitCounts = <String, int>{};
+  final Map<String, int> roomExitCountsV210 = <String, int>{};
   int gamesPlayed = 842;
   int wins = 514;
   double activeXpMultiplier = 1.0;
@@ -340,6 +343,7 @@ class AppController extends ChangeNotifier {
         ..clear()
         ..add('emoji_fun');
       gameExitCounts.clear();
+      roomExitCountsV210.clear();
       awayMode = false;
       luckyWheelLastFreeDateV182 = null;
       luckyWheelSpinDateV182 = '';
@@ -405,6 +409,9 @@ class AppController extends ChangeNotifier {
     gameExitCounts
       ..clear()
       ..addAll(decodeIntMap(prefs.getString(_accountKey('gameExitCounts'))));
+    roomExitCountsV210
+      ..clear()
+      ..addAll(decodeIntMap(prefs.getString(_accountKey('roomExitCountsV210'))));
     awayMode = prefs.getBool(_accountKey('awayMode')) ?? false;
     luckyWheelLastFreeDateV182 = prefs.getString(_accountKey('luckyWheelLastFreeDateV182'));
     luckyWheelSpinDateV182 = prefs.getString(_accountKey('luckyWheelSpinDateV182')) ?? '';
@@ -487,6 +494,7 @@ class AppController extends ChangeNotifier {
     await prefs.setBool(_accountKey('activeRoomSingleRound'), activeRoomSingleRound);
     await prefs.setStringList(_accountKey('owned'), owned.toList());
     await prefs.setString(_accountKey('gameExitCounts'), jsonEncode(gameExitCounts));
+    await prefs.setString(_accountKey('roomExitCountsV210'), jsonEncode(roomExitCountsV210));
     await prefs.setBool(_accountKey('awayMode'), awayMode);
     if (luckyWheelLastFreeDateV182 == null) { await prefs.remove(_accountKey('luckyWheelLastFreeDateV182')); } else { await prefs.setString(_accountKey('luckyWheelLastFreeDateV182'), luckyWheelLastFreeDateV182!); }
     await prefs.setString(_accountKey('luckyWheelSpinDateV182'), luckyWheelSpinDateV182);
@@ -650,6 +658,7 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> _loadUnsafe() async {
+    await R10AssetDelivery.instance.restore();
     final prefs = await SharedPreferences.getInstance();
     customApiUrl = prefs.getString('customApiUrl') ?? '';
     if (customApiUrl.trim().isNotEmpty) api.updateBaseUrl(customApiUrl);
@@ -780,6 +789,7 @@ class AppController extends ChangeNotifier {
       try {
         final data = await api.bootstrap();
         _applySession(data);
+        unawaited(R10AssetDelivery.instance.refresh(api, bootstrap: data));
         isAuthenticated = true;
         serverConnected = true;
       } catch (_) {
@@ -1105,7 +1115,7 @@ class AppController extends ChangeNotifier {
 
   int cumulativeXpBeforeLevel(int targetLevel) {
     var total = 0;
-    for (var current = 1; current < targetLevel.clamp(1, 200); current++) {
+    for (var current = 1; current < targetLevel.clamp(1, 100); current++) {
       total += xpNeededForLevel(current);
     }
     return total;
@@ -1116,12 +1126,10 @@ class AppController extends ChangeNotifier {
   }
 
   int xpNeededForLevel(int currentLevel) {
-    final safe = currentLevel.clamp(1, 200).toInt();
+    final safe = currentLevel.clamp(1, 100).toInt();
     final exact = xpRequirementsV175[safe];
     if (exact != null) return exact;
-    // Levels above 100 continue smoothly from the official level-100 value.
-    final extra = safe - 100;
-    return (xpRequirementsV175[100]! * math.pow(1.12, extra)).round();
+    return xpRequirementsV175[100]!;
   }
 
   void _recalculateLevel() {
@@ -1131,7 +1139,7 @@ class AppController extends ChangeNotifier {
       return;
     }
     xpNext = xpNeededForLevel(level);
-    while (xp >= xpNext && level < 200) {
+    while (xp >= xpNext && level < 100) {
       xp -= xpNext;
       level += 1;
       xpNext = xpNeededForLevel(level);
@@ -1395,7 +1403,7 @@ class AppController extends ChangeNotifier {
   }
 
   List<String> _normalizedHomeGameIds(List<String>? values) {
-    final valid = gamesCatalog.map((game) => game.id).toSet();
+    final valid = customerGamesR101.map((game) => game.id).toSet();
     final normalized = <String>[];
     for (final value in values ?? const <String>[]) {
       if (valid.contains(value) && !normalized.contains(value)) normalized.add(value);
@@ -1406,9 +1414,9 @@ class AppController extends ChangeNotifier {
   }
 
   List<GameInfo> get homeGames {
-    final byId = <String, GameInfo>{for (final game in gamesCatalog) game.id: game};
+    final byId = <String, GameInfo>{for (final game in customerGamesR101) game.id: game};
     final selected = homeGameIds.map((id) => byId[id]).whereType<GameInfo>().take(4).toList();
-    return selected.isEmpty ? gamesCatalog.take(3).toList() : selected;
+    return selected.isEmpty ? customerGamesR101.take(3).toList() : selected;
   }
 
   Future<String?> updateHomeGames(Iterable<String> values) async {
@@ -1779,12 +1787,21 @@ class AppController extends ChangeNotifier {
     queueNavigationRoute('/room/${_pendingRoomCodeV174!}');
   }
 
-  int exitsForGame(String gameId) => gameExitCounts[gameId] ?? 0;
-  bool canEnterGame(String gameId) => exitsForGame(gameId) < 3;
+  String _roomExitKeyV210(String? roomCode, String gameId) {
+    final normalized = roomCode?.trim().toUpperCase() ?? '';
+    return normalized.isNotEmpty ? normalized : 'LOCAL:$gameId';
+  }
 
-  Future<int> recordGameExit(String gameId) async {
-    final next = (gameExitCounts[gameId] ?? 0) + 1;
-    gameExitCounts[gameId] = next.clamp(0, 3).toInt();
+  int exitsForRoomV210(String? roomCode, String gameId) => roomExitCountsV210[_roomExitKeyV210(roomCode, gameId)] ?? 0;
+
+  // Historical API retained for old widgets/contracts. R9.1 no longer blocks a whole game type.
+  int exitsForGame(String gameId) => exitsForRoomV210(activeRoomCode, gameId);
+  bool canEnterGame(String gameId) => true;
+
+  Future<int> recordGameExit(String gameId, {String? roomCode}) async {
+    final key = _roomExitKeyV210(roomCode ?? activeRoomCode, gameId);
+    final next = (roomExitCountsV210[key] ?? 0) + 1;
+    roomExitCountsV210[key] = next.clamp(0, 5).toInt();
     activeGame = null;
     activeRoomCode = null;
     activeRoomName = null;
@@ -1792,12 +1809,12 @@ class AppController extends ChangeNotifier {
     activeRoomSingleRound = false;
     await _save();
     notifyListeners();
-    return gameExitCounts[gameId]!;
+    return roomExitCountsV210[key]!;
   }
 
   Future<void> recordInactivityEjectionV182() async {
     // Inactivity/network ejection is not a voluntary exit and must never consume
-    // one of the player's three manual return opportunities.
+    // one of the player's five exact-room manual return opportunities.
     activeGame = null;
     activeRoomCode = null;
     activeRoomName = null;
@@ -1808,7 +1825,9 @@ class AppController extends ChangeNotifier {
   }
 
   void resetGameExitSessionV182(String gameId) {
-    if (gameExitCounts.remove(gameId) != null) {
+    final key = _roomExitKeyV210(activeRoomCode, gameId);
+    final changed = roomExitCountsV210.remove(key) != null || gameExitCounts.remove(gameId) != null;
+    if (changed) {
       unawaited(_save());
       notifyListeners();
     }
@@ -1844,6 +1863,20 @@ class AppController extends ChangeNotifier {
 
   bool get challengeRoadActive => challengeRoadGame != null && !challengeRoadCompleted && challengeRoadAttempts > 0 && challengeRoadStage < challengeRoadTotal;
 
+  void syncChallengeRoadV210(Map<String, dynamic> road) {
+    final game = road['game_key']?.toString();
+    challengeRoadGame = (game == null || game.isEmpty) ? null : game;
+    challengeRoadTotal = (int.tryParse(road['total_stages']?.toString() ?? '') ?? 12).clamp(10, 15).toInt();
+    challengeRoadStage = (int.tryParse(road['stage']?.toString() ?? '') ?? 0).clamp(0, challengeRoadTotal).toInt();
+    challengeRoadAttempts = (int.tryParse(road['attempts']?.toString() ?? '') ?? 5).clamp(0, 5).toInt();
+    challengeRoadCompleted = road['completed'] == true;
+    activeChallenge = challengeRoadGame != null && !challengeRoadCompleted && challengeRoadAttempts > 0
+        ? 'road:$challengeRoadGame'
+        : null;
+    _save();
+    notifyListeners();
+  }
+
   void startChallengeRoad(String gameId, int totalStages) {
     challengeRoadGame = gameId;
     challengeRoadTotal = const <int>{10, 12, 15}.contains(totalStages) ? totalStages : 12;
@@ -1852,16 +1885,41 @@ class AppController extends ChangeNotifier {
     challengeRoadCompleted = false;
     challengeRoadResultMarkers.clear();
     activeChallenge = 'road:$gameId';
-    notices.insert(0, AppNotice('🎯', 'بدأ مسار التحدي', '${L.t(localeCode, gameId)} • $challengeRoadTotal مرحلة • 5 محاولات'));
+    notices.insert(0, AppNotice('🎯', localeCode == 'ar' ? 'بدأ مسار التحدي' : 'Challenge road started', localeCode == 'ar' ? '${L.t(localeCode, gameId)} • $challengeRoadTotal مرحلة • 5 محاولات' : '${L.t(localeCode, gameId)} • $challengeRoadTotal stages • 5 attempts'));
     _save();
     notifyListeners();
   }
 
+  Map<String, dynamic> challengeRoadPrizeForStage(int stage) {
+    final safeStage = stage.clamp(1, challengeRoadTotal).toInt();
+    if (safeStage == challengeRoadTotal) {
+      return <String, dynamic>{'type':'tokens','value':'1000','icon':'🏆','label_ar':'1000 توكن + مكافأة ختامية يوم باشا','label_en':'1,000 tokens + final Pasha day','rarity':'legendary','duration_hours':0};
+    }
+    switch (safeStage % 6) {
+      case 1:
+        final tokens = math.min(1000, 100 + safeStage * 35).toInt();
+        return <String, dynamic>{'type':'tokens','value':'$tokens','icon':'🪙','label_ar':'$tokens توكن','label_en':'$tokens tokens','rarity':'common','duration_hours':0};
+      case 2:
+        return <String, dynamic>{'type':'name_color','value':'#ef4444','icon':'🎨','label_ar':'لون لاعب أحمر لمدة 12 ساعة','label_en':'Red player color for 12 hours','rarity':'rare','duration_hours':12,'store_item_key':'challenge_name_red_r91'};
+      case 3:
+        return <String, dynamic>{'type':'xp_booster','value':'1.5','icon':'⚡','label_ar':'مسرع XP ×1.5 لمدة 6 ساعات','label_en':'1.5× XP booster for 6 hours','rarity':'rare','duration_hours':6,'store_item_key':'challenge_xp_15x_r91'};
+      case 4:
+        return <String, dynamic>{'type':'table','value':'table_v202_obsidian_vertical','icon':'🃏','label_ar':'طاولة أوبسيديان لمدة 24 ساعة','label_en':'Obsidian table for 24 hours','rarity':'epic','duration_hours':24,'store_item_key':'table_v202_obsidian_vertical'};
+      case 5:
+        return <String, dynamic>{'type':'pasha_day','value':'1','icon':'👑','label_ar':'يوم باشا','label_en':'One Pasha day','rarity':'epic','duration_hours':24};
+      default:
+        return <String, dynamic>{'type':'chat_color','value':'#22d3ee','icon':'✍️','label_ar':'لون كتابة سماوي لمدة 12 ساعة','label_en':'Cyan writing color for 12 hours','rarity':'rare','duration_hours':12,'store_item_key':'challenge_chat_cyan_r91'};
+    }
+  }
+
   int challengeRoadRewardForStage(int stage) {
-    if (stage == challengeRoadTotal) return 1000;
-    if (stage % 5 == 0) return 500;
-    if (stage % 3 == 0) return 250;
-    return 100;
+    final prize = challengeRoadPrizeForStage(stage);
+    return prize['type'] == 'tokens' ? (int.tryParse(prize['value']?.toString() ?? '') ?? 0) : 0;
+  }
+
+  String challengeRoadRewardLabel(int stage) {
+    final prize = challengeRoadPrizeForStage(stage);
+    return (localeCode == 'ar' ? prize['label_ar'] : prize['label_en'])?.toString() ?? '🎁';
   }
 
   bool recordChallengeRoadResult(String gameId, {required bool won, String? marker}) {
@@ -1871,27 +1929,38 @@ class AppController extends ChangeNotifier {
     if (won) {
       challengeRoadStage += 1;
       challengeStreakV173 += 1;
-      final reward = challengeRoadRewardForStage(challengeRoadStage);
-      coins += BigInt.from(reward);
+      final prize = challengeRoadPrizeForStage(challengeRoadStage);
+      final type = prize['type']?.toString() ?? 'tokens';
+      final value = prize['value']?.toString() ?? '0';
+      final hours = int.tryParse(prize['duration_hours']?.toString() ?? '') ?? 0;
+      if (hours > 0) prize['expires_at'] = DateTime.now().add(Duration(hours: hours)).toIso8601String();
+      if (type == 'tokens') {
+        final reward = (int.tryParse(value) ?? 0).clamp(0, 1000).toInt();
+        coins += BigInt.from(reward);
+        transactions.insert(0, TokenTransaction('مسار التحدي — المرحلة $challengeRoadStage', reward, 'الآن'));
+      } else if (type == 'pasha_day') {
+        vipDays += 1;
+      } else {
+        applyDailyPackRewardV176(prize, const <String, dynamic>{});
+      }
       xp += 25 + challengeRoadStage * 5;
-      transactions.insert(0, TokenTransaction('مسار التحدي — المرحلة $challengeRoadStage', reward, 'الآن'));
       if (challengeRoadStage >= challengeRoadTotal) {
         challengeRoadCompleted = true;
-        coins += BigInt.from(1000);
         vipDays += 1;
-        notices.insert(0, AppNotice('🏆', 'اكتمل مسار التحدي', 'مكافأة ختامية: 1000 توكن + يوم باشا.'));
+        notices.insert(0, AppNotice('🏆', localeCode == 'ar' ? 'اكتمل مسار التحدي' : 'Challenge road complete', localeCode == 'ar' ? '1000 توكن + يوم باشا ختامي.' : '1,000 tokens + a final Pasha day.'));
         activeChallenge = null;
       } else {
-        notices.insert(0, AppNotice('✅', 'اجتزت المرحلة $challengeRoadStage', '+$reward توكن • تبقى ${challengeRoadTotal - challengeRoadStage} مراحل.'));
+        final rewardLabel = challengeRoadRewardLabel(challengeRoadStage);
+        notices.insert(0, AppNotice('✅', localeCode == 'ar' ? 'اجتزت المرحلة $challengeRoadStage' : 'Stage $challengeRoadStage cleared', '$rewardLabel • ${localeCode == 'ar' ? 'تبقى ${challengeRoadTotal - challengeRoadStage} مراحل' : '${challengeRoadTotal - challengeRoadStage} stages remaining'}.'));
       }
     } else {
       challengeRoadAttempts = math.max(0, challengeRoadAttempts - 1).toInt();
       challengeStreakV173 = 0;
       if (challengeRoadAttempts == 0) {
         activeChallenge = null;
-        notices.insert(0, AppNotice('🔄', 'انتهت المحاولات', 'يمكنك بدء مسار جديد بخمس محاولات.'));
+        notices.insert(0, AppNotice('🔄', localeCode == 'ar' ? 'انتهت المحاولات' : 'Attempts exhausted', localeCode == 'ar' ? 'يمكنك بدء مسار جديد بخمس محاولات.' : 'You can start a new road with five attempts.'));
       } else {
-        notices.insert(0, AppNotice('💔', 'خسرت محاولة', 'بقي لديك $challengeRoadAttempts من أصل 5 محاولات.'));
+        notices.insert(0, AppNotice('💔', localeCode == 'ar' ? 'خسرت محاولة' : 'Attempt lost', localeCode == 'ar' ? 'بقي لديك $challengeRoadAttempts من أصل 5 محاولات.' : '$challengeRoadAttempts of 5 attempts remain.'));
       }
     }
     _recalculateLevel();
@@ -2853,46 +2922,46 @@ final List<StoreProduct> products = <StoreProduct>[
   StoreProduct(id: "table_premium_48", category: "tables", icon: "💠", nameAr: "طاولة كريستال محيط", nameEn: "Premium Table 48", descriptionAr: "طاولة كبيرة منحنية بمعاينة حقيقية وتفاصيل فاخرة داخل غرفة اللعب.", descriptionEn: "Large curved game table with a live in-room preview.", price: 33700, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8)),
   StoreProduct(id: "table_premium_49", category: "tables", icon: "♛", nameAr: "طاولة أسود ذهبي Pro", nameEn: "Premium Table 49", descriptionAr: "طاولة كبيرة منحنية بمعاينة حقيقية وتفاصيل فاخرة داخل غرفة اللعب.", descriptionEn: "Large curved game table with a live in-room preview.", price: 34350, previewColor1: Color(0xff422006), previewColor2: Color(0xffb45309)),
   StoreProduct(id: "table_premium_50", category: "tables", icon: "🏆", nameAr: "طاولة ماستر أرينا", nameEn: "Premium Table 50", descriptionAr: "طاولة كبيرة منحنية بمعاينة حقيقية وتفاصيل فاخرة داخل غرفة اللعب.", descriptionEn: "Large curved game table with a live in-room preview.", price: 35000, previewColor1: Color(0xff1f3b24), previewColor2: Color(0xff84cc16)),
-  StoreProduct(id: "table_reference_01", category: "tables", icon: "🃏", nameAr: "أزرق ملكي مذهب", nameEn: "Gilded Royal Blue", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/tables/reference/table_reference_01.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_02", category: "tables", icon: "🃏", nameAr: "أرجواني ملكي مطعم", nameEn: "Inlaid Royal Purple", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 25000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/images/tables/reference/table_reference_02.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_03", category: "tables", icon: "🃏", nameAr: "جلد عتيق مزخرف", nameEn: "Ornate Antique Leather", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/images/tables/reference/table_reference_03.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_04", category: "tables", icon: "🃏", nameAr: "أسود كربوني فضي", nameEn: "Silver Carbon Black", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 15000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/images/tables/reference/table_reference_04.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_05", category: "tables", icon: "🃏", nameAr: "رخام إيطالي مصقول", nameEn: "Polished Italian Marble", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/images/tables/reference/table_reference_05.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_06", category: "tables", icon: "🃏", nameAr: "خشب جوز بنمط هندسي", nameEn: "Geometric Walnut Wood", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/images/tables/reference/table_reference_06.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_07", category: "tables", icon: "🃏", nameAr: "نحاس عتيق مؤكسد", nameEn: "Oxidized Antique Copper", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/images/tables/reference/table_reference_07.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_08", category: "tables", icon: "🃏", nameAr: "عرق لؤلؤ طبيعي", nameEn: "Natural Mother of Pearl", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/images/tables/reference/table_reference_08.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_09", category: "tables", icon: "🃏", nameAr: "زمردي أرابيسك عميق", nameEn: "Deep Emerald Arabesque", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/images/tables/reference/table_reference_09.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_10", category: "tables", icon: "🃏", nameAr: "عقيق يماني أحمر", nameEn: "Red Yemeni Agate", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 25000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/images/tables/reference/table_reference_10.png", collection: "reference_1"),
-  StoreProduct(id: "table_reference_11", category: "tables", icon: "🃏", nameAr: "يخت فاخر", nameEn: "Luxury Yacht", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 16000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/tables/reference/table_reference_11.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_12", category: "tables", icon: "🃏", nameAr: "أسماك كوي خزفية", nameEn: "Porcelain Koi", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/images/tables/reference/table_reference_12.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_13", category: "tables", icon: "🃏", nameAr: "مجرة كونية", nameEn: "Cosmic Galaxy", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/images/tables/reference/table_reference_13.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_14", category: "tables", icon: "🃏", nameAr: "أرابيسك فضي", nameEn: "Silver Arabesque", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/images/tables/reference/table_reference_14.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_15", category: "tables", icon: "🃏", nameAr: "فارس محارب", nameEn: "Warrior Knight", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/images/tables/reference/table_reference_15.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_16", category: "tables", icon: "🃏", nameAr: "بونساي يشم", nameEn: "Jade Bonsai", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/images/tables/reference/table_reference_16.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_17", category: "tables", icon: "🃏", nameAr: "تنين دمشقي", nameEn: "Damascene Dragon", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/images/tables/reference/table_reference_17.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_18", category: "tables", icon: "🃏", nameAr: "أسلحة عتيقة", nameEn: "Antique Weapons", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/images/tables/reference/table_reference_18.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_19", category: "tables", icon: "🃏", nameAr: "لوتس صدفية", nameEn: "Mother-of-Pearl Lotus", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/images/tables/reference/table_reference_19.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_20", category: "tables", icon: "🃏", nameAr: "قناع تيكي منحوت", nameEn: "Carved Tiki Mask", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 16000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/images/tables/reference/table_reference_20.png", collection: "reference_2"),
-  StoreProduct(id: "table_reference_21", category: "tables", icon: "🃏", nameAr: "طائرة خاصة كربونية", nameEn: "Carbon Private Jet", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/tables/reference/table_reference_21.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_22", category: "tables", icon: "🃏", nameAr: "مروحية كلاسيكية محفورة", nameEn: "Engraved Classic Helicopter", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/images/tables/reference/table_reference_22.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_23", category: "tables", icon: "🃏", nameAr: "مركبة استكشاف أعماق البحار", nameEn: "Deep-Sea Explorer", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/images/tables/reference/table_reference_23.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_24", category: "tables", icon: "🃏", nameAr: "هيكل تيرانوصور أحفوري", nameEn: "Fossil Tyrannosaur", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/images/tables/reference/table_reference_24.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_25", category: "tables", icon: "🃏", nameAr: "قرش أبيض عميق", nameEn: "Deep Great White Shark", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/images/tables/reference/table_reference_25.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_26", category: "tables", icon: "🃏", nameAr: "كيفلار منسوج", nameEn: "Woven Kevlar", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/images/tables/reference/table_reference_26.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_27", category: "tables", icon: "🃏", nameAr: "عاج طبيعي محفور", nameEn: "Carved Natural Ivory", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/images/tables/reference/table_reference_27.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_28", category: "tables", icon: "🃏", nameAr: "جعران الجوهرة مرصعة", nameEn: "Jeweled Scarab", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/images/tables/reference/table_reference_28.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_29", category: "tables", icon: "🃏", nameAr: "لوحة آرت ديكو ذهبية", nameEn: "Golden Art Deco", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/images/tables/reference/table_reference_29.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_30", category: "tables", icon: "🃏", nameAr: "لوحة ستيمبونك", nameEn: "Steampunk Panel", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/images/tables/reference/table_reference_30.png", collection: "reference_3"),
-  StoreProduct(id: "table_reference_31", category: "tables", icon: "🃏", nameAr: "نيزك حديدي خام", nameEn: "Raw Iron Meteorite", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/tables/reference/table_reference_31.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_32", category: "tables", icon: "🃏", nameAr: "لوحة سديم مجري", nameEn: "Galactic Nebula", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/images/tables/reference/table_reference_32.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_33", category: "tables", icon: "🃏", nameAr: "أوركيد عقيق", nameEn: "Agate Orchid", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/images/tables/reference/table_reference_33.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_34", category: "tables", icon: "🃏", nameAr: "بونساي يشم فاخر", nameEn: "Luxury Jade Bonsai", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/images/tables/reference/table_reference_34.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_35", category: "tables", icon: "🃏", nameAr: "تميمة مصرية قديمة", nameEn: "Ancient Egyptian Amulet", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/images/tables/reference/table_reference_35.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_36", category: "tables", icon: "🃏", nameAr: "مطرقة ثور فضية", nameEn: "Silver Thor Hammer", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/images/tables/reference/table_reference_36.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_37", category: "tables", icon: "🃏", nameAr: "قناع أزتيك من الريش", nameEn: "Feathered Aztec Mask", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/images/tables/reference/table_reference_37.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_38", category: "tables", icon: "🃏", nameAr: "سبج أسود مصقول", nameEn: "Polished Black Obsidian", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/images/tables/reference/table_reference_38.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_39", category: "tables", icon: "🃏", nameAr: "لوحة جليد قطبي", nameEn: "Polar Ice Slab", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/images/tables/reference/table_reference_39.png", collection: "reference_4"),
-  StoreProduct(id: "table_reference_40", category: "tables", icon: "🃏", nameAr: "خشب متحجر عتيق", nameEn: "Ancient Petrified Wood", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/images/tables/reference/table_reference_40.png", collection: "reference_4"),
+  StoreProduct(id: "table_reference_01", category: "tables", icon: "🃏", nameAr: "أزرق ملكي مذهب", nameEn: "Gilded Royal Blue", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/tables/reference/table_reference_01.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_02", category: "tables", icon: "🃏", nameAr: "أرجواني ملكي مطعم", nameEn: "Inlaid Royal Purple", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 25000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_02.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_03", category: "tables", icon: "🃏", nameAr: "جلد عتيق مزخرف", nameEn: "Ornate Antique Leather", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/optimized/r10/tables/reference/table_reference_03.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_04", category: "tables", icon: "🃏", nameAr: "أسود كربوني فضي", nameEn: "Silver Carbon Black", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 15000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/optimized/r10/tables/reference/table_reference_04.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_05", category: "tables", icon: "🃏", nameAr: "رخام إيطالي مصقول", nameEn: "Polished Italian Marble", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_05.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_06", category: "tables", icon: "🃏", nameAr: "خشب جوز بنمط هندسي", nameEn: "Geometric Walnut Wood", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/optimized/r10/tables/reference/table_reference_06.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_07", category: "tables", icon: "🃏", nameAr: "نحاس عتيق مؤكسد", nameEn: "Oxidized Antique Copper", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/optimized/r10/tables/reference/table_reference_07.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_08", category: "tables", icon: "🃏", nameAr: "عرق لؤلؤ طبيعي", nameEn: "Natural Mother of Pearl", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/optimized/r10/tables/reference/table_reference_08.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_09", category: "tables", icon: "🃏", nameAr: "زمردي أرابيسك عميق", nameEn: "Deep Emerald Arabesque", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/optimized/r10/tables/reference/table_reference_09.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_10", category: "tables", icon: "🃏", nameAr: "عقيق يماني أحمر", nameEn: "Red Yemeni Agate", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 1–10، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 1–10 collection with full preview and in-room activation.", price: 25000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/optimized/r10/tables/reference/table_reference_10.webp", collection: "reference_1"),
+  StoreProduct(id: "table_reference_11", category: "tables", icon: "🃏", nameAr: "يخت فاخر", nameEn: "Luxury Yacht", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 16000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/tables/reference/table_reference_11.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_12", category: "tables", icon: "🃏", nameAr: "أسماك كوي خزفية", nameEn: "Porcelain Koi", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_12.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_13", category: "tables", icon: "🃏", nameAr: "مجرة كونية", nameEn: "Cosmic Galaxy", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/optimized/r10/tables/reference/table_reference_13.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_14", category: "tables", icon: "🃏", nameAr: "أرابيسك فضي", nameEn: "Silver Arabesque", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/optimized/r10/tables/reference/table_reference_14.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_15", category: "tables", icon: "🃏", nameAr: "فارس محارب", nameEn: "Warrior Knight", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_15.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_16", category: "tables", icon: "🃏", nameAr: "بونساي يشم", nameEn: "Jade Bonsai", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/optimized/r10/tables/reference/table_reference_16.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_17", category: "tables", icon: "🃏", nameAr: "تنين دمشقي", nameEn: "Damascene Dragon", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/optimized/r10/tables/reference/table_reference_17.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_18", category: "tables", icon: "🃏", nameAr: "أسلحة عتيقة", nameEn: "Antique Weapons", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/optimized/r10/tables/reference/table_reference_18.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_19", category: "tables", icon: "🃏", nameAr: "لوتس صدفية", nameEn: "Mother-of-Pearl Lotus", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/optimized/r10/tables/reference/table_reference_19.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_20", category: "tables", icon: "🃏", nameAr: "قناع تيكي منحوت", nameEn: "Carved Tiki Mask", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 11–20، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 11–20 collection with full preview and in-room activation.", price: 16000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/optimized/r10/tables/reference/table_reference_20.webp", collection: "reference_2"),
+  StoreProduct(id: "table_reference_21", category: "tables", icon: "🃏", nameAr: "طائرة خاصة كربونية", nameEn: "Carbon Private Jet", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/tables/reference/table_reference_21.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_22", category: "tables", icon: "🃏", nameAr: "مروحية كلاسيكية محفورة", nameEn: "Engraved Classic Helicopter", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_22.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_23", category: "tables", icon: "🃏", nameAr: "مركبة استكشاف أعماق البحار", nameEn: "Deep-Sea Explorer", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/optimized/r10/tables/reference/table_reference_23.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_24", category: "tables", icon: "🃏", nameAr: "هيكل تيرانوصور أحفوري", nameEn: "Fossil Tyrannosaur", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/optimized/r10/tables/reference/table_reference_24.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_25", category: "tables", icon: "🃏", nameAr: "قرش أبيض عميق", nameEn: "Deep Great White Shark", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_25.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_26", category: "tables", icon: "🃏", nameAr: "كيفلار منسوج", nameEn: "Woven Kevlar", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/optimized/r10/tables/reference/table_reference_26.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_27", category: "tables", icon: "🃏", nameAr: "عاج طبيعي محفور", nameEn: "Carved Natural Ivory", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/optimized/r10/tables/reference/table_reference_27.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_28", category: "tables", icon: "🃏", nameAr: "جعران الجوهرة مرصعة", nameEn: "Jeweled Scarab", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 28000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/optimized/r10/tables/reference/table_reference_28.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_29", category: "tables", icon: "🃏", nameAr: "لوحة آرت ديكو ذهبية", nameEn: "Golden Art Deco", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 26000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/optimized/r10/tables/reference/table_reference_29.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_30", category: "tables", icon: "🃏", nameAr: "لوحة ستيمبونك", nameEn: "Steampunk Panel", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 21–30، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 21–30 collection with full preview and in-room activation.", price: 30000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/optimized/r10/tables/reference/table_reference_30.webp", collection: "reference_3"),
+  StoreProduct(id: "table_reference_31", category: "tables", icon: "🃏", nameAr: "نيزك حديدي خام", nameEn: "Raw Iron Meteorite", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff0b2d5b), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/tables/reference/table_reference_31.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_32", category: "tables", icon: "🃏", nameAr: "لوحة سديم مجري", nameEn: "Galactic Nebula", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff40103d), previewColor2: Color(0xffc9a6d8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_32.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_33", category: "tables", icon: "🃏", nameAr: "أوركيد عقيق", nameEn: "Agate Orchid", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff6b351f), previewColor2: Color(0xffd4a574), imageAsset: "assets/optimized/r10/tables/reference/table_reference_33.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_34", category: "tables", icon: "🃏", nameAr: "بونساي يشم فاخر", nameEn: "Luxury Jade Bonsai", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd1d5db), imageAsset: "assets/optimized/r10/tables/reference/table_reference_34.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_35", category: "tables", icon: "🃏", nameAr: "تميمة مصرية قديمة", nameEn: "Ancient Egyptian Amulet", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xfff8fafc), previewColor2: Color(0xff94a3b8), imageAsset: "assets/optimized/r10/tables/reference/table_reference_35.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_36", category: "tables", icon: "🃏", nameAr: "مطرقة ثور فضية", nameEn: "Silver Thor Hammer", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 24000, previewColor1: Color(0xff4b2a15), previewColor2: Color(0xffd7a64a), imageAsset: "assets/optimized/r10/tables/reference/table_reference_36.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_37", category: "tables", icon: "🃏", nameAr: "قناع أزتيك من الريش", nameEn: "Feathered Aztec Mask", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 22000, previewColor1: Color(0xff7c3f23), previewColor2: Color(0xff5eead4), imageAsset: "assets/optimized/r10/tables/reference/table_reference_37.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_38", category: "tables", icon: "🃏", nameAr: "سبج أسود مصقول", nameEn: "Polished Black Obsidian", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xfffffbeb), previewColor2: Color(0xfff5c542), imageAsset: "assets/optimized/r10/tables/reference/table_reference_38.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_39", category: "tables", icon: "🃏", nameAr: "لوحة جليد قطبي", nameEn: "Polar Ice Slab", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 20000, previewColor1: Color(0xff064e3b), previewColor2: Color(0xff22c55e), imageAsset: "assets/optimized/r10/tables/reference/table_reference_39.webp", collection: "reference_4"),
+  StoreProduct(id: "table_reference_40", category: "tables", icon: "🃏", nameAr: "خشب متحجر عتيق", nameEn: "Ancient Petrified Wood", descriptionAr: "طاولة مرجعية فاخرة عالية الجودة ضمن مجموعة الطاولات الجديدة 31–40، مع معاينة كاملة وتفعيل مباشر داخل غرفة اللعب.", descriptionEn: "High-quality reference table skin from the new 31–40 collection with full preview and in-room activation.", price: 18000, previewColor1: Color(0xff7f1d1d), previewColor2: Color(0xfffb7185), imageAsset: "assets/optimized/r10/tables/reference/table_reference_40.webp", collection: "reference_4"),
   StoreProduct(id: "cardback_01", category: "cards", icon: "♣", nameAr: "ظهر ورق كلاسيك أخضر", nameEn: "Card Back 01", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 2320, previewColor1: Color(0xff064e3b), previewColor2: Color(0xfff5c542)),
   StoreProduct(id: "cardback_02", category: "cards", icon: "♦", nameAr: "ظهر ورق ملكي ذهبي", nameEn: "Card Back 02", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 2840, previewColor1: Color(0xff111827), previewColor2: Color(0xfffacc15)),
   StoreProduct(id: "cardback_03", category: "cards", icon: "♠", nameAr: "ظهر ورق ليل أسود", nameEn: "Card Back 03", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 3360, previewColor1: Color(0xff020617), previewColor2: Color(0xff94a3b8)),
@@ -2933,18 +3002,18 @@ final List<StoreProduct> products = <StoreProduct>[
   StoreProduct(id: "cardback_38", category: "cards", icon: "✦", nameAr: "ظهر ورق أرابيسك خاص", nameEn: "Card Back 38", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 21560, previewColor1: Color(0xff581c87), previewColor2: Color(0xffd8b4fe)),
   StoreProduct(id: "cardback_39", category: "cards", icon: "👑", nameAr: "ظهر ورق ماستر", nameEn: "Card Back 39", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 22080, previewColor1: Color(0xff065f46), previewColor2: Color(0xff34d399)),
   StoreProduct(id: "cardback_40", category: "cards", icon: "💎", nameAr: "ظهر ورق أسطورة", nameEn: "Card Back 40", descriptionAr: "ظهر ورق فاخر يظهر كما هو داخل يد اللاعب وعلى الطاولة.", descriptionEn: "Premium card back applied to the player hand and game table.", price: 22600, previewColor1: Color(0xff881337), previewColor2: Color(0xfffb7185)),
-  StoreProduct(id: "cardback_v021_lion", category: "cards", icon: "🦁", nameAr: "ظهر الأسد الملكي", nameEn: "Royal Lion Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة الأسد الملكي الأخيرة، بتفاصيل ذهبية وصورة واضحة داخل اللعب.", descriptionEn: "Legendary card back inspired by the latest royal lion table, with crisp gold detailing in game.", price: 32000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/cardbacks/v021/cardback_v021_lion.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_white_tiger", category: "cards", icon: "🐯", nameAr: "ظهر النمر الأبيض", nameEn: "White Tiger Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النمر الأبيض ذات العيون الزرقاء.", descriptionEn: "Legendary card back inspired by the blue-eyed white tiger table.", price: 34000, previewColor1: Color(0xffe5e7eb), previewColor2: Color(0xff38bdf8), imageAsset: "assets/images/cardbacks/v021/cardback_v021_white_tiger.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_black_horse", category: "cards", icon: "🐎", nameAr: "ظهر الحصان الأسود", nameEn: "Black Horse Card Back", descriptionAr: "ظهر ورق فاخر مستوحى من طاولة الحصان الأسود والذهب.", descriptionEn: "Premium card back inspired by the black horse and gold table.", price: 33000, previewColor1: Color(0xff111111), previewColor2: Color(0xffd6aa59), imageAsset: "assets/images/cardbacks/v021/cardback_v021_black_horse.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_eagle", category: "cards", icon: "🦅", nameAr: "ظهر النسر الذهبي", nameEn: "Golden Eagle Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النسر المحلق.", descriptionEn: "Legendary card back inspired by the soaring eagle table.", price: 35000, previewColor1: Color(0xff3f2a18), previewColor2: Color(0xffeab308), imageAsset: "assets/images/cardbacks/v021/cardback_v021_eagle.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_tiger", category: "cards", icon: "🐅", nameAr: "ظهر النمر الناري", nameEn: "Fire Tiger Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النمر الناري.", descriptionEn: "Legendary card back inspired by the fiery tiger table.", price: 31000, previewColor1: Color(0xff431407), previewColor2: Color(0xfff97316), imageAsset: "assets/images/cardbacks/v021/cardback_v021_tiger.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_whale", category: "cards", icon: "🐋", nameAr: "ظهر الحوت الأزرق", nameEn: "Blue Whale Card Back", descriptionAr: "ظهر ورق فاخر مستوحى من طاولة الحوت في أعماق المحيط.", descriptionEn: "Premium card back inspired by the deep-ocean whale table.", price: 30000, previewColor1: Color(0xff082f49), previewColor2: Color(0xff38bdf8), imageAsset: "assets/images/cardbacks/v021/cardback_v021_whale.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_black_panther", category: "cards", icon: "🐈‍⬛", nameAr: "ظهر الفهد الأسود", nameEn: "Black Panther Card Back", descriptionAr: "ظهر ورق أسطوري داكن مستوحى من طاولة الفهد الأسود.", descriptionEn: "Dark legendary card back inspired by the black panther table.", price: 36000, previewColor1: Color(0xff020617), previewColor2: Color(0xff3b82f6), imageAsset: "assets/images/cardbacks/v021/cardback_v021_black_panther.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_owl", category: "cards", icon: "🦉", nameAr: "ظهر بومة الليل", nameEn: "Night Owl Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة بومة الليل والقمر.", descriptionEn: "Legendary card back inspired by the moonlit owl table.", price: 34500, previewColor1: Color(0xff0f172a), previewColor2: Color(0xff94a3b8), imageAsset: "assets/images/cardbacks/v021/cardback_v021_owl.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_white_wolf", category: "cards", icon: "🐺", nameAr: "ظهر الذئب الأبيض", nameEn: "White Wolf Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة الذئب الأبيض والجبال الثلجية.", descriptionEn: "Legendary card back inspired by the white wolf and snowy mountains table.", price: 36500, previewColor1: Color(0xffe2e8f0), previewColor2: Color(0xff60a5fa), imageAsset: "assets/images/cardbacks/v021/cardback_v021_white_wolf.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_fire_dragon", category: "cards", icon: "🐉", nameAr: "ظهر التنين الناري", nameEn: "Fire Dragon Card Back", descriptionAr: "ظهر ورق أسطوري فائق مستوحى من طاولة التنين الناري.", descriptionEn: "Ultra-legendary card back inspired by the fire dragon table.", price: 42000, previewColor1: Color(0xff450a0a), previewColor2: Color(0xffef4444), imageAsset: "assets/images/cardbacks/v021/cardback_v021_fire_dragon.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_gold_dragon", category: "cards", icon: "🐲", nameAr: "ظهر التنين الذهبي", nameEn: "Golden Dragon Card Back", descriptionAr: "ظهر ورق أسطوري فائق مستوحى من طاولة التنين الذهبي.", descriptionEn: "Ultra-legendary card back inspired by the golden dragon table.", price: 45000, previewColor1: Color(0xff1c1917), previewColor2: Color(0xfffacc15), imageAsset: "assets/images/cardbacks/v021/cardback_v021_gold_dragon.png", collection: "v021_table_cardbacks"),
-  StoreProduct(id: "cardback_v021_phoenix", category: "cards", icon: "🔥", nameAr: "ظهر العنقاء الأسطورية", nameEn: "Legendary Phoenix Card Back", descriptionAr: "أفخم ظهر ورق في المجموعة، مستوحى من طاولة العنقاء المتوهجة.", descriptionEn: "The collection's most prestigious card back, inspired by the glowing phoenix table.", price: 48000, previewColor1: Color(0xff3f0d0d), previewColor2: Color(0xffff6b00), imageAsset: "assets/images/cardbacks/v021/cardback_v021_phoenix.png", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_lion", category: "cards", icon: "🦁", nameAr: "ظهر الأسد الملكي", nameEn: "Royal Lion Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة الأسد الملكي الأخيرة، بتفاصيل ذهبية وصورة واضحة داخل اللعب.", descriptionEn: "Legendary card back inspired by the latest royal lion table, with crisp gold detailing in game.", price: 32000, previewColor1: Color(0xff111827), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_lion.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_white_tiger", category: "cards", icon: "🐯", nameAr: "ظهر النمر الأبيض", nameEn: "White Tiger Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النمر الأبيض ذات العيون الزرقاء.", descriptionEn: "Legendary card back inspired by the blue-eyed white tiger table.", price: 34000, previewColor1: Color(0xffe5e7eb), previewColor2: Color(0xff38bdf8), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_white_tiger.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_black_horse", category: "cards", icon: "🐎", nameAr: "ظهر الحصان الأسود", nameEn: "Black Horse Card Back", descriptionAr: "ظهر ورق فاخر مستوحى من طاولة الحصان الأسود والذهب.", descriptionEn: "Premium card back inspired by the black horse and gold table.", price: 33000, previewColor1: Color(0xff111111), previewColor2: Color(0xffd6aa59), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_black_horse.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_eagle", category: "cards", icon: "🦅", nameAr: "ظهر النسر الذهبي", nameEn: "Golden Eagle Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النسر المحلق.", descriptionEn: "Legendary card back inspired by the soaring eagle table.", price: 35000, previewColor1: Color(0xff3f2a18), previewColor2: Color(0xffeab308), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_eagle.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_tiger", category: "cards", icon: "🐅", nameAr: "ظهر النمر الناري", nameEn: "Fire Tiger Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة النمر الناري.", descriptionEn: "Legendary card back inspired by the fiery tiger table.", price: 31000, previewColor1: Color(0xff431407), previewColor2: Color(0xfff97316), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_tiger.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_whale", category: "cards", icon: "🐋", nameAr: "ظهر الحوت الأزرق", nameEn: "Blue Whale Card Back", descriptionAr: "ظهر ورق فاخر مستوحى من طاولة الحوت في أعماق المحيط.", descriptionEn: "Premium card back inspired by the deep-ocean whale table.", price: 30000, previewColor1: Color(0xff082f49), previewColor2: Color(0xff38bdf8), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_whale.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_black_panther", category: "cards", icon: "🐈‍⬛", nameAr: "ظهر الفهد الأسود", nameEn: "Black Panther Card Back", descriptionAr: "ظهر ورق أسطوري داكن مستوحى من طاولة الفهد الأسود.", descriptionEn: "Dark legendary card back inspired by the black panther table.", price: 36000, previewColor1: Color(0xff020617), previewColor2: Color(0xff3b82f6), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_black_panther.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_owl", category: "cards", icon: "🦉", nameAr: "ظهر بومة الليل", nameEn: "Night Owl Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة بومة الليل والقمر.", descriptionEn: "Legendary card back inspired by the moonlit owl table.", price: 34500, previewColor1: Color(0xff0f172a), previewColor2: Color(0xff94a3b8), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_owl.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_white_wolf", category: "cards", icon: "🐺", nameAr: "ظهر الذئب الأبيض", nameEn: "White Wolf Card Back", descriptionAr: "ظهر ورق أسطوري مستوحى من طاولة الذئب الأبيض والجبال الثلجية.", descriptionEn: "Legendary card back inspired by the white wolf and snowy mountains table.", price: 36500, previewColor1: Color(0xffe2e8f0), previewColor2: Color(0xff60a5fa), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_white_wolf.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_fire_dragon", category: "cards", icon: "🐉", nameAr: "ظهر التنين الناري", nameEn: "Fire Dragon Card Back", descriptionAr: "ظهر ورق أسطوري فائق مستوحى من طاولة التنين الناري.", descriptionEn: "Ultra-legendary card back inspired by the fire dragon table.", price: 42000, previewColor1: Color(0xff450a0a), previewColor2: Color(0xffef4444), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_fire_dragon.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_gold_dragon", category: "cards", icon: "🐲", nameAr: "ظهر التنين الذهبي", nameEn: "Golden Dragon Card Back", descriptionAr: "ظهر ورق أسطوري فائق مستوحى من طاولة التنين الذهبي.", descriptionEn: "Ultra-legendary card back inspired by the golden dragon table.", price: 45000, previewColor1: Color(0xff1c1917), previewColor2: Color(0xfffacc15), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_gold_dragon.webp", collection: "v021_table_cardbacks"),
+  StoreProduct(id: "cardback_v021_phoenix", category: "cards", icon: "🔥", nameAr: "ظهر العنقاء الأسطورية", nameEn: "Legendary Phoenix Card Back", descriptionAr: "أفخم ظهر ورق في المجموعة، مستوحى من طاولة العنقاء المتوهجة.", descriptionEn: "The collection's most prestigious card back, inspired by the glowing phoenix table.", price: 48000, previewColor1: Color(0xff3f0d0d), previewColor2: Color(0xffff6b00), imageAsset: "assets/optimized/r10/cardbacks/v021/cardback_v021_phoenix.webp", collection: "v021_table_cardbacks"),
   StoreProduct(id: "emoji_free_basic", category: "emoji", icon: "😀😄😂👍👏👋", nameAr: "إيموجي مجانية", nameEn: "Free Emojis", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 0),
   StoreProduct(id: "emoji_beginner_fun", category: "emoji", icon: "😊😉😎🤩🥳", nameAr: "إيموجي مبتدئ مرحة", nameEn: "Beginner Fun", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 1000),
   StoreProduct(id: "emoji_medium_react", category: "emoji", icon: "😡😢😭😱🤔☕", nameAr: "إيموجي تفاعل متوسط", nameEn: "Medium Reactions", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 5000),
@@ -3450,7 +3519,7 @@ Future<void> showHomeGamesSelector(BuildContext context, AppController controlle
           const SizedBox(height: 6),
           Text(L.t(controller.localeCode, 'homeGamesHint'), style: const TextStyle(color: Colors.white60, height: 1.5)),
           const SizedBox(height: 10),
-          ...gamesCatalog.map((game) {
+          ...customerGamesR101.map((game) {
             final checked = selected.contains(game.id);
             return CheckboxListTile(
               value: checked,
@@ -3504,7 +3573,7 @@ class _GamesPageState extends State<GamesPage> {
   @override
   Widget build(BuildContext context) {
     final lang = widget.controller.localeCode;
-    final visible = gamesCatalog.where((g) {
+    final visible = customerGamesR101.where((g) {
       final name = L.t(lang, g.id).toLowerCase();
       return name.contains(query.toLowerCase());
     }).toList();
@@ -3514,7 +3583,7 @@ class _GamesPageState extends State<GamesPage> {
         SectionTitle(
           title: L.t(lang, 'games'),
           action: '+ ${L.t(lang, 'createRoom')}',
-          onTap: () => showCreateRoom(context, widget.controller, gamesCatalog[1]),
+          onTap: () => showCreateRoom(context, widget.controller, customerGamesR101[1]),
         ),
         const SizedBox(height: 10),
         TextField(
@@ -3635,6 +3704,8 @@ class _StorePageState extends State<StorePage> {
             buildMainFileFriendsButton(context, widget.controller),
           ],
         ),
+        const SizedBox(height: 10),
+        R101CommerceShowcase(controller: widget.controller),
         const SizedBox(height: 10),
         PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Row(children:[Expanded(child:Text('تقدم المستوى ${widget.controller.level}',style:const TextStyle(fontWeight:FontWeight.w900))),Text('${widget.controller.xp} / ${widget.controller.xpNext} XP',style:const TextStyle(color:Colors.amber,fontWeight:FontWeight.w900,fontSize:11))]),
@@ -4113,7 +4184,7 @@ class GameCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.asset(gameArtAsset(game.id), fit: BoxFit.contain, errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 46))))),
+            ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.asset(gameArtAsset(game.id), fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 46))))),
             DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), gradient: const LinearGradient(begin: Alignment.topCenter,end: Alignment.bottomCenter,colors:[Colors.transparent,Color(0x22000000),Color(0xee03070c)]))),
             if (game.serverOnly) Positioned(top:6,right:6,child:Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xfff7d37a),Color(0xff9a5f0b)]),borderRadius:BorderRadius.circular(10),boxShadow:const [BoxShadow(color:Colors.black45,blurRadius:8)]),child:const Row(mainAxisSize:MainAxisSize.min,children:[Icon(Icons.cloud_rounded,size:12,color:Color(0xff261706)),SizedBox(width:3),Text('ONLINE',style:TextStyle(fontSize:8,color:Color(0xff261706),fontWeight:FontWeight.w900))]))),
             Positioned(left:8,right:8,bottom:8,child:Column(mainAxisSize:MainAxisSize.min,children:[Text(L.t(lang,game.id),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:13,shadows:[Shadow(color:Colors.black,blurRadius:7)])),const SizedBox(height:3),Text('${formatNumber(game.players)} لاعب',style:const TextStyle(color:Colors.white70,fontSize:9,fontWeight:FontWeight.w700))])),
@@ -4190,7 +4261,7 @@ class _CompactProductPreview extends StatelessWidget {
             ? Center(child: Text(product.icon, style: const TextStyle(fontSize: 30)))
             : ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(product.imageAsset!, fit: BoxFit.contain, filterQuality: FilterQuality.medium),
+                child: R10AssetImage(localAsset: product.imageAsset!, fit: BoxFit.contain, filterQuality: FilterQuality.medium),
               ),
       );
     }
@@ -4517,18 +4588,23 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     final team = engine.teamOf(seat);
     final delta = engine.lastRoundScoreDelta[team];
     final signed = delta == 0 ? '0' : (delta > 0 ? '+$delta' : '$delta');
-    return '$tricks لَمّة • $signed';
+    return widget.controller.localeCode == 'ar'
+        ? 'لمات اللاعب: $tricks • نقاط الجولة: $signed'
+        : 'Player tricks: $tricks • Round points: $signed';
   }
 
   Widget _tableStatusStrip(BuildContext context) {
-    final bidder = engine.bidWinnerSeat == null ? 'لم يحسم بعد' : '${engine.playerNames[engine.bidWinnerSeat!]} • طلب ${engine.highestBid ?? '-'}';
-    final trump = engine.trump == null ? 'بانتظار اختيار الطرنيب' : engine.suitName(engine.trump!);
+    final ar = widget.controller.localeCode == 'ar';
+    final bidder = engine.bidWinnerSeat == null ? (ar ? 'لم يحسم بعد' : 'Not decided') : engine.playerNames[engine.bidWinnerSeat!];
+    final request = engine.highestBid?.toString() ?? '—';
+    final trump = engine.trump == null ? (ar ? 'بانتظار الاختيار' : 'Waiting') : engine.suitName(engine.trump!);
     final trickOwner = engine.lastTrickWinner == null ? '—' : engine.playerNames[engine.lastTrickWinner!];
     final items = <Map<String, String>>[
-      {'title': 'صاحب الطلب', 'value': bidder},
-      {'title': 'نوع الطرنيب', 'value': trump},
-      {'title': 'آخر لَمّة', 'value': trickOwner},
-      {'title': 'جولة اللعب', 'value': widget.options.singleRound ? 'جولة واحدة' : 'الجولة ${engine.round}'},
+      {'title': ar ? 'الطلب' : 'Bid', 'value': request},
+      {'title': ar ? 'صاحب الطلب' : 'Bidder', 'value': bidder},
+      {'title': ar ? 'الطرنيب' : 'Trump', 'value': trump},
+      {'title': ar ? 'آخر لَمّة' : 'Last trick', 'value': trickOwner},
+      {'title': ar ? 'الجولة' : 'Round', 'value': widget.options.singleRound ? (ar ? 'واحدة' : 'Single') : '${engine.round}'},
     ];
     return Wrap(
       spacing: 8,
@@ -4544,9 +4620,9 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(item['title']!, style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: .72), fontWeight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text(item['value']!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900)),
+            Text(item['title']!, style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: .72), fontWeight: FontWeight.w800)),
+            const SizedBox(height: 3),
+            Text(item['value']!, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary)),
           ],
         ),
       )).toList(),
@@ -4651,10 +4727,10 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                   Positioned(top: compact ? 38 : 51, left: 0, right: 0, child: Center(child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, controller: widget.controller))),
                   Positioned(left: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
                   Positioned(right: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-                  Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: '${_seatBid(2)} • آخر كرت ${_lastCardLabel(2)}', meta: _seatRoundGain(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
-                  Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: '${_seatBid(1)} • ${_lastCardLabel(1)}', meta: _seatRoundGain(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
-                  Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: '${_seatBid(3)} • ${_lastCardLabel(3)}', meta: _seatRoundGain(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
-                  Positioned(bottom: compact ? 64 : 78, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[0], letter: widget.controller.displayName.isEmpty ? '?' : widget.controller.displayName.substring(0, 1), bid: '${_seatBid(0)} • آخر كرت ${_lastCardLabel(0)}', meta: _seatRoundGain(0), nameColor: colorFromHex(widget.controller.selectedNameColor), badge: storeProductById(widget.controller.selectedBadge)?.icon, avatarEmoji: widget.controller.avatarEmoji, onProfileTap: () => showProfile(context, widget.controller))),
+                  Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: _seatBid(2), meta: _seatRoundGain(2), lastCardLabel: _lastCardLabel(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
+                  Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: _seatBid(1), meta: _seatRoundGain(1), lastCardLabel: _lastCardLabel(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
+                  Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: _seatBid(3), meta: _seatRoundGain(3), lastCardLabel: _lastCardLabel(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
+                  Positioned(bottom: compact ? 64 : 78, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[0], letter: widget.controller.displayName.isEmpty ? '?' : widget.controller.displayName.substring(0, 1), bid: _seatBid(0), meta: _seatRoundGain(0), lastCardLabel: _lastCardLabel(0), nameColor: colorFromHex(widget.controller.selectedNameColor), badge: storeProductById(widget.controller.selectedBadge)?.icon, avatarEmoji: widget.controller.avatarEmoji, onProfileTap: () => showProfile(context, widget.controller))),
                   Positioned(
                     right: landscape ? 92 : 48,
                     bottom: compact ? 92 : 112,
@@ -5061,7 +5137,7 @@ class _LuxuryTable extends StatelessWidget {
     final c2 = skin == null ? const Color(0xffd6aa59) : (controller?.color2For(skin) ?? skin.previewColor2 ?? const Color(0xffd6aa59));
     final dark = Color.lerp(c1, Colors.black, .62)!;
     final customBytes = decodeDataImage(controller?.customTableBackgroundData);
-    final assetImage = customBytes == null && skin?.imageAsset != null ? AssetImage(skin!.imageAsset!) : null;
+    final assetImage = customBytes == null && skin?.imageAsset != null ? R10AssetDelivery.instance.provider(skin!.imageAsset!) : null;
     return LayoutBuilder(
       builder: (context, constraints) {
         final portrait = constraints.maxHeight > constraints.maxWidth;
@@ -5071,14 +5147,8 @@ class _LuxuryTable extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
-            color: customBytes != null || assetImage != null ? dark : null,
             borderRadius: BorderRadius.circular(radius),
-            gradient: customBytes == null && assetImage == null ? RadialGradient(center: portrait ? const Alignment(0, -.38) : const Alignment(0, -.25), radius: portrait ? 1.08 : .95, colors: [c2.withValues(alpha: portrait ? .78 : .72), c1, dark]) : null,
-            image: customBytes != null
-                ? DecorationImage(image: MemoryImage(customBytes), fit: portrait ? BoxFit.cover : BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x33000000), BlendMode.darken))
-                : assetImage != null
-                    ? DecorationImage(image: assetImage, fit: portrait ? BoxFit.cover : BoxFit.contain, colorFilter: const ColorFilter.mode(Color(0x22000000), BlendMode.darken))
-                    : null,
+            gradient: RadialGradient(center: portrait ? const Alignment(0, -.38) : const Alignment(0, -.25), radius: portrait ? 1.08 : .95, colors: [c2.withValues(alpha: portrait ? .54 : .48), c1, dark]),
             border: Border.all(color: c2, width: portrait ? 4.2 : 5),
             boxShadow: [
               BoxShadow(color: Colors.black.withValues(alpha: .62), blurRadius: portrait ? 28 : 32, offset: Offset(0, portrait ? 12 : 18)),
@@ -5089,8 +5159,23 @@ class _LuxuryTable extends StatelessWidget {
             borderRadius: BorderRadius.circular(radius),
             child: Stack(
               children: [
-                if (assetImage == null && customBytes == null)
-                  Positioned.fill(child: CustomPaint(painter: _TablePatternPainter(color: c2))),
+                Positioned.fill(child: CustomPaint(painter: _TablePatternPainter(color: c2))),
+                if (customBytes != null || assetImage != null)
+                  Center(
+                    child: FractionallySizedBox(
+                      widthFactor: portrait ? .70 : .64,
+                      heightFactor: portrait ? .50 : .66,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(portrait ? 24 : 20),
+                        child: Opacity(
+                          opacity: .68,
+                          child: customBytes != null
+                              ? Image.memory(customBytes, fit: BoxFit.contain, filterQuality: FilterQuality.high)
+                              : Image(image: assetImage!, fit: BoxFit.contain, filterQuality: FilterQuality.high),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (overlay != null)
                   Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: overlay))),
                 if (controller?.tableAmbientEffects ?? true) Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
@@ -5846,6 +5931,83 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         ),
       );
 
+  bool get _isTarneebFamilyServer {
+    final id = widget.game.id.toLowerCase();
+    return id == 'tarneeb' || id == 'tarneeb_400' || id == 'tarneeb_41' || id == 'syrian_tarneeb' || id == 'hokm' || id == 'kout4' || id == 'kout6';
+  }
+
+  String _serverPlayerName(String? key) {
+    if (key == null || key.isEmpty) return '—';
+    final players = room?['players'] is List ? room!['players'] as List : const [];
+    for (final raw in players) {
+      if (raw is Map && (raw['key'] ?? raw['user_key'])?.toString() == key) {
+        return raw['name']?.toString() ?? raw['username']?.toString() ?? 'لاعب';
+      }
+    }
+    return key;
+  }
+
+  String _serverSuitLabel(String? raw) {
+    final ar = widget.controller.localeCode == 'ar';
+    return switch ((raw ?? '').toLowerCase()) {
+      'hearts' => ar ? '♥ كبة' : '♥ Hearts',
+      'diamonds' => ar ? '♦ ديناري' : '♦ Diamonds',
+      'spades' => ar ? '♠ بستوني' : '♠ Spades',
+      'clubs' => ar ? '♣ سباتي' : '♣ Clubs',
+      _ => ar ? 'بانتظار الاختيار' : 'Waiting',
+    };
+  }
+
+  Widget _serverTarneebStatusStrip(BuildContext context) {
+    if (!_isTarneebFamilyServer) return const SizedBox.shrink();
+    final ar = widget.controller.localeCode == 'ar';
+    final rawBid = state['bid'];
+    final bid = rawBid is Map ? Map<String, dynamic>.from(rawBid) : <String, dynamic>{};
+    final bidderKey = bid['player']?.toString();
+    final bidder = bidderKey == null || bidderKey.isEmpty ? (ar ? 'لم يُحسم بعد' : 'Not decided') : _serverPlayerName(bidderKey);
+    final bidValue = bid['value']?.toString() ?? '—';
+    final lastDelta = state['last_round_score_delta'] is Map ? Map<String, dynamic>.from(state['last_round_score_delta'] as Map) : const <String, dynamic>{};
+    final roundTricks = state['round_tricks'] is Map ? Map<String, dynamic>.from(state['round_tricks'] as Map) : const <String, dynamic>{};
+    String signed(dynamic value) {
+      final n = int.tryParse(value?.toString() ?? '') ?? 0;
+      return n > 0 ? '+$n' : '$n';
+    }
+    final cards = state['last_played_by_player'] is Map ? (state['last_played_by_player'] as Map).length : 0;
+    final items = <(String, String)>[
+      (ar ? 'الطلب' : 'Bid', bidValue),
+      (ar ? 'صاحب الطلب' : 'Bidder', bidder),
+      (ar ? 'الطرنيب' : 'Trump', _serverSuitLabel(state['trump']?.toString())),
+      (ar ? 'لمات الفريقين' : 'Team tricks', '${roundTricks['teamA'] ?? 0} — ${roundTricks['teamB'] ?? 0}'),
+      (ar ? 'نقاط آخر جولة' : 'Last round points', '${signed(lastDelta['teamA'])} — ${signed(lastDelta['teamB'])}'),
+      (ar ? 'آخر أوراق ظاهرة' : 'Last cards shown', '$cards'),
+    ];
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 4, 10, 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: .94),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .34)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .18), blurRadius: 18, offset: const Offset(0, 6))],
+      ),
+      child: Wrap(
+        spacing: 7,
+        runSpacing: 7,
+        alignment: WrapAlignment.center,
+        children: items.map((item) => Container(
+          constraints: const BoxConstraints(minWidth: 86),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(12)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(item.$1, textAlign: TextAlign.center, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: .68))),
+            const SizedBox(height: 2),
+            Text(item.$2, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary)),
+          ]),
+        )).toList(),
+      ),
+    );
+  }
+
   Widget _engineBoard(BuildContext context) {
     final viewport = MediaQuery.sizeOf(context);
     final desktopWeb = isDesktopWebV183(viewport.width);
@@ -5874,6 +6036,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             ],
           ),
         ),
+        if (_isTarneebFamilyServer) _serverTarneebStatusStrip(context),
         Expanded(
           child: Stack(
             children: [
@@ -6029,17 +6192,39 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   Widget _serverPlayer(Map<String, dynamic> player, int index, int count) {
-    final name = player['name']?.toString() ?? 'لاعب ${index + 1}';
-    final profile = index == 0 ? null : botProfiles[(index - 1) % botProfiles.length];
+    final ar = widget.controller.localeCode == 'ar';
+    final name = player['name']?.toString() ?? player['username']?.toString() ?? '${ar ? 'لاعب' : 'Player'} ${index + 1}';
+    final bot = player['bot'] == true;
+    final mine = player['key']?.toString() == state['you']?.toString();
+    final profile = bot ? botProfiles[index % botProfiles.length] : null;
+    final playerKey = (player['key'] ?? player['user_key'])?.toString() ?? '';
+    final lastPlayed = state['last_played_by_player'] is Map ? (state['last_played_by_player'] as Map)[playerKey]?.toString() : null;
+    final seatTricks = state['seat_tricks'] is Map ? int.tryParse((state['seat_tricks'] as Map)[playerKey]?.toString() ?? '') ?? 0 : 0;
+    final bidRaw = state['bid'];
+    final bid = bidRaw is Map ? Map<String, dynamic>.from(bidRaw) : const <String, dynamic>{};
+    final isBidder = bid['player']?.toString() == playerKey;
+    final team = index.isEven ? 'teamA' : 'teamB';
+    final playerDeltaMap = state['player_round_score_delta'] is Map ? state['player_round_score_delta'] as Map : const {};
+    final roundDeltaMap = state['last_round_score_delta'] is Map ? state['last_round_score_delta'] as Map : const {};
+    final delta = int.tryParse((playerDeltaMap[playerKey] ?? roundDeltaMap[team])?.toString() ?? '') ?? 0;
+    final deltaText = delta > 0 ? '+$delta' : '$delta';
+    final seatMeta = _isTarneebFamilyServer
+        ? (ar ? 'لمات اللاعب: $seatTricks • نقاط الجولة: $deltaText' : 'Player tricks: $seatTricks • Round points: $deltaText')
+        : (bot ? (ar ? 'BOT • ${widget.controller.botDifficultyCode.toUpperCase()}' : 'BOT • ${widget.controller.botDifficultyCode.toUpperCase()}') : (ar ? 'متصل' : 'LIVE'));
+    final seatBid = _isTarneebFamilyServer && isBidder
+        ? (ar ? 'الطلب ${bid['value'] ?? '—'}' : 'BID ${bid['value'] ?? '—'}')
+        : (bot ? 'BOT ${widget.controller.botDifficultyCode.toUpperCase()}' : 'LIVE');
     final seat = PlayerSeat(
-      name: index == 0 ? name : profile!.name(widget.controller.localeCode),
+      name: bot ? profile!.name(widget.controller.localeCode) : name,
       letter: name.isEmpty ? '?' : name.substring(0, 1),
-      avatarEmoji: index == 0 ? widget.controller.avatarEmoji : null,
+      avatarEmoji: (!bot && mine) ? widget.controller.avatarEmoji : (!bot ? (player['avatar_emoji']?.toString() ?? '👤') : null),
       botProfile: profile,
-      bid: player['bot'] == true ? 'AI ${widget.controller.botDifficultyCode.toUpperCase()}' : 'LIVE',
-      nameColor: index == 0 ? colorFromHex(widget.controller.selectedNameColor) : profile?.secondary ?? const Color(0xffe5e7eb),
-      badge: index == 0 ? storeProductById(widget.controller.selectedBadge)?.icon : '🤖',
-      onProfileTap: player['bot'] == true
+      bid: seatBid,
+      meta: seatMeta,
+      lastCardLabel: _isTarneebFamilyServer && lastPlayed != null && lastPlayed.isNotEmpty ? _cardLabel(lastPlayed) : null,
+      nameColor: (!bot && mine) ? colorFromHex(widget.controller.selectedNameColor) : (bot ? profile!.secondary : colorFromHex(player['name_color']?.toString() ?? '#e5e7eb')),
+      badge: bot ? 'BOT' : ((!bot && mine) ? storeProductById(widget.controller.selectedBadge)?.icon : (player['badge']?.toString() ?? '')),
+      onProfileTap: bot
           ? () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(profile!, widget.controller.localeCode))
           : () => openPlayerProfileV021(
                 context,
@@ -6053,8 +6238,6 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                 online: player['connected'] == true,
               ),
     );
-    final bot = player['bot'] == true;
-    final mine = player['key']?.toString() == state['you']?.toString();
     final canKick = !bot && !mine && room?['is_owner'] == true && room?['allow_owner_kick'] == true;
     final interactiveSeat = GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -6944,6 +7127,7 @@ class PlayerSeat extends StatelessWidget {
   final String letter;
   final String bid;
   final String? meta;
+  final String? lastCardLabel;
   final bool vertical;
   final Color? nameColor;
   final String? badge;
@@ -6951,7 +7135,7 @@ class PlayerSeat extends StatelessWidget {
   final BotProfile? botProfile;
   final VoidCallback? onProfileTap;
 
-  const PlayerSeat({super.key, required this.name, required this.letter, required this.bid, this.meta, this.vertical = false, this.nameColor, this.badge, this.avatarEmoji, this.botProfile, this.onProfileTap});
+  const PlayerSeat({super.key, required this.name, required this.letter, required this.bid, this.meta, this.lastCardLabel, this.vertical = false, this.nameColor, this.badge, this.avatarEmoji, this.botProfile, this.onProfileTap});
 
   @override
   Widget build(BuildContext context) {
@@ -6970,6 +7154,13 @@ class PlayerSeat extends StatelessWidget {
             if (meta != null && meta!.trim().isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(meta!, textAlign: TextAlign.center, style: TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: .78))),
+            ],
+            if (lastCardLabel != null && lastCardLabel!.trim().isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('آخر ', style: TextStyle(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: .70))),
+                PlayingCard(label: lastCardLabel!, width: 20, height: 29),
+              ]),
             ],
           ],
         ),
@@ -7675,6 +7866,8 @@ void showSettings(BuildContext context, AppController controller) {
           SwitchListTile(value: autoPlay, onChanged: (v) => setLocalState(() => autoPlay = v), title: const Text('اللعب التلقائي القانوني'), subtitle: const Text('يتصرف الكمبيوتر عند انتهاء وقت الدور')),
           SwitchListTile(value: controller.landscapeMode, onChanged: (_) async { await controller.toggleOrientationMode(); setLocalState(() {}); }, title: const Text('الوضع الأفقي'), subtitle: const Text('تخطيط كامل للطاولة والورق والدردشة')),
           SwitchListTile(value: controller.tableAmbientEffects, onChanged: (v) { controller.updateNoCodeDesign(ambientEffects: v); setLocalState(() {}); }, title: const Text('مؤثرات الطاولة الهادئة'), subtitle: const Text('إضاءات وحركة خفيفة بدون تشتيت')),
+          AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => SwitchListTile(value: R10AssetDelivery.instance.dataSaver, onChanged: (v) async { await R10AssetDelivery.instance.setDataSaver(v); setLocalState(() {}); }, title: Text(controller.localeCode == 'ar' ? 'توفير البيانات' : 'Data Saver'), subtitle: Text(controller.localeCode == 'ar' ? 'صور معاينة أصغر عند استخدام CDN مع بقاء الجودة الكاملة عند إيقافه.' : 'Use smaller CDN previews while keeping full quality when disabled.'))),
+          AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => ListTile(leading: const Icon(Icons.cloud_download_outlined), title: Text(controller.localeCode == 'ar' ? 'تسليم الأصول R10' : 'R10 Asset Delivery'), subtitle: Text('${R10AssetDelivery.instance.manifestEntries} assets • ${R10AssetDelivery.instance.ondemandEntries} on-demand • ${R10AssetDelivery.instance.cdnEnabled ? 'CDN' : 'bundled fallback'}'), trailing: IconButton(icon: const Icon(Icons.cleaning_services_outlined), tooltip: controller.localeCode == 'ar' ? 'مسح الذاكرة المؤقتة' : 'Clear memory cache', onPressed: () { R10AssetDelivery.instance.clearMemoryCache(); setLocalState(() {}); }))),
           const Divider(),
           ListTile(leading: AccountAvatar(controller: controller, size: 42), title: const Text('الصورة الشخصية'), subtitle: const Text('معاينة وقص قبل الاعتماد'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
           ListTile(
@@ -7845,10 +8038,7 @@ void showClubChallenges(BuildContext context, AppController controller, String c
 }
 
 Future<void> openGameRoom(BuildContext context, AppController controller, GameInfo game, {RoomLaunchOptions options = const RoomLaunchOptions()}) async {
-  if (!controller.canEnterGame(game.id)) {
-    showToast(context, 'وصلت إلى 3 مغادرات لهذه اللعبة، ولا يمكنك العودة إلى الجلسة نفسها.');
-    return;
-  }
+  // R9.1: return limits are exact-room limits enforced by the server, never game-wide limits.
   if (!controller.enterGame(game.id)) {
     showToast(context, 'أنت داخل لعبة أخرى. غادر اللعبة الحالية قبل بدء لعبة جديدة.');
     return;
@@ -7882,7 +8072,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(gameArtAsset(game.id), width: 180, height: 118, fit: BoxFit.contain))),
+        Center(child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(gameArtAsset(game.id), width: 180, height: 118, fit: BoxFit.cover))),
         const SizedBox(height: 5),
         Center(child: Text(L.t(controller.localeCode, game.id), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900))),
         Center(child: Text('${formatNumber(game.players)} لاعب متصل', style: const TextStyle(color: Colors.white60))),
@@ -8435,7 +8625,7 @@ class _ProductLivePreview extends StatelessWidget {
                   ? Center(child: Text(product.icon, style: const TextStyle(fontSize: 38)))
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(product.imageAsset!, fit: BoxFit.contain, filterQuality: FilterQuality.medium),
+                      child: R10AssetImage(localAsset: product.imageAsset!, fit: BoxFit.contain, filterQuality: FilterQuality.medium),
                     ),
             ),
           ),

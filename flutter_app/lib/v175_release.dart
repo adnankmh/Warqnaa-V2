@@ -5,11 +5,10 @@ part of 'main.dart';
 /// Returns the authoritative XP required to advance from [currentLevel].
 /// Shared by controller logic and top-level profile/card helpers.
 int xpNeededForLevelV175(int currentLevel) {
-  final safe = currentLevel.clamp(1, 200).toInt();
+  final safe = currentLevel.clamp(1, 100).toInt();
   final exact = xpRequirementsV175[safe];
   if (exact != null) return exact;
-  final extra = safe - 100;
-  return (xpRequirementsV175[100]! * math.pow(1.12, extra)).round();
+  return xpRequirementsV175[100]!;
 }
 
 const Map<int, int> xpRequirementsV175 = <int, int>{
@@ -92,27 +91,27 @@ const Map<int, int> xpRequirementsV175 = <int, int>{
   77: 821569,
   78: 876548,
   79: 935877,
-  80: 1000000,
-  81: 1068951,
-  82: 1142786,
-  83: 1222076,
-  84: 1307479,
-  85: 1399753,
-  86: 1499772,
-  87: 1608544,
-  88: 1727236,
-  89: 1857199,
-  90: 2000000,
-  91: 2175021,
-  92: 2405469,
-  93: 2700731,
-  94: 3072915,
-  95: 3537123,
-  96: 4111710,
-  97: 4818481,
-  98: 5682712,
-  99: 6732888,
-  100: 8000000,
+  80: 4000000,
+  81: 4275804,
+  82: 4571144,
+  83: 4888304,
+  84: 5229916,
+  85: 5599012,
+  86: 5999088,
+  87: 6434176,
+  88: 6908944,
+  89: 7428796,
+  90: 9000000,
+  91: 10000000,
+  92: 11100000,
+  93: 12300000,
+  94: 13600000,
+  95: 15000000,
+  96: 16400000,
+  97: 17800000,
+  98: 19000000,
+  99: 20000000,
+  100: 20000000,
 };
 
 class ChallengeCenterV175 extends StatefulWidget {
@@ -130,13 +129,16 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
   int selectedRoadStages = 12;
   List<Map<String, dynamic>> challenges = <Map<String, dynamic>>[];
 
+  bool get ar => widget.controller.localeCode == 'ar';
+  String bi(String arText, String enText) => ar ? arText : enText;
+
   static const List<Map<String, dynamic>> fallback = <Map<String, dynamic>>[
-    {'key':'daily_wins','icon':'🔥','name_ar':'سلسلة النار','description_ar':'حقق 3 انتصارات اليوم من دون انسحاب','cadence':'daily','progress':0,'target':3,'reward_tokens':750,'reward_xp':150,'activated':false,'completed':false,'claimed':false},
-    {'key':'clean_play','icon':'🛡️','name_ar':'اللعب النظيف','description_ar':'أكمل 5 مباريات بلا مغادرة أو بلاغ','cadence':'daily','progress':0,'target':5,'reward_tokens':900,'reward_xp':180,'activated':false,'completed':false,'claimed':false},
-    {'key':'tarneeb_master','icon':'🂡','name_ar':'سيّد الطرنيب','description_ar':'اربح جولتين بفارق 10 نقاط','cadence':'weekly','progress':0,'target':2,'reward_tokens':1200,'reward_xp':250,'activated':false,'completed':false,'claimed':false},
-    {'key':'social','icon':'🤝','name_ar':'تحدي الأصدقاء','description_ar':'العب 3 مباريات مع أصدقاء مختلفين','cadence':'weekly','progress':0,'target':3,'reward_tokens':600,'reward_xp':120,'activated':false,'completed':false,'claimed':false},
-    {'key':'club','icon':'👥','name_ar':'قوة المجموعة','description_ar':'اجمع 25 نقطة لمجموعتك خلال أسبوع','cadence':'weekly','progress':0,'target':25,'reward_tokens':2000,'reward_xp':400,'activated':false,'completed':false,'claimed':false},
-    {'key':'legend','icon':'🐉','name_ar':'مسار الأسطورة','description_ar':'اربح 10 مباريات مصنفة هذا الموسم','cadence':'seasonal','progress':0,'target':10,'reward_tokens':5000,'reward_xp':1000,'activated':false,'completed':false,'claimed':false},
+    {'key':'daily_wins','icon':'🔥','name_ar':'سلسلة النار','name_en':'Fire Streak','description_ar':'حقق 3 انتصارات اليوم من دون انسحاب','description_en':'Win 3 matches today without leaving.','cadence':'daily','progress':0,'target':3,'reward_tokens':750,'reward_xp':150,'activated':false,'completed':false,'claimed':false},
+    {'key':'clean_play','icon':'🛡️','name_ar':'اللعب النظيف','name_en':'Fair Play','description_ar':'أكمل 5 مباريات بلا مغادرة أو بلاغ','description_en':'Complete 5 matches without leaving or receiving a report.','cadence':'daily','progress':0,'target':5,'reward_tokens':900,'reward_xp':180,'activated':false,'completed':false,'claimed':false},
+    {'key':'tarneeb_master','icon':'🂡','name_ar':'سيّد الطرنيب','name_en':'Tarneeb Master','description_ar':'اربح جولتين بفارق 10 نقاط','description_en':'Win two Tarneeb rounds by a 10-point margin.','cadence':'weekly','progress':0,'target':2,'reward_tokens':1000,'reward_xp':250,'activated':false,'completed':false,'claimed':false},
+    {'key':'social','icon':'🤝','name_ar':'تحدي الأصدقاء','name_en':'Friends Challenge','description_ar':'العب 3 مباريات مع أصدقاء مختلفين','description_en':'Play 3 matches with different friends.','cadence':'weekly','progress':0,'target':3,'reward_tokens':600,'reward_xp':120,'activated':false,'completed':false,'claimed':false},
+    {'key':'club','icon':'👥','name_ar':'قوة المجموعة','name_en':'Club Power','description_ar':'اجمع 25 نقطة لمجموعتك خلال أسبوع','description_en':'Earn 25 points for your club this week.','cadence':'weekly','progress':0,'target':25,'reward_tokens':1000,'reward_xp':400,'activated':false,'completed':false,'claimed':false},
+    {'key':'legend','icon':'🐉','name_ar':'مسار الأسطورة','name_en':'Legend Path','description_ar':'اربح 10 مباريات مصنفة هذا الموسم','description_en':'Win 10 ranked matches this season.','cadence':'seasonal','progress':0,'target':10,'reward_tokens':1000,'reward_xp':1000,'activated':false,'completed':false,'claimed':false},
   ];
 
   @override
@@ -144,16 +146,29 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
 
   Future<void> _load() async {
     if (!widget.controller.serverConnected) {
-      if (mounted) setState(() { challenges = fallback.map(Map<String,dynamic>.from).toList(); loading = false; error = 'وضع محلي فعّال: مسار المراحل والمكافآت محفوظ على هذا الجهاز.'; });
+      if (mounted) setState(() {
+        challenges = fallback.map(Map<String,dynamic>.from).toList();
+        loading = false;
+        error = bi('الوضع المحلي فعّال؛ مسار المراحل والمكافآت محفوظ على هذا الجهاز.', 'Local mode is active; stage-road progress and rewards are saved on this device.');
+      });
       return;
     }
     try {
       final data = await widget.controller.api.engagementCenterV173();
       final raw = data['challenges'];
       final parsed = raw is List ? raw.whereType<Map>().map((e) => Map<String,dynamic>.from(e)).toList() : <Map<String,dynamic>>[];
-      if (mounted) setState(() { challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed; loading = false; error = null; });
-    } on ApiException catch (e) { if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=e.message; }); }
-    catch (_) { if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error='تعذر تحديث التحديات الآن.'; }); }
+      final roadRaw = data['challenge_road'];
+      if (roadRaw is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      if (mounted) setState(() {
+        challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed;
+        loading = false;
+        error = null;
+      });
+    } on ApiException catch (e) {
+      if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=e.message; });
+    } catch (_) {
+      if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=bi('تعذر تحديث التحديات الآن.','Could not refresh challenges right now.'); });
+    }
   }
 
   Future<void> _action(Map<String,dynamic> item, bool claim) async {
@@ -161,40 +176,89 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
     if (key.isEmpty) return;
     if (!widget.controller.serverConnected) {
       if (claim) {
-        showToast(context, 'المكافآت المحلية تُضاف تلقائياً بعد الفوز بكل مرحلة.');
+        showToast(context, bi('المكافآت المحلية تُضاف تلقائياً عند إكمال التحدي.','Local rewards are granted automatically when the challenge is completed.'));
       } else {
         widget.controller.joinChallenge(key);
         if (mounted) setState(() => item['activated'] = true);
-        showToast(context, 'تم تفعيل التحدي محلياً.');
+        showToast(context, bi('تم تفعيل التحدي محلياً.','Challenge activated locally.'));
       }
       return;
     }
     setState(() => loading=true);
     try {
       final data = claim ? await widget.controller.api.claimChallengeV175(key) : await widget.controller.api.activateChallengeV175(key);
-      final message=data['message']?.toString() ?? (claim ? 'تم استلام المكافأة.' : 'تم تفعيل التحدي.');
+      final message=data['message']?.toString() ?? bi(claim ? 'تم استلام المكافأة.' : 'تم تفعيل التحدي.', claim ? 'Reward claimed.' : 'Challenge activated.');
       if (mounted) showToast(context,message);
       await _load();
       widget.controller.refreshUi();
     } on ApiException catch(e) { if(mounted) { setState(() => loading=false); showToast(context,e.message); } }
-    catch (_) { if(mounted) { setState(() => loading=false); showToast(context,'تعذر تنفيذ العملية الآن.'); } }
+    catch (_) { if(mounted) { setState(() => loading=false); showToast(context,bi('تعذر تنفيذ العملية الآن.','Could not complete the action right now.')); } }
   }
 
-  void _startRoad() {
-    widget.controller.startChallengeRoad(selectedRoadGame, selectedRoadStages);
-    setState(() {});
-    showToast(context, 'بدأ مسار ${L.t(widget.controller.localeCode, selectedRoadGame)} بـ$selectedRoadStages مرحلة و5 محاولات.');
+  Future<void> _startRoad() async {
+    setState(() => loading = true);
+    if (!widget.controller.serverConnected) {
+      widget.controller.startChallengeRoad(selectedRoadGame, selectedRoadStages);
+      if (mounted) setState(() => loading = false);
+      if (mounted) showToast(context, bi('بدأ مسار ${L.t(widget.controller.localeCode, selectedRoadGame)} بـ$selectedRoadStages مرحلة و5 محاولات.', '${L.t(widget.controller.localeCode, selectedRoadGame)} road started: $selectedRoadStages stages and 5 attempts.'));
+      return;
+    }
+    try {
+      final data = await widget.controller.api.startChallengeRoadV210(selectedRoadGame, selectedRoadStages);
+      final road = data['road'];
+      if (road is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(road));
+      if (mounted) {
+        setState(() { loading = false; error = null; });
+        showToast(context, bi('بدأ مسار ${L.t(widget.controller.localeCode, selectedRoadGame)} بـ$selectedRoadStages مرحلة و5 محاولات.', '${L.t(widget.controller.localeCode, selectedRoadGame)} road started: $selectedRoadStages stages and 5 attempts.'));
+      }
+    } on ApiException catch(e) { if(mounted) setState(() {loading=false; error=e.message;}); }
+    catch (_) { if(mounted) setState(() {loading=false; error=bi('تعذر بدء مسار التحدي الآن.','Could not start the challenge road.');}); }
   }
 
-  void _playRoadStage() {
+  Future<void> _playRoadStage() async {
     final gameId = widget.controller.challengeRoadGame ?? selectedRoadGame;
     final game = gamesCatalog.firstWhere((item) => item.id == gameId, orElse: () => gamesCatalog.first);
-    Navigator.pop(context);
-    showCreateRoom(context, widget.controller, game);
+    if (!widget.controller.serverConnected) {
+      Navigator.pop(context);
+      showCreateRoom(context, widget.controller, game);
+      return;
+    }
+    setState(() => loading = true);
+    try {
+      final data = await widget.controller.api.matchmakeChallengeRoadV210();
+      final matchRaw = data['match'];
+      if (matchRaw is! Map) throw const ApiException('Invalid challenge matchmaking response.');
+      final match = Map<String,dynamic>.from(matchRaw);
+      final roadRaw = match['road'];
+      if (roadRaw is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      final code = match['room_code']?.toString().trim() ?? '';
+      if (code.isEmpty) throw const ApiException('Challenge room code is missing.');
+      final opponent = match['opponent'];
+      String opponentName = bi('منافس عشوائي','Random opponent');
+      if (opponent is Map) opponentName = opponent['display_name']?.toString() ?? opponent['username']?.toString() ?? opponentName;
+      final navigationContext = Navigator.of(context, rootNavigator:true).context;
+      if (mounted) showToast(context, bi('تم اختيار $opponentName للمرحلة التالية.','Matched with $opponentName for the next stage.'));
+      if (mounted) Navigator.pop(context);
+      await openGameRoom(navigationContext, widget.controller, game, options: RoomLaunchOptions(
+        roomCode: code,
+        roomName: bi('مسار التحدي','Challenge Road'),
+        visibility: 'public',
+        turnSeconds: 7,
+        singleRound: true,
+      ));
+      if (widget.controller.serverConnected) {
+        try {
+          final refreshed = await widget.controller.api.engagementCenterV173();
+          final road = refreshed['challenge_road'];
+          if (road is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(road));
+        } catch (_) {}
+      }
+    } on ApiException catch(e) { if(mounted) setState(() {loading=false; error=e.message;}); }
+    catch (_) { if(mounted) setState(() {loading=false; error=bi('تعذر العثور على مواجهة الآن. حاول مرة أخرى.','Could not find a match right now. Try again.');}); }
   }
 
   String _label(dynamic value) {
-    if (value is Map) return value['ar']?.toString() ?? value['en']?.toString() ?? '';
+    if (value is Map) return value[ar ? 'ar' : 'en']?.toString() ?? value['en']?.toString() ?? value['ar']?.toString() ?? '';
     return value?.toString() ?? '';
   }
 
@@ -202,24 +266,24 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
   Widget build(BuildContext context) {
     if (loading && challenges.isEmpty) return const Padding(padding: EdgeInsets.all(36), child: Center(child:CircularProgressIndicator()));
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children:[
-      Row(children:[const Expanded(child:Text('مركز التحديات الاحترافي',style:TextStyle(fontSize:22,fontWeight:FontWeight.w900))),Chip(label:Text('🔥 ${widget.controller.challengeStreakV173}'))]),
-      const Text('اختر اللعبة وطول المسار. كل خسارة تستهلك محاولة، وكل فوز يفتح مرحلة ومكافأة حتى الجائزة الختامية.',style:TextStyle(color:Colors.white60,height:1.5)),
+      Row(children:[Expanded(child:Text(bi('مركز التحديات الاحترافي','Challenge Center'),style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900))),Chip(label:Text('🔥 ${widget.controller.challengeStreakV173}'))]),
+      Text(bi('اختر لعبة واحدة وطول المسار. كل خسارة تستهلك محاولة، وكل فوز يفتح المرحلة التالية ومكافأتها.','Choose one game and a road length. A loss costs one attempt; every win unlocks the next stage and reward.'),style:const TextStyle(color:Colors.white60,height:1.5)),
       const SizedBox(height:10),
       PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-        Row(children:[const Text('🛤️',style:TextStyle(fontSize:34)),const SizedBox(width:9),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('مسار المراحل',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900)),Text(widget.controller.challengeRoadGame==null?'ابدأ مساراً جديداً':'${L.t(widget.controller.localeCode,widget.controller.challengeRoadGame!)} • المرحلة ${widget.controller.challengeRoadStage + (widget.controller.challengeRoadCompleted?0:1)} من ${widget.controller.challengeRoadTotal}',style:const TextStyle(color:Colors.white60,fontSize:10))])),Text('❤️ ${widget.controller.challengeRoadAttempts}/5',style:const TextStyle(fontWeight:FontWeight.w900,color:Colors.redAccent))]),
+        Row(children:[const Text('🛤️',style:TextStyle(fontSize:34)),const SizedBox(width:9),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(bi('مسار المراحل','Stage Road'),style:const TextStyle(fontSize:16,fontWeight:FontWeight.w900)),Text(widget.controller.challengeRoadGame==null?bi('ابدأ مساراً جديداً','Start a new road'):'${L.t(widget.controller.localeCode,widget.controller.challengeRoadGame!)} • ${bi('المرحلة','Stage')} ${widget.controller.challengeRoadStage + (widget.controller.challengeRoadCompleted?0:1)} ${bi('من','of')} ${widget.controller.challengeRoadTotal}',style:const TextStyle(color:Colors.white60,fontSize:10))])),Text('❤️ ${widget.controller.challengeRoadAttempts}/5',style:const TextStyle(fontWeight:FontWeight.w900,color:Colors.redAccent))]),
         const SizedBox(height:10),
         if(widget.controller.challengeRoadGame==null || widget.controller.challengeRoadCompleted || widget.controller.challengeRoadAttempts==0) ...[
-          DropdownButtonFormField<String>(initialValue:selectedRoadGame,isExpanded:true,decoration:const InputDecoration(labelText:'اللعبة'),items:gamesCatalog.map((game)=>DropdownMenuItem(value:game.id,child:Text('${game.icon} ${L.t(widget.controller.localeCode,game.id)}'))).toList(),onChanged:(value){if(value!=null)setState(()=>selectedRoadGame=value);}),
+          DropdownButtonFormField<String>(initialValue:selectedRoadGame,isExpanded:true,decoration:InputDecoration(labelText:bi('اللعبة','Game')),items:gamesCatalog.map((game)=>DropdownMenuItem(value:game.id,child:Text('${game.icon} ${L.t(widget.controller.localeCode,game.id)}'))).toList(),onChanged:(value){if(value!=null)setState(()=>selectedRoadGame=value);}),
           const SizedBox(height:8),
-          SegmentedButton<int>(segments:const [ButtonSegment(value:10,label:Text('10 مراحل')),ButtonSegment(value:12,label:Text('12 مرحلة')),ButtonSegment(value:15,label:Text('15 مرحلة'))],selected:<int>{selectedRoadStages},onSelectionChanged:(value)=>setState(()=>selectedRoadStages=value.first)),
+          SegmentedButton<int>(segments:[ButtonSegment(value:10,label:Text(bi('10 مراحل','10 stages'))),ButtonSegment(value:12,label:Text(bi('12 مرحلة','12 stages'))),ButtonSegment(value:15,label:Text(bi('15 مرحلة','15 stages')))],selected:<int>{selectedRoadStages},onSelectionChanged:(value)=>setState(()=>selectedRoadStages=value.first)),
           const SizedBox(height:9),
-          FilledButton.icon(onPressed:_startRoad,icon:const Icon(Icons.flag_rounded),label:const Text('بدء المسار بخمس محاولات')),
+          FilledButton.icon(onPressed:loading?null:_startRoad,icon:const Icon(Icons.flag_rounded),label:Text(bi('بدء المسار بخمس محاولات','Start with five attempts'))),
         ] else ...[
           ClipRRect(borderRadius:BorderRadius.circular(99),child:LinearProgressIndicator(value:(widget.controller.challengeRoadStage/widget.controller.challengeRoadTotal).clamp(0.0,1.0).toDouble(),minHeight:11)),
           const SizedBox(height:7),
-          Text('مكافأة المرحلة القادمة: 🪙 ${formatNumber(widget.controller.challengeRoadRewardForStage(widget.controller.challengeRoadStage+1))}',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w800)),
+          Text('${bi('مكافأة المرحلة القادمة','Next stage reward')}: ${widget.controller.challengeRoadRewardLabel(widget.controller.challengeRoadStage+1)}',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w800)),
           const SizedBox(height:8),
-          Row(children:[Expanded(child:FilledButton.icon(onPressed:_playRoadStage,icon:const Icon(Icons.play_arrow_rounded),label:const Text('ابدأ المرحلة'))),const SizedBox(width:7),OutlinedButton(onPressed:(){widget.controller.resetChallengeRoad();setState((){});},child:const Text('إعادة'))]),
+          Row(children:[Expanded(child:FilledButton.icon(onPressed:loading?null:_playRoadStage,icon:const Icon(Icons.play_arrow_rounded),label:Text(bi('ابحث عن منافس وابدأ','Find opponent & play')))),const SizedBox(width:7),OutlinedButton(onPressed:loading?null:(){widget.controller.resetChallengeRoad();setState((){});},child:Text(bi('إعادة','Reset')))]),
         ],
       ]))),
       if(error!=null) Padding(padding:const EdgeInsets.only(top:8),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Colors.orange.withValues(alpha:.12),borderRadius:BorderRadius.circular(14),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text(error!,style:const TextStyle(fontSize:11)))),
@@ -232,16 +296,18 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
         final claimed=item['claimed']==true;
         final cadence=item['cadence']?.toString() ?? 'daily';
         final icon=item['icon']?.toString() ?? (cadence=='daily'?'⚡':cadence=='weekly'?'🏆':'🐉');
-        final name=item['name_ar']?.toString() ?? _label(item['name']);
-        final description=item['description_ar']?.toString() ?? _label(item['description']);
-        final tokens=int.tryParse(item['reward_tokens']?.toString() ?? '') ?? 0;
+        final name=item[ar?'name_ar':'name_en']?.toString() ?? _label(item['name']);
+        final description=item[ar?'description_ar':'description_en']?.toString() ?? _label(item['description']);
+        final tokens=(int.tryParse(item['reward_tokens']?.toString() ?? '') ?? 0).clamp(0,1000).toInt();
         final rewardXp=int.tryParse(item['reward_xp']?.toString() ?? '') ?? 0;
+        final cadenceLabel=cadence=='daily'?bi('يومي','Daily'):cadence=='weekly'?bi('أسبوعي','Weekly'):bi('موسمي','Seasonal');
+        final actionLabel=claimed?bi('تم الاستلام','Claimed'):completed?bi('استلام','Claim'):activated?bi('متابعة','Continue'):bi('تفعيل','Activate');
         return Padding(padding:const EdgeInsets.only(bottom:10),child:PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-          Row(children:[Text(icon,style:const TextStyle(fontSize:34)),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900)),Text(description,style:const TextStyle(color:Colors.white60,fontSize:10,height:1.4))])),Chip(label:Text(cadence=='daily'?'يومي':cadence=='weekly'?'أسبوعي':'موسمي'))]),
+          Row(children:[Text(icon,style:const TextStyle(fontSize:34)),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900)),Text(description,style:const TextStyle(color:Colors.white60,fontSize:10,height:1.4))])),Chip(label:Text(cadenceLabel))]),
           const SizedBox(height:9),
           Row(children:[Expanded(child:ClipRRect(borderRadius:BorderRadius.circular(99),child:LinearProgressIndicator(value:(progress/target).clamp(0.0,1.0).toDouble(),minHeight:9))),const SizedBox(width:8),Text('$progress / $target',style:const TextStyle(fontWeight:FontWeight.w900))]),
           const SizedBox(height:8),
-          Row(children:[Expanded(child:Text('🪙 ${formatNumber(tokens)}  •  ⭐ ${formatNumber(rewardXp)} XP',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w800,fontSize:11))),FilledButton.tonal(onPressed:claimed||loading?null:() => _action(item,completed),child:Text(claimed ? 'تم الاستلام' : completed ? 'استلام' : activated ? 'متابعة' : 'تفعيل'))]),
+          Row(children:[Expanded(child:Text('🪙 ${formatNumber(tokens)}  •  ⭐ ${formatNumber(rewardXp)} XP',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w800,fontSize:11))),FilledButton.tonal(onPressed:claimed||loading?null:() => _action(item,completed),child:Text(actionLabel))]),
         ]))));
       }),
       if(loading) const Padding(padding:EdgeInsets.only(top:4),child:LinearProgressIndicator()),

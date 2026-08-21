@@ -5,7 +5,7 @@ class EstimationRules extends AbstractCardRules
 {
     public function initialState(array $players, array $options=[]): array
     {
-        $players=array_values($players); $deck=DeckFactory::standard52(true); [$hands,$deck]=$this->deal($players,$deck,13);
+        $players=array_values($players); $balanced=DeckFactory::balancedHands($players,13); $hands=[]; foreach($balanced as $p=>$cards)$hands[$p]=$this->sortCards(array_map(fn($c)=>$c->id(),$cards)); $deck=[];
         return ['phase'=>'bidding','game_type'=>'estimation','players'=>$players,'turn'=>$players[0]??null,'hands'=>$hands,'bids'=>[],'trick'=>[],'last_trick'=>[],'round_tricks'=>array_fill_keys($players,0),'score'=>array_fill_keys($players,0),'target'=>(int)($options['target']??100),'lead_player'=>null,'round'=>1,'messages'=>['استيميشن: كل لاعب يطلب عدد اللمات المتوقع من 0 إلى 13، ثم يحاول تحقيقه بدقة.']];
     }
     public function validate(array $state,string $playerId,string $action,array $payload): bool

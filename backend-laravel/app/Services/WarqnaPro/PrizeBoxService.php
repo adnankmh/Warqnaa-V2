@@ -198,6 +198,11 @@ class PrizeBoxService
                     $profile->name_color_expires_at = null;
                 } elseif ($store->category === 'cover' && (string) $profile->active_profile_cover === $value) {
                     $profile->active_profile_cover = 'cover_royal_gold';
+                } elseif ($store->category === 'xp_booster' && (float) $profile->xp_boost_multiplier === (float) $value) {
+                    $profile->xp_boost_multiplier = 1.0;
+                    $profile->xp_boost_expires_at = null;
+                } elseif ($store->category === 'table' && (string) $profile->active_table_skin === $value) {
+                    $profile->active_table_skin = 'default';
                 }
             }
             $profile?->save();
@@ -208,13 +213,14 @@ class PrizeBoxService
     public static function catalog(): array
     {
         return [
-            ['weight' => 15, 'type' => 'pasha_day', 'value' => '1', 'duration_hours' => 24, 'rarity' => 'legendary', 'icon' => '👑', 'label_ar' => 'يوم باشا', 'store_item_key' => 'daily_prize_pasha_day_v02'],
-            ['weight' => 18, 'type' => 'writing_color', 'value' => '#22d3ee', 'duration_hours' => 24, 'rarity' => 'rare', 'icon' => '✍️', 'label_ar' => 'لون كتابة لمدة يوم', 'store_item_key' => 'daily_pack_chat_cyan_24h_v176'],
-            ['weight' => 18, 'type' => 'player_color', 'value' => '#facc15', 'duration_hours' => 24, 'rarity' => 'rare', 'icon' => '🎨', 'label_ar' => 'لون لاعب لمدة يوم', 'store_item_key' => 'daily_pack_name_gold_24h_v176'],
-            ['weight' => 14, 'type' => 'profile_cover', 'value' => 'cover_v02_royal', 'duration_hours' => 72, 'rarity' => 'epic', 'icon' => '🖼️', 'label_ar' => 'غلاف شخصي لمدة 3 أيام', 'store_item_key' => 'daily_prize_cover_v02'],
-            ['weight' => 25, 'type' => 'tokens', 'value' => 'random_50_1000', 'duration_hours' => 0, 'rarity' => 'common', 'icon' => '🪙', 'label_ar' => 'توكنز عشوائية'],
-            ['weight' => 8, 'type' => 'ticket', 'value' => '200', 'duration_hours' => 0, 'rarity' => 'epic', 'icon' => '🎟️', 'label_ar' => 'تذكرة مسابقة 200'],
-            ['weight' => 2, 'type' => 'ticket', 'value' => '500', 'duration_hours' => 0, 'rarity' => 'legendary', 'icon' => '🎟️', 'label_ar' => 'تذكرة مسابقة 500'],
+            ['weight'=>12,'type'=>'pasha_day','value'=>'1','duration_hours'=>24,'rarity'=>'legendary','icon'=>'👑','label_ar'=>'يوم باشا','label_en'=>'One Pasha Day','store_item_key'=>'daily_prize_pasha_day_v02'],
+            ['weight'=>14,'type'=>'writing_color','value'=>'#ef4444','duration_hours'=>24,'rarity'=>'rare','icon'=>'✍️','label_ar'=>'لون كتابة أحمر لمدة يوم','label_en'=>'Red writing color for 24 hours','store_item_key'=>'lucky_wheel_chat_red_r91'],
+            ['weight'=>14,'type'=>'player_color','value'=>'#facc15','duration_hours'=>24,'rarity'=>'rare','icon'=>'🎨','label_ar'=>'لون لاعب ذهبي لمدة يوم','label_en'=>'Gold player color for 24 hours','store_item_key'=>'daily_pack_name_gold_24h_v176'],
+            ['weight'=>11,'type'=>'profile_cover','value'=>'cover_v02_royal','duration_hours'=>72,'rarity'=>'epic','icon'=>'🖼️','label_ar'=>'غلاف شخصي لمدة 3 أيام','label_en'=>'Royal profile cover for 3 days','store_item_key'=>'daily_prize_cover_v02'],
+            ['weight'=>13,'type'=>'xp_booster','value'=>'1.5','duration_hours'=>6,'rarity'=>'epic','icon'=>'⚡','label_ar'=>'مسرّع خبرة ×1.5 لمدة 6 ساعات','label_en'=>'XP ×1.5 for 6 hours','store_item_key'=>'daily_pack_xp_15x_6h_v176'],
+            ['weight'=>10,'type'=>'table','value'=>'table_v173_royal_01','duration_hours'=>24,'rarity'=>'epic','icon'=>'🃏','label_ar'=>'طاولة الزمرد الملكي لمدة 24 ساعة','label_en'=>'Royal Emerald table for 24 hours','store_item_key'=>'table_v173_royal_01'],
+            ['weight'=>20,'type'=>'tokens','value'=>'random_50_1000','duration_hours'=>0,'rarity'=>'common','icon'=>'🪙','label_ar'=>'توكنز عشوائية','label_en'=>'Random tokens'],
+            ['weight'=>5,'type'=>'ticket','value'=>'500','duration_hours'=>0,'rarity'=>'legendary','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 500','label_en'=>'Competition ticket 500'],
         ];
     }
 
@@ -224,9 +230,9 @@ class PrizeBoxService
         $items = self::catalog();
         $allowed = match ($boxKey) {
             'crimson_lion','obsidian' => ['tokens','writing_color','player_color'],
-            'emerald_eagle','bronze_dragon' => ['tokens','writing_color','player_color','ticket','profile_cover'],
-            'royal_amethyst' => ['ticket','profile_cover','pasha_day','tokens','writing_color','player_color'],
-            'diamond_phoenix' => ['ticket','profile_cover','pasha_day','tokens'],
+            'emerald_eagle','bronze_dragon' => ['tokens','writing_color','player_color','ticket','profile_cover','xp_booster'],
+            'royal_amethyst' => ['ticket','profile_cover','pasha_day','tokens','writing_color','player_color','xp_booster','table'],
+            'diamond_phoenix' => ['ticket','profile_cover','pasha_day','tokens','xp_booster','table'],
             default => array_values(array_unique(array_column($items,'type'))),
         };
         $items = array_values(array_filter($items, fn(array $item)=>in_array($item['type'],$allowed,true)));
@@ -267,6 +273,7 @@ class PrizeBoxService
         $reward['rarity'] = (string) ($reward['rarity'] ?? 'common');
         $reward['icon'] = (string) ($reward['icon'] ?? '🎁');
         $reward['label_ar'] = (string) ($reward['label_ar'] ?? 'مكافأة صندوق الجوائز');
+        $reward['label_en'] = (string) ($reward['label_en'] ?? $this->englishRewardName($type));
         return $reward;
     }
 
@@ -320,6 +327,15 @@ class PrizeBoxService
                 $profile->active_profile_cover = (string) $reward['value'];
                 $profile->save();
                 break;
+            case 'xp_booster':
+                $profile->xp_boost_multiplier = (float) $reward['value'];
+                $profile->xp_boost_expires_at = $expiresAt;
+                $profile->save();
+                break;
+            case 'table':
+                $profile->active_table_skin = (string) $reward['value'];
+                $profile->save();
+                break;
             case 'tokens':
                 $this->wallet->credit($user, (int) $reward['value'], 'prize_box_v02', ['prize_box_id' => $box->id]);
                 break;
@@ -338,7 +354,7 @@ class PrizeBoxService
     /** @param array<string,mixed> $reward */
     private function ensureRewardStoreItem(array $reward): ?StoreItem
     {
-        if (!in_array($reward['type'], ['pasha_day', 'writing_color', 'player_color', 'profile_cover'], true)) {
+        if (!in_array($reward['type'], ['pasha_day', 'writing_color', 'player_color', 'profile_cover', 'xp_booster', 'table'], true)) {
             return null;
         }
 
@@ -348,13 +364,15 @@ class PrizeBoxService
             'writing_color' => 'text_color',
             'player_color' => 'name_color',
             'profile_cover' => 'cover',
+            'xp_booster' => 'xp_booster',
+            'table' => 'table',
             default => 'reward',
         };
 
         return StoreItem::updateOrCreate(
             ['key' => $key],
             [
-                'name' => ['ar' => $reward['label_ar'], 'en' => $this->englishRewardName((string) $reward['type'])],
+                'name' => ['ar' => $reward['label_ar'], 'en' => $reward['label_en'] ?? $this->englishRewardName((string) $reward['type'])],
                 'category' => $category,
                 'price' => 0,
                 'duration_days' => null,
@@ -365,6 +383,8 @@ class PrizeBoxService
                     'rarity' => $reward['rarity'],
                     'icon' => $reward['icon'],
                     'asset' => $this->rewardAsset((string) $reward['type']),
+                    'asset_key' => $reward['type'] === 'table' ? $reward['value'] : null,
+                    'multiplier' => $reward['type'] === 'xp_booster' ? (float)$reward['value'] : null,
                 ],
                 'active' => true,
             ]
@@ -378,6 +398,8 @@ class PrizeBoxService
             'writing_color' => 'Writing Color for One Day',
             'player_color' => 'Player Color for One Day',
             'profile_cover' => 'Profile Cover for Three Days',
+            'xp_booster' => 'XP Booster',
+            'table' => 'Temporary Premium Table',
             default => 'Prize Box Reward',
         };
     }
@@ -389,6 +411,8 @@ class PrizeBoxService
             'writing_color' => 'assets/images/v02/rewards/writing_color.png',
             'player_color' => 'assets/images/v02/rewards/player_color.png',
             'profile_cover' => 'assets/images/v02/rewards/profile_cover.png',
+            'xp_booster' => 'assets/images/v02/rewards/tokens.png',
+            'table' => 'assets/images/v02/rewards/profile_cover.png',
             'tokens' => 'assets/images/v02/rewards/tokens.png',
             'ticket' => 'assets/images/v02/rewards/ticket_200.png',
             default => 'assets/images/v02/rewards/tokens.png',

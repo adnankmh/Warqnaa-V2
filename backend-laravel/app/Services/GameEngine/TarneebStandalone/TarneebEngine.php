@@ -400,7 +400,7 @@ final class TarneebEngine
     }
 
     /**
-     * Player leaves. After 3 leaves he is banned from rejoining this state.
+     * Player leaves. After 5 manual leaves he is banned from rejoining this state.
      * @param array<string,mixed> $state
      * @return array<string,mixed>
      */
@@ -410,7 +410,7 @@ final class TarneebEngine
         $state['players'][$seat]['connected'] = false;
         $state['players'][$seat]['away'] = true;
         $state['players'][$seat]['leftCount'] = (int)$state['players'][$seat]['leftCount'] + 1;
-        if ((int)$state['players'][$seat]['leftCount'] >= 3) {
+        if ((int)$state['players'][$seat]['leftCount'] >= 5) {
             $state['players'][$seat]['bannedFromGame'] = true;
         }
         $state = $this->record($state, 'player_left', ['seat' => $seat, 'leftCount' => $state['players'][$seat]['leftCount']]);

@@ -5,6 +5,8 @@ use App\Models\{Game,Room,RoomPlayer,Notification};
 use App\Services\Security\AntiCheatService;
 use App\Services\Wallet\WalletService;
 use App\Services\GameEngine\GameFactory;
+use App\Services\Notifications\FirebasePushService;
+use App\Services\Games\GameCatalog;
 use App\Services\WarqnaPro\PlayActionNormalizer;
 use Illuminate\Support\Facades\{DB,Hash,Schema,Log};
 
@@ -36,6 +38,7 @@ class RoomController
    if(!$user->wallet){ $user->wallet()->create(['tokens'=>$user->is_admin ? 1000000000000000000 : 50000]); $user->load('wallet'); }
 
    $game=Game::where('active',true)->findOrFail($data['game_id']);
+        abort_unless(GameCatalog::isCustomerVisible($game->key), 422, 'هذه اللعبة غير متاحة حالياً.');
    $activeRoom=Room::whereHas('players',fn($q)=>$q->where('user_id',$user->id)->where('is_bot',false)->where('connected',true))
     ->whereIn('status',['waiting','bidding','playing'])->latest()->first();
    if($activeRoom){
@@ -159,7 +162,7 @@ class RoomController
   $existing=$room->players()->where('user_id',auth()->id())->first();
   if($existing){ if(!$existing->connected){$existing->update(['connected'=>true,'missed_turns'=>0]); return redirect()->route('rooms.show',$room->code)->with('ok','عدت إلى نفس مقعدك في الغرفة');} abort(409,'أنت داخل الغرفة بالفعل'); }
   $manualExits=(array)($state['manual_exit_counts'] ?? $state['manual_leave_counts'] ?? []);
-  abort_if((int)($manualExits[auth()->id()] ?? 0) >= 3,403,'تم منع العودة إلى هذه الغرفة بعد ثلاث مرات خروج يدوي.');
+  abort_if((int)($manualExits[auth()->id()] ?? 0) >= 5,403,'تم منع العودة إلى هذه الغرفة بعد خمس مرات خروج يدوي.');
   $displaced=$state['disconnected_replacements'][auth()->id()] ?? null;
   if($displaced){
    $bot=$room->players->firstWhere('id',(int)($displaced['room_player_id'] ?? 0));
@@ -214,7 +217,7 @@ class RoomController
   $room->players()->create(['bot_key'=>$bot['name'],'seat'=>$seat,'is_bot'=>true,'connected'=>true]);
   return back()->with('ok','تمت إضافة بوت للغرفة');
  }
- public function start(Room $room){
+ public function start(Room $room, FirebasePushService $push){
   try{
    abort_unless($room->owner_id===auth()->id() || auth()->user()->is_admin,403,'فقط صاحب الغرفة أو الإدارة يمكنه بدء اللعبة.');
    $room->load('game','players.user.profile');
@@ -244,6 +247,18 @@ class RoomController
    $state=$this->autoBots($room,$state);
    $room->update(['status'=>($state['phase']==='bidding'?'bidding':'playing'),'started_at'=>now(),'state'=>$state]);
    $fresh=$room->fresh()->load('players.user.profile');
+   foreach ($fresh->players->where('is_bot',false)->whereNotNull('user_id') as $participant) {
+    if (!$participant->user) continue;
+    Notification::create([
+     'user_id'=>$participant->user_id,
+     'type'=>'game_started',
+     'title'=>['ar'=>'بدأت اللعبة','en'=>'Game started'],
+     'body'=>['ar'=>'بدأت غرفة '.$room->code.' ويمكنك الدخول الآن حتى بعد البداية إذا كان مقعدك متاحًا.','en'=>'Room '.$room->code.' has started. You can enter now, including after start when your seat is available.'],
+     'url'=>route('rooms.show',$room->code),
+     'meta'=>['room_code'=>$room->code,'game'=>$room->game?->key,'started'=>true],
+    ]);
+    $push->sendToUser($participant->user,'Warqnaa • بدأت اللعبة','غرفة '.$room->code.' بدأت الآن.',['type'=>'game_started','room_code'=>$room->code]);
+   }
    if(request()->expectsJson() || request()->ajax()) return response()->json(['ok'=>true,'message'=>'تم ملء المقاعد الفارغة، توزيع الورق وبدأت الجولة','state'=>$this->publicState($state,'user:'.auth()->id()),'seats'=>$this->seatPayload($fresh)]);
    return back()->with('ok','تم ملء المقاعد الفارغة، توزيع الورق وبدأت الجولة');
   }catch(\Throwable $e){ Log::error('Warqna room start failed',['room'=>$room->code,'error'=>$e->getMessage()]); return $this->friendlyGameStartFail('تعذر بدء اللعبة: '.$this->safeError($e->getMessage())); }
@@ -526,7 +541,7 @@ class RoomController
   $state['manual_exit_counts']=$counts;
   unset($state['manual_leave_counts']);
   if(!empty($state['leave_xp_penalty']) && auth()->user()->profile){ auth()->user()->profile->xp=max(0,(int)auth()->user()->profile->xp-200); auth()->user()->profile->save(); $state['messages'][]='تم خصم 200 XP بسبب الخروج اليدوي من اللعبة حسب إعدادات الغرفة.'; }
-  if($counts[$uid] >= 3){ $banned=$state['banned_user_ids'] ?? []; $banned[]=(int)$uid; $state['banned_user_ids']=array_values(array_unique($banned)); }
+  if($counts[$uid] >= 5){ $banned=$state['banned_user_ids'] ?? []; $banned[]=(int)$uid; $state['banned_user_ids']=array_values(array_unique($banned)); }
   $oldName=auth()->user()->username; $playerId=$player->id; $newKey='bot:'.$playerId;
   $bot=$this->pickBotIdentity($room,$playerId);
   $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$bot['name'],'connected'=>true,'missed_turns'=>0]);
@@ -535,9 +550,9 @@ class RoomController
   if(isset($state['hands'][$oldKey])){ $state['hands'][$newKey]=$state['hands'][$oldKey]; unset($state['hands'][$oldKey]); }
   if(($state['turn'] ?? null)===$oldKey) $state['turn']=$newKey;
   if(!empty($state['players'])) $state['players']=array_values(array_map(fn($p)=>$p===$oldKey?$newKey:$p,$state['players']));
-  $state['messages'][]=$oldName.' غادر الغرفة. الكمبيوتر سيكمل بدله إذا بقي لاعبون حقيقيون. عدد الخروج اليدوي: '.$counts[$uid].'/3.';
-  if($counts[$uid] >= 3) $state['messages'][]='تم منع '.$oldName.' من العودة لهذه الغرفة بعد 3 مرات خروج.';
-  if($counts[$uid] >= 3 && $this->closeIfNoRealPlayers($room,$state,'تم إغلاق الغرفة وإخفاؤها بعد استنفاد آخر لاعب حقيقي فرص العودة.')){
+  $state['messages'][]=$oldName.' غادر الغرفة. الكمبيوتر سيكمل بدله إذا بقي لاعبون حقيقيون. عدد الخروج اليدوي: '.$counts[$uid].'/5.';
+  if($counts[$uid] >= 5) $state['messages'][]='تم منع '.$oldName.' من العودة لهذه الغرفة بعد 5 مرات خروج يدوي.';
+  if($counts[$uid] >= 5 && $this->closeIfNoRealPlayers($room,$state,'تم إغلاق الغرفة وإخفاؤها بعد استنفاد آخر لاعب حقيقي فرص العودة.')){
    $url = route('rooms.index',$room->game?->key ?? 'tarneeb');
    if(request()->expectsJson() || request()->ajax()) return response()->json(['ok'=>true,'redirect'=>$url,'left'=>true,'closed'=>true,'message'=>'خرجت من اللعبة وتم إغلاق الغرفة لأن كل اللاعبين الحقيقيين خرجوا.']);
    return redirect()->route('rooms.index',$room->game?->key ?? 'tarneeb')->with('ok','خرجت من اللعبة وتم إغلاق الغرفة لأن كل اللاعبين الحقيقيين خرجوا.');
@@ -545,7 +560,7 @@ class RoomController
   $state=$this->autoBots($room,$state);
   $room->update(['state'=>$state,'status'=>($state['phase']??'playing')==='finished'?'finished':(($state['phase']??'playing')==='bidding'?'bidding':'playing')]);
   $url = route('rooms.index',$room->game?->key ?? 'tarneeb');
-  $msg = $counts[$uid]>=3?'خرجت من الغرفة وتم منع العودة بعد 3 مرات خروج.':'تمت مغادرة الغرفة، والبوت سيكمل مكانك إذا بقي لاعبون حقيقيون.';
+  $msg = $counts[$uid]>=5?'خرجت من الغرفة وتم منع العودة بعد 5 مرات خروج يدوي.':'تمت مغادرة الغرفة، والبوت سيكمل مكانك إذا بقي لاعبون حقيقيون.';
   if(request()->expectsJson() || request()->ajax()) return response()->json(['ok'=>true,'redirect'=>$url,'left'=>true,'message'=>$msg]);
   return redirect()->route('rooms.index',$room->game?->key ?? 'tarneeb')->with('ok',$msg);
  }
@@ -774,6 +789,16 @@ class RoomController
    if($isFinal) $state['profile_points_awarded']=true;
    $state['score_popups']=array_merge((array)($state['score_popups'] ?? []),$pop);
    if($pop) $state['messages'][]='✅ تم احتساب نقاط '.$eventType.': الباشا ×2، المسرّعات تراكمية، والمسابقات أعلى من اللعب العادي.';
+   if($isFinal && !empty($state['challenge_road']) && !empty($state['challenge_road_owner_id'])){
+    $ownerId=(int)$state['challenge_road_owner_id'];
+    $ownerKey='user:'.$ownerId;
+    $ownerWon=$winner===$ownerKey;
+    if($winnerTeam!==null && isset($teams[$winnerTeam]) && is_array($teams[$winnerTeam])) $ownerWon=in_array($ownerKey,$teams[$winnerTeam],true);
+    try{
+     $owner=\App\Models\User::find($ownerId);
+     if($owner) $state['challenge_road_result']=app(\App\Services\WarqnaPro\ChallengeRoadService::class)->recordRoomResult($owner,$room,$ownerWon);
+    }catch(\Throwable $e){ Log::warning('challenge_road_settlement_failed',['room'=>$room->id,'error'=>$e->getMessage()]); }
+   }
    if($isFinal && !empty($state['tournament_id'])){
     $winnerIds=[];
     if(is_string($winner) && str_starts_with($winner,'user:')) $winnerIds[]=(int)substr($winner,5);

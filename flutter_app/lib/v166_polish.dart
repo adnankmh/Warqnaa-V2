@@ -37,13 +37,7 @@ const Map<String, Map<String, String>> v166Translations = <String, Map<String, S
   },
 };
 
-String gameArtAsset(String gameId) => switch (gameId) {
-  'tarneeb_41' || 'tarneeb_61' => 'assets/images/games/tarneeb.png',
-  'backgammon' => 'assets/images/games/domino.png',
-  'solitaire_multiplayer' => 'assets/images/games/hand.png',
-  'pinochle' => 'assets/images/games/banakil.png',
-  _ => 'assets/images/games/$gameId.png',
-};
+String gameArtAsset(String gameId) => r101GameArtAsset(gameId);
 
 Uint8List? decodeDataImage(String? data) {
   if (data == null || data.isEmpty) return null;
@@ -128,7 +122,7 @@ class ActiveGameBanner extends StatelessWidget {
             onPressed:() async {
               final leave = await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(
                 title:const Text('الخروج من اللعبة'),
-                content:const Text('هل تريد الخروج من اللعبة الحالية؟ يمكنك العودة ما لم تسجل ثلاث مرات خروج يدوي.'),
+                content:const Text('هل تريد الخروج من اللعبة الحالية؟ يمكنك العودة ما لم تسجل خمس مرات خروج يدوي من نفس الغرفة.'),
                 actions:<Widget>[
                   TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:const Text('إلغاء')),
                   FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:const Text('خروج')),

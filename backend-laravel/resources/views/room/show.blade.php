@@ -8,6 +8,10 @@ $speedLabel = ($state['speed'] ?? 'medium')==='fast' ? 'سريعة' : ((($state[
 $score = $state['score'] ?? ['teamA'=>0,'teamB'=>0];
 $roundTricks = $state['round_tricks'] ?? ['teamA'=>0,'teamB'=>0];
 $bid = $state['bid'] ?? null;
+$bidPlayerKey = is_array($bid) ? ($bid['player'] ?? null) : null;
+$lastPlayedByPlayer = (array)($state['last_played_by_player'] ?? []);
+$seatTricks = (array)($state['seat_tricks'] ?? []);
+$lastRoundScoreDelta = (array)($state['last_round_score_delta'] ?? ['teamA'=>0,'teamB'=>0]);
 $trump = $state['trump'] ?? null;
 $singleRound = (bool)($state['single_round'] ?? false);
 $lastTrick = $state['last_trick'] ?? [];
@@ -22,6 +26,17 @@ $suitNames=['clubs'=>'♣ سنك','diamonds'=>'♦ ديناري','spades'=>'♠ 
 
 $teamAName = collect($seatPlayers)->filter(fn($p)=>in_array($p->seat,['south','west'],true))->map(fn($p)=>$p->user?->username ?: $p->bot_key)->filter()->implode(' + ') ?: 'اللاعبون';
 $teamBName = collect($seatPlayers)->filter(fn($p)=>in_array($p->seat,['north','east'],true))->map(fn($p)=>$p->user?->username ?: $p->bot_key)->filter()->implode(' + ') ?: 'المنافسون';
+$bidderName = 'لم يُحسم بعد';
+if ($bidPlayerKey) {
+ foreach (collect($seatPlayers)->filter() as $seatPlayer) {
+  $playerStateKey = $seatPlayer->is_bot ? 'bot:'.$seatPlayer->id : 'user:'.$seatPlayer->user_id;
+  if ($playerStateKey === $bidPlayerKey) { $bidderName = $seatPlayer->user?->username ?: $seatPlayer->bot_key ?: 'لاعب'; break; }
+ }
+}
+$roundDeltaA = (int)($lastRoundScoreDelta['teamA'] ?? 0);
+$roundDeltaB = (int)($lastRoundScoreDelta['teamB'] ?? 0);
+$roundDeltaALabel = ($roundDeltaA > 0 ? '+' : '').$roundDeltaA;
+$roundDeltaBLabel = ($roundDeltaB > 0 ? '+' : '').$roundDeltaB;
 @endphp
 
 @php
@@ -46,7 +61,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
     <div id="friendInviteBoxV132" class="friend-invite-box-v132 hidden">
      <b>اختر صديقًا لدعوته لهذه اللعبة</b>
      @forelse($acceptedFriendsV132 as $fr)
-      <form method="post" action="{{ route('rooms.invite',$room->code) }}">@csrf<input type="hidden" name="user_id" value="{{$fr->id}}"><button type="submit"><img src="{{$fr->profile?->avatar ?: '/assets/avatars/default.svg'}}"> {{$fr->username}}</button></form>
+      <form method="post" action="{{ route('rooms.invite',$room->code) }}">@csrf<input type="hidden" name="user_id" value="{{$fr->id}}"><button type="submit"><img loading="lazy" decoding="async" src="{{$fr->profile?->avatar ?: '/assets/avatars/default.svg'}}"> {{$fr->username}}</button></form>
      @empty
       <p class="muted">لا يوجد أصدقاء بعد. أرسل طلبات صداقة من صفحة اللاعبين.</p>
      @endforelse
@@ -55,10 +70,10 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
 
   <div class="score-card">
    <h4>النتيجة</h4>
-   <div class="score-row"><span id="teamAName">{{$teamAName}}</span><b id="scoreA">{{$score['teamA'] ?? 0}}</b><small>لمات: <span id="tricksA">{{$roundTricks['teamA'] ?? 0}}</span></small></div>
-   <div class="score-row"><span id="teamBName">{{$teamBName}}</span><b id="scoreB">{{$score['teamB'] ?? 0}}</b><small>لمات: <span id="tricksB">{{$roundTricks['teamB'] ?? 0}}</span></small></div>
+   <div class="score-row"><span id="teamAName">{{$teamAName}}</span><b id="scoreA">{{$score['teamA'] ?? 0}}</b><small>لمات الجولة: <span id="tricksA">{{$roundTricks['teamA'] ?? 0}}</span> • نقاط الجولة: <strong>{{$roundDeltaALabel}}</strong></small></div>
+   <div class="score-row"><span id="teamBName">{{$teamBName}}</span><b id="scoreB">{{$score['teamB'] ?? 0}}</b><small>لمات الجولة: <span id="tricksB">{{$roundTricks['teamB'] ?? 0}}</span> • نقاط الجولة: <strong>{{$roundDeltaBLabel}}</strong></small></div>
    @if($needsBid)
-    <div class="score-meta request-only">الطلب الحالي: <b id="currentBid">{{$bid ? (($bid['value'] ?? '').' - '.(($bid['team'] ?? '')==='teamA'?'الفريق A':'الفريق B')) : 'لا يوجد'}}</b></div>
+    <div class="score-meta request-only tarneeb-request-meta-r91"><span>الطلب الحالي</span><b id="currentBid">{{$bid ? ($bid['value'] ?? '—') : 'لا يوجد'}}</b><small>صاحب الطلب: <strong id="currentBidder">{{$bidderName}}</strong></small></div>
    @endif
    @if($needsTrump)
     <div class="score-meta trump-only">الطرنيب: <b id="currentTrump">{{$trump ? ($suitNames[$trump] ?? $trump) : 'لم يحدد'}}</b></div>
@@ -71,11 +86,11 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
    <div class="away-status {{$isAway ? 'active' : ''}}">{{$isAway ? '🟡 أنت الآن في وضع الغائب، الكمبيوتر يلعب بدلك.' : '🟢 أنت حاضر وتلعب بنفسك.'}}</div>
    <form method="post" action="{{route('rooms.away',$room->code)}}" data-confirm="تفعيل/إلغاء وضع الغائب؟ الكمبيوتر سيلعب بدلًا عنك مؤقتًا.">@csrf<button type="submit" class="btn big-action away-btn">{{$isAway ? '✅ العودة للعب بنفسي' : '🕒 تفعيل وضع الغائب'}}</button></form>
   @endif
-  <form method="post" action="{{route('rooms.leave',$room->code)}}" data-confirm="هل تريد الخروج من اللعبة؟ إذا خرجت 3 مرات من نفس اللعبة لن تستطيع العودة لها مرة أخرى.">@csrf<button class="danger big-action">🚪 خروج والعودة لغرف {{$room->game->name['ar'] ?? $room->game->key}}</button></form>
+  <form method="post" action="{{route('rooms.leave',$room->code)}}" data-confirm="هل تريد الخروج من اللعبة؟ إذا خرجت 5 مرات يدويًا من هذه الغرفة نفسها فلن تستطيع العودة إلى هذه الغرفة فقط.">@csrf<button class="danger big-action">🚪 خروج والعودة لغرف {{$room->game->name['ar'] ?? $room->game->key}}</button></form>
   <a class="btn big-action" href="{{route('rooms.index',$room->game->key)}}">العودة للغرف</a>
  </aside>
  <section class="table-wrap">
-  <div class="game-table premium-table responsive-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="background-image:linear-gradient(rgba(3,7,18,.22),rgba(3,7,18,.38)),url('{{$activeTableImage}}');background-size:cover;background-position:center;" @endif>
+  <div class="game-table premium-table responsive-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}} {{!empty($activeTableImage) ? 'has-table-art' : ''}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="--r101-table-art:url('{{$activeTableImage}}');" @endif>
    <div class="table-aura"></div>
    <div class="deck-stack"><span></span><span></span><span></span></div>
    @if(($room->owner_id===auth()->id() || auth()->user()->is_admin) && $phase==='waiting')
@@ -89,10 +104,14 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
    <div class="center-board">
     <div class="phase-title" id="phaseTitle">{{ $phase==='waiting' ? 'بانتظار بدء الجولة' : ($phase==='bidding' ? 'مرحلة الطلب' : ($phase==='choose_trump' ? 'اختيار الطرنيب' : ($phase==='finished' ? 'انتهت الجولة' : 'اللعب جارٍ'))) }}</div>
     <div class="last-trick" id="lastAction">{{$lastActionText}}</div>
-    <div class="center-status-grid">
+    <div class="center-status-grid r91-tarneeb-clarity-grid">
+      @if($needsBid)<div class="r91-status-hot"><small>الطلب</small><b id="centerBidValue">{{$bid['value'] ?? '—'}}</b></div>@endif
+      @if($needsBid)<div class="r91-status-hot"><small>صاحب الطلب</small><b id="centerBidderName">{{$bidderName}}</b></div>@endif
+      <div class="r91-status-hot"><small>الطرنيب</small><b>{{ $trump ? ($suitNames[$trump] ?? $trump) : 'بانتظار الاختيار' }}</b></div>
+      <div><small>لمات الجولة</small><b>{{(int)($roundTricks['teamA'] ?? 0)}} — {{(int)($roundTricks['teamB'] ?? 0)}}</b></div>
+      <div><small>نقاط آخر جولة</small><b>{{$roundDeltaALabel}} — {{$roundDeltaBLabel}}</b></div>
       <div><small>نمط الغرفة</small><b>{{ $singleRound ? 'جولة واحدة' : 'متعددة الجولات' }}</b></div>
       <div><small>السرعة</small><b>{{$fixedTimeout}} ثوانٍ</b></div>
-      <div><small>الطرنيب</small><b>{{ $trump ? ($suitNames[$trump] ?? $trump) : 'بانتظار الاختيار' }}</b></div>
       <div><small>آخر حركة</small><b id="lastActionCenter">{{$lastActionText}}</b></div>
     </div>
     <div id="tableTrick" class="table-trick"></div>

@@ -13,7 +13,7 @@ def req(rel,*needles):
 def main():
     meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text())
     if int(meta.get('build', 0)) < 175: fail('metadata build is older than v175')
-    dart=req('flutter_app/lib/v175_release.dart','const Map<int, int> xpRequirementsV175','1: 80','100: 8000000','class ChallengeCenterV175')
+    dart=req('flutter_app/lib/v175_release.dart','const Map<int, int> xpRequirementsV175','1: 80','80: 4000000','90: 9000000','99: 20000000','100: 20000000','class ChallengeCenterV175')
     entries=re.findall(r'^\s*(\d+):\s*(\d+),?$',dart,re.M)
     if len(entries)!=100 or len({int(k) for k,v in entries})!=100: fail('Dart XP table must contain 100 unique levels')
     main=req('flutter_app/lib/main.dart',"if (p.category == 'pasha_style') return false;",'_loginOrCreateLocalFallback','queueNavigationRoute','openPendingNavigationRoute')
@@ -24,5 +24,5 @@ def main():
     req('backend-laravel/app/Services/WarqnaPro/DailyPackService.php','public static function catalog','legendary','2500','5000')
     req('backend-laravel/routes/api.php',"/challenges/{challengeKey}/activate","/challenges/{challengeKey}/claim")
     if not (ROOT/'docs/reference/XPs_levels_1_to_100_source.xlsx').is_file(): fail('Missing XP source workbook')
-    print('[PASS] v175 exact XP, challenges, packs, full Pasha, web fallback login and universal designer contract')
+    print('[PASS] v175/R9.1 XP curve, challenges, packs, full Pasha, web fallback login and universal designer contract')
 if __name__=='__main__': main()

@@ -72,11 +72,12 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   <button type="button" class="primary" onclick="document.querySelector('[data-admin-tab=monitor]')?.click()">المراقبة المباشرة</button>
   <button type="button" onclick="document.querySelector('[data-admin-tab=players]')?.click()">اللاعبون</button>
   <button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">المتجر</button>
+  <button type="button" onclick="document.querySelector('[data-admin-tab=commerce]')?.click()">التجارة والإعلانات</button>
  </div>
 </section>
 <div class="stats r9-command-stats"><div><small>الغرف</small><b>{{$rooms}}</b></div><div><small>الأندية</small><b>{{$clubs}}</b></div><div><small>المنافسات</small><b>{{$tournaments}}</b></div><div><small>المقتنيات</small><b>{{$storeItems->count()}}</b></div></div>
 <div class="admin-tabs jumbo-tabs">
- @if(auth()->user()?->hasAdminPermission('site_settings'))<button data-admin-tab="control">تحكم الموقع</button>@endif @if(auth()->user()?->hasAdminPermission('site_design'))<button data-admin-tab="designer">مصمم شامل</button>@endif @if(auth()->user()?->hasAdminPermission('game_rules'))<button data-admin-tab="games-admin">الألعاب والقوانين</button>@endif<button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>
+ @if(auth()->user()?->hasAdminPermission('site_settings'))<button data-admin-tab="control">تحكم الموقع</button>@endif @if(auth()->user()?->hasAdminPermission('site_design'))<button data-admin-tab="designer">مصمم شامل</button>@endif @if(auth()->user()?->hasAdminPermission('game_rules'))<button data-admin-tab="games-admin">الألعاب والقوانين</button>@endif<button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="commerce">💳 التجارة والإعلانات</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>
 </div>
 
 <section id="admin-v118" class="admin-section">
@@ -124,6 +125,54 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
    <button class="primary">حفظ المقتنى</button>
   </form>
  </div>
+</section>
+
+<section id="admin-commerce" class="admin-section">
+ <div class="r9-admin-command">
+  <div><span class="r9-eyebrow">R10.1 LIVE ECONOMY</span><h2>💳 مركز التجارة والإعلانات والعروض</h2><p>تحكم من واجهة واحدة في التجارة الحقيقية، الإعلانات المكافِئة، والإعلانات البينية خارج اللعب فقط، والعروض اليومية والأسبوعية والشهرية والسنوية.</p></div>
+  <div class="r9-admin-actions"><span class="btn">🔒 Receipt verification</span><span class="btn">🚫 لا إعلانات أثناء المباراة</span></div>
+ </div>
+ @php($r101CommerceEnabled=\App\Models\SiteSetting::getValue('commerce_enabled',config('warqna_commerce.enabled',false)))
+ @php($r101Rewarded=\App\Models\SiteSetting::getValue('ads_rewarded_enabled',config('warqna_commerce.ads.rewarded_enabled',true)))
+ @php($r101Interstitial=\App\Models\SiteSetting::getValue('ads_interstitial_enabled',config('warqna_commerce.ads.interstitial_enabled',true)))
+ <div class="r101-commerce-grid">
+  <div class="r101-commerce-stat"><small>عمليات موثقة</small><b>{{$commerceStats['verified'] ?? 0}}</b><span>Verified receipts</span></div>
+  <div class="r101-commerce-stat"><small>قيد التحقق</small><b>{{$commerceStats['pending'] ?? 0}}</b><span>Pending receipts</span></div>
+  <div class="r101-commerce-stat"><small>Rewarded Ads اليوم</small><b>{{$commerceStats['ads_today'] ?? 0}}</b><span>Daily rewarded claims</span></div>
+  <div class="r101-commerce-stat"><small>عروض معرفة</small><b>{{$commerceOffers->count() ?? 0}}</b><span>Daily / Weekly / Monthly / Annual</span></div>
+ </div>
+ <div class="r101-commerce-grid" style="margin-top:14px">
+  <form class="pro-card" method="post" action="{{route('admin.commerce.settings')}}">@csrf
+   <h3>إعدادات التجارة والإعلانات</h3>
+   <label class="check-row"><input type="hidden" name="commerce_enabled" value="0"><input type="checkbox" name="commerce_enabled" value="1" {{$r101CommerceEnabled?'checked':''}}> تفعيل واجهة التجارة الحقيقية</label>
+   <label class="check-row"><input type="hidden" name="ads_rewarded_enabled" value="0"><input type="checkbox" name="ads_rewarded_enabled" value="1" {{$r101Rewarded?'checked':''}}> Rewarded Ads</label>
+   <label class="check-row"><input type="hidden" name="ads_interstitial_enabled" value="0"><input type="checkbox" name="ads_interstitial_enabled" value="1" {{$r101Interstitial?'checked':''}}> Interstitial خارج المباراة</label>
+   <label>أقصى Rewarded يوميًا<input type="number" name="rewarded_daily_limit" min="0" max="25" value="{{\App\Models\SiteSetting::getValue('rewarded_daily_limit',5)}}"></label>
+   <label>أقل فاصل للإعلان البيني بالدقائق<input type="number" name="interstitial_min_minutes" min="5" max="180" value="{{\App\Models\SiteSetting::getValue('interstitial_min_minutes',12)}}"></label>
+   <div class="r101-danger-note">إعلانات أثناء المباراة = <b>OFF دائمًا</b>. لا يستطيع المدير تفعيلها من هذه الواجهة حتى لا تتأثر تجربة اللعب.</div>
+   <button class="primary">حفظ الإعدادات</button>
+  </form>
+  <form class="pro-card" method="post" action="{{route('admin.commerce.offer.save')}}">@csrf
+   <h3>إنشاء عرض تجاري</h3>
+   <label>Key<input name="key" value="offer_r101_weekly" required></label>
+   <label>الدورية<select name="cadence"><option value="daily">يومي</option><option value="weekly" selected>أسبوعي</option><option value="monthly">شهري</option><option value="annual">سنوي</option></select></label>
+   <label>العنوان العربي<input name="title_ar" value="عرض ورقنا الملكي" required></label>
+   <label>English title<input name="title_en" value="Warqnaa Royal Offer" required></label>
+   <label>الوصف العربي<textarea name="description_ar">عرض محدود يتم التحكم به من Live Ops.</textarea></label>
+   <label>English description<textarea name="description_en">A limited offer controlled by Live Ops.</textarea></label>
+   <label>الخصم %<input type="number" name="discount_percent" min="0" max="90" value="25"></label>
+   <label>مفاتيح المقتنيات<textarea name="item_keys" placeholder="table_x, card_y, token_pack"></textarea></label>
+   <label>البداية<input type="datetime-local" name="starts_at"></label><label>النهاية<input type="datetime-local" name="ends_at"></label>
+   <label class="check-row"><input type="checkbox" name="active" value="1" checked> مفعل</label>
+   <button class="primary">حفظ ونشر العرض</button>
+  </form>
+ </div>
+ <div class="pro-card" style="margin-top:14px"><h3>العروض الحالية</h3><div class="r101-offer-list">
+  @forelse($commerceOffers as $offer)
+   <div class="r101-offer-row"><div><b>{{$offer->title['ar'] ?? $offer->key}}</b><small style="display:block">{{$offer->title['en'] ?? ''}} • خصم {{$offer->discount_percent}}% • {{$offer->description['cadence'] ?? 'custom'}}</small></div><form method="post" action="{{route('admin.commerce.offer.delete',$offer)}}" data-confirm="حذف العرض؟">@csrf<button class="danger">حذف</button></form></div>
+  @empty <p class="muted">لا توجد عروض تجارية بعد.</p> @endforelse
+ </div></div>
+ <div class="pro-card" style="margin-top:14px"><h3>آخر عمليات الشراء/التحقق</h3><div style="overflow:auto"><table><thead><tr><th>ID</th><th>Provider</th><th>Product</th><th>Status</th><th>Currency</th><th>Verified</th></tr></thead><tbody>@forelse($commerceReceipts as $receipt)<tr><td>{{$receipt->id}}</td><td>{{$receipt->provider}}</td><td>{{$receipt->product_id ?: $receipt->package_key}}</td><td>{{$receipt->status}}</td><td>{{$receipt->currency}}</td><td>{{$receipt->verified_at ?: '—'}}</td></tr>@empty<tr><td colspan="6">لا توجد عمليات بعد.</td></tr>@endforelse</tbody></table></div></div>
 </section>
 
 <section id="admin-monitor" class="admin-section">
@@ -268,7 +317,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
     <button type="button" class="primary">زر أساسي</button><button type="button">زر عادي</button>
     <div class="store-card deluxe demo-card-v137"><span class="shop-icon">👑</span><b>عنصر متجر</b><p>السعر: <span class="admin-demo-price-v137">2500</span></p></div>
     <div class="demo-table-v137"><span>🂡 🂱 🃁</span><small>طاولة اللعبة</small></div>
-    <div class="demo-player-v137"><img src="/assets/avatars/default.svg"><b>اسم اللاعب</b></div>
+    <div class="demo-player-v137"><img loading="lazy" decoding="async" src="/assets/avatars/default.svg"><b>اسم اللاعب</b></div>
     <div class="demo-chat-v138">
      <div class="demo-chat-head-v138">💬 مركز الدردشة <span>— ×</span></div>
      <div class="demo-chat-tabs-v138"><button type="button">دردشة اللعبة</button><button type="button">الأصدقاء</button><button type="button">بحث</button></div>
@@ -306,7 +355,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
 
 <section id="admin-store" class="admin-section">
  <h2>إدارة المتجر والمقتنيات</h2>
- <p class="muted">يمكنك تعديل الاسم، السعر، المدة، التبويب، المستوى، الأيقونة، والكلاس البصري لأي مقتنى بدون فتح الملفات.</p>
+ <p class="muted">يمكنك تعديل أي مقتنى، إلغاء تفعيله مع الاحتفاظ به للمشترين السابقين، أو حذفه نهائيًا من الكتالوج. الحذف النهائي لا يمكن التراجع عنه.</p>
  <div class="store-admin-create pro-card"><h3>إضافة مقتنى جديد</h3><div class="admin-live-preview"><div class="preview-surface"><div class="preview-card-back">🂠</div></div><div><b>معاينة مباشرة</b><p>ارفع صورة للطاولة أو ظهر الورق، أو اكتب كلاس بصري/أيقونة، وستظهر للمستخدمين بعد التفعيل.</p></div></div><form method="post" enctype="multipart/form-data" action="{{route('admin.store.create')}}">@csrf <div class="admin-store-form compact"><input name="key" placeholder="مفتاح اختياري مثل table_gold_new"><select name="category">@foreach($categoryLabels as $k=>$label)<option value="{{$k}}">{{$label}}</option>@endforeach</select><input name="name_ar" required placeholder="الاسم العربي"><input name="name_en" placeholder="English name"><input name="price" type="number" value="0"><input name="duration_days" type="number" placeholder="المدة بالأيام أو اتركها فارغة"><input name="tab" placeholder="تبويب: مبتدئ/أسطوري/متحرك"><input name="tier" placeholder="مستوى: beginner/pro/legendary"><input name="preview_icon" placeholder="أيقونة مثل 👑"><input name="css_class" placeholder="كلاس بصري مثل table-ultra-eagle"><input name="color" placeholder="#facc15"><input name="multiplier" placeholder="XP x مثل 2"><input name="emojis" placeholder="😄😂🔥"><input type="file" name="asset" accept="image/*"><label class="check-row"><input type="checkbox" name="active" value="1" checked> ظاهر في المتجر</label><button class="primary">إضافة</button></div></form></div>
  <div class="admin-designer-note mini-card">💡 يمكنك إدارة الموقع والمتجر من هنا: إظهار/إخفاء، سعر، مدة، تبويب، لون، أيقونة، كلاس بصري ومعاينة مباشرة بدون فتح الأكواد.</div><div class="admin-store-tabs">@foreach($categoryLabels as $cat=>$label)<button data-store-admin-tab="{{$cat}}">{{$label}}</button>@endforeach</div>
  @foreach($categoryLabels as $cat=>$label)
@@ -340,7 +389,10 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
     <label class="check-row"><input type="checkbox" name="active" value="1" {{$item->active?'checked':''}}> ظاهر</label>
     <button class="primary">حفظ</button>
    </form>
-   <form class="inline-delete" method="post" action="{{route('admin.store.delete',$item)}}" data-confirm="سيتم إخفاء هذا المقتنى من المتجر. هل أنت متأكد؟">@csrf<button class="danger">إخفاء</button></form>
+   <div class="store-admin-destructive-actions">
+    <form class="inline-delete" method="post" action="{{route('admin.store.delete',$item)}}" data-confirm="سيتم إلغاء تفعيل هذا المقتنى وإخفاؤه من المتجر مع إبقائه محفوظًا للمشترين السابقين. هل أنت متأكد؟">@csrf<button class="danger">إلغاء التفعيل</button></form>
+    <form class="inline-delete" method="post" action="{{route('admin.store.purge',$item)}}" data-confirm="حذف نهائي: سيتم حذف هذا المقتنى من كتالوج المتجر. لا يمكن التراجع عن العملية. هل أنت متأكد تمامًا؟">@csrf<button class="danger admin-hard-delete">حذف نهائي</button></form>
+   </div>
   @empty <p class="muted">لا توجد عناصر في هذا القسم.</p>@endforelse
   </div>
  @endforeach
@@ -353,7 +405,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
  @foreach($users as $u)
   <article class="admin-player-card-v133" data-admin-player-name="{{ strtolower($u->username.' '.($u->profile?->display_name ?? '')) }}">
    <button type="button" class="admin-player-head-v133" onclick="openProfile({{$u->id}})" style="--player-color:{{$u->profile?->name_color ?? '#facc15'}}">
-    <img class="avatar-lg" src="{{$u->profile?->avatar ?: '/assets/avatars/default.svg'}}">
+    <img loading="lazy" decoding="async" class="avatar-lg" src="{{$u->profile?->avatar ?: '/assets/avatars/default.svg'}}">
     <span><b>{{$u->profile?->display_name ?: $u->username}}</b><small>{!! flag_img($u->profile?->country_code) !!} {{$u->email}}</small></span>
    </button>
    <div class="admin-player-stats-v133">
@@ -435,6 +487,6 @@ function adminDesignerLive(input){
  root.style.setProperty('--demo-chat-input',get('ui_chat_input_bg')||'#020617');
  root.style.setProperty('--demo-chat-message',get('ui_chat_message_bg')||'#1e293b');
 }
-function adminPreviewStoreItem(btn){const row=btn.closest('.store-admin-row'); const name=row?.querySelector('input[name="name_ar"]')?.value||'عنصر'; const price=row?.querySelector('input[name="price"]')?.value||'0'; const icon=row?.querySelector('.admin-item-preview span')?.textContent||'🎁'; const cat=row?.dataset.category||row?.closest('.admin-store-section')?.id?.replace('admin-store-','')||''; let visual=`<div class="shop-icon big">${escapeHtml(icon)}</div>`; if(cat==='table') visual='<div class="admin-full-table-preview"><div class="mock-table"><span></span><span></span><span></span><span></span><b>🂡 🂱 🃁</b></div></div>'; if(cat==='card_back') visual='<div class="card-back-showcase big"><span class="card-back-preview">🂠</span><span class="card-back-preview">🂠</span><span class="card-back-preview">🂠</span></div>'; if(cat==='text_color'||cat==='name_color'||cat==='name_frame') visual='<div class="profile-preview-card mini"><img src="/assets/avatars/default.svg"><b style="color:var(--my-name-color)">معاينة على البروفايل</b><p style="color:var(--my-text-color)">كلمة تجريبية</p></div>'; showRichNotice(`<div class="store-preview-pop admin-preview-pop"><div class="profile-preview-card">${visual}<h3>${escapeHtml(name)}</h3><p>السعر: 🪙 ${escapeHtml(price)}</p><small>معاينة إدارية واضحة قبل الحفظ أو الإظهار للمتجر.</small></div></div>`)}
+function adminPreviewStoreItem(btn){const row=btn.closest('.store-admin-row'); const name=row?.querySelector('input[name="name_ar"]')?.value||'عنصر'; const price=row?.querySelector('input[name="price"]')?.value||'0'; const icon=row?.querySelector('.admin-item-preview span')?.textContent||'🎁'; const cat=row?.dataset.category||row?.closest('.admin-store-section')?.id?.replace('admin-store-','')||''; let visual=`<div class="shop-icon big">${escapeHtml(icon)}</div>`; if(cat==='table') visual='<div class="admin-full-table-preview"><div class="mock-table"><span></span><span></span><span></span><span></span><b>🂡 🂱 🃁</b></div></div>'; if(cat==='card_back') visual='<div class="card-back-showcase big"><span class="card-back-preview">🂠</span><span class="card-back-preview">🂠</span><span class="card-back-preview">🂠</span></div>'; if(cat==='text_color'||cat==='name_color'||cat==='name_frame') visual='<div class="profile-preview-card mini"><img loading="lazy" decoding="async" src="/assets/avatars/default.svg"><b style="color:var(--my-name-color)">معاينة على البروفايل</b><p style="color:var(--my-text-color)">كلمة تجريبية</p></div>'; showRichNotice(`<div class="store-preview-pop admin-preview-pop"><div class="profile-preview-card">${visual}<h3>${escapeHtml(name)}</h3><p>السعر: 🪙 ${escapeHtml(price)}</p><small>معاينة إدارية واضحة قبل الحفظ أو الإظهار للمتجر.</small></div></div>`)}
 </script>
 @endsection

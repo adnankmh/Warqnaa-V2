@@ -26,8 +26,8 @@ class V174OfflineProgressionNavigationTest extends TestCase
         $this->assertSame(80, $xp->requiredXp(1));
         $this->assertSame(59371, $xp->requiredXp(40));
         $this->assertSame(150000, $xp->requiredXp(50));
-        $this->assertSame(1000000, $xp->requiredXp(80));
-        $this->assertSame(8000000, $xp->requiredXp(100));
+        $this->assertSame(4000000, $xp->requiredXp(80));
+        $this->assertSame(20000000, $xp->requiredXp(100));
     }
 
     public function test_v174_catalog_remains_additive_and_unique(): void

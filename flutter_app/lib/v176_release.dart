@@ -165,6 +165,11 @@ extension WarqnaV176Controller on AppController {
   }
 
   bool isOwnedActiveV176(String productId) {
+    if (isPrimaryAdmin) {
+      for (final product in storeCatalog) {
+        if (product.id == productId && product.category != 'pasha' && product.category != 'competition_ticket') return true;
+      }
+    }
     final expiry = packInventoryExpiriesV176[productId];
     if (expiry != null && !expiry.isAfter(DateTime.now())) return false;
     return owned.contains(productId);

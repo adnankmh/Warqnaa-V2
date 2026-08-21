@@ -111,6 +111,18 @@ def check_required_files() -> None:
         "tools/test_v201_gameplay_admin_contract.py",
         "tools/test_v201_r4_hotfix_contract.py",
         "tools/test_v201_r5_ci_stability_contract.py",
+        "tools/test_v220_r10_contract.py",
+        "tools/test_v221_r101_contract.py",
+        "flutter_app/lib/services/r10_asset_delivery.dart",
+        "backend-laravel/app/Services/WarqnaPro/AssetDeliveryService.php",
+        "backend-laravel/app/Http/Controllers/MobileAssetController.php",
+        "assets/manifest/r10_asset_manifest.json",
+        "flutter_app/lib/r10_1_release.dart",
+        "flutter_app/lib/services/interstitial_ads.dart",
+        "backend-laravel/config/warqna_commerce.php",
+        "backend-laravel/app/Http/Controllers/MobileCommerceController.php",
+        "backend-laravel/app/Http/Controllers/CommerceAdminController.php",
+        "backend-laravel/public/assets/css/r10-1-experience.css",
         "backend-laravel/tools/test-v184-official-rules-audit.php",
         "backend-laravel/tools/test-v184-engine-stress.php",
         "tools/test_v02_daily_prize_boxes_contract.py",
@@ -985,8 +997,7 @@ def check_v166_global_polish() -> None:
         "permission_handler: ^12.0.3",
         "audioplayers: ^6.8.1",
         "flutter_local_notifications: ^22.0.1",
-        "assets/images/games/",
-        "assets/sounds/",
+        *( ["assets/optimized/r10/", "assets/sounds/r10/"] if EXPECTED_BUILD >= 220 else ["assets/images/games/", "assets/sounds/"] ),
     ]:
         if needle not in pubspec:
             fail(f"v166 Flutter dependency/asset contract missing: {needle}")
@@ -1288,7 +1299,7 @@ def check_v172_brand_table_contract() -> None:
     ]:
         require(rel, ["test_v172_brand_table_contract.py"])
     require(".github/workflows/flutter-android.yml", ["apply_brand_assets.py"])
-    require("flutter_app/pubspec.yaml", ["assets/images/brand/", "assets/images/tables/"])
+    require("flutter_app/pubspec.yaml", ["assets/images/brand/warqna_logo.png", "assets/optimized/r10/"] if EXPECTED_BUILD >= 220 else ["assets/images/brand/", "assets/images/tables/"])
     print(result.stdout.strip())
     print("[OK] v172 additive Warqna brand, 40-table HD collection, and legacy CI compatibility")
 
@@ -1312,7 +1323,7 @@ def check_v173_online_engagement_contract() -> None:
         ".github/workflows/production-release-check.yml",
     ]:
         require(rel, ["test_v173_online_engagement_contract.py"])
-    require("flutter_app/pubspec.yaml", ["assets/images/pasha/v173/", "assets/images/tables/v173/royal/", "assets/images/tables/v173/showcase/"])
+    require("flutter_app/pubspec.yaml", ["assets/optimized/r10/"] if EXPECTED_BUILD >= 220 else ["assets/images/pasha/v173/", "assets/images/tables/v173/royal/", "assets/images/tables/v173/showcase/"])
     print(result.stdout.strip())
     print("[OK] inherited v173 engagement assets, server-authoritative economy, Pasha colors, tables, tickets, packs and universal designer")
 
@@ -1353,8 +1364,9 @@ def check_v175_xp_challenges_pasha_designer_contract() -> None:
         "openPendingNavigationRoute",
         "_prepareDirectInviteTransfer",
     ])
+    xp_test_name = "test_r91_xp_curve_preserves_1_to_79_and_hardens_80_to_100" if EXPECTED_BUILD >= 210 else "test_all_excel_xp_values_are_exact"
     require("backend-laravel/tests/Feature/V175XpChallengesDesignerTest.php", [
-        "test_all_excel_xp_values_are_exact",
+        xp_test_name,
         "test_challenge_can_activate_progress_and_claim_once",
         "test_v175_ui_contract_hides_pasha_colors_and_keeps_full_pasha",
     ])

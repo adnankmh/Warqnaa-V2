@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{AdminDesignerEntity,User,Room,Tournament,Club,Game,AntiCheatEvent,Notification,StoreItem,SiteSetting,Friendship};
+use App\Models\{AdminDesignerEntity,User,Room,Tournament,Club,Game,AntiCheatEvent,Notification,StoreItem,SiteSetting,Friendship,StoreOffer,PurchaseReceipt,RewardedAdClaim};
 use App\Services\Wallet\WalletService;
 use App\Services\WarqnaPro\StoreCatalogService;
 use Illuminate\Http\Request;
@@ -46,6 +46,9 @@ class AdminController
             'themeOptions'=>$this->themeOptions(),
             'categoryLabels'=>$this->categoryLabels(),
             'designerEntities'=>AdminDesignerEntity::orderBy('entity_type')->orderBy('sort_order')->orderBy('key')->get(),
+            'commerceOffers'=>StoreOffer::latest()->get(),
+            'commerceReceipts'=>PurchaseReceipt::latest()->limit(30)->get(),
+            'commerceStats'=>['verified'=>PurchaseReceipt::where('status','verified')->count(),'pending'=>PurchaseReceipt::where('status','pending')->count(),'ads_today'=>RewardedAdClaim::whereDate('claim_date',now()->toDateString())->count()],
         ]);
     }
 
@@ -106,7 +109,7 @@ class AdminController
             'default_theme'=>'required|in:'.implode(',',$themes),
             'force_global_theme'=>'nullable|boolean',
             'store_enabled'=>'nullable|boolean','clubs_enabled'=>'nullable|boolean','tournaments_enabled'=>'nullable|boolean','chat_enabled'=>'nullable|boolean','support_enabled'=>'nullable|boolean','auto_start_game'=>'nullable|boolean','round_score_popup'=>'nullable|boolean','table_uploads_enabled'=>'nullable|boolean','card_back_uploads_enabled'=>'nullable|boolean','tarneeb_only_panel'=>'nullable|boolean','large_bot_seats'=>'nullable|boolean',
-            'homepage_headline'=>'nullable|string|max:120','hero_subtitle'=>'nullable|string|max:240','global_announcement'=>'nullable|string|max:240','maintenance_message'=>'nullable|string|max:240','nav_labels_json'=>'nullable|string|max:4000','homepage_cards_json'=>'nullable|string|max:6000','custom_css'=>'nullable|string|max:6000','layout_density'=>'nullable|in:compact,comfortable,wide','nav_style'=>'nullable|in:bar,glass,side','card_style'=>'nullable|in:rounded,luxury,flat','default_locale'=>'nullable|in:ar,en,fr,tr,de,es','store_layout'=>'nullable|in:tabs,cards,admin_grid','card_visual_size'=>'nullable|in:normal,large,compact','notifications_style'=>'nullable|in:panel,compact,wide',
+            'homepage_headline'=>'nullable|string|max:120','hero_subtitle'=>'nullable|string|max:240','global_announcement'=>'nullable|string|max:240','maintenance_message'=>'nullable|string|max:240','nav_labels_json'=>'nullable|string|max:4000','homepage_cards_json'=>'nullable|string|max:6000','custom_css'=>'nullable|string|max:6000','layout_density'=>'nullable|in:compact,comfortable,wide','nav_style'=>'nullable|in:bar,glass,side','card_style'=>'nullable|in:rounded,luxury,flat','default_locale'=>'nullable|in:ar,en','store_layout'=>'nullable|in:tabs,cards,admin_grid','card_visual_size'=>'nullable|in:normal,large,compact','notifications_style'=>'nullable|in:panel,compact,wide',
         ]);
         SiteSetting::setValue('default_theme',$data['default_theme'],'string','appearance','الثيم الافتراضي');
         foreach(['force_global_theme','store_enabled','clubs_enabled','tournaments_enabled','chat_enabled','support_enabled','auto_start_game','round_score_popup','table_uploads_enabled','card_back_uploads_enabled','tarneeb_only_panel','large_bot_seats'] as $key) SiteSetting::setValue($key,$r->boolean($key),'bool','modules',$key);
@@ -125,12 +128,13 @@ class AdminController
         $this->guard();
         $data=$this->validateStoreItem($r,true);
         $payload=$this->buildPayload($r);
-        StoreItem::create([
+        $created=StoreItem::create([
             'key'=>$data['key'] ?: Str::slug($data['category'].'-'.$data['name_ar'].'-'.time()),
             'name'=>['ar'=>$data['name_ar'],'en'=>$data['name_en'] ?: $data['name_ar']],
             'category'=>$data['category'],'price'=>$data['price'],'duration_days'=>$data['duration_days'],'payload'=>$payload,'active'=>$r->boolean('active'),
         ]);
-        return back()->with('ok','تمت إضافة المقتنى إلى المتجر لجميع اللاعبين');
+        app(\App\Services\WarqnaPro\StoreCatalogService::class)->grantPrimaryAdminItem((int)$created->id);
+        return back()->with('ok','تمت إضافة المقتنى إلى المتجر، وأضيف تلقائيًا إلى مقتنيات المدير الرئيسي');
     }
 
     public function updateStoreItem(StoreItem $item, Request $r)
@@ -150,6 +154,15 @@ class AdminController
         $this->guard();
         $item->update(['active'=>false]);
         return back()->with('ok','تم إخفاء المقتنى من المتجر. بقي محفوظًا لمن اشتراه سابقًا.');
+    }
+
+    public function purgeStoreItem(StoreItem $item)
+    {
+        $this->guard();
+        $name=$item->name['ar'] ?? $item->key;
+        $key=$item->key;
+        $item->delete();
+        return back()->with('ok','تم حذف المقتنى نهائيًا من كتالوج المتجر: '.$name.' ('.$key.').');
     }
 
     private function validateStoreItem(Request $r, bool $create): array
@@ -384,6 +397,6 @@ class AdminController
     }
     private function themeOptions(): array
     {
-        return ['dark'=>'غامق','light'=>'فاتح','blue'=>'أزرق','sky'=>'أزرق سماوي','green'=>'أخضر','light_green'=>'أخضر فاتح','gold'=>'ذهبي','purple'=>'بنفسجي','light_pink'=>'وردي فاتح'];
+        return ['dark'=>'Midnight','light'=>'Ivory','green'=>'Emerald','gold'=>'Royal Gold','purple'=>'Velvet Purple','classic'=>'Classic Majlis'];
     }
 }

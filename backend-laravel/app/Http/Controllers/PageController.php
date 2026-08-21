@@ -4,7 +4,7 @@ use Illuminate\Http\Request; use App\Models\Notification;
 class PageController {
  public function settings(){ return view('pages.settings'); }
  public function saveSettings(Request $r){
-  $data=$r->validate(['display_name'=>'nullable|string|max:80','country_code'=>'nullable|string|max:2','font_scale'=>'nullable|numeric|min:1|max:1.8','sound_enabled'=>'nullable|boolean','active_site_theme'=>'nullable|string|in:dark,light,blue,sky,green,light_green,gold,purple,light_pink,royal,midnight,emerald,desert,galaxy,crimson,ocean,obsidian,aurora']);
+  $data=$r->validate(['display_name'=>'nullable|string|max:80','country_code'=>'nullable|string|max:2','font_scale'=>'nullable|numeric|min:1|max:1.8','sound_enabled'=>'nullable|boolean','active_site_theme'=>'nullable|string|in:dark,light,green,gold,purple,classic']);
   $p=auth()->user()->profile;
   if($p){
    if(!empty($data['display_name']))$p->display_name=$data['display_name'];
@@ -16,7 +16,7 @@ class PageController {
   return back()->with('ok','تم حفظ الإعدادات');
  }
  public function quickPreference(Request $r){
-  $data=$r->validate(['theme'=>'nullable|string|in:dark,light,blue,sky,green,light_green,gold,purple,light_pink,royal,midnight,emerald,desert,galaxy,crimson,ocean,obsidian,aurora','lang'=>'nullable|string|in:ar,en,fr,tr,de,es']);
+  $data=$r->validate(['theme'=>'nullable|string|in:dark,light,green,gold,purple,classic','lang'=>'nullable|string|in:ar,en']);
   session(['warqna_locale'=>$data['lang'] ?? session('warqna_locale','ar')]);
   $p=auth()->user()?->profile;
   if($p && !empty($data['theme'])){ $p->active_site_theme=$data['theme']; $p->save(); }

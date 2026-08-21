@@ -21,15 +21,21 @@ class LuckyWheelService
     /** @return array<int,array<string,mixed>> */
     public static function segments(): array
     {
+        // R10.1: twelve varied rewards, all server-authorized. Cosmetic values
+        // use the same values/keys shown by the store; token rewards stay <=1000.
         return [
-            ['key'=>'ticket_200','label_ar'=>'تذكرة 200','label_en'=>'Competition Ticket 200','icon'=>'🎟️','weight'=>18,'color'=>'#5b21b6','reward'=>['type'=>'ticket','value'=>'200','duration_hours'=>0,'rarity'=>'common','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 200']],
-            ['key'=>'tokens_150','label_ar'=>'150 توكن','label_en'=>'150 Tokens','icon'=>'🪙','weight'=>20,'color'=>'#047857','reward'=>['type'=>'tokens','value'=>'150','duration_hours'=>0,'rarity'=>'common','icon'=>'🪙','label_ar'=>'150 توكن مجاني']],
-            ['key'=>'writing_color','label_ar'=>'لون كتابة','label_en'=>'Writing Color','icon'=>'✍️','weight'=>10,'color'=>'#0891b2','reward'=>['type'=>'writing_color','value'=>'#22d3ee','duration_hours'=>24,'rarity'=>'rare','icon'=>'✍️','label_ar'=>'لون كتابة لمدة يوم','store_item_key'=>'lucky_wheel_chat_cyan_v182']],
-            ['key'=>'player_color','label_ar'=>'لون لاعب','label_en'=>'Player Color','icon'=>'🎨','weight'=>10,'color'=>'#ca8a04','reward'=>['type'=>'player_color','value'=>'#facc15','duration_hours'=>24,'rarity'=>'rare','icon'=>'🎨','label_ar'=>'لون لاعب لمدة يوم','store_item_key'=>'lucky_wheel_name_gold_v182']],
-            ['key'=>'tokens_250','label_ar'=>'250 توكن','label_en'=>'250 Tokens','icon'=>'🪙','weight'=>14,'color'=>'#15803d','reward'=>['type'=>'tokens','value'=>'250','duration_hours'=>0,'rarity'=>'common','icon'=>'🪙','label_ar'=>'250 توكن مجاني']],
-            ['key'=>'ticket_500','label_ar'=>'تذكرة 500','label_en'=>'Competition Ticket 500','icon'=>'🎟️','weight'=>10,'color'=>'#7c3aed','reward'=>['type'=>'ticket','value'=>'500','duration_hours'=>0,'rarity'=>'rare','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 500']],
-            ['key'=>'pasha_day','label_ar'=>'يوم باشا','label_en'=>'One Pasha Day','icon'=>'👑','weight'=>5,'color'=>'#dc2626','reward'=>['type'=>'pasha_day','value'=>'1','duration_hours'=>24,'rarity'=>'legendary','icon'=>'👑','label_ar'=>'يوم باشا','store_item_key'=>'lucky_wheel_pasha_day_v182']],
-            ['key'=>'royal_box','label_ar'=>'غلاف ملكي','label_en'=>'Royal Cover','icon'=>'🎁','weight'=>4,'color'=>'#be123c','reward'=>['type'=>'profile_cover','value'=>'cover_v02_royal','duration_hours'=>72,'rarity'=>'epic','icon'=>'🖼️','label_ar'=>'غلاف شخصي ملكي لمدة 3 أيام','store_item_key'=>'lucky_wheel_royal_cover_v182']],
+            ['key'=>'ticket_500','label_ar'=>'تذكرة 500','label_en'=>'Ticket 500','icon'=>'🎟️','weight'=>12,'color'=>'#5b21b6','reward'=>['type'=>'ticket','value'=>'500','duration_hours'=>0,'rarity'=>'rare','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 500','label_en'=>'Competition ticket 500']],
+            ['key'=>'tokens_500','label_ar'=>'500 توكن','label_en'=>'500 Tokens','icon'=>'🪙','weight'=>17,'color'=>'#047857','reward'=>['type'=>'tokens','value'=>'500','duration_hours'=>0,'rarity'=>'common','icon'=>'🪙','label_ar'=>'500 توكن مجاني','label_en'=>'500 free tokens']],
+            ['key'=>'writing_red','label_ar'=>'كتابة حمراء','label_en'=>'Red Writing','icon'=>'✍️','weight'=>9,'color'=>'#b91c1c','reward'=>['type'=>'writing_color','value'=>'#ef4444','duration_hours'=>24,'rarity'=>'rare','icon'=>'✍️','label_ar'=>'لون كتابة أحمر لمدة يوم','label_en'=>'Red writing color for 24 hours','store_item_key'=>'lucky_wheel_chat_red_r91']],
+            ['key'=>'player_gold','label_ar'=>'لاعب ذهبي','label_en'=>'Gold Player','icon'=>'🎨','weight'=>9,'color'=>'#ca8a04','reward'=>['type'=>'player_color','value'=>'#facc15','duration_hours'=>24,'rarity'=>'rare','icon'=>'🎨','label_ar'=>'لون لاعب ذهبي لمدة يوم','label_en'=>'Gold player color for 24 hours','store_item_key'=>'lucky_wheel_name_gold_v182']],
+            ['key'=>'xp_booster','label_ar'=>'XP ×1.5','label_en'=>'XP ×1.5','icon'=>'⚡','weight'=>9,'color'=>'#6d28d9','reward'=>['type'=>'xp_booster','value'=>'1.5','duration_hours'=>6,'rarity'=>'epic','icon'=>'⚡','label_ar'=>'مسرّع خبرة ×1.5 لمدة 6 ساعات','label_en'=>'XP ×1.5 for 6 hours','store_item_key'=>'daily_pack_xp_15x_6h_v176']],
+            ['key'=>'royal_table','label_ar'=>'طاولة ملكية','label_en'=>'Royal Table','icon'=>'🃏','weight'=>7,'color'=>'#0f766e','reward'=>['type'=>'table','value'=>'table_v173_royal_01','duration_hours'=>24,'rarity'=>'epic','icon'=>'🃏','label_ar'=>'طاولة الزمرد الملكي لمدة 24 ساعة','label_en'=>'Royal Emerald table for 24 hours','store_item_key'=>'table_v173_royal_01']],
+            ['key'=>'pasha_day','label_ar'=>'يوم باشا','label_en'=>'Pasha Day','icon'=>'👑','weight'=>5,'color'=>'#dc2626','reward'=>['type'=>'pasha_day','value'=>'1','duration_hours'=>24,'rarity'=>'legendary','icon'=>'👑','label_ar'=>'يوم باشا','label_en'=>'One Pasha Day','store_item_key'=>'lucky_wheel_pasha_day_v182']],
+            ['key'=>'royal_cover','label_ar'=>'غلاف ملكي','label_en'=>'Royal Cover','icon'=>'🖼️','weight'=>7,'color'=>'#be123c','reward'=>['type'=>'profile_cover','value'=>'cover_v02_royal','duration_hours'=>72,'rarity'=>'epic','icon'=>'🖼️','label_ar'=>'غلاف شخصي ملكي لمدة 3 أيام','label_en'=>'Royal profile cover for 3 days','store_item_key'=>'lucky_wheel_royal_cover_v182']],
+            ['key'=>'tokens_900','label_ar'=>'900 توكن','label_en'=>'900 Tokens','icon'=>'💰','weight'=>11,'color'=>'#0e7490','reward'=>['type'=>'tokens','value'=>'900','duration_hours'=>0,'rarity'=>'rare','icon'=>'💰','label_ar'=>'900 توكن مجاني','label_en'=>'900 free tokens']],
+            ['key'=>'ticket_1000','label_ar'=>'تذكرة 1000','label_en'=>'Ticket 1000','icon'=>'🎫','weight'=>5,'color'=>'#9333ea','reward'=>['type'=>'ticket','value'=>'1000','duration_hours'=>0,'rarity'=>'epic','icon'=>'🎫','label_ar'=>'تذكرة مسابقة 1000','label_en'=>'Competition ticket 1000']],
+            ['key'=>'writing_cyan','label_ar'=>'كتابة سماوية','label_en'=>'Cyan Writing','icon'=>'🖋️','weight'=>9,'color'=>'#0891b2','reward'=>['type'=>'writing_color','value'=>'#22d3ee','duration_hours'=>12,'rarity'=>'rare','icon'=>'🖋️','label_ar'=>'لون كتابة سماوي لمدة 12 ساعة','label_en'=>'Cyan writing color for 12 hours','store_item_key'=>'lucky_wheel_chat_cyan_r101']],
+            ['key'=>'xp_booster_2x','label_ar'=>'XP ×2','label_en'=>'XP ×2','icon'=>'🚀','weight'=>5,'color'=>'#ea580c','reward'=>['type'=>'xp_booster','value'=>'2.0','duration_hours'=>3,'rarity'=>'legendary','icon'=>'🚀','label_ar'=>'مسرّع خبرة ×2 لمدة 3 ساعات','label_en'=>'XP ×2 for 3 hours','store_item_key'=>'lucky_wheel_xp_2x_r101']],
         ];
     }
 
@@ -85,7 +91,7 @@ class LuckyWheelService
                 'source_type'=>'lucky_wheel',
                 'source_key'=>$sourceKey,
                 'awarded_date'=>$today,
-                'payload'=>['segment_key'=>$segment['key'],'version'=>'V0.4.6','cooldown_hours'=>self::FREE_SPIN_COOLDOWN_HOURS],
+                'payload'=>['segment_key'=>$segment['key'],'version'=>'R10.1-B221','cooldown_hours'=>self::FREE_SPIN_COOLDOWN_HOURS],
             ]);
             $opened = $this->prizeBoxes->open($user,$box,$segment['reward']);
             $spin = LuckyWheelSpin::create([

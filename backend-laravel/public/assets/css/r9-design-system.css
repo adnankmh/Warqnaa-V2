@@ -40,3 +40,23 @@ body.warqna-r9.is-room-page .game-table{background-size:cover!important;backgrou
 .r9-admin-command{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px 30px;margin:8px 0 18px;border-radius:var(--r9-radius-xl);background:linear-gradient(135deg,rgba(10,22,38,.96),rgba(11,48,39,.92));border:1px solid rgba(221,178,86,.24);box-shadow:var(--r9-shadow-lg)}
 .r9-admin-command h1{margin:6px 0 8px;font-size:clamp(26px,3vw,42px);letter-spacing:-.02em}.r9-admin-command p{margin:0;max-width:720px;color:var(--r9-text-muted);line-height:1.7}.r9-eyebrow{font-size:11px;letter-spacing:.18em;color:var(--r9-gold);font-weight:800}.r9-admin-actions{display:flex;gap:8px;flex-wrap:wrap}.r9-command-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.r9-command-stats>div{display:flex!important;flex-direction:column;gap:4px;min-height:88px;justify-content:center}.r9-command-stats small{color:var(--r9-text-muted)}.r9-command-stats b{font-size:26px}
 @media(max-width:820px){.r9-admin-command{align-items:flex-start;flex-direction:column;padding:20px}.r9-command-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* R9.1 Tarneeb clarity: request, bidder, per-seat last card and round gains stay readable. */
+.r91-tarneeb-clarity-grid{grid-template-columns:repeat(4,minmax(112px,1fr));max-width:min(96%,920px)}
+.r91-status-hot{border-color:color-mix(in srgb,var(--r9-accent,#d7b45a) 54%,transparent)!important;box-shadow:0 8px 28px rgba(0,0,0,.18),inset 0 0 24px rgba(215,180,90,.06)}
+.r91-status-hot b{font-size:15px!important;color:var(--r9-accent,#f1d48a)}
+.r91-seat-round-stats,.r91-last-card{display:flex;gap:5px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:5px;font-size:9px;color:rgba(255,255,255,.76)}
+.r91-seat-round-stats span,.r91-last-card{padding:3px 6px;border-radius:8px;background:rgba(2,6,23,.72);border:1px solid rgba(255,255,255,.08)}
+.r91-seat-round-stats b,.r91-last-card b{color:#f8e7b0;font-size:10px}
+.r91-last-card{flex-direction:column;gap:1px;line-height:1.1}.r91-last-card small{font-size:8px;opacity:.72}
+.tarneeb-request-meta-r91{display:grid;gap:3px;padding:8px!important;border:1px solid rgba(241,212,138,.28)!important;background:rgba(241,212,138,.055)!important}.tarneeb-request-meta-r91>b{font-size:18px;color:#f8e7b0}.tarneeb-request-meta-r91 strong{color:#fff}
+@media(max-width:900px){.r91-tarneeb-clarity-grid{grid-template-columns:repeat(2,minmax(105px,1fr))}.r91-status-hot b{font-size:13px!important}}
+
+
+/* R9.1 premium XP boosters: shield silhouette, restrained pulse and color identity. */
+.booster-lux-r91{position:relative;display:grid;place-items:center;min-height:170px;isolation:isolate}
+.booster-lux-r91::before{content:"";position:absolute;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,var(--boost-color,#f59e0b) 0%,transparent 68%);opacity:.22;filter:blur(10px);animation:r91BoosterBreath 2.8s ease-in-out infinite alternate;z-index:-1}
+.booster-lux-r91__shield{width:112px;height:128px;clip-path:polygon(50% 0,92% 17%,84% 72%,50% 100%,16% 72%,8% 17%);background:linear-gradient(145deg,color-mix(in srgb,var(--boost-color,#f59e0b) 88%,white),var(--boost-color,#f59e0b) 48%,#071019);display:grid;grid-template-rows:auto auto 1fr;place-items:center;padding:16px 12px 22px;border:1px solid #ffffff55;filter:drop-shadow(0 12px 18px #0008) drop-shadow(0 0 16px color-mix(in srgb,var(--boost-color,#f59e0b) 35%,transparent));animation:r91BoosterFloat 3.2s ease-in-out infinite alternate}
+.booster-lux-r91__shield span{font-size:20px;color:white}.booster-lux-r91__shield b{font-size:9px;letter-spacing:1.2px;color:white}.booster-lux-r91__shield i{font-style:normal;font-size:38px;filter:drop-shadow(0 5px 7px #0009)}
+.booster-lux-r91 strong{margin-top:-18px;z-index:2;border:1px solid color-mix(in srgb,var(--boost-color,#f59e0b) 75%,white);background:#061019ee;color:#fff;border-radius:999px;padding:7px 14px;font-size:14px;box-shadow:0 0 16px color-mix(in srgb,var(--boost-color,#f59e0b) 28%,transparent)}
+@keyframes r91BoosterBreath{to{transform:scale(1.08);opacity:.32}}@keyframes r91BoosterFloat{to{transform:translateY(-4px) rotate(.6deg)}}
+@media (prefers-reduced-motion:reduce){.booster-lux-r91::before,.booster-lux-r91__shield{animation:none}}

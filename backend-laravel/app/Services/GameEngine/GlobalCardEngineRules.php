@@ -147,6 +147,9 @@ class GlobalCardEngineRules implements GameRuleContract
             }
         }
         $score=$this->score($g,$players);
+        $lastPlayedByPlayer=$this->lastPlayedByPlayer($g,$players);
+        [$lastRoundTeamDelta,$lastRoundPlayerDelta]=$this->lastRoundDeltas($g,$players);
+        $seatTricks=$this->seatTricks($g,$players);
         $phase=$this->mapPhase((string)($g['phase'] ?? 'playing'));
         if(!empty($g['gameOver'])) $phase='finished';
         $out=[
@@ -166,7 +169,11 @@ class GlobalCardEngineRules implements GameRuleContract
             'contract'=>$g['contract'] ?? null,
             'trick'=>$trick,
             'last_trick'=>$last,
+            'last_played_by_player'=>$lastPlayedByPlayer,
             'round_tricks'=>$this->roundTricks($g,$players),
+            'seat_tricks'=>$seatTricks,
+            'last_round_score_delta'=>$lastRoundTeamDelta,
+            'player_round_score_delta'=>$lastRoundPlayerDelta,
             'score'=>$score,
             'individual_scores'=>!empty($g['config']['individualScores']) ? ($g['scores'] ?? []) : null,
             'target'=>(int)($g['config']['targetScore'] ?? $this->defaultTarget($this->key)),
@@ -284,6 +291,62 @@ class GlobalCardEngineRules implements GameRuleContract
     private function toLongSuit(string $s): string { $s=strtoupper(trim($s)); return match($s){'C'=>'clubs','D'=>'diamonds','S'=>'spades','H'=>'hearts',default=>strtolower($s)}; }
     private function teams(array $players): array { return ['teamA'=>array_values(array_filter([$players[0]??null,$players[2]??null])),'teamB'=>array_values(array_filter([$players[1]??null,$players[3]??null]))]; }
     private function teamOf(array $g,string $pid): string { foreach($g['players'] ?? [] as $p) if(($p['id'] ?? '')===$pid) return ((int)($p['team'] ?? 0))===0?'teamA':'teamB'; return 'teamA'; }
+    /** @return array<string,string> */
+    private function lastPlayedByPlayer(array $g,array $players): array
+    {
+        $out=array_fill_keys($players,'');
+        foreach(array_reverse($g['events'] ?? []) as $event){
+            if(($event['type'] ?? '')!=='card.played') continue;
+            $pid=(string)($event['data']['playerId'] ?? '');
+            $card=(string)($event['data']['card'] ?? '');
+            if($pid!=='' && $card!=='' && array_key_exists($pid,$out) && $out[$pid]==='') $out[$pid]=$this->toLongCard($card);
+            if(!in_array('',array_values($out),true)) break;
+        }
+        return array_filter($out,fn($v)=>$v!=='');
+    }
+
+    /** @return array{0:array<string,int|float>,1:array<string,int|float>} */
+    private function lastRoundDeltas(array $g,array $players): array
+    {
+        $rounds=[];
+        foreach($g['events'] ?? [] as $event){
+            if(($event['type'] ?? '')==='round.scored' && is_array($event['data']['scores'] ?? null)) $rounds[]=(array)$event['data']['scores'];
+        }
+        if(!$rounds) return [['teamA'=>0,'teamB'=>0],array_fill_keys($players,0)];
+        $last=$rounds[count($rounds)-1];
+        $prev=count($rounds)>1?$rounds[count($rounds)-2]:[];
+        $raw=[];
+        foreach($last as $key=>$value) $raw[(string)$key]=(float)$value-(float)($prev[$key] ?? 0);
+        $player=array_fill_keys($players,0);
+        if(!empty($g['config']['individualScores'])){
+            foreach($players as $pid) $player[$pid]=$raw[$pid] ?? 0;
+            $team=['teamA'=>(float)($player[$players[0]??'']??0)+(float)($player[$players[2]??'']??0),'teamB'=>(float)($player[$players[1]??'']??0)+(float)($player[$players[3]??'']??0)];
+            return [$team,$player];
+        }
+        $teamA=(float)($raw['0'] ?? $raw['teamA'] ?? 0); $teamB=(float)($raw['1'] ?? $raw['teamB'] ?? 0);
+        foreach($players as $index=>$pid) $player[$pid]=$index%2===0?$teamA:$teamB;
+        return [['teamA'=>$teamA,'teamB'=>$teamB],$player];
+    }
+
+    /** @return array<string,int> */
+    private function seatTricks(array $g,array $players): array
+    {
+        $result=array_fill_keys($players,0);
+        if(!empty($g['config']['individualScores'])){
+            foreach($players as $pid) $result[$pid]=(int)($g['tricksWon'][$pid] ?? 0);
+            return $result;
+        }
+        $events=$g['events'] ?? [];
+        $start=0;
+        foreach($events as $i=>$event) if(($event['type'] ?? '')==='round.started') $start=$i+1;
+        foreach(array_slice($events,$start) as $event){
+            if(($event['type'] ?? '')!=='trick.won') continue;
+            $winner=(string)($event['data']['winner'] ?? '');
+            if(array_key_exists($winner,$result)) $result[$winner]++;
+        }
+        return $result;
+    }
+
     private function score(array $g,array $players): array
     {
         $scores=$g['scores'] ?? [];

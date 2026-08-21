@@ -142,14 +142,30 @@ class TarneebRules implements GameRuleContract
             $pid=$players[(int)($play['seat'] ?? -1)] ?? null;
             if($pid) $trick[$pid]=$this->toLongCard((string)($play['card'] ?? ''));
         }
+        // R9.1 gameplay clarity: expose the last card played by every seat,
+        // including the current trick, plus each player's won-trick count.
         $last=[];
+        $seatTricks=[];
+        foreach($players as $pid) $seatTricks[$pid]=0;
         $completed=$s['completedTricks'] ?? [];
-        if(!empty($completed)){
-            $cards=end($completed)['cards'] ?? [];
-            foreach($cards as $play){
+        foreach($completed as $completedTrick){
+            $winnerSeat=(int)($completedTrick['winnerSeat'] ?? -1);
+            if(isset($players[$winnerSeat])) $seatTricks[$players[$winnerSeat]]=(int)($seatTricks[$players[$winnerSeat]] ?? 0)+1;
+            foreach((array)($completedTrick['cards'] ?? []) as $play){
                 $pid=$players[(int)($play['seat'] ?? -1)] ?? null;
                 if($pid) $last[$pid]=$this->toLongCard((string)($play['card'] ?? ''));
             }
+        }
+        foreach((array)($s['trick'] ?? []) as $play){
+            $pid=$players[(int)($play['seat'] ?? -1)] ?? null;
+            if($pid) $last[$pid]=$this->toLongCard((string)($play['card'] ?? ''));
+        }
+        $lastRoundDelta=[0=>0,1=>0];
+        foreach(array_reverse((array)($s['events'] ?? [])) as $event){
+            if(($event['type'] ?? '')!=='round_scored') continue;
+            $delta=(array)($event['data']['delta'] ?? []);
+            $lastRoundDelta=[0=>(int)($delta[0] ?? 0),1=>(int)($delta[1] ?? 0)];
+            break;
         }
         $phase=$s['phase'] ?? 'bidding';
         if($phase==='round_end') $phase='finished';
@@ -172,6 +188,10 @@ class TarneebRules implements GameRuleContract
             'lead_player'=>!empty($s['trick']) ? ($players[(int)($s['trick'][0]['seat'] ?? 0)] ?? null) : null,
             'trick'=>$trick,
             'last_trick'=>$last,
+            'last_played_by_player'=>$last,
+            'seat_tricks'=>$seatTricks,
+            'last_round_score_delta'=>['teamA'=>$lastRoundDelta[0],'teamB'=>$lastRoundDelta[1]],
+            'player_round_score_delta'=>array_combine($players,array_map(fn($i)=>$i%2===0?$lastRoundDelta[0]:$lastRoundDelta[1],array_keys($players))),
             'round_tricks'=>[
                 'teamA'=>(int)($s['roundTricks'][0] ?? 0),
                 'teamB'=>(int)($s['roundTricks'][1] ?? 0),

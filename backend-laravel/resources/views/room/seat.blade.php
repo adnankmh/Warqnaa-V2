@@ -7,11 +7,22 @@ $avatar = $p ? ($p->is_bot ? bot_avatar_url($p->bot_key, (int)($p->id ?? 1)) : (
 $frame = $p?->user?->profile?->active_name_frame ?: ($p?->is_bot ? 'glow-ocean' : 'glow-gold');
 $countryCode = $p?->user?->profile?->country_code ?? 'PS';
 $isSeatedInRoom = $room->players->where('user_id',auth()->id())->count() > 0;
+$seatState = (array)($room->state ?? []);
+$lastPlayed = (array)($seatState['last_played_by_player'] ?? []);
+$seatTricksMap = (array)($seatState['seat_tricks'] ?? []);
+$lastRoundDeltaMap = (array)($seatState['last_round_score_delta'] ?? []);
+$playerRoundDeltaMap = (array)($seatState['player_round_score_delta'] ?? []);
+$playerTricks = (int)($seatTricksMap[$key] ?? 0);
+$teamKey = in_array($p?->seat,['south','west'],true) ? 'teamA' : 'teamB';
+$playerRoundDelta = (int)($playerRoundDeltaMap[$key] ?? $lastRoundDeltaMap[$teamKey] ?? 0);
+$playerRoundDeltaLabel = ($playerRoundDelta > 0 ? '+' : '').$playerRoundDelta;
+$lastCardCode = (string)($lastPlayed[$key] ?? '');
+$prettyLastCard = $lastCardCode ? str_replace(['hearts','diamonds','spades','clubs','-'],['♥','♦','♠','♣',' '],$lastCardCode) : '—';
 @endphp
 @if($p)
  <div class="seat-box {{$p->is_bot ? 'bot-box' : 'human-box'}}">
   <button type="button" class="seat-profile player-glow {{$frame}} {{$p->is_bot ? 'bot-seat' : 'human-seat'}} {{$isTurn ? 'is-turn' : ''}}" data-player-key="{{$key}}" style="--player-color:{{$color}}" @if(!$p->is_bot && $p->user_id) onclick="openProfile({{$p->user_id}})" @endif>
-   <span class="player-ring"><img src="{{$avatar}}" alt="avatar"></span>
+   <span class="player-ring"><img loading="lazy" decoding="async" src="{{$avatar}}" alt="avatar"></span>
    <span class="player-name" style="color:{{$color}}">{{$p->user?->username ?: $p->bot_key}}</span>
    <small>@if($p->user){!! flag_img($countryCode) !!} {{country_name($countryCode)}} @else 🤖 BOT جاهز @endif • {{$seatName ?? $p->seat}} @if(!$p->connected) • منقطع @endif</small>
   </button>
@@ -33,11 +44,13 @@ $isSeatedInRoom = $room->players->where('user_id',auth()->id())->count() > 0;
     @endif
    </div>
   @endif
+  <div class="r91-seat-round-stats"><span>{{app()->getLocale()==='ar' ? 'لمات اللاعب' : 'Player tricks'}} <b>{{$playerTricks}}</b></span><span>{{app()->getLocale()==='ar' ? 'نقاط الجولة' : 'Round points'}} <b>{{$playerRoundDeltaLabel}}</b></span></div>
+  <div class="r91-last-card"><small>{{app()->getLocale()==='ar' ? 'آخر كرت لعبه' : 'Last card played'}}</small><b>{{$prettyLastCard}}</b></div>
   <div class="seat-played-card" data-player-key="{{$key}}"></div>
  </div>
 @else
  <div class="empty-seat bot-placeholder">
-  <span class="player-ring"><img src="{{ bot_avatar_url('معتصم',1) }}" alt="bot"></span><b>مقعد فارغ</b><small>{{$seatName ?? ''}}</small>
+  <span class="player-ring"><img loading="lazy" decoding="async" src="{{ bot_avatar_url('معتصم',1) }}" alt="bot"></span><b>مقعد فارغ</b><small>{{$seatName ?? ''}}</small>
   @unless($isSeatedInRoom)<form method="post" action="{{route('rooms.join',$room->code)}}">@csrf<input type="hidden" name="seat" value="{{$seat ?? ''}}"><button type="submit">اجلس هنا</button></form>@else<small class="seat-locked-v136">تم اختيار مقعدك، لا يمكن تغيير المكان داخل نفس اللعبة.</small>@endunless
  </div>
 @endif

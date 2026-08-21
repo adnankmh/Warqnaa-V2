@@ -7,16 +7,10 @@ $copy=[
   'pasha'=>'أيام الباشا','table'=>'الطاولات','card_back'=>'ظهر الورق','text_color'=>'ألوان الكتابة','name_color'=>'ألوان الأسماء','emoji_pack'=>'الإيموجي','badge'=>'الشارات','effect'=>'المؤثرات والثيمات','profile_cover'=>'أغلفة البروفايل','competition_ticket'=>'تذاكر المنافسات','xp_booster'=>'مسرعات XP','inventory'=>'مشترياتي','all'=>'الكل','beginner'=>'مبتدئ','medium'=>'متوسط','featured'=>'مميز','pro'=>'محترف','legendary'=>'أسطوري','animated'=>'متحرك','free'=>'مجاني','laugh'=>'ضحك','happy'=>'فرح','angry'=>'غضب','sad'=>'حزن','vip'=>'VIP'],
  'en'=>[
   'pasha'=>'Pasha Days','table'=>'Tables','card_back'=>'Card Backs','text_color'=>'Chat Colors','name_color'=>'Name & Glow','emoji_pack'=>'Emojis','badge'=>'Badges','effect'=>'Effects & Themes','profile_cover'=>'Profile Covers','competition_ticket'=>'Competition Tickets','xp_booster'=>'XP Boosters','inventory'=>'My Items','all'=>'All','beginner'=>'Beginner','medium'=>'Medium','featured'=>'Featured','pro'=>'Professional','legendary'=>'Legendary','animated'=>'Animated','free'=>'Free','laugh'=>'Laugh','happy'=>'Happy','angry'=>'Angry','sad'=>'Sad','vip'=>'VIP'],
- 'fr'=>[
-  'pasha'=>'Jours Pacha','table'=>'Tables','card_back'=>'Dos de cartes','text_color'=>'Couleurs du chat','name_color'=>'Nom et halo','emoji_pack'=>'Émojis','badge'=>'Badges','effect'=>'Effets et thèmes','profile_cover'=>'Couvertures de profil','competition_ticket'=>'Billets de compétition','xp_booster'=>'Boosters XP','inventory'=>'Mes objets','all'=>'Tout','beginner'=>'Débutant','medium'=>'Moyen','featured'=>'En vedette','pro'=>'Professionnel','legendary'=>'Légendaire','animated'=>'Animé','free'=>'Gratuit','laugh'=>'Rire','happy'=>'Joie','angry'=>'Colère','sad'=>'Triste','vip'=>'VIP'],
- 'tr'=>[
-  'pasha'=>'Paşa Günleri','table'=>'Masalar','card_back'=>'Kart Arkaları','text_color'=>'Sohbet Renkleri','name_color'=>'İsim ve Parıltı','emoji_pack'=>'Emojiler','badge'=>'Rozetler','effect'=>'Efektler ve Temalar','profile_cover'=>'Profil Kapakları','competition_ticket'=>'Yarışma Biletleri','xp_booster'=>'XP Hızlandırıcıları','inventory'=>'Eşyalarım','all'=>'Tümü','beginner'=>'Başlangıç','medium'=>'Orta','featured'=>'Öne Çıkan','pro'=>'Profesyonel','legendary'=>'Efsanevi','animated'=>'Animasyonlu','free'=>'Ücretsiz','laugh'=>'Kahkaha','happy'=>'Mutlu','angry'=>'Kızgın','sad'=>'Üzgün','vip'=>'VIP'],
- 'de'=>[
-  'pasha'=>'Pasha-Tage','table'=>'Tische','card_back'=>'Kartenrückseiten','text_color'=>'Chatfarben','name_color'=>'Name & Glow','emoji_pack'=>'Emojis','badge'=>'Abzeichen','effect'=>'Effekte & Themes','profile_cover'=>'Profil-Cover','competition_ticket'=>'Wettbewerbstickets','xp_booster'=>'XP-Booster','inventory'=>'Meine Items','all'=>'Alle','beginner'=>'Anfänger','medium'=>'Mittel','featured'=>'Empfohlen','pro'=>'Profi','legendary'=>'Legendär','animated'=>'Animiert','free'=>'Gratis','laugh'=>'Lachen','happy'=>'Freude','angry'=>'Wut','sad'=>'Traurig','vip'=>'VIP'],
- 'es'=>[
-  'pasha'=>'Días Pasha','table'=>'Mesas','card_back'=>'Dorsos de cartas','text_color'=>'Colores del chat','name_color'=>'Nombre y brillo','emoji_pack'=>'Emojis','badge'=>'Insignias','effect'=>'Efectos y temas','profile_cover'=>'Portadas de perfil','competition_ticket'=>'Entradas de competición','xp_booster'=>'Potenciadores XP','inventory'=>'Mis objetos','all'=>'Todo','beginner'=>'Principiante','medium'=>'Medio','featured'=>'Destacado','pro'=>'Profesional','legendary'=>'Legendario','animated'=>'Animado','free'=>'Gratis','laugh'=>'Risa','happy'=>'Feliz','angry'=>'Enojo','sad'=>'Triste','vip'=>'VIP'],
 ];
-$t=$copy[$locale] ?? $copy['en'];
+$locale=in_array($locale,['ar','en'],true)?$locale:'en';
+$t=$copy[$locale];
+$isAr=$locale==='ar';
 $labels=[];
 foreach(['pasha','table','card_back','text_color','name_color','emoji_pack','badge','effect','profile_cover','competition_ticket','xp_booster','inventory'] as $key) $labels[$key]=$t[$key];
 $icons=['pasha'=>'👑','table'=>'🟩','card_back'=>'🂠','text_color'=>'✍️','name_color'=>'🌈','emoji_pack'=>'😄','badge'=>'🏅','effect'=>'✨','profile_cover'=>'🖼️','competition_ticket'=>'🎟️','xp_booster'=>'🚀','inventory'=>'🎒'];
@@ -29,12 +23,24 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 <section class="store-separated-v127" id="storeV127" data-warqna-store-contract="v158">
  <header class="store-separated-hero-v127">
   <div>
-   <span class="v127-kicker">Warqna Store</span>
-   <h1>متجر ورقنا المنظم</h1>
-   <p>كل قسم منفصل لوحده: الباشا وحده، الطاولات وحدها، ظهر الورق وحده، الألوان وحدها، الإيموجي وحده، والمشتريات وحدها.</p>
+   <span class="v127-kicker">Warqnaa Store</span>
+   <h1>{{ $isAr ? 'متجر ورقنا الفاخر' : 'Warqnaa Premium Store' }}</h1>
+   <p>{{ $isAr ? 'كل فئة منظمة بوضوح مع معاينات حقيقية وأسعار اقتصاد R9.1 الجديد.' : 'Every category is clearly organized with live previews and the new R9.1 economy pricing.' }}</p>
   </div>
-  <div class="store-wallet-v127"><b>🪙 {{ token_display(auth()->user()) }}</b><span>رصيدك</span></div>
+  <div class="store-wallet-v127"><b>🪙 {{ token_display(auth()->user()) }}</b><span>{{ $isAr ? 'رصيدك' : 'Balance' }}</span></div>
  </header>
+
+ @if(!empty($commerceOffers) || !empty($commerceCatalog['packages']))
+ <section class="pro-card r101-web-commerce" style="margin:14px 0">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span class="v127-kicker">R10.1 LIVE ECONOMY</span><h2>{{ $isAr?'العروض والشراء الحقيقي':'Offers & real-money store' }}</h2><p>{{ $isAr?'الدفع الحقيقي لا يمنح أي رصيد إلا بعد تحقق الخادم من الإيصال.':'Paid rewards are granted only after server-side receipt verification.' }}</p></div><span class="btn">🔒 Receipt verified</span></div>
+  <div class="r101-commerce-grid">
+   @foreach(($commerceCatalog['packages'] ?? []) as $pack)
+    <div class="r101-commerce-stat"><small>{{$pack['badge'] ?? 'PACK'}}</small><b>{{$pack['icon'] ?? '🪙'}} {{number_format($pack['tokens'] ?? 0)}} {{ $isAr?'توكن':'Tokens' }}</b><span>{{($pack['currency'] ?? 'USD')}} {{number_format(($pack['price_minor'] ?? 0)/100,2)}}</span></div>
+   @endforeach
+  </div>
+  @if(($commerceOffers ?? collect())->isNotEmpty())<div class="r101-offer-list" style="margin-top:12px">@foreach($commerceOffers as $offer)<div class="r101-offer-row"><div><b>{{$offer->title[$locale] ?? $offer->title['en'] ?? $offer->key}}</b><small style="display:block">{{$offer->description[$locale] ?? ''}}</small></div><span class="btn">-{{$offer->discount_percent}}%</span></div>@endforeach</div>@endif
+ </section>
+ @endif
 
  <nav class="store-category-tabs-v127">
   @foreach($labels as $key=>$label)
@@ -130,16 +136,16 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         @csrf
         <div class="product-preview-v127 type-{{$cat}}" style="--item-color:{{$color}};--item-color2:{{$color2}};--item-pattern:{{$pattern}}">
          @if($cat==='table')
-          <div class="product-table-v127 table-real-preview-v128 {{$payload['table_class'] ?? $payload['table'] ?? ''}}" @if($assetUrl) style="background-image:linear-gradient(#0003,#0005),url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$emblem}}</i></div>
+          <div class="product-table-v127 table-real-preview-v128 r101-inlay {{$payload['table_class'] ?? $payload['table'] ?? ''}}" @if($assetUrl) style="--r101-table-art:url('{{$assetUrl}}')" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
          @elseif($cat==='card_back')
           <div class="product-cardback-v127 cardback-real-preview-v128 {{$payload['card_back_class'] ?? $payload['card_back'] ?? ''}}" @if($assetUrl) style="background-image:url('{{$assetUrl}}');background-size:cover;background-position:center" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
          @elseif($cat==='emoji_pack')
           <div class="emoji-store-icon product-emoji-v127">{{ $payload['emojis'] ?? $previewIcon }}</div>
          @elseif($cat==='xp_booster')
-          <div class="product-rocket-v127">🚀</div>
+          <div class="booster-lux-r91" style="--boost-color:{{$color}}"><div class="booster-lux-r91__shield"><span>⚡</span><b>WARQNAA</b><i>🚀</i></div><strong>×{{ $payload['multiplier'] ?? '1.5' }} XP</strong></div>
          @elseif($cat==='name_color')
           <div class="name-color-live-preview-v136" style="--sample-color:{{$color}}">
-           <img src="{{ auth()->user()?->profile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
+           <img loading="lazy" decoding="async" src="{{ auth()->user()?->profile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
            <b>{{ auth()->user()?->profile?->display_name ?: auth()->user()?->username }}</b>
            <small>معاينة لون الاسم مباشرة</small>
           </div>
@@ -154,7 +160,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
          <p>{{ $item->description['ar'] ?? 'مقتنى فاخر داخل Warqnaa' }}</p>
         </div>
         <div class="product-actions-v127">
-         <span class="price">@if($cat==='pasha')<img class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($item->price) }}</span>
+         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($item->price) }}</span>
          @unless($cat==='pasha')<button type="button" onclick="previewStoreItem(this)">معاينة</button>@endunless
          <button class="primary" type="submit">شراء</button>
         </div>

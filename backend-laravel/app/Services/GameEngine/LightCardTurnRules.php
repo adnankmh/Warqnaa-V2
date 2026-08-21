@@ -9,13 +9,10 @@ class LightCardTurnRules implements GameRuleContract
     public function initialState(array $players, array $options=[]): array
     {
         $players=array_values($players);
-        $deck=DeckFactory::standard52(true);
-        $hands=[]; foreach($players as $p)$hands[$p]=[];
         $cardsEach=(int)($options['cards_each'] ?? 7);
-        for($i=0;$i<$cardsEach;$i++){
-            foreach($players as $p){ if($deck) $hands[$p][]=array_shift($deck)->id(); }
-        }
-        foreach($hands as $p=>$h)$hands[$p]=$this->sortCards($h);
+        $balanced=DeckFactory::balancedDeal($players,$cardsEach);
+        $hands=[]; foreach($balanced['hands'] as $p=>$cards)$hands[$p]=$this->sortCards(array_map(fn($c)=>$c->id(),$cards));
+        $deck=$balanced['deck'];
         $discard=[]; if($deck) $discard[]=array_shift($deck)->id();
         $top=end($discard) ?: null;
         return [

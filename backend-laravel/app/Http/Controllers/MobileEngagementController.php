@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{AdminDesignerEntity,ChallengeDefinition,CompetitionTicket,DailyPackClaim,PrizeBox,Tournament};
-use App\Services\WarqnaPro\{ChallengeService,CompetitionService,DailyPackService,LuckyWheelService,PrizeBoxService,LiveOpsService};
+use App\Services\WarqnaPro\{ChallengeService,ChallengeRoadService,CompetitionService,DailyPackService,LuckyWheelService,PrizeBoxService,LiveOpsService};
 use Illuminate\Http\Request;
 use RuntimeException;
 
@@ -21,6 +21,7 @@ class MobileEngagementController extends Controller
             'lucky_wheel'=>$wheel->center($user),
             'inventory'=>$user->inventoryItems()->with('storeItem')->latest()->limit(200)->get(),
             'challenges'=>$challenges->center($user),
+            'challenge_road'=>app(ChallengeRoadService::class)->state($user),
             'competitions'=>Tournament::whereIn('status', ['open','running'])->withCount('entries')->orderByDesc('featured')->orderBy('starts_at')->get(),
             'designer'=>AdminDesignerEntity::where('active', true)->orderBy('entity_type')->orderBy('sort_order')->get()->groupBy('entity_type'),
             'champion_rank_points'=>(int)($user->profile?->champion_rank_points ?? 0),
@@ -88,6 +89,21 @@ class MobileEngagementController extends Controller
         return response()->json(['ok'=>true,'message'=>'تم تفعيل التحدي','challenge'=>$challenges->activate($request->user(), $challengeKey)]);
     }
 
+    public function startChallengeRoad(Request $request, ChallengeRoadService $roads)
+    {
+        $data=$request->validate(['game'=>'required|string|max:80','stages'=>'required|integer|in:10,12,15']);
+        try{$road=$roads->start($request->user(),(string)$data['game'],(int)$data['stages']);}
+        catch(RuntimeException $e){return response()->json(['ok'=>false,'message'=>$e->getMessage()],409);}
+        return response()->json(['ok'=>true,'message'=>'تم بدء مسار التحدي بخمس محاولات.','road'=>$road]);
+    }
+
+    public function matchmakeChallengeRoad(Request $request, ChallengeRoadService $roads)
+    {
+        try{$result=$roads->matchmake($request->user());}
+        catch(RuntimeException $e){return response()->json(['ok'=>false,'message'=>$e->getMessage()],409);}
+        return response()->json(['ok'=>true,'message'=>'تم اختيار منافس وبدء المرحلة.','match'=>$result]);
+    }
+
     public function claimChallenge(Request $request, string $challengeKey, ChallengeService $challenges)
     {
         try {
@@ -113,6 +129,20 @@ class MobileEngagementController extends Controller
             'tickets'=>$this->tickets($request->user()->id),
             'wallet'=>$this->walletPayload($request->user()->fresh()),
             'rank_points'=>(int)($request->user()->profile?->champion_rank_points ?? 0),
+        ]);
+    }
+
+    public function leaveCompetition(Request $request, string $competitionKey, CompetitionService $competitions)
+    {
+        try {
+            $result = $competitions->leave($request->user(), $competitionKey);
+        } catch (RuntimeException $e) {
+            return response()->json(['ok'=>false,'message'=>$e->getMessage()], 422);
+        }
+        return response()->json([
+            'ok'=>true,
+            'message'=>$result['return_allowed'] ? 'تم الخروج ويمكنك العودة إلى نفس المنافسة.' : 'تم الخروج للمرة الخامسة ولن تستطيع العودة إلى هذه المنافسة.',
+            ...$result,
         ]);
     }
 

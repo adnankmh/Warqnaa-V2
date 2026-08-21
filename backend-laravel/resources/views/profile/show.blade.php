@@ -5,7 +5,7 @@
  <div class="profile-edit-card">
   <h1>تعديل البروفايل</h1>
   <div class="profile-edit-preview">
-   <img class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">
+   <img loading="lazy" decoding="async" class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">
    <div><h2>{{$profile?->display_name ?: $user->username}}</h2><div id="countryPreviewBig">{!! flag_img($code,'flag-img flag-small') !!} <b>{{country_name($code)}}</b></div></div>
   </div>
   @php $xp=(int)($profile?->xp ?? 0); $level=(int)($profile?->level ?? 1); $next=app(\App\Services\Leveling\XpService::class)->requiredXp($level); $need=max(0,$next-$xp); $percent=$next?min(100,round(($xp/$next)*100)):0; @endphp

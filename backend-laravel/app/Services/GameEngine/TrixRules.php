@@ -5,7 +5,7 @@ class TrixRules extends AbstractCardRules
 {
     public function initialState(array $players, array $options=[]): array
     {
-        $players=array_values($players); $deck=DeckFactory::standard52(true); [$hands,$deck]=$this->deal($players,$deck,13);
+        $players=array_values($players); $balanced=DeckFactory::balancedHands($players,13); $hands=[]; foreach($balanced as $p=>$cards)$hands[$p]=$this->sortCards(array_map(fn($c)=>$c->id(),$cards)); $deck=[];
         $partner=!empty($options['partners']);
         return ['phase'=>'choose_contract','game_type'=>$partner?'trix_partner':'trix','players'=>$players,'teams'=>$this->teams($players),'turn'=>$players[0]??null,'hands'=>$hands,'contract'=>null,'available_contracts'=>['king_hearts','queens','diamonds','hearts','tricks','trix'],'trick'=>[],'last_trick'=>[],'round_tricks'=>array_fill_keys($players,0),'score'=>$partner?['teamA'=>0,'teamB'=>0]:array_fill_keys($players,0),'messages'=>['تركس: اختر عقد المملكة ثم العب مع إلزام اتباع النوع. العقود السلبية تحسب عقوبات، وعقد تركس يحسب حسب ترتيب التخلص من الورق.']];
     }

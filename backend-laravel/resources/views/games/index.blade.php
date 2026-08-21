@@ -9,9 +9,9 @@ $featured=['tarneeb','hand','trix_complex','baloot','domino','ludo','jackaroo','
 <section class="wz-lobby-v130" id="wzLobbyV130">
  <header class="wz-lobby-hero-v130">
   <div class="hero-copy-v130">
-   <span>Warqna Pro Lobby</span>
-   <h1>صالة ألعاب فخمة وسريعة</h1>
-   <p>كل الألعاب مرتبة داخل شاشة واحدة بدون طفح، مع بحث سريع وتصنيفات ومحركات لعب جاهزة.</p>
+   <span>Warqnaa Game Hall</span>
+   <h1>صالة ألعاب حديثة بهوية خاصة لكل لعبة</h1>
+   <p>الألعاب الجاهزة فقط تظهر للمستخدم، ولكل لعبة صورة أصلية حديثة وواضحة مع دخول سريع وبحث منظم.</p>
   </div>
   <div class="hero-actions-v130">
    <a class="primary" href="{{ route('store') }}">💎 المتجر</a>
@@ -45,7 +45,7 @@ $featured=['tarneeb','hand','trix_complex','baloot','domino','ludo','jackaroo','
       data-family="{{$family}}"
       data-name="{{ strtolower($game->key.' '.($game->name['ar'] ?? '').' '.($game->name['en'] ?? '').' '.$engine) }}"
       href="{{ route('rooms.index',$game->key) }}">
-    <span class="game-orb-v130">{{$icon}}</span>
+    <div class="r101-game-art"><img loading="lazy" decoding="async" src="{{ game_art_url($game->key) }}" alt="{{ $game->name[app()->getLocale()] ?? $game->key }}"></div>
     <strong>{{ $game->name['ar'] ?? $game->key }}</strong>
     <small>{{ $game->min_players }}-{{ $game->max_players }} لاعبين • {{ $game->partnership ? 'شراكة' : 'فردي' }}</small>
     <em>{{ $engine }}</em>

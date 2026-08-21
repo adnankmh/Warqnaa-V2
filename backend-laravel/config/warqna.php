@@ -1,7 +1,7 @@
 <?php
 return [
-    'version' => env('WARQNA_VERSION', '0.4.9'),
-    'build' => (int) env('WARQNA_BUILD', 209),
+    'version' => env('WARQNA_VERSION', '0.5.1'),
+    'build' => (int) env('WARQNA_BUILD', 221),
     'frontend_url' => env('FRONTEND_URL', 'http://127.0.0.1:8088'),
     'support_email' => env('SUPPORT_EMAIL', 'support@warqna.example'),
     'support_url' => env('SUPPORT_URL', '/legal/support'),

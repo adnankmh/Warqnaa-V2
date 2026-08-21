@@ -8,15 +8,21 @@ def ok(cond,msg):
         print('[FAIL]',msg); raise SystemExit(1)
     print('[PASS]',msg)
 meta=json.loads(read('RELEASE_VERSION.json'))
-ok(meta.get('full')=='0.4.9+209' and meta.get('build')==209,'R9 release metadata is 0.4.9+209')
+build=int(meta.get('build',0))
+ok(build >= 209,'R9 foundation is preserved at build 209 or newer')
 main=read('flutter_app/lib/main.dart')
 ok("Locale('ar')" in main and "Locale('en')" in main and "Locale('de')" not in main and "Locale('tr')" not in main and "Locale('fr')" not in main and "Locale('es')" not in main,'Flutter product locales are Arabic and English only')
-ok("R9Design.theme" in main and "R9HomeDashboard" in main,'Flutter uses R9 design system and lobby')
+r101 = read('flutter_app/lib/r10_1_release.dart') if (ROOT/'flutter_app/lib/r10_1_release.dart').is_file() else ''
+uses_r9_direct = "R9Design.theme" in main
+uses_r101_wrapper = build >= 221 and 'theme: r101Theme(' in main and 'R9Design.theme' in r101
+ok((uses_r9_direct or uses_r101_wrapper) and "R9HomeDashboard" in main,'Flutter preserves R9 design system foundation and lobby')
 ok('final palette = AppPalette.fromCode(controller.themeCode);' not in main,'R9 app shell has no stale unused palette local')
 ok("part 'r9_release.dart';" in main,'R9 Flutter release module is wired')
 r9=read('flutter_app/lib/r9_release.dart')
 ok('final accent = Theme.of(context).colorScheme.primary;' not in r9,'R9 lobby has no stale unused accent local')
-ok('aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'BoxFit.cover' in r9,'R9 table previews are portrait/landscape and full-cover')
+legacy_table_preview = 'aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'BoxFit.cover' in r9
+r101_table_preview = build >= 221 and 'aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'FractionallySizedBox' in r9 and 'BoxFit.contain' in r9
+ok(legacy_table_preview or r101_table_preview,'R9 directional table preview foundation is preserved (R10.1 may use proportional artwork inlay)')
 ok('Live lobby • R9' in r9 and 'العب الآن' in r9,'R9 home lobby exists')
 layout=read('backend-laravel/resources/views/layouts/app.blade.php')
 ok('r9-design-system.css' in layout and 'warqna-r9' in layout,'Laravel loads R9 design system')

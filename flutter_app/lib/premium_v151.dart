@@ -73,18 +73,18 @@ const List<String> v151AccentColors = <String>[
 ];
 
 Future<void> confirmLeaveGameV151(BuildContext context, AppController controller, String gameId) async {
-  final current = controller.exitsForGame(gameId);
+  final current = controller.exitsForRoomV210(controller.activeRoomCode, gameId);
   final confirmed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('تأكيد الخروج من اللعبة'),
-          content: Text('استخدمت $current من أصل 3 مغادرات. بعد المرة الثالثة لن تتمكن من العودة إلى الجلسة نفسها.\n\nهل تريد الخروج الآن؟'),
+          title: Text(controller.localeCode == 'ar' ? 'تأكيد الخروج من اللعبة' : 'Confirm exit'),
+          content: Text(controller.localeCode == 'ar' ? 'استخدمت $current من أصل 5 مغادرات لهذه الغرفة تحديداً. بعد المرة الخامسة لن تتمكن من العودة إلى نفس الغرفة فقط.\n\nهل تريد الخروج الآن؟' : 'You used $current of 5 manual exits for this exact room. After the fifth exit, you cannot return to this room only.\n\nLeave now?'),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('البقاء')),
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(controller.localeCode == 'ar' ? 'البقاء' : 'Stay')),
             FilledButton.icon(
               onPressed: () => Navigator.pop(dialogContext, true),
               icon: const Icon(Icons.logout_rounded),
-              label: const Text('خروج'),
+              label: Text(controller.localeCode == 'ar' ? 'خروج' : 'Leave'),
               style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             ),
           ],
@@ -92,10 +92,24 @@ Future<void> confirmLeaveGameV151(BuildContext context, AppController controller
       ) ??
       false;
   if (!confirmed || !context.mounted) return;
-  final exits = await controller.recordGameExit(gameId);
+  final roomCode = controller.activeRoomCode;
+  int? serverExits;
+  if (controller.serverConnected && roomCode != null && roomCode.isNotEmpty) {
+    try {
+      final result = await controller.api.leaveGame(roomCode);
+      serverExits = int.tryParse(result['exit_count']?.toString() ?? '');
+    } on ApiException catch (e) {
+      if (context.mounted) showToast(context, e.message);
+      return;
+    }
+  }
+  final localExits = await controller.recordGameExit(gameId, roomCode: roomCode);
+  final exits = (serverExits ?? localExits).clamp(0, 5).toInt();
   if (!context.mounted) return;
   Navigator.pop(context, true);
-  showToast(context, exits >= 3 ? 'تم الخروج. وصلت إلى الحد الأقصى لهذه الجلسة.' : 'تم الخروج. المتبقي ${3 - exits} مرات.');
+  showToast(context, controller.localeCode == 'ar'
+      ? (exits >= 5 ? 'تم الخروج. وصلت إلى حد العودة لهذه الغرفة فقط.' : 'تم الخروج. المتبقي ${5 - exits} مرات للعودة لنفس الغرفة.')
+      : (exits >= 5 ? 'You left. The return limit for this room has been reached.' : 'You left. ${5 - exits} returns remain for this room.'));
 }
 
 Future<void> inviteFriendsToRoomV151(BuildContext context, AppController controller, String gameId) async {

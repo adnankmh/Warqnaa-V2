@@ -1,16 +1,17 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{CompetitionTicket,StoreItem,InventoryItem,User};
+use App\Models\{CompetitionTicket,StoreItem,InventoryItem,User,StoreOffer};
 use App\Services\Wallet\WalletService;
 use App\Services\WarqnaPro\StoreCatalogService;
+use App\Services\Commerce\CommerceCatalogService;
 use Illuminate\Support\Facades\{DB,Log};
 use RuntimeException;
 use Throwable;
 
 class StoreController
 {
-    public function index(StoreCatalogService $catalog)
+    public function index(StoreCatalogService $catalog, CommerceCatalogService $commerce)
     {
         $catalog->sync();
         if(class_exists('\\App\\Models\\SiteSetting') && !\App\Models\SiteSetting::getValue('store_enabled',true)) return view('store.index',['items'=>collect(),'inventory'=>auth()->user()->inventoryItems()->with('storeItem')->latest()->get(),'storeDisabled'=>true]);
@@ -19,6 +20,8 @@ class StoreController
         return view('store.index', [
             'items'=>$grouped,
             'inventory'=>auth()->user()->inventoryItems()->with('storeItem')->latest()->get(),
+            'commerceOffers'=>StoreOffer::where('active',true)->where(fn($q)=>$q->whereNull('starts_at')->orWhere('starts_at','<=',now()))->where(fn($q)=>$q->whereNull('ends_at')->orWhere('ends_at','>=',now()))->latest()->get(),
+            'commerceCatalog'=>$commerce->catalog(),
         ]);
     }
 

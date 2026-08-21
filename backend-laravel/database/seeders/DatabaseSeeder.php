@@ -4,9 +4,9 @@ use Illuminate\Database\Seeder; use Illuminate\Support\Facades\{Hash,DB}; use Ap
 class DatabaseSeeder extends Seeder { public function run(): void {
  // v136: country_name() now returns a scalar string, so Seeder can use it directly without helper variables.
  $admin=User::updateOrCreate(['email'=>env('ADMIN_EMAIL','adnanasd63@gmail.com')],['username'=>env('ADMIN_USERNAME','Adnan'),'password'=>Hash::make(env('ADMIN_PASSWORD','Adnan123')),'is_admin'=>true]);
- Profile::updateOrCreate(['user_id'=>$admin->id],['display_name'=>'Adnan','avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine','level'=>99,'xp'=>9000000,'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15','pasha_days'=>3650,'badge'=>'king']);
+ Profile::updateOrCreate(['user_id'=>$admin->id],['display_name'=>'Adnan','avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine','level'=>99,'xp'=>193947651,'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15','pasha_days'=>3650,'badge'=>'king']);
  Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>1000000000000000000,'gems'=>100000]);
- // V200 demo users: 12 ready test users across different levels and balances
+ // R9.1: exactly 10 curated non-admin demo users with stable passwords, varied levels and token balances
  $demoUsers = [
    ['Kareem','kareem@warqna.local','Kareem123','#38bdf8','JO',42,250000,'🦅'],
    ['Rami','rami@warqna.local','Rami12345','#22c55e','PS',35,180000,'🐺'],
@@ -18,8 +18,6 @@ class DatabaseSeeder extends Seeder { public function run(): void {
    ['Omar','omar@warqna.local','Omar12345','#60a5fa','PS',27,68000,'🛡️'],
    ['Sara','sara@warqna.local','Sara12345','#f472b6','LB',29,72000,'👑'],
    ['Basel','basel@warqna.local','Basel12345','#ef4444','SY',33,84000,'🔥'],
-   ['Hala','hala@warqna.local','Hala12345','#22d3ee','PS',25,61000,'💎'],
-   ['Yazan','yazan@warqna.local','Yazan12345','#facc15','JO',30,79000,'⚡'],
  ];
  $seededDemoUsers = [];
  foreach ($demoUsers as [$username,$email,$password,$color,$country,$level,$tokens,$avatar]) {
@@ -392,22 +390,7 @@ foreach($tables as [$key,$ar,$en,$css,$tier,$price,$days]) DB::table('store_item
    DB::table('games')->where('key','banakil')->update(['name'=>json_encode(['ar'=>'بناكل','en'=>'Banakil'],JSON_UNESCAPED_UNICODE),'updated_at'=>now()]);
    DB::table('games')->where('key','basra')->update(['name'=>json_encode(['ar'=>'باصرة','en'=>'Basra'],JSON_UNESCAPED_UNICODE),'updated_at'=>now()]);
  }
- foreach ([
-   ['Samar','samar@warqna.local','Samar12345','#f97316','PS',24,95000,'🦋'],
-   ['Layla','layla@warqna.local','Layla12345','#c084fc','JO',31,110000,'🌙'],
-   ['Jameel','jameel@warqna.local','Jameel12345','#22d3ee','PS',22,88000,'🐯'],
-   ['Nour','nour@warqna.local','Nour12345','#f472b6','EG',19,76000,'⭐'],
-   ['Yaser','yaser@warqna.local','Yaser12345','#a3e635','SA',27,130000,'🦅'],
-   ['Omar','omar@warqna.local','Omar12345','#60a5fa','PS',32,90000,'🛡️'],
-   ['Sara','sara@warqna.local','Sara12345','#f472b6','JO',29,85000,'👑'],
-   ['Basel','basel@warqna.local','Basel12345','#34d399','PS',38,120000,'🔥'],
-   ['Hala','hala@warqna.local','Hala12345','#c084fc','EG',26,78000,'💎'],
-   ['Yazan','yazan@warqna.local','Yazan12345','#f59e0b','SA',41,150000,'⚡'],
- ] as [$username,$email,$password,$color,$country,$level,$tokens]) {
-   $u=User::updateOrCreate(['email'=>$email],['username'=>$username,'password'=>Hash::make($password),'is_admin'=>false,'is_banned'=>false]);
-   Profile::updateOrCreate(['user_id'=>$u->id],['display_name'=>$username,'country_code'=>$country,'country_name'=>country_name($country),'level'=>$level,'xp'=>$level*1200,'games_played'=>$level*15,'wins'=>$level*7,'name_color'=>$color,'chat_color'=>$color,'pasha_days'=>0,'badge'=>'pro']);
-   Wallet::updateOrCreate(['user_id'=>$u->id],['tokens'=>$tokens,'gems'=>0]);
- }
+ // R9.1: legacy v145 extra demo-account block removed; the 10 curated accounts at the top are authoritative.
 
 // v105: normalized store manifest from uploaded docs: pasha year, 6 boosters, tiered tables/emojis, glow colors.
 DB::table('store_items')->updateOrInsert(['key'=>'pasha_365'],[
@@ -491,18 +474,12 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
  // BIGINT cannot store the requested 10^32 ceremonial Adnan balance, so keep a safe DB reserve and an unlimited primary-admin wallet policy.
  Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
  $admin->profile?->update(['pasha_days'=>36500,'level'=>99,'badge'=>'king']);
- foreach($seededDemoUsers as $demo){
-   if($demo->wallet && (int)$demo->wallet->tokens<1000000) $demo->wallet->update(['tokens'=>1000000 + ((int)$demo->profile?->level * 25000)]);
- }
+ // R9.1 keeps demo balances deliberately different for realistic economy testing.
+ // Remove two retired historical demo-only accounts so a fresh/current dev database exposes exactly 10 normal demo users.
+ User::whereIn('email',['hala@warqna.local','yazan@warqna.local','yaser@warqna.local'])->where('is_admin',false)->each(fn($legacyDemo)=>$legacyDemo->delete());
  try { app(StoreCatalogService::class)->sync(); } catch (\Throwable $e) {}
- if (\Illuminate\Support\Facades\Schema::hasTable('inventory_items') && \Illuminate\Support\Facades\Schema::hasTable('store_items')) {
-   foreach(\App\Models\StoreItem::where('active',true)->get() as $item){
-     if($item->category==='pasha') continue;
-     \App\Models\InventoryItem::updateOrCreate(['user_id'=>$admin->id,'store_item_id'=>$item->id],[
-       'active'=>false,'activated_at'=>null,'expires_at'=>null
-     ]);
-   }
- }
+ // StoreCatalogService::sync() grants Adnan every current non-consumable/current collectible automatically.
+ // Pasha remains a duration entitlement (already 36,500 days) and competition tickets remain consumables.
  if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
    foreach([
     ['deal_policy','balanced_playable','string','gameplay','توزيع عادل قابل للعب'],

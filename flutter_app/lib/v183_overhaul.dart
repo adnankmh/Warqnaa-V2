@@ -8,19 +8,23 @@ bool isWideDesktopV183(double width) => kIsWeb && width >= 1440;
 
 int raisedStorePriceV183(StoreProduct product) {
   if (product.price <= 0) return product.price;
-  if (product.category == 'pasha' || product.category == 'competition_ticket') return product.price;
-  if (product.category == 'boost') return product.price; // Exact color-booster economy.
+  if (product.category == 'pasha') return product.price;
+  // R9.1 luxury economy: tables are intentionally the most premium class,
+  // card backs sit below them, and the rest of the cosmetics are raised while
+  // Pasha remains unchanged; ticket artwork/value stays fixed while its purchase price receives only a small economy uplift.
   final multiplier = switch (product.category) {
-    'tables' => 2.40,
-    'cards' => 2.10,
-    'emoji' => 2.20,
-    'themes' => 1.90,
-    'effects' => 2.25,
-    'covers' => 2.05,
-    'badges' => 2.00,
-    'names' => 1.85,
-    'chat_colors' => 1.85,
-    _ => 2.00,
+    'tables' => 5.25,
+    'cards' => 3.50,
+    'emoji' => 3.25,
+    'themes' => 3.00,
+    'effects' => 3.50,
+    'covers' => 3.10,
+    'badges' => 3.00,
+    'names' => 2.85,
+    'chat_colors' => 2.85,
+    'boost' => 2.25,
+    'competition_ticket' => 1.10,
+    _ => 3.00,
   };
   final raw = (product.price * multiplier).round();
   // Luxury-store rounding avoids random-looking prices.
@@ -161,93 +165,162 @@ class CompetitionTicketPreviewV183 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // R9.1: the denomination is part of the ticket artwork itself. Never paint a
+    // second number over the image; that was the source of duplicated ticket values.
     return AspectRatio(
       aspectRatio: 16 / 10,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(ticketAssetV02(denomination), fit: BoxFit.contain, filterQuality: FilterQuality.high),
-          Align(
-            alignment: const Alignment(0, .30),
-            child: Container(
-              constraints: BoxConstraints(minWidth: compact ? 54 : 92),
-              padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 14, vertical: compact ? 3 : 6),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xff4b2614), Color(0xff7a4522), Color(0xff3b1d10)]),
-                borderRadius: BorderRadius.circular(compact ? 8 : 12),
-                border: Border.all(color: const Color(0xff2b1209), width: compact ? 1 : 2),
-                boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 8, offset: Offset(0, 4)), BoxShadow(color: Color(0x66ffffff), blurRadius: 2, offset: Offset(0, -1))],
-              ),
-              child: Text(
-                denomination,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: const Color(0xfffff3c4),
-                  fontSize: compact ? 13 : 24,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .4,
-                  shadows: const [Shadow(color: Colors.black, blurRadius: 2, offset: Offset(0, 2)), Shadow(color: Color(0xffd5a447), blurRadius: 7)],
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: EdgeInsets.all(compact ? 2 : 4),
+        child: Image.asset(ticketAssetV02(denomination), fit: BoxFit.contain, filterQuality: FilterQuality.high),
       ),
     );
   }
 }
 
-
-String _multiplierLabelV183(double? value) {
-  if (value == null) return '1';
-  if (value == value.roundToDouble()) return value.toStringAsFixed(0);
-  return value.toStringAsFixed(value * 10 == (value * 10).roundToDouble() ? 1 : 2);
-}
-
-class BoosterPreviewV183 extends StatelessWidget {
+class BoosterPreviewV183 extends StatefulWidget {
   final StoreProduct product;
   final bool compact;
   const BoosterPreviewV183({super.key, required this.product, this.compact = false});
 
   @override
+  State<BoosterPreviewV183> createState() => _BoosterPreviewV210State();
+}
+
+class _BoosterPreviewV210State extends State<BoosterPreviewV183> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _pulse;
+  late final Animation<double> _turn;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))..repeat(reverse: true);
+    _pulse = Tween<double>(begin: .975, end: 1.025).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic));
+    _turn = Tween<double>(begin: -.018, end: .018).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final asset = product.imageAsset;
-    return LayoutBuilder(builder: (context, constraints) {
-      final maxWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : (compact ? 180.0 : 420.0);
-      return Center(
+    final c1 = widget.product.previewColor1 ?? const Color(0xfff59e0b);
+    final c2 = widget.product.previewColor2 ?? const Color(0xff451a03);
+    final multiplier = _multiplierLabelV183(widget.product.multiplier);
+    final size = widget.compact ? 138.0 : 260.0;
+    return Center(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) => Transform.rotate(
+          angle: _turn.value,
+          child: Transform.scale(scale: _pulse.value, child: child),
+        ),
         child: SizedBox(
-          width: maxWidth.clamp(compact ? 130.0 : 240.0, compact ? 240.0 : 520.0).toDouble(),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Stack(children: [
-              Positioned.fill(
-                child: asset == null
-                    ? const Center(child: Text('🚀', style: TextStyle(fontSize: 72)))
-                    : Image.asset(asset, fit: BoxFit.contain, filterQuality: FilterQuality.high),
-              ),
-              PositionedDirectional(
-                end: compact ? 5 : 16,
-                bottom: compact ? 5 : 14,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 12, vertical: compact ? 4 : 7),
-                  decoration: BoxDecoration(
-                    color: const Color(0xdd071019),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white38),
-                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 4))],
-                  ),
-                  child: Text(
-                    '×${_multiplierLabelV183(product.multiplier)}',
-                    style: TextStyle(fontSize: compact ? 14 : 24, fontWeight: FontWeight.w900, color: Colors.white),
-                  ),
+          width: size,
+          height: size,
+          child: Stack(alignment: Alignment.center, children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(colors: [c1.withValues(alpha: .28), c1.withValues(alpha: .08), Colors.transparent]),
                 ),
               ),
-            ]),
-          ),
+            ),
+            SizedBox(
+              width: size * .78,
+              height: size * .82,
+              child: ClipPath(
+                clipper: _BoosterShieldClipperV210(),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [c1, Color.lerp(c1, c2, .44)!, c2]),
+                    boxShadow: [BoxShadow(color: c1.withValues(alpha: .42), blurRadius: widget.compact ? 14 : 28, spreadRadius: 1)],
+                  ),
+                  child: Stack(alignment: Alignment.center, children: [
+                    Positioned.fill(child: CustomPaint(painter: _BoosterCircuitPainterV210(color: Colors.white.withValues(alpha: .18)))),
+                    Container(
+                      width: size * .43,
+                      height: size * .43,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0x52020a12),
+                        border: Border.all(color: Colors.white.withValues(alpha: .56), width: widget.compact ? 1.4 : 2.2),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 18)],
+                      ),
+                      child: Icon(Icons.rocket_launch_rounded, size: size * .23, color: Colors.white),
+                    ),
+                    Positioned(
+                      top: size * .13,
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Icon(Icons.bolt_rounded, size: size * .09, color: Colors.white),
+                        Text('WARQNAA BOOST', style: TextStyle(fontSize: widget.compact ? 8 : 12, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Colors.white)),
+                      ]),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: widget.compact ? 6 : 12,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: widget.compact ? 12 : 18, vertical: widget.compact ? 6 : 9),
+                decoration: BoxDecoration(
+                  color: const Color(0xee061019),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: c1.withValues(alpha: .82), width: 1.5),
+                  boxShadow: [BoxShadow(color: c1.withValues(alpha: .28), blurRadius: 14)],
+                ),
+                child: Text('×$multiplier XP', style: TextStyle(fontSize: widget.compact ? 14 : 21, fontWeight: FontWeight.w900, color: Colors.white)),
+              ),
+            ),
+          ]),
         ),
-      );
-    });
+      ),
+    );
   }
+}
+
+class _BoosterShieldClipperV210 extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final w = size.width;
+    final h = size.height;
+    return Path()
+      ..moveTo(w * .5, 0)
+      ..lineTo(w * .92, h * .17)
+      ..lineTo(w * .84, h * .72)
+      ..quadraticBezierTo(w * .5, h, w * .5, h)
+      ..quadraticBezierTo(w * .5, h, w * .16, h * .72)
+      ..lineTo(w * .08, h * .17)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _BoosterCircuitPainterV210 extends CustomPainter {
+  final Color color;
+  const _BoosterCircuitPainterV210({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color..strokeWidth = 1.2..style = PaintingStyle.stroke;
+    for (var i = 1; i <= 4; i++) {
+      final y = size.height * (i / 5);
+      canvas.drawLine(Offset(size.width * .08, y), Offset(size.width * .28, y), paint);
+      canvas.drawCircle(Offset(size.width * .31, y), 2.2, paint);
+      canvas.drawLine(Offset(size.width * .72, y), Offset(size.width * .92, y), paint);
+      canvas.drawCircle(Offset(size.width * .69, y), 2.2, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BoosterCircuitPainterV210 oldDelegate) => oldDelegate.color != color;
 }
 
 class DesignerQuickControlsV183 extends StatelessWidget {

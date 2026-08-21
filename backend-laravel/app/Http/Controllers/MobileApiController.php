@@ -7,6 +7,8 @@ use App\Services\Wallet\WalletService;
 use App\Services\Platform\ProductionConfigService;
 use App\Services\Account\AccountCancellationService;
 use App\Services\WarqnaPro\StoreCatalogService;
+use App\Services\Games\GameCatalog;
+use App\Services\WarqnaPro\AssetDeliveryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth,DB,Hash};
 
@@ -73,7 +75,7 @@ class MobileApiController extends Controller
         ]);
     }
 
-    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog)
+    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery)
     {
         $catalog->sync();
         $user = $this->ensurePrimaryAdmin($request->user());
@@ -83,7 +85,7 @@ class MobileApiController extends Controller
             'ok' => true,
             'user' => $user->publicProfile(),
             'wallet' => $this->walletPayload($user),
-            'games' => Game::where('active', true)->orderBy('id')->get(),
+            'games' => Game::where('active', true)->whereIn('key', GameCatalog::customerKeys())->orderBy('id')->get(),
             'store' => StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get(),
             'rooms' => Room::query()->with('game')->latest()->limit(30)->get(),
             'tournaments' => Tournament::query()->with('game')->latest()->limit(20)->get(),
@@ -114,6 +116,7 @@ class MobileApiController extends Controller
                 'daily_packs' => true,
                 'universal_designer' => true,
             ],
+            'asset_delivery' => $assetDelivery->summary(),
             'production' => $productionConfig->publicConfig(strtolower((string) $request->header('X-Warqna-Platform', 'web'))),
         ]);
     }
@@ -130,7 +133,7 @@ class MobileApiController extends Controller
         $data = $request->validate([
             'display_name' => 'nullable|string|min:2|max:80',
             'country_code' => 'nullable|string|size:2|not_in:IL,il',
-            'locale' => 'nullable|in:ar,en,de,tr,fr,es',
+            'locale' => 'nullable|in:ar,en',
             'theme' => 'nullable|string|max:40',
             'sound_enabled' => 'nullable|boolean',
             'avatar' => 'nullable|string|max:32',

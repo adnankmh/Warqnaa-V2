@@ -77,6 +77,12 @@ jobs:
         run: python3 ../tools/test_v208_r8_contract.py
       - name: Verify R9 visual revolution contract
         run: python3 ../tools/test_v209_r9_contract.py
+      - name: Verify R9.1 gameplay polish contract
+        run: python3 ../tools/test_v210_r9_1_contract.py
+      - name: Verify R10 asset delivery and size contract
+        run: python3 ../tools/test_v220_r10_contract.py
+      - name: Verify R10.1 commerce and visual contract
+        run: python3 ../tools/test_v221_r101_contract.py
       - name: Run R8 deep Tarneeb Hand Banakil audit
         run: php tools/test-v208-r8-rules.php
       - name: Run V184 official game-rule audit

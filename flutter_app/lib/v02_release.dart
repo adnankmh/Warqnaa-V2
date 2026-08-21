@@ -10,9 +10,9 @@ const List<String> prizeBoxKeysV02 = <String>[
   'diamond_phoenix',
 ];
 
-String ticketAssetV02(String value) => 'assets/images/v02/tickets/ticket_$value.png';
+String ticketAssetV02(String value) => 'assets/optimized/r10/v02/tickets/ticket_$value.webp';
 String prizeBoxAssetV02(String key, [String suffix = '']) =>
-    'assets/images/v02/prize_boxes/$key${suffix.isEmpty ? '' : '_$suffix'}.png';
+    'assets/optimized/r10/v02/prize_boxes/$key${suffix.isEmpty ? '' : '_$suffix'}.webp';
 
 class V02Text {
   static const Map<String, Map<String, String>> _data = <String, Map<String, String>>{
@@ -212,9 +212,9 @@ extension WarqnaV02Controller on AppController {
   Map<String, dynamic> _localRewardV02([String boxKey = 'crimson_lion']) {
     final random = math.Random(DateTime.now().microsecondsSinceEpoch);
     final simple = <String>['tokens','writing_color','player_color'];
-    final strong = <String>['tokens','writing_color','player_color','profile_cover','ticket'];
-    final epic = <String>['ticket','profile_cover','pasha_day','tokens','writing_color','player_color'];
-    final legendary = <String>['ticket','ticket','pasha_day','pasha_day','tokens','profile_cover'];
+    final strong = <String>['tokens','writing_color','player_color','profile_cover','ticket','xp_booster'];
+    final epic = <String>['ticket','profile_cover','pasha_day','tokens','writing_color','player_color','xp_booster','table'];
+    final legendary = <String>['ticket','pasha_day','pasha_day','tokens','profile_cover','xp_booster','table'];
     final pool = switch (boxKey) {
       'diamond_phoenix' => legendary,
       'royal_amethyst' => epic,
@@ -228,7 +228,9 @@ extension WarqnaV02Controller on AppController {
       'pasha_day' => <String, dynamic>{'type': type, 'value': '1', 'label_ar':'يوم باشا', 'duration_hours': 24, 'expires_at': DateTime.now().add(const Duration(days: 1)).toIso8601String()},
       'writing_color' => <String, dynamic>{'type': type, 'value': '#22d3ee', 'label_ar':'لون كتابة لمدة يوم', 'store_item_key': 'daily_pack_chat_cyan_24h_v176', 'duration_hours': 24, 'expires_at': DateTime.now().add(const Duration(days: 1)).toIso8601String()},
       'player_color' => <String, dynamic>{'type': type, 'value': '#facc15', 'label_ar':'لون لاعب لمدة يوم', 'store_item_key': 'daily_pack_name_gold_24h_v176', 'duration_hours': 24, 'expires_at': DateTime.now().add(const Duration(days: 1)).toIso8601String()},
-      'profile_cover' => <String, dynamic>{'type': type, 'value': 'cover_v02_royal', 'label_ar':'غلاف ملكي لمدة 3 أيام', 'store_item_key': 'daily_prize_cover_v02', 'duration_hours': 72, 'expires_at': DateTime.now().add(const Duration(days: 3)).toIso8601String()},
+      'profile_cover' => <String, dynamic>{'type': type, 'value': 'cover_v02_royal', 'label_ar':'غلاف ملكي لمدة 3 أيام', 'label_en':'Royal cover for 3 days', 'store_item_key': 'daily_prize_cover_v02', 'duration_hours': 72, 'expires_at': DateTime.now().add(const Duration(days: 3)).toIso8601String()},
+      'xp_booster' => <String, dynamic>{'type': type, 'value': '1.5', 'label_ar':'مسرّع خبرة ×1.5 لمدة 6 ساعات', 'label_en':'XP ×1.5 for 6 hours', 'store_item_key': 'daily_pack_xp_15x_6h_v176', 'duration_hours': 6, 'expires_at': DateTime.now().add(const Duration(hours: 6)).toIso8601String()},
+      'table' => <String, dynamic>{'type': type, 'value': 'table_v173_royal_01', 'label_ar':'طاولة الزمرد الملكي لمدة 24 ساعة', 'label_en':'Royal Emerald table for 24 hours', 'store_item_key': 'table_v173_royal_01', 'duration_hours': 24, 'expires_at': DateTime.now().add(const Duration(hours: 24)).toIso8601String()},
       'tokens' => <String, dynamic>{'type': type, 'value': '${simpleBox ? (random.nextInt(3)+1)*50 : legendaryBox ? (random.nextInt(3)+2)*250 : (random.nextInt(8)+3)*50}', 'label_ar':'توكنز مجانية', 'duration_hours': 0},
       _ => <String, dynamic>{'type': 'ticket', 'value': legendaryBox ? '500' : '200', 'label_ar':'تذكرة مسابقة ${legendaryBox ? 500 : 200}', 'duration_hours': 0},
     };
@@ -245,6 +247,10 @@ extension WarqnaV02Controller on AppController {
       applyDailyPackRewardV176(<String, dynamic>{...reward, 'type': 'chat_color', 'label_ar': 'لون كتابة لمدة يوم'}, response);
     } else if (type == 'player_color') {
       applyDailyPackRewardV176(<String, dynamic>{...reward, 'type': 'name_color', 'label_ar': 'لون لاعب لمدة يوم'}, response);
+    } else if (type == 'xp_booster') {
+      applyDailyPackRewardV176(<String, dynamic>{...reward, 'type': 'xp_booster'}, response);
+    } else if (type == 'table') {
+      applyDailyPackRewardV176(<String, dynamic>{...reward, 'type': 'table'}, response);
     } else if (type == 'profile_cover') {
       selectedCover = value.isEmpty ? 'cover_v02_royal' : value;
       owned.add('daily_prize_cover_v02');
@@ -310,6 +316,8 @@ String prizeRewardLabelV02(String lang, Map<String, dynamic> reward) {
     'writing_color' || 'chat_color' => V02Text.t(lang, 'writingColor'),
     'player_color' || 'name_color' => V02Text.t(lang, 'playerColor'),
     'profile_cover' => V02Text.t(lang, 'profileCover'),
+    'xp_booster' => lang == 'ar' ? 'مسرّع خبرة ×${reward['value'] ?? '1.5'}' : 'XP Booster ×${reward['value'] ?? '1.5'}',
+    'table' => lang == 'ar' ? (reward['label_ar']?.toString() ?? 'طاولة مؤقتة') : (reward['label_en']?.toString() ?? 'Temporary table'),
     'tokens' => '${reward['value'] ?? 0} ${V02Text.t(lang, 'tokens')}',
     'ticket' => '${lang == 'ar' ? 'تذكرة مسابقة' : 'Competition ticket'} ${reward['value'] ?? 200}',
     _ => V02Text.t(lang, 'reward'),
@@ -319,14 +327,61 @@ String prizeRewardLabelV02(String lang, Map<String, dynamic> reward) {
 String prizeRewardAssetV02(Map<String, dynamic> reward) {
   final type = reward['type']?.toString() ?? '';
   return switch (type) {
-    'pasha_day' => 'assets/images/v02/rewards/pasha_day.png',
-    'writing_color' || 'chat_color' => 'assets/images/v02/rewards/writing_color.png',
-    'player_color' || 'name_color' => 'assets/images/v02/rewards/player_color.png',
-    'profile_cover' => 'assets/images/v02/rewards/profile_cover.png',
-    'tokens' => 'assets/images/v02/rewards/tokens.png',
+    'pasha_day' => 'assets/optimized/r10/v02/rewards/pasha_day.webp',
+    'writing_color' || 'chat_color' => 'assets/optimized/r10/v02/rewards/writing_color.webp',
+    'player_color' || 'name_color' => 'assets/optimized/r10/v02/rewards/player_color.webp',
+    'profile_cover' => 'assets/optimized/r10/v02/rewards/profile_cover.webp',
+    'xp_booster' => 'assets/optimized/r10/v02/rewards/tokens.webp',
+    'table' => storeProductById(reward['value']?.toString() ?? '')?.imageAsset ?? 'assets/optimized/r10/v02/rewards/profile_cover.webp',
+    'tokens' => 'assets/optimized/r10/v02/rewards/tokens.webp',
     'ticket' => ticketAssetV02(reward['value']?.toString() ?? '200'),
-    _ => 'assets/images/v02/rewards/tokens.png',
+    _ => 'assets/optimized/r10/v02/rewards/tokens.webp',
   };
+}
+
+class PrizeRewardVisualV210 extends StatelessWidget {
+  final Map<String, dynamic> reward;
+  final double size;
+  const PrizeRewardVisualV210({super.key, required this.reward, this.size = 150});
+
+  @override
+  Widget build(BuildContext context) {
+    final type = reward['type']?.toString() ?? '';
+    final value = reward['value']?.toString() ?? '';
+    if (type == 'writing_color' || type == 'chat_color' || type == 'player_color' || type == 'name_color') {
+      final color = colorFromHex(value.isEmpty ? '#ffffff' : value);
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: [color.withValues(alpha: .98), color.withValues(alpha: .70), Colors.black.withValues(alpha: .88)]),
+          border: Border.all(color: Colors.white.withValues(alpha: .86), width: 4),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: .62), blurRadius: 34, spreadRadius: 8)],
+        ),
+        child: Center(child: Icon(type.contains('writing') || type.contains('chat') ? Icons.format_color_text_rounded : Icons.palette_rounded, color: Colors.white, size: size * .42)),
+      );
+    }
+    if (type == 'xp_booster') {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [Color(0xff6d28d9), Color(0xfff59e0b)]), boxShadow: [BoxShadow(color: Colors.amber.withValues(alpha: .48), blurRadius: 34)]),
+        child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.bolt_rounded, color: Colors.white, size: size * .40), Text('×${value.isEmpty ? '1.5' : value}', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: size * .18))])),
+      );
+    }
+    final product = type == 'table' ? storeProductById(value) : null;
+    final asset = product?.imageAsset ?? prizeRewardAssetV02(reward);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(type == 'table' ? 22 : size),
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.white.withValues(alpha: .045),
+        child: Image.asset(asset, fit: type == 'table' ? BoxFit.cover : BoxFit.contain, filterQuality: FilterQuality.high),
+      ),
+    );
+  }
 }
 
 class PrizeBoxesHomeCardV02 extends StatelessWidget {
@@ -634,7 +689,7 @@ class _PrizeBoxOpeningDialogV02State extends State<PrizeBoxOpeningDialogV02> wit
                             height: 220,
                             decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .05), boxShadow: [BoxShadow(color: Colors.amberAccent.withValues(alpha: .58 * reveal), blurRadius: 70, spreadRadius: 18)]),
                             padding: const EdgeInsets.all(18),
-                            child: Image.asset(prizeRewardAssetV02(widget.reward), fit: BoxFit.contain, filterQuality: FilterQuality.high),
+                            child: PrizeRewardVisualV210(reward: widget.reward, size: 184),
                           ),
                         ),
                       ),

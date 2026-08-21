@@ -30,6 +30,7 @@
     <script>window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
+<link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 </head>
 @php
     $currentUser = auth()->user();
@@ -37,14 +38,15 @@
     $soundEnabled = $currentUser ? (($currentProfile?->sound_enabled !== false) ? '1' : '0') : '1';
     $nameColor = $currentProfile?->name_color ?? '#facc15';
     $textColor = $currentProfile?->chat_color ?? ($currentProfile?->text_color ?? '#ffffff');
-    $globalTheme = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('default_theme','royal') : 'royal';
+    $globalTheme = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('default_theme','dark') : 'royal';
     $forceGlobalTheme = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('force_global_theme',false) : false;
-    $siteTheme = $forceGlobalTheme ? $globalTheme : ($currentProfile?->active_site_theme ?? $globalTheme ?? 'royal');
+    $siteTheme = $forceGlobalTheme ? $globalTheme : ($currentProfile?->active_site_theme ?? $globalTheme ?? 'dark');
     $nameFrame = $currentProfile?->active_name_frame ?? 'glow-gold';
     $ownedEmojis = $currentUser ? $currentUser->inventoryItems()->with('storeItem')->whereHas('storeItem', fn($q)=>$q->where('category','emoji_pack'))->get()->flatMap(fn($inv)=>preg_split('//u', (string)($inv->storeItem?->payload['emojis'] ?? ''), -1, PREG_SPLIT_NO_EMPTY))->filter()->values()->all() : [];
     $freeEmojis = ['😂','🤣','😍','👋','👍','😡','😢','😭','😱','🤔','☕','🌹','😀','😄','😁','👏','🙌','👌','😉','😊'];
     $emojiList = array_values(array_unique(array_merge($freeEmojis,$ownedEmojis)));
-    $navGames = $currentUser ? \App\Models\Game::where('active',true)->orderBy('id')->get() : collect();
+    $publicGameKeys=array_keys(\App\Services\Games\GameCatalog::all());
+    $navGames = $currentUser ? \App\Models\Game::where('active',true)->whereIn('key',$publicGameKeys)->orderBy('id')->get() : collect();
     $recentNotifs = $currentUser ? $currentUser->notifications()->latest()->limit(8)->get() : collect();
     $clubNotif = $currentUser ? $currentUser->notifications()->where('read',false)->where('type','like','%club%')->count() : 0;
     $gameNotif = $currentUser ? $currentUser->notifications()->where('read',false)->whereIn('type',['room_invite','game_invite'])->count() : 0;
@@ -146,12 +148,12 @@
             <b>🎨 الثيمات</b>
             <p class="muted">اختر ثيم الموقع، ويتم تفعيله مباشرة على حسابك.</p>
             <div class="theme-grid-v108">
-                <button type="button" data-theme-pick="dark" onclick="setSiteTheme('dark');toggleTopPanel('themePanel')">🌑 غامق</button>
-                <button type="button" data-theme-pick="light" onclick="setSiteTheme('light');toggleTopPanel('themePanel')">☀️ فاتح</button>
-                <button type="button" data-theme-pick="sky" onclick="setSiteTheme('sky');toggleTopPanel('themePanel')">🩵 سماوي</button>
-                <button type="button" data-theme-pick="green" onclick="setSiteTheme('green');toggleTopPanel('themePanel')">🟢 أخضر</button>
-                <button type="button" data-theme-pick="gold" onclick="setSiteTheme('gold');toggleTopPanel('themePanel')">🟡 ذهبي</button>
-                <button type="button" data-theme-pick="purple" onclick="setSiteTheme('purple');toggleTopPanel('themePanel')">🟣 بنفسجي</button>
+                <button type="button" data-theme-pick="dark" onclick="setSiteTheme('dark');toggleTopPanel('themePanel')">🌑 {{ app()->getLocale()==='ar'?'ليلي':'Midnight' }}</button>
+                <button type="button" data-theme-pick="light" onclick="setSiteTheme('light');toggleTopPanel('themePanel')">☀️ {{ app()->getLocale()==='ar'?'عاجي':'Ivory' }}</button>
+                <button type="button" data-theme-pick="classic" onclick="setSiteTheme('classic');toggleTopPanel('themePanel')">🪵 {{ app()->getLocale()==='ar'?'مجلس كلاسيكي':'Classic Majlis' }}</button>
+                <button type="button" data-theme-pick="green" onclick="setSiteTheme('green');toggleTopPanel('themePanel')">🟢 {{ app()->getLocale()==='ar'?'زمردي':'Emerald' }}</button>
+                <button type="button" data-theme-pick="gold" onclick="setSiteTheme('gold');toggleTopPanel('themePanel')">🟡 {{ app()->getLocale()==='ar'?'ذهبي ملكي':'Royal Gold' }}</button>
+                <button type="button" data-theme-pick="purple" onclick="setSiteTheme('purple');toggleTopPanel('themePanel')">🟣 {{ app()->getLocale()==='ar'?'مخملي':'Velvet' }}</button>
             </div>
         </div>
 
@@ -167,10 +169,10 @@
         <div class="userbar">
             <button type="button" class="user-chip player-glow {{ $nameFrame }}" onclick="openProfile({{ auth()->id() }})" style="--player-color:{{ $nameColor }}">
                 {!! flag_img($currentProfile?->country_code ?? 'PS','flag-img flag-small') !!}
-                <img class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
+                <img loading="lazy" decoding="async" class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
                 <span>{{ $currentUser->username }}</span>
             </button>
-            <span class="pasha pasha-days-chip-v136"><img class="pasha-mini-icon-v136" src="/assets/store/basha1.png" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
+            <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
             <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="سجل التوكنز">🪙 {{ token_display($currentUser) }}</a>
             <span id="siteClock" class="site-clock">--:--</span>
             <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="الثيمات">🎨</button>

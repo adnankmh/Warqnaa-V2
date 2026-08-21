@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '0.4.9');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 209);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '0.5.1');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 221);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -106,6 +106,7 @@ class WarqnaApiClient {
       );
 
   Future<Map<String, dynamic>> bootstrap() => get('/bootstrap');
+  Future<Map<String, dynamic>> assetManifestR10() => get('/assets/manifest', authenticated: false);
   Future<Map<String, dynamic>> wallet() => get('/wallet');
   Future<Map<String, dynamic>> social() => get('/social');
   Future<Map<String, dynamic>> searchPlayers(String query) =>
@@ -130,6 +131,9 @@ class WarqnaApiClient {
       post('/store/activate', {'key': key});
   Future<Map<String, dynamic>> claimDaily() => post('/rewards/daily', const {});
   Future<Map<String, dynamic>> claimRewardedAd(String verificationId) => post('/rewards/rewarded-ad', {'verification_id': verificationId, 'network': 'admob', 'reward_type': 'standard'});
+  Future<Map<String, dynamic>> commerceCatalogR101() => get('/commerce/catalog', authenticated: false);
+  Future<Map<String, dynamic>> verifyCommerceReceiptR101({required String provider, required String packageKey, required String productId, required String receiptToken, String? transactionId}) => post('/commerce/verify-receipt', <String,dynamic>{'provider':provider,'package_key':packageKey,'product_id':productId,'receipt_token':receiptToken,if(transactionId!=null)'transaction_id':transactionId});
+  Future<Map<String, dynamic>> commerceReceiptR101(int id) => get('/commerce/receipts/$id');
   Future<Map<String, dynamic>> openDailyPackV173() => post('/packs/daily/open', const {});
   Future<Map<String, dynamic>> luckyWheelV182() => get('/rewards/lucky-wheel');
   Future<Map<String, dynamic>> spinLuckyWheelV182(String source) => post('/rewards/lucky-wheel/spin', {'source': source});
@@ -137,8 +141,13 @@ class WarqnaApiClient {
   Future<Map<String, dynamic>> openPrizeBoxV02(int boxId) => post('/prize-boxes/$boxId/open', const {});
   Future<Map<String, dynamic>> engagementCenterV173() => get('/engagement/center');
   Future<Map<String, dynamic>> joinCompetitionV173(String competitionKey, int fee) => post('/competitions/$competitionKey/join', {'entry_fee': fee, 'entry_mode': 'auto'});
+  Future<Map<String, dynamic>> leaveCompetitionV210(String competitionKey) => post('/competitions/$competitionKey/leave', const {});
   Future<Map<String, dynamic>> activateChallengeV175(String challengeKey) => post('/challenges/$challengeKey/activate', const {});
   Future<Map<String, dynamic>> claimChallengeV175(String challengeKey) => post('/challenges/$challengeKey/claim', const {});
+  Future<Map<String, dynamic>> startChallengeRoadV210(String game, int stages) =>
+      post('/challenge-road/start', {'game': game, 'stages': stages});
+  Future<Map<String, dynamic>> matchmakeChallengeRoadV210() =>
+      post('/challenge-road/matchmake', const {});
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> payload) => patch('/profile', payload);
   Future<Map<String, dynamic>> registerPushDevice(String token) => post('/push/devices', {'token': token, 'platform': platform, 'app_version': warqnaAppVersion, 'app_build': warqnaAppBuild});
   Future<Map<String, dynamic>> removePushDevice(String token) => deleteWithBody('/push/devices', {'token': token});

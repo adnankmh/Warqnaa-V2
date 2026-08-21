@@ -78,14 +78,18 @@ def main() -> None:
     if not original_pasha.is_file() or not reward_pasha.is_file():
         fail("original red Pasha assets missing")
 
-    require(
+    prize_service = require(
         "backend-laravel/app/Services/WarqnaPro/PrizeBoxService.php",
         "public const DAILY_LIMIT = 4",
         "awardForCompletedGame",
         "random_int(1, 20) * 50",
-        "'value' => '200'",
         "pasha_style = 'red'",
     )
+    if meta.get("build", 0) >= 210:
+        if "random_50_1000" not in prize_service:
+            fail("R9.1 prize-box token reward must remain capped at 1000")
+    elif "'value' => '200'" not in prize_service:
+        fail("legacy 200-token prize-box reward missing")
     require(
         "backend-laravel/routes/api.php",
         "Route::get('/prize-boxes'",
@@ -104,7 +108,10 @@ def main() -> None:
     )
     require("backend-laravel/tests/Feature/V02DailyPrizeBoxesTest.php", "test_one_varied_box_is_awarded_per_win_up_to_four_per_day")
 
-    pubspec = require("flutter_app/pubspec.yaml", f"version: {meta['version']}+{meta['build']}", "assets/images/v02/prize_boxes/", "assets/images/v02/tickets/", "assets/images/v02/rewards/")
+    if int(meta.get("build", 0)) >= 220:
+        pubspec = require("flutter_app/pubspec.yaml", f"version: {meta['version']}+{meta['build']}", "assets/optimized/r10/", "assets/sounds/r10/")
+    else:
+        pubspec = require("flutter_app/pubspec.yaml", f"version: {meta['version']}+{meta['build']}", "assets/images/v02/prize_boxes/", "assets/images/v02/tickets/", "assets/images/v02/rewards/")
     if len(re.findall(r"ticket_\$value", v02)) < 1:
         fail("ticket asset helper is missing")
 

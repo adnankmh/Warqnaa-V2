@@ -95,13 +95,18 @@ def main() -> None:
     )
     req('backend-laravel/app/Http/Controllers/RoomController.php',"$copy['_global_engine']","$copy['plain_room_password']")
 
-    seeder=req('backend-laravel/database/seeders/DatabaseSeeder.php',"['Kareem'","['Yazan'",'نخبة ورقنا','manage_club')
+    seeder=req('backend-laravel/database/seeders/DatabaseSeeder.php',"['Kareem'",'نخبة ورقنا','manage_club')
     demo_block=seeder[seeder.index('$demoUsers = ['):seeder.index('];', seeder.index('$demoUsers = ['))+2]
-    expected_demo_names={'Kareem','Rami','Lina','Samar','Layla','Jameel','Nour','Omar','Sara','Basel','Hala','Yazan'}
+    legacy_demo_names={'Kareem','Rami','Lina','Samar','Layla','Jameel','Nour','Omar','Sara','Basel','Hala','Yazan'}
+    r91_demo_names={'Kareem','Rami','Lina','Samar','Layla','Jameel','Nour','Omar','Sara','Basel'}
+    expected_demo_names=r91_demo_names if build>=210 else legacy_demo_names
     found_demo_names=set(re.findall(r"^\s*\['([^']+)'", demo_block, re.M))
     if found_demo_names!=expected_demo_names:
-        fail(f'Expected 12 non-admin server demo users, found {sorted(found_demo_names)}')
-    req('docs/DEMO_ACCOUNTS_V0.3_AR.md','Adnan123','Kareem123','Yazan12345')
+        fail(f'Expected {len(expected_demo_names)} non-admin server demo users, found {sorted(found_demo_names)}')
+    if build>=210:
+        req('docs/R9_1_DEMO_ACCOUNTS_AR_EN.md','Kareem123','Basel12345','Level 99','10 demo users')
+    else:
+        req('docs/DEMO_ACCOUNTS_V0.3_AR.md','Adnan123','Kareem123','Yazan12345')
 
     req('flutter_app/web/index.html','application/ld+json','VideoGame','og:title','twitter:card')
     req('flutter_app/web/robots.txt','Sitemap:')

@@ -14,7 +14,9 @@ use App\Http\Controllers\{
     MobileAuthRecoveryController,
     SocialAuthController,
     MobilePushController,
-    MobileEngagementController
+    MobileEngagementController,
+    MobileAssetController,
+    MobileCommerceController
 };
 
 // Backward-compatible public aliases for older Flutter/PWA builds. They
@@ -37,6 +39,8 @@ Route::prefix('mobile/v1')->group(function () {
     Route::post('/login', [MobileApiController::class, 'login'])->middleware('throttle:warqna-auth');
     Route::get('/games/catalog', [MobileGameController::class, 'catalog']);
     Route::get('/games/{gameKey}/rules', [MobileGameController::class, 'rules']);
+    Route::get('/assets/manifest', [MobileAssetController::class, 'manifest']);
+    Route::get('/commerce/catalog', [MobileCommerceController::class, 'catalog']);
 
     Route::middleware(['auth:sanctum', 'throttle:warqna-api', 'supported.app', 'maintenance.guard'])->group(function () {
         Route::get('/bootstrap', [MobileApiController::class, 'bootstrap']);
@@ -46,6 +50,8 @@ Route::prefix('mobile/v1')->group(function () {
         Route::get('/wallet', [MobileApiController::class, 'wallet']);
         Route::post('/store/purchase', [MobileApiController::class, 'purchase'])->middleware('throttle:warqna-sensitive');
         Route::post('/store/activate', [MobileApiController::class, 'activateStoreInventoryV183'])->middleware('throttle:warqna-sensitive');
+        Route::post('/commerce/verify-receipt', [MobileCommerceController::class, 'verifyReceipt'])->middleware('throttle:warqna-sensitive');
+        Route::get('/commerce/receipts/{receipt}', [MobileCommerceController::class, 'receipt'])->middleware('throttle:warqna-sensitive');
         Route::get('/notifications', [MobileApiController::class, 'notifications']);
         Route::patch('/notifications/{id}/read', [MobileApiController::class, 'markNotification']);
         Route::delete('/notifications/{id}', [MobileApiController::class, 'deleteNotification']);
@@ -61,7 +67,10 @@ Route::prefix('mobile/v1')->group(function () {
         Route::post('/packs/daily/open', [MobileEngagementController::class, 'openDailyPack'])->middleware('throttle:warqna-sensitive');
         Route::post('/challenges/{challengeKey}/activate', [MobileEngagementController::class, 'activateChallenge'])->middleware('throttle:warqna-sensitive');
         Route::post('/challenges/{challengeKey}/claim', [MobileEngagementController::class, 'claimChallenge'])->middleware('throttle:warqna-sensitive');
+        Route::post('/challenge-road/start', [MobileEngagementController::class, 'startChallengeRoad'])->middleware('throttle:warqna-sensitive');
+        Route::post('/challenge-road/matchmake', [MobileEngagementController::class, 'matchmakeChallengeRoad'])->middleware('throttle:warqna-sensitive');
         Route::post('/competitions/{competitionKey}/join', [MobileEngagementController::class, 'joinCompetition'])->middleware('throttle:warqna-sensitive');
+        Route::post('/competitions/{competitionKey}/leave', [MobileEngagementController::class, 'leaveCompetition'])->middleware('throttle:warqna-sensitive');
 
         Route::get('/account/export', [MobileAccountController::class, 'export'])->middleware('throttle:warqna-sensitive');
         Route::get('/account/sessions', [MobileAccountController::class, 'sessions']);
@@ -107,6 +116,7 @@ Route::prefix('mobile/v1')->group(function () {
         Route::get('/admin/dashboard', [MobileAdminController::class, 'dashboard']);
         Route::patch('/admin/games/{game}', [MobileAdminController::class, 'updateGame']);
         Route::patch('/admin/store/{item}', [MobileAdminController::class, 'updateStore']);
+        Route::delete('/admin/store/{item}', [MobileAdminController::class, 'deleteStore']);
         Route::post('/admin/users/{user}/action', [MobileAdminController::class, 'userAction']);
         Route::patch('/admin/feature-flags/{flag}', [MobileAdminController::class, 'updateFeatureFlag']);
         Route::post('/admin/releases', [MobileAdminController::class, 'createRelease']);

@@ -370,6 +370,15 @@ const reactionCatalog = <ReactionItem>[
   ReactionItem('champion_belt', '🥋', 'victory', 'حزام البطل', 'Champion belt', animated: true),
   ReactionItem('royal_lion', '🦁', 'pasha', 'أسد ملكي', 'Royal lion', animated: true),
   ReactionItem('falcon_dive', '🦅', 'pasha', 'انقضاض الصقر', 'Falcon dive', animated: true),
+  // R9.1 Signature Motion set: original Warqnaa reactions with motion/sound feedback.
+  ReactionItem('r91_majlis_salute', '🫡', 'friendly', 'تحية المجلس', 'Majlis salute', animated: true),
+  ReactionItem('r91_coffee_cheers', '☕', 'friendly', 'فنجان كفو', 'Coffee cheers', animated: true),
+  ReactionItem('r91_card_storm', '🃏', 'power', 'عاصفة الورق', 'Card storm', animated: true),
+  ReactionItem('r91_perfect_trick', '🎯', 'power', 'لَمّة محسوبة', 'Perfect trick', animated: true),
+  ReactionItem('r91_neon_crown', '👑', 'victory', 'تاج ورقنا', 'Warqnaa crown', animated: true),
+  ReactionItem('r91_royal_falcon', '🦅', 'pasha', 'الصقر الملكي', 'Royal falcon', animated: true),
+  ReactionItem('r91_gold_confetti', '🎊', 'victory', 'مطر ذهبي', 'Golden shower', animated: true),
+  ReactionItem('r91_good_game', '🤝', 'friendly', 'لعبة جميلة', 'Good game', animated: true),
 ];
 
 class ReactionDock extends StatefulWidget {
@@ -671,6 +680,7 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
   Widget build(BuildContext context) {
     final image = decoded;
     const viewport = 290.0;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
     double imageWidth = viewport;
     double imageHeight = viewport;
     if (image != null) {
@@ -684,17 +694,17 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
       }
     }
     return AlertDialog(
-      title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w900)),
+      title: Text(ar ? 'معاينة الصورة الشخصية' : 'Profile photo preview', style: const TextStyle(fontWeight: FontWeight.w900)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('اسحب الصورة وقرّب أو بعّد بإصبعين، ثم اعتمد المعاينة.', style: TextStyle(fontSize: 11, color: Colors.white60)),
+          Text(ar ? 'اسحب وقرّب الصورة داخل الإطار الدائري. لن تُحفظ قبل الضغط على اعتماد.' : 'Move and zoom the photo inside the circular frame. Nothing is saved until you confirm.', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .62))),
           const SizedBox(height: 12),
           Center(
             child: RepaintBoundary(
               key: boundaryKey,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(viewport / 2),
                 child: Container(
                   width: viewport,
                   height: viewport,
@@ -712,12 +722,12 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
             ),
           ),
           const SizedBox(height: 9),
-          TextButton.icon(onPressed: () => transform.value = Matrix4.identity(), icon: const Icon(Icons.restart_alt), label: const Text('إعادة الضبط')),
+          TextButton.icon(onPressed: () => transform.value = Matrix4.identity(), icon: const Icon(Icons.restart_alt), label: Text(ar ? 'إعادة الضبط' : 'Reset')),
         ],
       ),
       actions: [
-        TextButton(onPressed: exporting ? null : () => Navigator.pop(context), child: const Text('إلغاء')),
-        FilledButton.icon(onPressed: exporting ? null : export, icon: exporting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.crop_rounded), label: const Text('اعتماد الصورة')),
+        TextButton(onPressed: exporting ? null : () => Navigator.pop(context), child: Text(ar ? 'إلغاء' : 'Cancel')),
+        FilledButton.icon(onPressed: exporting ? null : export, icon: exporting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.crop_rounded), label: Text(ar ? 'اعتماد الصورة' : 'Use photo')),
       ],
     );
   }
@@ -743,6 +753,7 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
   void initState() {
     super.initState();
     controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700));
+    AppSounds.fire(widget.reaction.category == 'victory' || widget.reaction.category == 'pasha' ? 'reward' : 'reaction');
     scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: .2, end: 1.18).chain(CurveTween(curve: Curves.easeOutBack)), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 25),
@@ -797,9 +808,14 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
                     BoxShadow(color: Color(0x44ffd166), blurRadius: 18, spreadRadius: 1),
                   ],
                 ),
-                child: Stack(alignment: Alignment.center, children: [
-                  Text(widget.reaction.emoji, style: TextStyle(fontSize: 70, foreground: Paint()..color = const Color(0x22ffffff))),
-                  Text(widget.reaction.emoji, style: const TextStyle(fontSize: 58, shadows: [Shadow(color: Color(0xaa000000), blurRadius: 9, offset: Offset(0, 5)), Shadow(color: Color(0x88ffffff), blurRadius: 10)])),
+                child: Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
+                  if (widget.reaction.animated) ...[
+                    const Positioned(left: -10, top: -9, child: Icon(Icons.auto_awesome, size: 18, color: Color(0xffffd166))),
+                    const Positioned(right: -12, bottom: -7, child: Icon(Icons.auto_awesome, size: 14, color: Color(0xff5de7ff))),
+                    Positioned(right: -5, top: 2, child: Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xffff8fab)))),
+                  ],
+                  Text(widget.reaction.emoji, style: TextStyle(fontSize: 76, foreground: Paint()..color = const Color(0x22ffffff))),
+                  Text(widget.reaction.emoji, style: const TextStyle(fontSize: 60, shadows: [Shadow(color: Color(0xaa000000), blurRadius: 9, offset: Offset(0, 5)), Shadow(color: Color(0x88ffffff), blurRadius: 10)])),
                 ]),
               ),
             ),

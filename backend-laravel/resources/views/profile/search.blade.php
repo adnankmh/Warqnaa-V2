@@ -12,10 +12,10 @@
  @forelse($users as $u)
   <div class="player-result-card">
    <div class="name-orbit" style="--orbit:{{$u->profile?->name_color ?? '#facc15'}}">
-    <img src="{{$u->profile?->avatar ?: '/assets/avatars/default.svg'}}">
+    <img loading="lazy" decoding="async" src="{{$u->profile?->avatar ?: '/assets/avatars/default.svg'}}">
    </div>
    <div class="player-result-main">
-    <h3 style="color:{{$u->profile?->name_color ?? '#facc15'}}"><img class="flag-img" src="/assets/flags/{{strtoupper($u->profile?->country_code ?? 'PS')}}.svg" onerror="this.style.display='none'" alt="flag"> {{$u->username}} @if($u->profile?->badge)<small>{{$u->profile->badge}}</small>@endif</h3>
+    <h3 style="color:{{$u->profile?->name_color ?? '#facc15'}}"><img loading="lazy" decoding="async" class="flag-img" src="/assets/flags/{{strtoupper($u->profile?->country_code ?? 'PS')}}.svg" onerror="this.style.display='none'" alt="flag"> {{$u->username}} @if($u->profile?->badge)<small>{{$u->profile->badge}}</small>@endif</h3>
     <p>Level {{$u->profile?->level ?? 1}} • XP {{number_format($u->profile?->xp ?? 0)}} • فوز {{number_format($u->profile?->wins ?? 0)}} / ألعاب {{number_format($u->profile?->games_played ?? 0)}}</p>
    </div>
    <button type="button" class="btn" onclick="openProfile({{$u->id}})">عرض البروفايل</button>

@@ -21,6 +21,17 @@ class GameCatalog
         ];
     }
 
+    /** Customer-facing games intentionally exclude engines that still require the full online/server UX. */
+    public static function customerKeys(): array
+    {
+        return array_keys(self::all());
+    }
+
+    public static function isCustomerVisible(string $key): bool
+    {
+        return in_array($key, self::customerKeys(), true);
+    }
+
     public static function rules(string $key): string
     {
         $game=self::all()[$key] ?? ['ar'=>$key,'summary'=>'قواعد قابلة للتوسعة'];
@@ -43,10 +54,6 @@ class GameCatalog
         return [
             'ar'=>self::rules($key),
             'en'=>$en.': '.$short.' Server-authoritative validation, legal turn/action checks, scoring, timeout auto-play and anti-cheat.',
-            'tr'=>$en.': '.$short.' Sunucu otoritesiyle sıra, yasal hamle, puanlama, otomatik oynama ve anti-hile uygulanır.',
-            'fr'=>$en.' : '.$short.' Validation côté serveur, actions légales, score, auto-play et anti-triche.',
-            'de'=>$en.': '.$short.' Servervalidierung, legale Aktionen, Wertung, Auto-Spiel und Anti-Cheat.',
-            'es'=>$en.': '.$short.' Validación del servidor, acciones legales, puntuación, auto-jugada y anti-trampa.',
         ];
     }
 }

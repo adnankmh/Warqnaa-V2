@@ -7,7 +7,7 @@ $relation=$relation ?? null;
 <div class="profile-modal-card compact-profile-card {{$mine ? 'profile-self-card' : 'profile-other-card'}}">
  <button type="button" class="modal-x" onclick="document.getElementById('profileModal').classList.add('hidden')">×</button>
  <div class="profile-head">
-  <img class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">
+  <img loading="lazy" decoding="async" class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">
   <div>
    <h2 style="color:{{$profile?->name_color ?: '#facc15'}}">{{$profile?->display_name ?: $user->username}}</h2>
    <div class="country-line">{!! flag_img($code,'flag-img flag-small') !!} <b>{{country_name($code)}}</b><a class="btn store-inventory-profile-link" href="{{ route('store') }}#inventory">🎒 مشترياتي</a></div>
@@ -22,7 +22,7 @@ $relation=$relation ?? null;
   <div><b>{{number_format($profile?->club_points ?? 0)}}</b><span>نقاط النادي</span></div>
   <div><b>×{{($profile?->pasha_days ?? 0)>0?'2':'1'}}</b><span>مضاعف الباشا</span></div>
  </div>
- @if($mine)<div class="profile-self-details"><div><b>{{ number_format($profile?->xp ?? 0) }}</b><span>XP الحالي</span></div><div><b>{{ number_format($profile?->losses ?? 0) }}</b><span>خسارة</span></div><div class="profile-pasha-days-v134"><img src="/assets/store/basha1.png" alt="باشا"><b>{{ number_format($profile?->pasha_days ?? 0) }}</b><span>أيام الباشا</span></div><div><b>{{ token_display($user) }}</b><span>الرصيد</span></div></div>@endif
+ @if($mine)<div class="profile-self-details"><div><b>{{ number_format($profile?->xp ?? 0) }}</b><span>XP الحالي</span></div><div><b>{{ number_format($profile?->losses ?? 0) }}</b><span>خسارة</span></div><div class="profile-pasha-days-v134"><img loading="lazy" decoding="async" src="/assets/store/basha1.png" alt="باشا"><b>{{ number_format($profile?->pasha_days ?? 0) }}</b><span>أيام الباشا</span></div><div><b>{{ token_display($user) }}</b><span>الرصيد</span></div></div>@endif
 	 <div class="active-items"><b>المقتنيات المفعلة</b><div class="active-chip-row">@foreach($user->inventoryItems->where('active',true)->take($mine?12:6) as $inv)<span class="active-chip">{{$inv->storeItem?->payload['preview_icon'] ?? '✨'}} {{$inv->storeItem?->name['ar'] ?? 'مقتنى'}}</span>@endforeach @if($user->inventoryItems->where('active',true)->count()===0)<span class="muted">لا توجد مقتنيات مفعلة.</span>@endif</div></div>
  <div class="profile-actions">
   @if($mine)

@@ -13,7 +13,7 @@ class V175XpChallengesDesignerTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_all_excel_xp_values_are_exact(): void
+    public function test_r91_xp_curve_preserves_1_to_79_and_hardens_80_to_100(): void
     {
         $service = app(XpService::class);
         $this->assertSame(80, $service->requiredXp(1));
@@ -95,27 +95,27 @@ class V175XpChallengesDesignerTest extends TestCase
         $this->assertSame(821569, $service->requiredXp(77));
         $this->assertSame(876548, $service->requiredXp(78));
         $this->assertSame(935877, $service->requiredXp(79));
-        $this->assertSame(1000000, $service->requiredXp(80));
-        $this->assertSame(1068951, $service->requiredXp(81));
-        $this->assertSame(1142786, $service->requiredXp(82));
-        $this->assertSame(1222076, $service->requiredXp(83));
-        $this->assertSame(1307479, $service->requiredXp(84));
-        $this->assertSame(1399753, $service->requiredXp(85));
-        $this->assertSame(1499772, $service->requiredXp(86));
-        $this->assertSame(1608544, $service->requiredXp(87));
-        $this->assertSame(1727236, $service->requiredXp(88));
-        $this->assertSame(1857199, $service->requiredXp(89));
-        $this->assertSame(2000000, $service->requiredXp(90));
-        $this->assertSame(2175021, $service->requiredXp(91));
-        $this->assertSame(2405469, $service->requiredXp(92));
-        $this->assertSame(2700731, $service->requiredXp(93));
-        $this->assertSame(3072915, $service->requiredXp(94));
-        $this->assertSame(3537123, $service->requiredXp(95));
-        $this->assertSame(4111710, $service->requiredXp(96));
-        $this->assertSame(4818481, $service->requiredXp(97));
-        $this->assertSame(5682712, $service->requiredXp(98));
-        $this->assertSame(6732888, $service->requiredXp(99));
-        $this->assertSame(8000000, $service->requiredXp(100));
+        $this->assertSame(4000000, $service->requiredXp(80));
+        $this->assertSame(2137902, $service->requiredXp(81));
+        $this->assertSame(2285572, $service->requiredXp(82));
+        $this->assertSame(2444152, $service->requiredXp(83));
+        $this->assertSame(2614958, $service->requiredXp(84));
+        $this->assertSame(2799506, $service->requiredXp(85));
+        $this->assertSame(2999544, $service->requiredXp(86));
+        $this->assertSame(3217088, $service->requiredXp(87));
+        $this->assertSame(3454472, $service->requiredXp(88));
+        $this->assertSame(3714398, $service->requiredXp(89));
+        $this->assertSame(9000000, $service->requiredXp(90));
+        $this->assertSame(6661002, $service->requiredXp(91));
+        $this->assertSame(7517091, $service->requiredXp(92));
+        $this->assertSame(8608580, $service->requiredXp(93));
+        $this->assertSame(9986974, $service->requiredXp(94));
+        $this->assertSame(11716720, $service->requiredXp(95));
+        $this->assertSame(13877021, $service->requiredXp(96));
+        $this->assertSame(16563528, $service->requiredXp(97));
+        $this->assertSame(19889492, $service->requiredXp(98));
+        $this->assertSame(20000000, $service->requiredXp(99));
+        $this->assertSame(20000000, $service->requiredXp(100));
     }
 
     public function test_challenge_can_activate_progress_and_claim_once(): void

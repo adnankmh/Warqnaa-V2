@@ -42,6 +42,14 @@ class CompetitionService
             ]
         );
 
+        if (!in_array((string)$tournament->status, ['open','running'], true)) {
+            throw new RuntimeException('هذه المنافسة لم تعد متاحة للدخول.');
+        }
+        $bracket = (array)($tournament->bracket ?: []);
+        $exitCounts = (array)($bracket['exit_counts'] ?? []);
+        if ((int)($exitCounts[(string)$user->id] ?? 0) >= 5) {
+            throw new RuntimeException('لا يمكنك العودة إلى هذه المنافسة بعد الخروج منها 5 مرات.');
+        }
         if ($tournament->entries()->where('user_id', $user->id)->exists()) {
             throw new RuntimeException('أنت مسجل في هذه المنافسة مسبقاً.');
         }
@@ -79,6 +87,35 @@ class CompetitionService
         });
 
         return ['tournament'=>$tournament->fresh('game'),'entry_mode'=>$entryMode,'ticket_denomination'=>$usedTicket];
+    }
+
+
+    /** @return array<string,mixed> */
+    public function leave(User $user, string $key): array
+    {
+        return DB::transaction(function () use ($user, $key) {
+            $tournament = Tournament::where('key', $key)->lockForUpdate()->first();
+            if (!$tournament) throw new RuntimeException('المنافسة غير موجودة.');
+            $entry = $tournament->entries()->where('user_id', $user->id)->lockForUpdate()->first();
+            if (!$entry) throw new RuntimeException('أنت غير مسجل في هذه المنافسة.');
+
+            $bracket = (array)($tournament->bracket ?: []);
+            $counts = (array)($bracket['exit_counts'] ?? []);
+            $userKey = (string)$user->id;
+            $counts[$userKey] = min(5, (int)($counts[$userKey] ?? 0) + 1);
+            $bracket['exit_counts'] = $counts;
+            $bracket['messages'] = array_values(array_merge((array)($bracket['messages'] ?? []), [
+                'خرج اللاعب '.$user->username.' من المنافسة ('.$counts[$userKey].'/5).',
+            ]));
+            $tournament->forceFill(['bracket'=>$bracket])->save();
+            $entry->delete();
+
+            return [
+                'tournament_key'=>$tournament->key,
+                'exit_count'=>$counts[$userKey],
+                'return_allowed'=>$counts[$userKey] < 5,
+            ];
+        });
     }
 
     /** @return array<string,mixed> */

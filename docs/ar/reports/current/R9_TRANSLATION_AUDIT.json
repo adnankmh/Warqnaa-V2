@@ -11,13 +11,13 @@
   "high_traffic_checks": [
     {
       "file": "flutter_app/lib/main.dart",
-      "arabic_chars": 33782,
-      "english_chars": 316803
+      "arabic_chars": 34041,
+      "english_chars": 325176
     },
     {
       "file": "backend-laravel/resources/views/layouts/app.blade.php",
-      "arabic_chars": 1367,
-      "english_chars": 17063
+      "arabic_chars": 1377,
+      "english_chars": 17376
     },
     {
       "file": "backend-laravel/config/warqna_languages.php",

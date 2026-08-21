@@ -199,8 +199,9 @@ class R9HomeDashboard extends StatelessWidget {
   }
 }
 
-/// R9 table preview follows the real device orientation and always fills the
-/// whole table surface. No square fallback and no letterboxed art.
+/// R10.1 table preview follows device orientation but keeps artwork as a
+/// proportional inlay inside the premium table surface; the artwork never
+/// stretches across the whole table or distorts its frame.
 class R9DirectionalTablePreview extends StatelessWidget {
   const R9DirectionalTablePreview({super.key, required this.controller, required this.product, this.compact = false});
   final AppController controller;
@@ -223,9 +224,21 @@ class R9DirectionalTablePreview extends StatelessWidget {
             border: Border.all(color: c2.withValues(alpha: .54), width: compact ? 2 : 3),
           ),
           child: Stack(fit: StackFit.expand, children: [
+            DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .05), Colors.transparent, Colors.black.withValues(alpha: .18)]))),
             if (product.imageAsset != null)
-              Image.asset(product.imageAsset!, fit: BoxFit.cover, filterQuality: FilterQuality.medium, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-            DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .035), Colors.transparent, Colors.black.withValues(alpha: .16)]))),
+              Center(
+                child: FractionallySizedBox(
+                  widthFactor: portrait ? .70 : .62,
+                  heightFactor: portrait ? .54 : .68,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(compact ? 12 : 18),
+                    child: Opacity(
+                      opacity: .72,
+                      child: Image.asset(product.imageAsset!, fit: BoxFit.contain, filterQuality: FilterQuality.high, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                    ),
+                  ),
+                ),
+              ),
             if (product.imageAsset == null) Center(child: Text(product.icon, style: TextStyle(fontSize: compact ? 38 : 70))),
           ]),
         ),

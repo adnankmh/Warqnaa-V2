@@ -73,7 +73,9 @@ def main() -> None:
         fail(f"Warqna brand logo is too small: {logo_width}x{logo_height}")
 
     pubspec = PUBSPEC.read_text(encoding="utf-8")
-    for needle in ["assets/images/brand/", "assets/images/tables/"]:
+    build = int(json.loads((ROOT / 'RELEASE_VERSION.json').read_text(encoding='utf-8')).get('build', 0))
+    required_bundle = ['assets/images/brand/warqna_logo.png', 'assets/optimized/r10/'] if build >= 220 else ['assets/images/brand/', 'assets/images/tables/']
+    for needle in required_bundle:
         if needle not in pubspec:
             fail(f"Flutter assets registration is missing: {needle}")
     for needle in [

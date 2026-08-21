@@ -9,7 +9,7 @@ class XpService
     {
         $level = 1;
         $remaining = max(0, $xp);
-        while ($level < 200 && $remaining >= $this->requiredXp($level)) {
+        while ($level < 100 && $remaining >= $this->requiredXp($level)) {
             $remaining -= $this->requiredXp($level);
             $level++;
         }
@@ -18,11 +18,10 @@ class XpService
 
     public function requiredXp(int $level): int
     {
-        $safe = max(1, min(200, $level));
+        $safe = max(1, min(100, $level));
         $exact = config('warqna_xp_levels.'.$safe);
         if ($exact !== null) return (int) $exact;
-        $level100 = (int) config('warqna_xp_levels.100', 8000000);
-        return (int) round($level100 * (1.12 ** ($safe - 100)));
+        return (int) config('warqna_xp_levels.100', 20000000);
     }
 
     public function rewardForLevel(int $level): int

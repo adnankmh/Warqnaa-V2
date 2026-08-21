@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{Friendship,Tournament,TournamentEntry,Game,Room,RoomPlayer};
+use App\Models\{Friendship,Tournament,TournamentEntry,Game,Room,RoomPlayer,Notification,User};
 use App\Services\Wallet\WalletService;
+use App\Services\Notifications\FirebasePushService;
+use App\Services\Games\GameCatalog;
 use Illuminate\Http\Request; use RuntimeException;
 use Illuminate\Support\Facades\{DB,Schema};
 
@@ -14,7 +16,7 @@ class TournamentController
     {
         return view('tournaments.index', [
             'tournaments'=>Tournament::with('creator.profile','game','entries.user.profile')->latest()->get(),
-            'games'=>Game::where('active',true)->get(),
+            'games'=>Game::where('active',true)->whereIn('key', GameCatalog::customerKeys())->get(),
         ]);
     }
 
@@ -25,6 +27,7 @@ class TournamentController
             'club_id'=>'nullable|exists:clubs,id','game_id'=>'required|exists:games,id','stages'=>'required|integer|min:1|max:4','seats_per_match'=>'required|integer|min:2|max:6','entry_fee'=>'required|integer|min:0|max:1000000','prize_pool'=>'required|integer|min:0|max:100000000'
         ]);
         $game=Game::findOrFail($data['game_id']);
+        abort_unless($game->active && GameCatalog::isCustomerVisible($game->key), 422, 'هذه اللعبة غير متاحة للمنافسات حالياً.');
         if (!empty($data['club_id'])) {
             $club=\App\Models\Club::findOrFail($data['club_id']);
             $membership=$club->members()->where('user_id',auth()->id())->first();
@@ -190,6 +193,20 @@ class TournamentController
             $bracket['recording_enabled']=true;
             $bracket['messages'][]='تم إنشاء غرفة المسابقة '.$room->code.' وتفعيل سجل المسابقة وإعادة المشاهدة النصية. بعد انتهاء المباراة يمكن إظهار الحركات والنتائج وأوراق اللاعبين النهائية من سجل الغرفة.';
             $tournament->update(['status'=>'running','bracket'=>$bracket]);
+            $push=app(FirebasePushService::class);
+            foreach($tournament->entries as $entry){
+                $participant=User::find($entry->user_id);
+                if(!$participant) continue;
+                Notification::create([
+                    'user_id'=>$participant->id,
+                    'type'=>'tournament_started',
+                    'title'=>['ar'=>'بدأت المنافسة','en'=>'Competition started'],
+                    'body'=>['ar'=>'بدأت المنافسة رقم '.$tournament->id.' وغرفة المرحلة الحالية '.$room->code.' جاهزة.','en'=>'Competition #'.$tournament->id.' has started and room '.$room->code.' is ready.'],
+                    'url'=>route('rooms.show',$room->code),
+                    'meta'=>['tournament_id'=>$tournament->id,'room_code'=>$room->code,'started'=>true],
+                ]);
+                $push->sendToUser($participant,'Warqnaa • بدأت المنافسة','غرفة المنافسة '.$room->code.' جاهزة الآن.',['type'=>'tournament_started','tournament_id'=>$tournament->id,'room_code'=>$room->code]);
+            }
             return $room;
         });
     }

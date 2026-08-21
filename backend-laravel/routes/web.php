@@ -1,6 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{HomeController,AuthController,GameController,RoomController,StoreController,ProfileController,FriendController,ClubController,TournamentController,AdminController,WalletController,NotificationController,PageController,ChatController,RealtimeController,EconomyController,AdminMonitorController,EconomyAdminController,GameLibraryController,RewardController,InteractionController,ProAdminController,EngineAuditController,LegalPageController,MobileAuthRecoveryController,SocialAuthController};
+use App\Http\Controllers\{HomeController,AuthController,GameController,RoomController,StoreController,ProfileController,FriendController,ClubController,TournamentController,AdminController,WalletController,NotificationController,PageController,ChatController,RealtimeController,EconomyController,AdminMonitorController,EconomyAdminController,GameLibraryController,RewardController,InteractionController,ProAdminController,EngineAuditController,LegalPageController,MobileAuthRecoveryController,SocialAuthController,CommerceAdminController};
 Route::get('/', [HomeController::class,'index'])->name('home');
 
 Route::get('/health', function(\App\Services\Platform\PlatformHealthService $health){ return response()->json($health->snapshot()); })->name('warqna.health');
@@ -110,6 +110,10 @@ Route::middleware('auth')->group(function(){
     Route::post('/store-items',[AdminController::class,'createStoreItem'])->name('admin.store.create');
     Route::post('/store-items/{item}',[AdminController::class,'updateStoreItem'])->name('admin.store.update');
     Route::post('/store-items/{item}/delete',[AdminController::class,'deleteStoreItem'])->name('admin.store.delete');
+    Route::post('/store-items/{item}/purge',[AdminController::class,'purgeStoreItem'])->name('admin.store.purge');
+    Route::post('/commerce/settings',[CommerceAdminController::class,'saveSettings'])->name('admin.commerce.settings');
+    Route::post('/commerce/offers',[CommerceAdminController::class,'saveOffer'])->name('admin.commerce.offer.save');
+    Route::post('/commerce/offers/{offer}/delete',[CommerceAdminController::class,'deleteOffer'])->name('admin.commerce.offer.delete');
     Route::get('/pro-v118', fn()=>response()->json(['ok'=>true,'version'=>config('warqna_pro_features.version'),'status'=>'admin pro dashboard route restored v134']))->name('admin.pro.v118');
     Route::get('/engine-audit', [\App\Http\Controllers\EngineAuditController::class,'index'])->name('admin.engine.audit');
     Route::post('/economy/season', fn()=>back()->with('ok','تم حفظ الموسم من لوحة الإدارة'))->name('admin.economy.season');

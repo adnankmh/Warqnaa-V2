@@ -53,7 +53,7 @@ def main() -> int:
         "Future<void> logout()",
         "part 'v175_release.dart';",
         "final exact = xpRequirementsV175[safe];",
-        "return (xpRequirementsV175[100]! * math.pow(1.12, extra)).round();",
+        "return xpRequirementsV175[100]!;",
     ])
     require("flutter_app/lib/v183_overhaul.dart", ["ResponsiveAccountStatsV170(controller: controller)", "HomeDashboardV183"])
 
@@ -138,20 +138,24 @@ def main() -> int:
             "1: 80",
             "40: 59371",
             "50: 150000",
-            "80: 1000000",
-            "100: 8000000",
+            "80: 4000000",
+            "90: 9000000",
+            "99: 20000000",
+            "100: 20000000",
         ])
         require("backend-laravel/app/Services/Leveling/XpService.php", [
             "config('warqna_xp_levels.'.$safe)",
-            "config('warqna_xp_levels.100', 8000000)",
-            "1.12 ** ($safe - 100)",
+            "config('warqna_xp_levels.100', 20000000)",
+            "min(100, $level)",
         ])
         require("backend-laravel/config/warqna_xp_levels.php", [
             "1 => 80",
             "40 => 59371",
             "50 => 150000",
-            "80 => 1000000",
-            "100 => 8000000",
+            "80 => 4000000",
+            "90 => 9000000",
+            "99 => 20000000",
+            "100 => 20000000",
         ])
     else:
         require("backend-laravel/app/Services/Leveling/XpService.php", [

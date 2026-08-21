@@ -46,7 +46,7 @@ class AppSounds {
       await player.stop();
       final channelVolume = channelVolumes[channelFor(cue)] ?? 1.0;
       final effectiveVolume = (volumeOverride ?? (volume * channelVolume)).clamp(0.0, 1.0).toDouble();
-      await player.play(AssetSource('sounds/$cue.wav'), volume: effectiveVolume);
+      await player.play(AssetSource('sounds/r10/$cue.ogg'), volume: effectiveVolume);
     } catch (error) {
       debugPrint('Sound cue $cue skipped: $error');
     }

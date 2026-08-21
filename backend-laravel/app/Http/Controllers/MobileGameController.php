@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Friendship,Game,Message,Room,RoomPlayer,User};
 use App\Services\GameEngine\{EngineRegistry,GameFactory,GameRuleContract};
+use App\Services\Games\GameCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Cache,DB,Hash,Schema};
 use Illuminate\Support\Str;
@@ -25,7 +26,7 @@ class MobileGameController extends Controller
         } catch (\Throwable) {
             $dbGames = collect();
         }
-        $catalog = collect(EngineRegistry::all())->map(function (array $meta, string $key) use ($dbGames) {
+        $catalog = collect(EngineRegistry::all())->only(GameCatalog::customerKeys())->map(function (array $meta, string $key) use ($dbGames) {
             $game = $dbGames->get($key);
             return [
                 'key' => $key,
@@ -48,6 +49,7 @@ class MobileGameController extends Controller
 
     public function rules(string $gameKey)
     {
+        abort_unless(GameCatalog::isCustomerVisible($gameKey), 404, 'اللعبة غير متاحة حالياً.');
         $meta = EngineRegistry::get($gameKey);
         abort_unless($meta, 404, 'اللعبة غير موجودة');
         return response()->json(['ok' => true, 'key' => $gameKey, 'game' => $meta]);
@@ -55,7 +57,8 @@ class MobileGameController extends Controller
 
     public function rooms(Request $request, string $gameKey)
     {
-        $game = Game::where('key', $gameKey)->first();
+        abort_unless(GameCatalog::isCustomerVisible($gameKey), 404, 'اللعبة غير متاحة حالياً.');
+        $game = Game::where('key', $gameKey)->where('active', true)->first();
         if (!$game) return response()->json(['ok' => true, 'rooms' => []]);
 
         $rooms = Room::query()
@@ -133,7 +136,7 @@ class MobileGameController extends Controller
         }
 
         $manualExits = (array)($state['manual_exit_counts'] ?? $state['manual_leave_counts'] ?? []);
-        abort_if((int)($manualExits[$user->id] ?? 0) >= 3, 403, 'تم منع العودة إلى هذه الغرفة بعد ثلاث مرات خروج.');
+        abort_if((int)($manualExits[$user->id] ?? 0) >= 5, 403, 'تم منع العودة إلى هذه الغرفة بعد خمس مرات خروج يدوي.');
         $replacement = data_get($state, 'disconnected_replacements.'.$user->id);
         if (is_array($replacement) && !empty($replacement['room_player_id'])) {
             $replacementSeat = $room->players()->whereKey((int)$replacement['room_player_id'])->where('is_bot', true)->first();
@@ -429,7 +432,7 @@ class MobileGameController extends Controller
             $state = $this->replacePlayerKey($state,$oldKey,$newKey);
             $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
             $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
-            $state['messages'][] = '🚪 '.$user->username.' غاب ثلاث لفات؛ البوت يكمل ويمكنه العودة ما لم يخرج ثلاث مرات.';
+            $state['messages'][] = '🚪 '.$user->username.' غاب ثلاث لفات؛ البوت يكمل ويمكنه العودة ما لم يسجل خمس مرات خروج يدوي من هذه الغرفة.';
             $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$this->botName((int)$player->seat),'connected'=>true,'missed_turns'=>0]);
         }
 
@@ -454,15 +457,15 @@ class MobileGameController extends Controller
         $state = $this->replacePlayerKey($state,$oldKey,$newKey);
         $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
         $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
-        if ($counts[$user->id] >= 3) {
+        if ($counts[$user->id] >= 5) {
             $banned = array_map('intval',(array)($state['banned_user_ids'] ?? []));
             $banned[] = (int)$user->id;
             $state['banned_user_ids'] = array_values(array_unique($banned));
         }
-        $state['messages'][] = $user->username.' خرج من اللعبة ('.$counts[$user->id].'/3)، والبوت يكمل مكانه.';
+        $state['messages'][] = $user->username.' خرج من اللعبة ('.$counts[$user->id].'/5)، والبوت يكمل مكانه.';
         $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$this->botName((int)$player->seat),'connected'=>true,'missed_turns'=>0]);
         $room->update(['state'=>$state]);
-        return response()->json(['ok'=>true,'message'=>$counts[$user->id] >= 3 ? 'تم الخروج ومنع العودة بعد ثلاث مرات.' : 'تم الخروج ويمكنك العودة إلى المقعد نفسه.','exit_count'=>$counts[$user->id]]);
+        return response()->json(['ok'=>true,'message'=>$counts[$user->id] >= 5 ? 'تم الخروج ومنع العودة إلى هذه الغرفة بعد خمس مرات.' : 'تم الخروج ويمكنك العودة إلى المقعد نفسه.','exit_count'=>$counts[$user->id]]);
     }
 
     public function chat(Request $request, Room $room)

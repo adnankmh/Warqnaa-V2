@@ -1,14 +1,18 @@
 part of 'main.dart';
 
 const List<Map<String, dynamic>> luckyWheelSegmentsV182 = <Map<String, dynamic>>[
-  <String, dynamic>{'key':'ticket_200','label_ar':'تذكرة 200','label_en':'Ticket 200','icon':'🎟️','weight':18,'color':'#5b21b6','reward':<String,dynamic>{'type':'ticket','value':'200','duration_hours':0,'rarity':'common','icon':'🎟️','label_ar':'تذكرة مسابقة 200'}},
-  <String, dynamic>{'key':'tokens_150','label_ar':'150 توكن','label_en':'150 Tokens','icon':'🪙','weight':20,'color':'#047857','reward':<String,dynamic>{'type':'tokens','value':'150','duration_hours':0,'rarity':'common','icon':'🪙','label_ar':'150 توكن مجاني'}},
-  <String, dynamic>{'key':'writing_color','label_ar':'لون كتابة','label_en':'Writing Color','icon':'✍️','weight':10,'color':'#0891b2','reward':<String,dynamic>{'type':'writing_color','value':'#22d3ee','duration_hours':24,'rarity':'rare','icon':'✍️','label_ar':'لون كتابة لمدة يوم','store_item_key':'lucky_wheel_chat_cyan_v182'}},
-  <String, dynamic>{'key':'player_color','label_ar':'لون لاعب','label_en':'Player Color','icon':'🎨','weight':10,'color':'#ca8a04','reward':<String,dynamic>{'type':'player_color','value':'#facc15','duration_hours':24,'rarity':'rare','icon':'🎨','label_ar':'لون لاعب لمدة يوم','store_item_key':'lucky_wheel_name_gold_v182'}},
-  <String, dynamic>{'key':'tokens_250','label_ar':'250 توكن','label_en':'250 Tokens','icon':'🪙','weight':14,'color':'#15803d','reward':<String,dynamic>{'type':'tokens','value':'250','duration_hours':0,'rarity':'common','icon':'🪙','label_ar':'250 توكن مجاني'}},
-  <String, dynamic>{'key':'ticket_500','label_ar':'تذكرة 500','label_en':'Ticket 500','icon':'🎟️','weight':10,'color':'#7c3aed','reward':<String,dynamic>{'type':'ticket','value':'500','duration_hours':0,'rarity':'rare','icon':'🎟️','label_ar':'تذكرة مسابقة 500'}},
-  <String, dynamic>{'key':'pasha_day','label_ar':'يوم باشا','label_en':'Pasha Day','icon':'👑','weight':5,'color':'#dc2626','reward':<String,dynamic>{'type':'pasha_day','value':'1','duration_hours':24,'rarity':'legendary','icon':'👑','label_ar':'يوم باشا','store_item_key':'lucky_wheel_pasha_day_v182'}},
-  <String, dynamic>{'key':'royal_box','label_ar':'غلاف ملكي','label_en':'Royal Cover','icon':'🎁','weight':4,'color':'#be123c','reward':<String,dynamic>{'type':'profile_cover','value':'cover_v02_royal','duration_hours':72,'rarity':'epic','icon':'🖼️','label_ar':'غلاف شخصي ملكي لمدة 3 أيام','store_item_key':'lucky_wheel_royal_cover_v182'}},
+  <String,dynamic>{'key':'ticket_500','label_ar':'تذكرة 500','label_en':'Ticket 500','icon':'🎟️','weight':12,'color':'#5b21b6','reward':<String,dynamic>{'type':'ticket','value':'500','duration_hours':0,'rarity':'rare','icon':'🎟️','label_ar':'تذكرة مسابقة 500','label_en':'Competition ticket 500'}},
+  <String,dynamic>{'key':'tokens_500','label_ar':'500 توكن','label_en':'500 Tokens','icon':'🪙','weight':17,'color':'#047857','reward':<String,dynamic>{'type':'tokens','value':'500','duration_hours':0,'rarity':'common','icon':'🪙','label_ar':'500 توكن مجاني','label_en':'500 free tokens'}},
+  <String,dynamic>{'key':'writing_red','label_ar':'كتابة حمراء','label_en':'Red Writing','icon':'✍️','weight':9,'color':'#b91c1c','reward':<String,dynamic>{'type':'writing_color','value':'#ef4444','duration_hours':24,'rarity':'rare','icon':'✍️','label_ar':'لون كتابة أحمر لمدة يوم','label_en':'Red writing color for 24 hours','store_item_key':'lucky_wheel_chat_red_r91'}},
+  <String,dynamic>{'key':'player_gold','label_ar':'لاعب ذهبي','label_en':'Gold Player','icon':'🎨','weight':9,'color':'#ca8a04','reward':<String,dynamic>{'type':'player_color','value':'#facc15','duration_hours':24,'rarity':'rare','icon':'🎨','label_ar':'لون لاعب ذهبي لمدة يوم','label_en':'Gold player color for 24 hours','store_item_key':'lucky_wheel_name_gold_v182'}},
+  <String,dynamic>{'key':'xp_booster','label_ar':'XP ×1.5','label_en':'XP ×1.5','icon':'⚡','weight':9,'color':'#6d28d9','reward':<String,dynamic>{'type':'xp_booster','value':'1.5','duration_hours':6,'rarity':'epic','icon':'⚡','label_ar':'مسرّع خبرة ×1.5 لمدة 6 ساعات','label_en':'XP ×1.5 for 6 hours','store_item_key':'daily_pack_xp_15x_6h_v176'}},
+  <String,dynamic>{'key':'royal_table','label_ar':'طاولة ملكية','label_en':'Royal Table','icon':'🃏','weight':7,'color':'#0f766e','reward':<String,dynamic>{'type':'table','value':'table_v173_royal_01','duration_hours':24,'rarity':'epic','icon':'🃏','label_ar':'طاولة الزمرد الملكي لمدة 24 ساعة','label_en':'Royal Emerald table for 24 hours','store_item_key':'table_v173_royal_01'}},
+  <String,dynamic>{'key':'pasha_day','label_ar':'يوم باشا','label_en':'Pasha Day','icon':'👑','weight':5,'color':'#dc2626','reward':<String,dynamic>{'type':'pasha_day','value':'1','duration_hours':24,'rarity':'legendary','icon':'👑','label_ar':'يوم باشا','label_en':'One Pasha Day','store_item_key':'lucky_wheel_pasha_day_v182'}},
+  <String,dynamic>{'key':'royal_cover','label_ar':'غلاف ملكي','label_en':'Royal Cover','icon':'🖼️','weight':7,'color':'#be123c','reward':<String,dynamic>{'type':'profile_cover','value':'cover_v02_royal','duration_hours':72,'rarity':'epic','icon':'🖼️','label_ar':'غلاف شخصي ملكي لمدة 3 أيام','label_en':'Royal profile cover for 3 days','store_item_key':'lucky_wheel_royal_cover_v182'}},
+  <String,dynamic>{'key':'tokens_900','label_ar':'900 توكن','label_en':'900 Tokens','icon':'💰','weight':11,'color':'#0e7490','reward':<String,dynamic>{'type':'tokens','value':'900','duration_hours':0,'rarity':'rare','icon':'💰','label_ar':'900 توكن مجاني','label_en':'900 free tokens'}},
+  <String,dynamic>{'key':'ticket_1000','label_ar':'تذكرة 1000','label_en':'Ticket 1000','icon':'🎫','weight':5,'color':'#9333ea','reward':<String,dynamic>{'type':'ticket','value':'1000','duration_hours':0,'rarity':'epic','icon':'🎫','label_ar':'تذكرة مسابقة 1000','label_en':'Competition ticket 1000'}},
+  <String,dynamic>{'key':'writing_cyan','label_ar':'كتابة سماوية','label_en':'Cyan Writing','icon':'🖋️','weight':9,'color':'#0891b2','reward':<String,dynamic>{'type':'writing_color','value':'#22d3ee','duration_hours':12,'rarity':'rare','icon':'🖋️','label_ar':'لون كتابة سماوي لمدة 12 ساعة','label_en':'Cyan writing color for 12 hours','store_item_key':'lucky_wheel_chat_cyan_r101'}},
+  <String,dynamic>{'key':'xp_booster_2x','label_ar':'XP ×2','label_en':'XP ×2','icon':'🚀','weight':5,'color':'#ea580c','reward':<String,dynamic>{'type':'xp_booster','value':'2.0','duration_hours':3,'rarity':'legendary','icon':'🚀','label_ar':'مسرّع خبرة ×2 لمدة 3 ساعات','label_en':'XP ×2 for 3 hours','store_item_key':'lucky_wheel_xp_2x_r101'}},
 ];
 
 String _todayV182() {
@@ -86,6 +90,9 @@ extension WarqnaV182Controller on AppController {
     } else {
       leaveGame();
     }
+    // R10.1: an interstitial may appear only after the player has left the
+    // live match; the ad service itself enforces a 12-minute minimum spacing.
+    unawaited(InterstitialAds.showIfEligible(minMinutes: 12));
   }
 
   void ensureDesignerOfflineSeedV182() {
@@ -204,12 +211,12 @@ class LuckyWheelHomeCardV182 extends StatelessWidget {
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:<Widget>[
             const Text('دولاب الحظ الملكي',style:TextStyle(fontWeight:FontWeight.w900,fontSize:18,color:Colors.white)),
             const SizedBox(height:4),
-            const Text('6 جوائز فاخرة • توقف سينمائي خلال 4 ثوانٍ • الجائزة تذهب لمكانها الصحيح',style:TextStyle(color:Colors.white70,fontSize:10,height:1.45)),
+            const Text('8 جوائز منتقاة • دوران سينمائي • والجائزة تظهر بنفس شكلها الحقيقي',style:TextStyle(color:Colors.white70,fontSize:10,height:1.45)),
             const SizedBox(height:8),
             Row(children:<Widget>[
               Icon(controller.luckyWheelFreeAvailableV182 ? Icons.card_giftcard_rounded : Icons.schedule_rounded,size:17,color:Colors.amberAccent),
               const SizedBox(width:5),
-              Text(controller.luckyWheelFreeAvailableV182 ? 'تدويرة مجانية جاهزة' : 'التدويرة المجانية غداً',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w900,fontSize:11)),
+              Text(controller.luckyWheelFreeAvailableV182 ? 'تدويرة مجانية جاهزة' : 'تتوفر المجانية بعد انتهاء مهلة 12 ساعة',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w900,fontSize:11)),
             ]),
           ])),
           Icon(Icons.arrow_forward_ios_rounded,color:palette.gold,size:18),
@@ -238,6 +245,7 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
   Future<void> _spin(String source) async {
     if(spinning)return;
     setState((){spinning=true;error=null;});
+    AppSounds.fire('reward');
     try{
       final result=await widget.controller.spinLuckyWheelV182(source:source);
       final index=int.tryParse(result['segment_index']?.toString() ?? '') ?? 0;
@@ -250,9 +258,9 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
       await showDialog<void>(context:context,barrierDismissible:false,builder:(dialogContext)=>AlertDialog(
         icon:const Text('🎉',style:TextStyle(fontSize:50)),title:const Text('مبروك!',textAlign:TextAlign.center),
         content:Column(mainAxisSize:MainAxisSize.min,children:<Widget>[
-          Text(reward['icon']?.toString() ?? '🎁',style:const TextStyle(fontSize:58)),const SizedBox(height:8),
-          Text(reward['label_ar']?.toString() ?? prizeRewardLabelV02(widget.controller.localeCode,reward),textAlign:TextAlign.center,style:const TextStyle(fontSize:19,fontWeight:FontWeight.w900)),
-          const SizedBox(height:7),const Text('تمت إضافة الجائزة تلقائيًا إلى رصيدك أو القسم الصحيح داخل المتجر.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5)),
+          PrizeRewardVisualV210(reward: reward, size: 144),const SizedBox(height:10),
+          Text(widget.controller.localeCode == 'ar' ? (reward['label_ar']?.toString() ?? prizeRewardLabelV02('ar',reward)) : (reward['label_en']?.toString() ?? prizeRewardLabelV02('en',reward)),textAlign:TextAlign.center,style:const TextStyle(fontSize:19,fontWeight:FontWeight.w900)),
+          const SizedBox(height:7),Text(widget.controller.localeCode == 'ar' ? 'تمت إضافة الجائزة تلقائيًا إلى رصيدك أو مقتنياتك.' : 'The reward was added automatically to your balance or inventory.',textAlign:TextAlign.center,style:const TextStyle(fontSize:11,height:1.5)),
         ]),actions:<Widget>[FilledButton(onPressed:()=>Navigator.pop(dialogContext),child:const Text('رائع'))],
       ));
     }catch(e){ if(mounted)setState(()=>error=e.toString().replaceFirst('Bad state: ','')); }
@@ -261,9 +269,10 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
 
   @override Widget build(BuildContext context){
     final size=math.min(MediaQuery.sizeOf(context).width-34,430.0).toDouble();
-    return Scaffold(appBar:AppBar(title:const Text('دولاب الحظ الملكي')),body:ListView(padding:const EdgeInsets.all(16),children:<Widget>[
-      const Text('أدر الدولاب واربح جوائز حقيقية داخل اللعبة',textAlign:TextAlign.center,style:TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
-      const SizedBox(height:6),const Text('النتيجة معتمدة من الخادم عند الاتصال، وتظهر بعد دوران سلس مدته 4 ثوانٍ. تم توسيع الدولاب إلى 10 خانات مع مؤشر أكبر وواجهة أوضح.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5)),
+    final ar=widget.controller.localeCode=='ar';
+    return Scaffold(appBar:AppBar(title:Text(ar?'دولاب الحظ الملكي':'Royal Lucky Wheel')),body:ListView(padding:const EdgeInsets.all(16),children:<Widget>[
+      Text(ar?'أدر الدولاب واربح جوائز حقيقية داخل اللعبة':'Spin the wheel and win real in-game rewards',textAlign:TextAlign.center,style:TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
+      const SizedBox(height:6),Text(ar?'النتيجة معتمدة من الخادم عند الاتصال، وتظهر بعد دوران سلس مدته 4 ثوانٍ. الدولاب يحتوي 12 جائزة متنوعة وواضحة، وتظهر الجائزة بنفس لونها أو صورتها الموجودة في المتجر.':'When online, the server authorizes the result after a smooth 4-second spin. The wheel has 12 varied, clearly presented rewards and shows the exact color or store artwork.',textAlign:TextAlign.center,style:TextStyle(fontSize:11,height:1.5)),
       const SizedBox(height:18),
       Center(child:SizedBox(width:size,height:size+76,child:Stack(alignment:Alignment.center,children:<Widget>[
         Positioned(
@@ -287,17 +296,17 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
           ),
         ),
         Positioned(top:58,child:Transform.rotate(angle:angle,child:CustomPaint(size:Size.square(size-20),painter:LuckyWheelPainterV182()))),
-        Positioned(top:58+(size-20)/2-34,child:Container(width:68,height:68,decoration:BoxDecoration(shape:BoxShape.circle,gradient:const LinearGradient(colors:<Color>[Color(0xffffe08a),Color(0xffa16207)]),border:Border.all(color:Colors.white,width:3),boxShadow:const <BoxShadow>[BoxShadow(blurRadius:16,color:Colors.black54)]),child:const Center(child:Text('W',style:TextStyle(fontWeight:FontWeight.w900,fontSize:26,color:Color(0xff3b2304))))),),
+        Positioned(top:58+(size-20)/2-34,child:Container(width:68,height:68,decoration:BoxDecoration(shape:BoxShape.circle,gradient:const LinearGradient(colors:<Color>[Color(0xffffe08a),Color(0xffa16207)]),border:Border.all(color:Colors.white,width:3),boxShadow:const <BoxShadow>[BoxShadow(blurRadius:16,color:Colors.black54)]),child:const Center(child:Text('♛',style:TextStyle(fontWeight:FontWeight.w900,fontSize:30,color:Color(0xff3b2304))))),),
       ]))),
       if(error!=null)...<Widget>[const SizedBox(height:10),Text(error!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.redAccent,fontWeight:FontWeight.w800))],
       const SizedBox(height:16),
-      FilledButton.icon(onPressed:spinning || !widget.controller.luckyWheelFreeAvailableV182 ? null : ()=>_spin('free'),icon:spinning?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.casino_rounded),label:Text(widget.controller.luckyWheelFreeAvailableV182?'تدوير مجاني الآن':'تم استخدام التدويرة المجانية'),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(55))),
+      FilledButton.icon(onPressed:spinning || !widget.controller.luckyWheelFreeAvailableV182 ? null : ()=>_spin('free'),icon:spinning?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.casino_rounded),label:Text(widget.controller.luckyWheelFreeAvailableV182?(ar?'تدوير مجاني الآن':'Free spin now'):(ar?'التدويرة المجانية غير جاهزة':'Free spin not ready')),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(55))),
       const SizedBox(height:9),
-      OutlinedButton.icon(onPressed:spinning || widget.controller.luckyWheelTokenSpinsRemainingV182<=0 ? null : ()=>_spin('tokens'),icon:const Text('🪙'),label:Text('تدوير مقابل 100 توكن • متبقي ${widget.controller.luckyWheelTokenSpinsRemainingV182}/5'),style:OutlinedButton.styleFrom(minimumSize:const Size.fromHeight(52))),
+      OutlinedButton.icon(onPressed:spinning || widget.controller.luckyWheelTokenSpinsRemainingV182<=0 ? null : ()=>_spin('tokens'),icon:const Text('🪙'),label:Text(ar?'تدوير مقابل 100 توكن • متبقي ${widget.controller.luckyWheelTokenSpinsRemainingV182}/5':'Spin for 100 tokens • ${widget.controller.luckyWheelTokenSpinsRemainingV182}/5 left'),style:OutlinedButton.styleFrom(minimumSize:const Size.fromHeight(52))),
       const SizedBox(height:18),
       PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:<Widget>[
-        const Text('جوائز الدولاب',style:TextStyle(fontWeight:FontWeight.w900,fontSize:16)),const SizedBox(height:9),
-        for(final segment in luckyWheelSegmentsV182) ListTile(dense:true,leading:CircleAvatar(backgroundColor:colorFromHex(segment['color'].toString()),child:Text(segment['icon'].toString())),title:Text(segment['label_ar'].toString(),style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text(segment['label_en'].toString())),
+        Text(ar?'جوائز الدولاب':'Wheel rewards',style:TextStyle(fontWeight:FontWeight.w900,fontSize:16)),const SizedBox(height:9),
+        for(final segment in luckyWheelSegmentsV182) ListTile(dense:true,leading:CircleAvatar(backgroundColor:colorFromHex(segment['color'].toString()),child:Text(segment['icon'].toString())),title:Text((ar?segment['label_ar']:segment['label_en']).toString(),style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text((ar?segment['label_en']:segment['label_ar']).toString())),
       ]))),
     ]));
   }
@@ -312,6 +321,7 @@ class LuckyWheelPainterV182 extends CustomPainter {
     final border=Paint()..style=PaintingStyle.stroke..strokeWidth=4..color=const Color(0xffffd166);
     final divider=Paint()..style=PaintingStyle.stroke..strokeWidth=2.4..color=Colors.white.withValues(alpha:.72);
     final rim=Paint()..style=PaintingStyle.stroke..strokeWidth=12..color=const Color(0x33ffffff);
+    canvas.drawCircle(center,radius-1,Paint()..style=PaintingStyle.stroke..strokeWidth=18..color=const Color(0x26ffd166)..maskFilter=const MaskFilter.blur(BlurStyle.normal,9));
     canvas.drawCircle(center,radius,Paint()..color=const Color(0xff1f2937));
     for(var i=0;i<luckyWheelSegmentsV182.length;i++){
       final start=-math.pi/2+i*sweep;

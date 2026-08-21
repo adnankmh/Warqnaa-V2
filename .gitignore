@@ -21,5 +21,6 @@ backend-laravel/storage/framework/views/*
 .vscode/
 
 __pycache__/
-*.pycbackend-laravel/.env
+*.pyc
+# R9.2 explicit local Laravel runtime secret
 backend-laravel/.env

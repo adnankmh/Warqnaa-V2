@@ -15,7 +15,7 @@
   </a>
   <div class="club-meta-row"><span class="club-league-badge">{{$clubLeagues[min(6,max(1,$club->level))] ?? 'برونزي'}}</span><span class="pill">Level {{$club->level}}</span><span class="pill">{{$club->members->count()}}/{{$clubCaps[min(6,max(1,$club->level))] ?? 50}}</span><span class="pill online-pill">🟢 {{$online}} Online</span></div>
   <p class="muted club-summary">نقاط أسبوعية: {{$club->weekly_points}} • نقاط تراكمية: {{number_format($club->total_points ?? 0)}} • خزينة: {{number_format($club->treasury)}} توكنز</p>
-  <div class="club-members-preview">@foreach($club->members->take(6) as $m)<button type="button" onclick="openProfile({{$m->user_id}})" title="{{$m->user?->username}}"><img src="{{$m->user?->profile?->avatar ?: '/assets/avatars/default.svg'}}"><span>{{$m->user?->username}}</span></button>@endforeach</div>
+  <div class="club-members-preview">@foreach($club->members->take(6) as $m)<button type="button" onclick="openProfile({{$m->user_id}})" title="{{$m->user?->username}}"><img loading="lazy" decoding="async" src="{{$m->user?->profile?->avatar ?: '/assets/avatars/default.svg'}}"><span>{{$m->user?->username}}</span></button>@endforeach</div>
   <div class="club-actions-row">
    <a class="btn" href="{{route('clubs.show',$club)}}">فتح المجموعة</a>
    @if($isMember)<span class="success pill">عضو</span>@else<form method="post" action="{{route('clubs.join',$club)}}">@csrf<button>طلب انضمام</button></form>@endif

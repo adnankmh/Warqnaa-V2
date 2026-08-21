@@ -10,7 +10,7 @@
       "style": "yellow",
       "color1": "#f6c915",
       "color2": "#9b6d00",
-      "image": "/assets/store/pasha/v173/pasha_yellow.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_yellow.webp",
       "asset": "assets/images/pasha/v173/pasha_yellow.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -27,7 +27,7 @@
       "style": "red",
       "color1": "#b70822",
       "color2": "#6f0012",
-      "image": "/assets/store/pasha/v173/pasha_red.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_red.webp",
       "asset": "assets/images/pasha/v173/pasha_red.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -44,7 +44,7 @@
       "style": "crimson",
       "color1": "#c1123f",
       "color2": "#74001f",
-      "image": "/assets/store/pasha/v173/pasha_crimson.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_crimson.webp",
       "asset": "assets/images/pasha/v173/pasha_crimson.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -61,7 +61,7 @@
       "style": "blue",
       "color1": "#1e55b5",
       "color2": "#0b2a70",
-      "image": "/assets/store/pasha/v173/pasha_blue.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_blue.webp",
       "asset": "assets/images/pasha/v173/pasha_blue.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -78,7 +78,7 @@
       "style": "green",
       "color1": "#006b58",
       "color2": "#00382f",
-      "image": "/assets/store/pasha/v173/pasha_green.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_green.webp",
       "asset": "assets/images/pasha/v173/pasha_green.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -95,7 +95,7 @@
       "style": "purple",
       "color1": "#7b318b",
       "color2": "#45164e",
-      "image": "/assets/store/pasha/v173/pasha_purple.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_purple.webp",
       "asset": "assets/images/pasha/v173/pasha_purple.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -112,7 +112,7 @@
       "style": "bronze",
       "color1": "#b57b38",
       "color2": "#68401d",
-      "image": "/assets/store/pasha/v173/pasha_bronze.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_bronze.webp",
       "asset": "assets/images/pasha/v173/pasha_bronze.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -129,7 +129,7 @@
       "style": "gold",
       "color1": "#d79d31",
       "color2": "#7b4e0c",
-      "image": "/assets/store/pasha/v173/pasha_gold.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_gold.webp",
       "asset": "assets/images/pasha/v173/pasha_gold.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -146,7 +146,7 @@
       "style": "orange",
       "color1": "#ff6515",
       "color2": "#a32d00",
-      "image": "/assets/store/pasha/v173/pasha_orange.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_orange.webp",
       "asset": "assets/images/pasha/v173/pasha_orange.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -163,7 +163,7 @@
       "style": "pink",
       "color1": "#e42f8a",
       "color2": "#8a104a",
-      "image": "/assets/store/pasha/v173/pasha_pink.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_pink.webp",
       "asset": "assets/images/pasha/v173/pasha_pink.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -180,7 +180,7 @@
       "style": "silver",
       "color1": "#c9ccd2",
       "color2": "#737883",
-      "image": "/assets/store/pasha/v173/pasha_silver.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_silver.webp",
       "asset": "assets/images/pasha/v173/pasha_silver.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -197,7 +197,7 @@
       "style": "platinum",
       "color1": "#e0e4e9",
       "color2": "#8d96a3",
-      "image": "/assets/store/pasha/v173/pasha_platinum.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_platinum.webp",
       "asset": "assets/images/pasha/v173/pasha_platinum.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -214,7 +214,7 @@
       "style": "navy",
       "color1": "#16265e",
       "color2": "#091333",
-      "image": "/assets/store/pasha/v173/pasha_navy.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_navy.webp",
       "asset": "assets/images/pasha/v173/pasha_navy.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -231,7 +231,7 @@
       "style": "white",
       "color1": "#f2f3f5",
       "color2": "#aeb4bd",
-      "image": "/assets/store/pasha/v173/pasha_white.png",
+      "image": "/assets/r10/store/pasha/v173/pasha_white.webp",
       "asset": "assets/images/pasha/v173/pasha_white.png",
       "preview_icon": "👑",
       "tier": "featured"
@@ -246,7 +246,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_01",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_01.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_01.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_01.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -263,7 +263,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_02",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_02.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_02.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_02.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -280,7 +280,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_03",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_03.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_03.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_03.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -297,7 +297,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_04",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_04.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_04.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_04.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -314,7 +314,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_05",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_05.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_05.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_05.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -331,7 +331,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_06",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_06.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_06.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_06.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -348,7 +348,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_07",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_07.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_07.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_07.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -365,7 +365,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_08",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_08.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_08.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_08.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -382,7 +382,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_09",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_09.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_09.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_09.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -399,7 +399,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_10",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_10.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_10.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_10.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -416,7 +416,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_11",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_11.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_11.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_11.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -433,7 +433,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_12",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_12.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_12.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_12.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -450,7 +450,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_13",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_13.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_13.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_13.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -467,7 +467,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_14",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_14.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_14.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_14.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -484,7 +484,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_15",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_15.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_15.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_15.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -501,7 +501,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_16",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_16.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_16.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_16.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -518,7 +518,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_17",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_17.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_17.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_17.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -535,7 +535,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_18",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_18.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_18.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_18.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -552,7 +552,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_19",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_19.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_19.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_19.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -569,7 +569,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_20",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_20.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_20.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_20.jpg",
       "collection": "v173_royal",
       "tier": "pro",
@@ -586,7 +586,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_21",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_21.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_21.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_21.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -603,7 +603,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_22",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_22.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_22.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_22.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -620,7 +620,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_23",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_23.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_23.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_23.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -637,7 +637,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_24",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_24.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_24.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_24.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -654,7 +654,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_25",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_25.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_25.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_25.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -671,7 +671,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_26",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_26.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_26.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_26.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -688,7 +688,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_27",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_27.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_27.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_27.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -705,7 +705,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_28",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_28.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_28.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_28.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -722,7 +722,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_29",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_29.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_29.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_29.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -739,7 +739,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_royal_30",
-      "image": "/assets/store/tables/v173/royal/table_v173_royal_30.jpg",
+      "image": "/assets/r10/store/tables/v173/royal/table_v173_royal_30.webp",
       "asset": "assets/images/tables/v173/royal/table_v173_royal_30.jpg",
       "collection": "v173_royal",
       "tier": "legendary",
@@ -756,7 +756,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_01",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_01.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_01.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_01.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -773,7 +773,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_02",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_02.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_02.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_02.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -790,7 +790,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_03",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_03.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_03.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_03.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -807,7 +807,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_04",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_04.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_04.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_04.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -824,7 +824,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_05",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_05.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_05.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_05.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -841,7 +841,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_06",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_06.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_06.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_06.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -858,7 +858,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_07",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_07.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_07.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_07.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -875,7 +875,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_08",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_08.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_08.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_08.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -892,7 +892,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_09",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_09.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_09.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_09.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -909,7 +909,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_10",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_10.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_10.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_10.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -926,7 +926,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_11",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_11.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_11.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_11.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -943,7 +943,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_12",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_12.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_12.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_12.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -960,7 +960,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_13",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_13.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_13.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_13.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -977,7 +977,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_14",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_14.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_14.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_14.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -994,7 +994,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_15",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_15.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_15.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_15.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -1011,7 +1011,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_16",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_16.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_16.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_16.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -1028,7 +1028,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_17",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_17.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_17.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_17.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -1045,7 +1045,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_18",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_18.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_18.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_18.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -1062,7 +1062,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_19",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_19.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_19.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_19.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",
@@ -1079,7 +1079,7 @@
     "duration_days": null,
     "payload": {
       "table": "table_v173_showcase_20",
-      "image": "/assets/store/tables/v173/showcase/table_v173_showcase_20.jpg",
+      "image": "/assets/r10/store/tables/v173/showcase/table_v173_showcase_20.webp",
       "asset": "assets/images/tables/v173/showcase/table_v173_showcase_20.jpg",
       "collection": "v173_showcase",
       "tier": "legendary",

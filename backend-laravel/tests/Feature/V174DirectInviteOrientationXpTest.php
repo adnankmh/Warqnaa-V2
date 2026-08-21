@@ -10,7 +10,7 @@ class V174DirectInviteOrientationXpTest extends TestCase
     {
         $xp = app(\App\Services\Leveling\XpService::class);
         $this->assertSame(80, $xp->requiredXp(1));
-        $this->assertSame(8000000, $xp->requiredXp(100));
+        $this->assertSame(20000000, $xp->requiredXp(100));
     }
 
     public function test_v174_mobile_and_server_contracts_are_present(): void

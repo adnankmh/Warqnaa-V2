@@ -94,3 +94,11 @@ if (!function_exists('token_display')) {
   return number_format((int)$raw);
  }
 }
+
+if(!function_exists('game_art_url')){
+ function game_art_url($key){
+  $safe=preg_replace('/[^a-z0-9_\-]/i','',(string)$key);
+  $path='assets/r101/games/'.$safe.'.webp';
+  return file_exists(public_path($path)) ? asset($path) : asset('assets/icons/icon.svg');
+ }
+}

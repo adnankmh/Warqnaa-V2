@@ -5,7 +5,7 @@ class HeartsRules extends AbstractCardRules
 {
     public function initialState(array $players,array $options=[]): array
     {
-        $players=array_values($players); $deck=DeckFactory::standard52(true); [$hands,$deck]=$this->deal($players,$deck,13);
+        $players=array_values($players); $balanced=DeckFactory::balancedHands($players,13); $hands=[]; foreach($balanced as $p=>$cards)$hands[$p]=$this->sortCards(array_map(fn($c)=>$c->id(),$cards)); $deck=[];
         return ['phase'=>'playing','game_type'=>'hearts','players'=>$players,'turn'=>$players[0]??null,'hands'=>$hands,'trick'=>[],'last_trick'=>[],'hearts_broken'=>false,'score'=>array_fill_keys($players,0),'round_penalties'=>array_fill_keys($players,0),'messages'=>['هارتس: تجنب القلوب وملكة البستوني. يجب اتباع النوع، والفائز هو الأقل عقوبة.']];
     }
     public function validate(array $state,string $playerId,string $action,array $payload): bool

@@ -87,6 +87,17 @@ class MobileAdminController extends Controller
         return response()->json(['ok' => true, 'message' => 'تم تحديث عنصر المتجر', 'item' => $item->fresh()]);
     }
 
+    public function deleteStore(Request $request, StoreItem $item, AdminAuditService $audit)
+    {
+        $this->guard($request);
+        $before=$item->toArray();
+        $itemId=$item->id;
+        $itemKey=$item->key;
+        $audit->record($request, 'admin.store.delete', $item, $before, ['deleted'=>true,'key'=>$itemKey]);
+        $item->delete();
+        return response()->json(['ok'=>true,'message'=>'تم حذف عنصر المتجر نهائيًا','deleted_id'=>$itemId,'deleted_key'=>$itemKey]);
+    }
+
     public function userAction(Request $request, User $user, AdminAuditService $audit)
     {
         $this->guard($request);
