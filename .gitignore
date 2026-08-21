@@ -22,3 +22,4 @@ backend-laravel/storage/framework/views/*
 
 __pycache__/
 *.pycbackend-laravel/.env
+backend-laravel/.env

@@ -24,7 +24,6 @@ def main()->None:
     main_dart=text('flutter_app/lib/main.dart',
         "part 'v182_rewards.dart';",
         'LuckyWheelHomeCardV182(controller: controller)',
-        "brightness: isLight ? Brightness.light : Brightness.dark",
         'adminRevenueTokensV182 += BigInt.from(price)',
         "clubImageEmojiV182 = '🛡️'",
         "awardLocalPrizeBoxV02(gameId, won: true, mode: prizeMode)",
@@ -35,6 +34,15 @@ def main()->None:
         'engine.playerNames[1]',
         "Positioned(right: 3",
     )
+    # Historical V182 required an explicit light/dark brightness ternary in main.dart.
+    # R9 moved theme construction into r9_design_system.dart. Accept either the
+    # legacy implementation or the current centralized design-system equivalent.
+    legacy_brightness = "brightness: isLight ? Brightness.light : Brightness.dark" in main_dart
+    r9_design = text('flutter_app/lib/r9_design_system.dart') if (ROOT/'flutter_app/lib/r9_design_system.dart').is_file() else ''
+    r9_brightness = ("brightness: light ? Brightness.light : Brightness.dark" in r9_design
+                     and ("R9Design.theme" in main_dart or "WarqnaaDesignSystem.theme" in main_dart))
+    if not (legacy_brightness or r9_brightness):
+        fail('light/dark theme brightness contract missing from legacy main.dart and R9 design system')
     away_slice=main_dart[main_dart.index('void setAwayMode(bool value)'):main_dart.index('bool joinCompetition',main_dart.index('void setAwayMode(bool value)'))]
     if 'vipDays' in away_slice or 'isPrimaryAdmin' in away_slice:
         fail('persistent away mode must not require Pasha/VIP/admin status')

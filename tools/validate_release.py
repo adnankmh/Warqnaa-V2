@@ -373,6 +373,16 @@ def check_yaml_basics() -> None:
                 fail(f"YAML contains tab indentation: {path.relative_to(ROOT)}")
             if path.parent.name == "workflows" and not re.search(r"(?m)^name:\s*.+$", text):
                 fail(f"Workflow has no top-level name: {path.relative_to(ROOT)}")
+            if path.parent.name == "workflows":
+                # GitHub rejects duplicate mapping keys before any job starts.
+                # Catch the common regression where two run:/uses: keys are
+                # accidentally attached to the same step during release wiring.
+                lines = text.splitlines()
+                for idx in range(len(lines) - 1):
+                    m1 = re.match(r"^(\s+)(run|uses):\s*", lines[idx])
+                    m2 = re.match(r"^(\s+)(run|uses):\s*", lines[idx + 1])
+                    if m1 and m2 and m1.group(1) == m2.group(1) and m1.group(2) == m2.group(2):
+                        fail(f"Workflow duplicate {m1.group(2)} key near line {idx + 1}: {path.relative_to(ROOT)}")
             count += 1
     print(f"[OK] YAML structural audit ({count} files)")
 

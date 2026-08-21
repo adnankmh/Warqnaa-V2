@@ -31,8 +31,16 @@ def main() -> None:
 
     premium=req('flutter_app/lib/premium_v151.dart','const List<(String, String, Color)> v151ThemeOptions')
     theme_block=premium[premium.index('const List<(String, String, Color)> v151ThemeOptions'):premium.index('const List<String> v151AccentColors')]
-    if len(re.findall(r"^\s*\('[^']+',\s*'[^']+',\s*Color\(",theme_block,re.M))!=9:
-        fail('Exactly nine built-in themes are required')
+    theme_count=len(re.findall(r"^\s*\('[^']+',\s*'[^']+',\s*Color\(",theme_block,re.M))
+    if int(build) >= 209:
+        # R9 deliberately consolidated the historical nine-theme palette into
+        # six distinct production themes to remove near-duplicate cosmetics.
+        required_r9={'dark','light','green','gold','purple','classic'}
+        found_r9=set(re.findall(r"^\s*\('([^']+)',",theme_block,re.M))
+        if theme_count != 6 or found_r9 != required_r9:
+            fail(f'R9 requires six curated built-in themes, found {sorted(found_r9)}')
+    elif theme_count != 9:
+        fail('Historical pre-R9 releases require exactly nine built-in themes')
 
     main=req('flutter_app/lib/main.dart',
         "final List<String> homeGameIds = <String>['tarneeb', 'hand', 'trix'];",

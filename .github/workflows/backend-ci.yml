@@ -75,6 +75,7 @@ jobs:
         run: python3 ../tools/test_v201_r5_ci_stability_contract.py
       - name: Verify R8 engine integrity contract
         run: python3 ../tools/test_v208_r8_contract.py
+      - name: Verify R9 visual revolution contract
         run: python3 ../tools/test_v209_r9_contract.py
       - name: Run R8 deep Tarneeb Hand Banakil audit
         run: php tools/test-v208-r8-rules.php
