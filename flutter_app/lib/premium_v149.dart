@@ -83,8 +83,8 @@ class Bot3DAvatar extends StatelessWidget {
                 ),
                 border: Border.all(color: profile.secondary.withValues(alpha: .9), width: 2.2),
                 boxShadow: [
-                  BoxShadow(color: profile.primary.withValues(alpha: .55), blurRadius: size * .3, spreadRadius: 1),
-                  const BoxShadow(color: Colors.black54, blurRadius: 8, offset: Offset(0, 5)),
+                  BoxShadow(color: profile.primary.withValues(alpha: .22), blurRadius: size * .18, spreadRadius: .5),
+                  const BoxShadow(color: Colors.black45, blurRadius: 7, offset: Offset(0, 4)),
                 ],
               ),
               child: ClipOval(child: CustomPaint(painter: _BotFacePainter(profile.seed))),
@@ -118,6 +118,19 @@ class Bot3DAvatar extends StatelessWidget {
                 child: Text('LV.${profile.level}', style: TextStyle(fontSize: size * .13, fontWeight: FontWeight.w900)),
               ),
             ),
+          Positioned(
+            right: -7,
+            top: -5,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: size * .08, vertical: size * .018),
+              decoration: BoxDecoration(
+                color: const Color(0xff0b1523),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.white.withValues(alpha: .18)),
+              ),
+              child: Text('BOT', style: TextStyle(fontSize: size * .10, letterSpacing: .6, fontWeight: FontWeight.w900, color: Colors.white70)),
+            ),
+          ),
         ],
       ),
     );

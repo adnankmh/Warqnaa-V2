@@ -120,10 +120,6 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
         itemBuilder: (_) => const [
           PopupMenuItem(value: 'ar', child: Text('العربية 🇵🇸')),
           PopupMenuItem(value: 'en', child: Text('English 🇬🇧')),
-          PopupMenuItem(value: 'de', child: Text('Deutsch 🇩🇪')),
-          PopupMenuItem(value: 'tr', child: Text('Türkçe 🇹🇷')),
-          PopupMenuItem(value: 'fr', child: Text('Français 🇫🇷')),
-          PopupMenuItem(value: 'es', child: Text('Español 🇪🇸')),
         ],
       );
 

@@ -27,8 +27,8 @@ class MobilePlatformController extends Controller
         return response()->json([
             'ok' => true,
             'service' => 'warqna-api',
-            'version' => config('warqna.version', '0.4.8'),
-            'build' => (int) config('warqna.build', 208),
+            'version' => config('warqna.version', '0.4.9'),
+            'build' => (int) config('warqna.build', 209),
             'time' => now()->toIso8601String(),
         ]);
     }
@@ -37,7 +37,7 @@ class MobilePlatformController extends Controller
     {
         return response()->json([
             'ok' => true,
-            'version' => config('warqna.version', '0.4.8'),
+            'version' => config('warqna.version', '0.4.9'),
             'pwa' => true,
             'icons' => true,
             'offline' => true,
@@ -50,7 +50,7 @@ class MobilePlatformController extends Controller
         return response()->json([
             'ok' => true,
             'app' => config('app.name', 'Warqnaa'),
-            'version' => config('warqna.version', '0.4.8'),
+            'version' => config('warqna.version', '0.4.9'),
             'apk_ready' => (bool) config('warqna_mobile.apk_ready', true),
             'mobile' => config('warqna_mobile.features', []),
         ]);

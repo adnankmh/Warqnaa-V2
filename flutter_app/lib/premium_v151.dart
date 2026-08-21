@@ -60,15 +60,12 @@ Map<String, int> decodeIntMap(String? raw) {
 }
 
 const List<(String, String, Color)> v151ThemeOptions = <(String, String, Color)>[
-  ('dark', 'ثيم غامق', Color(0xffffcf67)),
-  ('light', 'ثيم فاتح', Color(0xffe2e8f0)),
-  ('blue', 'ثيم أزرق', Color(0xff3b82f6)),
-  ('sky', 'ثيم أزرق سماوي', Color(0xff38bdf8)),
-  ('green', 'ثيم أخضر', Color(0xff10b981)),
-  ('light_green', 'ثيم أخضر فاتح', Color(0xff84cc16)),
-  ('gold', 'ثيم ذهبي', Color(0xfff59e0b)),
-  ('purple', 'ثيم بنفسجي', Color(0xffa855f7)),
-  ('light_pink', 'ثيم وردي فاتح', Color(0xfffb7185)),
+  ('dark', 'Midnight • منتصف الليل', Color(0xff64748b)),
+  ('light', 'Ivory • عاجي', Color(0xffe7ddc8)),
+  ('green', 'Emerald Majlis • مجلس زمردي', Color(0xff2a9d8f)),
+  ('gold', 'Royal Gold • ذهبي ملكي', Color(0xffe9c46a)),
+  ('purple', 'Neon Night • نيون هادئ', Color(0xff8b5cf6)),
+  ('classic', 'Desert Bronze • برونزي صحراوي', Color(0xffb77942)),
 ];
 
 const List<String> v151AccentColors = <String>[
@@ -629,83 +626,10 @@ class _AdminStoreItemCard extends StatelessWidget {
   }
 }
 
-String localizeStoreProductNameV151(StoreProduct product, String lang) {
-  if (lang == 'ar') return product.nameAr;
-  if (lang == 'en') return product.nameEn;
-  final days = product.durationDays ?? 0;
-  final number = RegExp(r'\d+').firstMatch(product.nameEn)?.group(0) ?? RegExp(r'\d+').firstMatch(product.id)?.group(0) ?? '';
-  final labels = <String, Map<String, String>>{
-    'de': {'pasha':'Pasha', 'days':'Tage', 'table':'Premium-Tisch', 'cards':'Kartenrückseite', 'emoji':'Emoji-Paket', 'boost':'XP-Booster', 'names':'Spieler-Glow', 'chat_colors':'Chatfarbe', 'covers':'Profil-Cover', 'themes':'Premium-Theme', 'badges':'Abzeichen', 'effects':'Siegeseffekt'},
-    'tr': {'pasha':'Paşa', 'days':'Gün', 'table':'Premium Masa', 'cards':'Kart Arkası', 'emoji':'Emoji Paketi', 'boost':'XP Hızlandırıcı', 'names':'Oyuncu Parıltısı', 'chat_colors':'Sohbet Rengi', 'covers':'Profil Kapağı', 'themes':'Premium Tema', 'badges':'Rozet', 'effects':'Zafer Efekti'},
-    'fr': {'pasha':'Pacha', 'days':'jours', 'table':'Table premium', 'cards':'Dos de carte', 'emoji':"Pack d'émojis", 'boost':'Boost XP', 'names':'Halo du joueur', 'chat_colors':'Couleur du chat', 'covers':'Couverture de profil', 'themes':'Thème premium', 'badges':'Badge', 'effects':'Effet de victoire'},
-    'es': {'pasha':'Pasha', 'days':'días', 'table':'Mesa prémium', 'cards':'Dorso de carta', 'emoji':'Paquete de emojis', 'boost':'Potenciador XP', 'names':'Brillo del jugador', 'chat_colors':'Color del chat', 'covers':'Portada de perfil', 'themes':'Tema prémium', 'badges':'Insignia', 'effects':'Efecto de victoria'},
-  };
-  final map = labels[lang];
-  if (map == null) return product.nameEn;
-  if (product.category == 'pasha') return '${map['pasha']} $days ${map['days']}';
-  final base = map[product.category] ?? product.nameEn;
-  return number.isEmpty ? base : '$base $number';
-}
+String localizeStoreProductNameV151(StoreProduct product, String lang) => lang == 'ar' ? product.nameAr : product.nameEn;
 
-String localizeStoreProductDescriptionV151(StoreProduct product, String lang) {
-  if (lang == 'ar') return product.descriptionAr;
-  if (lang == 'en') return product.descriptionEn;
-  const descriptions = <String, Map<String, String>>{
-    'de': {
-      'pasha':'Aktiviert Pasha-Abzeichen, Raumsteuerung, Wettbewerbe und zusätzlichen XP-Bonus.',
-      'tables':'Eine hochwertige Tischgestaltung mit direkter Vorschau und Aktivierung im Spiel.',
-      'cards':'Ein Kartenrücken, der sofort in der Hand und auf dem Spieltisch angewendet wird.',
-      'emoji':'Ein Reaktionspaket für Spiel- und Freundeschats, einschließlich sanfter Animationen.',
-      'boost':'Erhöht die verdienten Erfahrungspunkte während der angegebenen Laufzeit.',
-      'names':'Farbe und leuchtender Rahmen für Spielername und Profilbild.',
-      'chat_colors':'Eine deutlich sichtbare Farbe für Nachrichten im Spiel- und Freundeschat.',
-      'covers':'Eine exklusive Profilabdeckung mit Live-Vorschau.',
-      'themes':'Wendet Farben, Hintergründe, Karten und Schaltflächen auf die gesamte App an.',
-      'badges':'Ein Sammlerabzeichen für Profil und Spielraum.',
-      'effects':'Ein dezenter animierter Effekt für Sieg und Auftritt.',
-    },
-    'tr': {
-      'pasha':'Paşa rozeti, oda kontrolleri, yarışmalar ve ek XP avantajını etkinleştirir.',
-      'tables':'Canlı önizlemeli, oyun içinde doğrudan etkinleşen premium masa tasarımı.',
-      'cards':'Elde ve oyun masasında anında uygulanan özel kart arkası.',
-      'emoji':'Oyun ve arkadaş sohbetlerinde kullanılabilen, bazıları animasyonlu tepki paketi.',
-      'boost':'Belirlenen süre boyunca kazanılan deneyim puanlarını artırır.',
-      'names':'Oyuncu adı ve profil resmi için renkli, parlak çerçeve.',
-      'chat_colors':'Oyun ve arkadaş sohbeti mesajları için seçkin yazı rengi.',
-      'covers':'Canlı önizlemeli özel profil kapağı.',
-      'themes':'Renkleri, arka planları, kartları ve düğmeleri tüm uygulamaya uygular.',
-      'badges':'Profil ve oyun odası için koleksiyon rozeti.',
-      'effects':'Zafer ve giriş için hafif animasyonlu efekt.',
-    },
-    'fr': {
-      'pasha':'Active le badge Pacha, les contrôles de salle, les compétitions et un bonus XP.',
-      'tables':'Une table premium avec aperçu direct et activation immédiate en partie.',
-      'cards':'Un dos de carte appliqué instantanément à la main et à la table.',
-      'emoji':"Un pack de réactions pour les chats de partie et d'amis, avec animations douces.",
-      'boost':"Augmente l'expérience gagnée pendant la durée indiquée.",
-      'names':'Une couleur et un halo lumineux pour le nom et la photo du joueur.',
-      'chat_colors':'Une couleur lisible et distinctive pour les messages de chat.',
-      'covers':'Une couverture de profil exclusive avec aperçu en direct.',
-      'themes':"Applique les couleurs, arrière-plans, cartes et boutons à toute l'application.",
-      'badges':'Un badge de collection visible sur le profil et dans la salle.',
-      'effects':'Un effet animé discret pour les victoires et les entrées.',
-    },
-    'es': {
-      'pasha':'Activa la insignia Pasha, controles de sala, competiciones y bonificación de XP.',
-      'tables':'Una mesa prémium con vista previa y activación inmediata dentro de la partida.',
-      'cards':'Un dorso de carta aplicado al instante en la mano y la mesa.',
-      'emoji':'Un paquete de reacciones para chats de partida y amigos, con animaciones suaves.',
-      'boost':'Aumenta la experiencia obtenida durante el periodo indicado.',
-      'names':'Color y marco luminoso para el nombre y la foto del jugador.',
-      'chat_colors':'Un color claro y distintivo para los mensajes del chat.',
-      'covers':'Una portada de perfil exclusiva con vista previa en vivo.',
-      'themes':'Aplica colores, fondos, tarjetas y botones a toda la aplicación.',
-      'badges':'Una insignia coleccionable para el perfil y la sala.',
-      'effects':'Un efecto animado sutil para victorias y entradas.',
-    },
-  };
-  return descriptions[lang]?[product.category] ?? product.descriptionEn;
-}
+String localizeStoreProductDescriptionV151(StoreProduct product, String lang) => lang == 'ar' ? product.descriptionAr : product.descriptionEn;
+
 
 class PashaStatCardV151 extends StatelessWidget {
   final AppController controller;
@@ -768,42 +692,6 @@ String authTextV151(String lang, String key) {
       'fallback':'A local account opens automatically when the Laravel server is unavailable.', 'orVia':'or continue with',
       'guest':'Continue as guest', 'providerNote':'Local and guest access work without a server. Google, Apple and Facebook require provider credentials before release.',
       'haveAccount':'Already have an account? Sign in', 'noAccount':'No account yet? Create one',
-    },
-    'de': {
-      'tagline':'Soziale Kartenspiel-Plattform', 'newAccount':'Neues Konto erstellen', 'login':'Anmelden',
-      'registerSubtitle':'Profil erstellen und kostenlos spielen', 'loginSubtitle':'Konto öffnen und Fortschritt fortsetzen',
-      'username':'Benutzername', 'userOrEmail':'Benutzername oder E-Mail', 'email':'E-Mail', 'password':'Passwort',
-      'create':'Konto erstellen', 'secure':'Sicher anmelden', 'chooseDemo':'Fertiges Spielerkonto wählen',
-      'fallback':'Wenn Laravel nicht erreichbar ist, wird automatisch das lokale Konto geöffnet.', 'orVia':'oder weiter mit',
-      'guest':'Als Gast fortfahren', 'providerNote':'Lokale und Gastkonten funktionieren ohne Server. Google, Apple und Facebook benötigen Zugangsdaten.',
-      'haveAccount':'Konto vorhanden? Anmelden', 'noAccount':'Noch kein Konto? Erstellen',
-    },
-    'tr': {
-      'tagline':'Sosyal kart oyunları platformu', 'newAccount':'Yeni hesap oluştur', 'login':'Giriş yap',
-      'registerSubtitle':'Profilini oluştur ve ücretsiz oynamaya başla', 'loginSubtitle':'Hesabına gir ve ilerlemene devam et',
-      'username':'Kullanıcı adı', 'userOrEmail':'Kullanıcı adı veya e-posta', 'email':'E-posta', 'password':'Şifre',
-      'create':'Hesap oluştur', 'secure':'Güvenli giriş', 'chooseDemo':'Hazır oyuncu hesabı seç',
-      'fallback':'Laravel sunucusu yoksa yerel hesap otomatik açılır.', 'orVia':'veya şununla devam et',
-      'guest':'Misafir olarak devam et', 'providerNote':'Yerel ve misafir girişleri sunucusuz çalışır. Google, Apple ve Facebook için sağlayıcı anahtarları gerekir.',
-      'haveAccount':'Hesabın var mı? Giriş yap', 'noAccount':'Hesabın yok mu? Oluştur',
-    },
-    'fr': {
-      'tagline':'Plateforme sociale de jeux de cartes', 'newAccount':'Créer un nouveau compte', 'login':'Connexion',
-      'registerSubtitle':'Créez votre profil et jouez gratuitement', 'loginSubtitle':'Accédez à votre compte et poursuivez votre progression',
-      'username':"Nom d'utilisateur", 'userOrEmail':"Nom d'utilisateur ou e-mail", 'email':'E-mail', 'password':'Mot de passe',
-      'create':'Créer le compte', 'secure':'Connexion sécurisée', 'chooseDemo':'Choisir un compte joueur prêt',
-      'fallback':'Le compte local s’ouvre automatiquement si Laravel est indisponible.', 'orVia':'ou continuer avec',
-      'guest':'Continuer comme invité', 'providerNote':'Les accès local et invité fonctionnent sans serveur. Google, Apple et Facebook exigent leurs identifiants.',
-      'haveAccount':'Vous avez un compte ? Connexion', 'noAccount':'Pas encore de compte ? Créez-en un',
-    },
-    'es': {
-      'tagline':'Plataforma social de juegos de cartas', 'newAccount':'Crear una cuenta nueva', 'login':'Iniciar sesión',
-      'registerSubtitle':'Crea tu perfil y empieza a jugar gratis', 'loginSubtitle':'Accede a tu cuenta y continúa tu progreso',
-      'username':'Usuario', 'userOrEmail':'Usuario o correo', 'email':'Correo', 'password':'Contraseña',
-      'create':'Crear cuenta', 'secure':'Inicio seguro', 'chooseDemo':'Elegir una cuenta de jugador',
-      'fallback':'La cuenta local se abre automáticamente si Laravel no está disponible.', 'orVia':'o continuar con',
-      'guest':'Continuar como invitado', 'providerNote':'El acceso local y de invitado funciona sin servidor. Google, Apple y Facebook requieren credenciales.',
-      'haveAccount':'¿Ya tienes cuenta? Inicia sesión', 'noAccount':'¿No tienes cuenta? Crea una',
     },
   };
   return values[lang]?[key] ?? values['en']?[key] ?? key;

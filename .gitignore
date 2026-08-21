@@ -21,4 +21,4 @@ backend-laravel/storage/framework/views/*
 .vscode/
 
 __pycache__/
-*.pyc
+*.pycbackend-laravel/.env

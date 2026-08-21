@@ -1,0 +1,964 @@
+{
+  "version": "R9",
+  "targets": {
+    "flutter_app/assets": {
+      "files": 263,
+      "bytes": 53459438,
+      "extensions": {
+        ".wav": 58,
+        ".png": 137,
+        ".json": 4,
+        ".jpg": 50,
+        ".webp": 14
+      }
+    },
+    "backend-laravel/public/assets": {
+      "files": 372,
+      "bytes": 16852025,
+      "extensions": {
+        ".svg": 294,
+        ".css": 4,
+        ".png": 18,
+        ".js": 2,
+        ".json": 4,
+        ".jpg": 50
+      }
+    }
+  },
+  "duplicate_groups": [
+    {
+      "sha256": "31fadf664fdd4760d43ceb7e985ab26b7db2e0ff59e8baf447384d4b28eb5110",
+      "bytes_per_file": 185629,
+      "potential_saved_bytes": 556887,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_red.png",
+        "flutter_app/assets/images/pasha/v173/pasha_crimson.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_red.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_crimson.png"
+      ]
+    },
+    {
+      "sha256": "51aa72a05d895942a4dbb8ad81bffac24ccb92f93736cfd04723e63ae7b4cda7",
+      "bytes_per_file": 383252,
+      "potential_saved_bytes": 383252,
+      "files": [
+        "flutter_app/assets/images/pasha.png",
+        "backend-laravel/public/assets/store/basha1.png"
+      ]
+    },
+    {
+      "sha256": "6668f5ebb404148dbb1b919abc6b236c121453b9b73eaf71d0848833607fd69a",
+      "bytes_per_file": 360757,
+      "potential_saved_bytes": 360757,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_20.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_20.jpg"
+      ]
+    },
+    {
+      "sha256": "72d35aa0302f46a8f43e103d7f9e556dd8c34bd6dfc863827373b4c073ceb97b",
+      "bytes_per_file": 324909,
+      "potential_saved_bytes": 324909,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_21.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_21.jpg"
+      ]
+    },
+    {
+      "sha256": "0424adaa639fb91437b48c13b38a4724d0e44828cc4850ff6ff837b83fa830d1",
+      "bytes_per_file": 320035,
+      "potential_saved_bytes": 320035,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_11.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_11.jpg"
+      ]
+    },
+    {
+      "sha256": "f317aab244b7dc483239639211dcfe0de31059603fbeecc0c6910f5757bfbd40",
+      "bytes_per_file": 294022,
+      "potential_saved_bytes": 294022,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_12.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_12.jpg"
+      ]
+    },
+    {
+      "sha256": "075a840c3070749e6ff8e9dcd56433d1b6f5f12643e3e1c28b9bb7faeb52d7c2",
+      "bytes_per_file": 293868,
+      "potential_saved_bytes": 293868,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_25.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_25.jpg"
+      ]
+    },
+    {
+      "sha256": "21b2dce3191b5dc69f9f21c95d0ff116311d84a21a82a84543afb5a2a44fc30a",
+      "bytes_per_file": 290470,
+      "potential_saved_bytes": 290470,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_09.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_09.jpg"
+      ]
+    },
+    {
+      "sha256": "a0f88e4a819a5e836f8e9292fa41b39806b94c8b89630d396a368e35a782d6c0",
+      "bytes_per_file": 281874,
+      "potential_saved_bytes": 281874,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_30.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_30.jpg"
+      ]
+    },
+    {
+      "sha256": "44e0062e07f22d3aa4f283da1f08b561b2ddf9f655e90754ee90c7533090c992",
+      "bytes_per_file": 260966,
+      "potential_saved_bytes": 260966,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_19.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_19.jpg"
+      ]
+    },
+    {
+      "sha256": "5257d5c6365025b3d9a214bfd2f2f6dea723ac9deb2483d54b289141ed9dce34",
+      "bytes_per_file": 259883,
+      "potential_saved_bytes": 259883,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_16.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_16.jpg"
+      ]
+    },
+    {
+      "sha256": "c267df609ac038b66fb720c9b75438c74f1943545665891a0f400d1b2c1a67e7",
+      "bytes_per_file": 258268,
+      "potential_saved_bytes": 258268,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_22.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_22.jpg"
+      ]
+    },
+    {
+      "sha256": "2ed263bfde983767e710292a2338c3fdca787657767d086415c12e4c22218965",
+      "bytes_per_file": 256952,
+      "potential_saved_bytes": 256952,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_15.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_15.jpg"
+      ]
+    },
+    {
+      "sha256": "3ddc2a64e3ad289491a4267ebacd2bfddb604d6734b7d93fc30ddabb861c4b08",
+      "bytes_per_file": 255160,
+      "potential_saved_bytes": 255160,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_13.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_13.jpg"
+      ]
+    },
+    {
+      "sha256": "8af5f1772b15f88c96d21911f1364fa2a42a1a41a6f33d99d4748fba5bdab433",
+      "bytes_per_file": 251833,
+      "potential_saved_bytes": 251833,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_bronze.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_bronze.png"
+      ]
+    },
+    {
+      "sha256": "f26fcc3634fa787704e1b0a5af950a26f94d329b2294c54c5113f1c483b8dffd",
+      "bytes_per_file": 244603,
+      "potential_saved_bytes": 244603,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_23.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_23.jpg"
+      ]
+    },
+    {
+      "sha256": "201915b39c7114598ff560b69556cbdd2f1a50be7baf6f518c53527f74ac9a39",
+      "bytes_per_file": 243507,
+      "potential_saved_bytes": 243507,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_17.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_17.jpg"
+      ]
+    },
+    {
+      "sha256": "bb962627e45f87bb7314e1f7719d85c538fa05324e328e3e12315ef8b80b4912",
+      "bytes_per_file": 242402,
+      "potential_saved_bytes": 242402,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_05.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_05.jpg"
+      ]
+    },
+    {
+      "sha256": "9d8e4075663b676bba0c9af7174349f02a1ee9a3f6add8b5638dda81a99beb91",
+      "bytes_per_file": 240860,
+      "potential_saved_bytes": 240860,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_10.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_10.jpg"
+      ]
+    },
+    {
+      "sha256": "0718decf61effeff8d251fbaf7fd1956845fc7374e6324a47f35754d9450e6c9",
+      "bytes_per_file": 237755,
+      "potential_saved_bytes": 237755,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_06.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_06.jpg"
+      ]
+    },
+    {
+      "sha256": "5734247d4b7e8d6e878852a174792714659d89fcecc9f827bddb2b0fb37e1090",
+      "bytes_per_file": 235499,
+      "potential_saved_bytes": 235499,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_29.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_29.jpg"
+      ]
+    },
+    {
+      "sha256": "88fd9fc1565e8ad10017427f5fa7229efdf625ab9878e6fd31cfdb8273caa2d2",
+      "bytes_per_file": 229961,
+      "potential_saved_bytes": 229961,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_27.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_27.jpg"
+      ]
+    },
+    {
+      "sha256": "45a592117eb7416769c0301cd6dbcf4f4dbe66064e70703ca2fbe60e2c670d05",
+      "bytes_per_file": 229816,
+      "potential_saved_bytes": 229816,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_pink.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_pink.png"
+      ]
+    },
+    {
+      "sha256": "e835fa0ed60cbcb0a2db3c5ba5167c14188da8976dd4132141054f752b74a2f1",
+      "bytes_per_file": 226574,
+      "potential_saved_bytes": 226574,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_gold.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_gold.png"
+      ]
+    },
+    {
+      "sha256": "1db012b81d28c97855e9aa1f1400d21e8b258a9de2ae45e29ebea5400d9f9560",
+      "bytes_per_file": 226177,
+      "potential_saved_bytes": 226177,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_26.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_26.jpg"
+      ]
+    },
+    {
+      "sha256": "5d1d444a4658701f99388bdf9f6bde6e94e32774b666a523b5648bc394fbf2b2",
+      "bytes_per_file": 225823,
+      "potential_saved_bytes": 225823,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_14.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_14.jpg"
+      ]
+    },
+    {
+      "sha256": "8edaca1355d08a4a3969bd6182f1d09190a1ca112cb2bcf6d00add2744ebb483",
+      "bytes_per_file": 223926,
+      "potential_saved_bytes": 223926,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_platinum.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_platinum.png"
+      ]
+    },
+    {
+      "sha256": "73a886decb6cb10f51f680351505e0657bcc1d6e29a5bcc0c879d9ddf823abdc",
+      "bytes_per_file": 222237,
+      "potential_saved_bytes": 222237,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_04.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_04.jpg"
+      ]
+    },
+    {
+      "sha256": "d335f465ac714054c68a05f354e5af18e1b4a8974a4b9bbf851ee4fc1c399e98",
+      "bytes_per_file": 222211,
+      "potential_saved_bytes": 222211,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_silver.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_silver.png"
+      ]
+    },
+    {
+      "sha256": "23026c314e2b9288f415f47dade2ac8f7ca29ef531ad1f3778b15a7ce2d8c854",
+      "bytes_per_file": 221312,
+      "potential_saved_bytes": 221312,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_purple.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_purple.png"
+      ]
+    },
+    {
+      "sha256": "a878e86dcade7ddd0b89c7e7cde87211d6e018e1564d5a6fe49d7645dccacd6a",
+      "bytes_per_file": 218595,
+      "potential_saved_bytes": 218595,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_blue.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_blue.png"
+      ]
+    },
+    {
+      "sha256": "8df5a72d6711b8ff4f078e1925ac19dc7f9797ad8d6bd2048a2c804e3cd4ab2c",
+      "bytes_per_file": 216125,
+      "potential_saved_bytes": 216125,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_orange.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_orange.png"
+      ]
+    },
+    {
+      "sha256": "80390e24a5afe3e4aa43c5c50ce92f08403a6553a675a6845a27060d41eea816",
+      "bytes_per_file": 215724,
+      "potential_saved_bytes": 215724,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_20.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_20.jpg"
+      ]
+    },
+    {
+      "sha256": "4d6142f3bac88f4541cd262c80292e540589ef1cf9e0bcba276ff9ce81eb3915",
+      "bytes_per_file": 211177,
+      "potential_saved_bytes": 211177,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_18.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_18.jpg"
+      ]
+    },
+    {
+      "sha256": "4f9402a48b5425fbbad0e2dd102e8921253b009cf1763fc6349fc467e6a97287",
+      "bytes_per_file": 210758,
+      "potential_saved_bytes": 210758,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_green.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_green.png"
+      ]
+    },
+    {
+      "sha256": "2b990ea2779b948f9d9359a031d2b986092e66f150d347fbcae3f83c21c85d07",
+      "bytes_per_file": 209379,
+      "potential_saved_bytes": 209379,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_navy.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_navy.png"
+      ]
+    },
+    {
+      "sha256": "5b3e88526a4d73a146e015c8df18891a59d8941dc4a20f68f9311471ffa4d1a2",
+      "bytes_per_file": 209311,
+      "potential_saved_bytes": 209311,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_white.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_white.png"
+      ]
+    },
+    {
+      "sha256": "ea09afc161467e4446fa8b659e6f45d22e853fc8a5065ddd900d0c141e831b3a",
+      "bytes_per_file": 207985,
+      "potential_saved_bytes": 207985,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_01.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_01.jpg"
+      ]
+    },
+    {
+      "sha256": "472b313a760b971e04c4b08e5026131debc7ec2bd2f68cac546187e729d571a4",
+      "bytes_per_file": 207711,
+      "potential_saved_bytes": 207711,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_yellow.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_yellow.png"
+      ]
+    },
+    {
+      "sha256": "bab72d93525f918ba512b7902fb5cddac4382bcf75a5b0585cb4f82c8223e45c",
+      "bytes_per_file": 207520,
+      "potential_saved_bytes": 207520,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_28.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_28.jpg"
+      ]
+    },
+    {
+      "sha256": "7305d173dc0393a8f585ff52c88e6b7aef9e6adfb8a18f7e3753d638244dfe4a",
+      "bytes_per_file": 206795,
+      "potential_saved_bytes": 206795,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_03.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_03.jpg"
+      ]
+    },
+    {
+      "sha256": "769917c6ecf7c67765af7f057056ac10c15e122b178208d9b13bb9ecc4cf4b3c",
+      "bytes_per_file": 204787,
+      "potential_saved_bytes": 204787,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_24.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_24.jpg"
+      ]
+    },
+    {
+      "sha256": "1cc1ba16d6b125dca3165866d728b13c6ea5c084c55a033159671df8060b07b0",
+      "bytes_per_file": 203186,
+      "potential_saved_bytes": 203186,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/pasha_black.png",
+        "backend-laravel/public/assets/store/pasha/v173/pasha_black.png"
+      ]
+    },
+    {
+      "sha256": "6a0d1d9c8748a592f2059fc204641021a2ae4637b1e1dafbaed686ca1df2da96",
+      "bytes_per_file": 200984,
+      "potential_saved_bytes": 200984,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_07.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_07.jpg"
+      ]
+    },
+    {
+      "sha256": "5acdc84578f1fad0913cf9484324d6a29a355896888b116f64bc9b1053d91303",
+      "bytes_per_file": 200315,
+      "potential_saved_bytes": 200315,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_05.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_05.jpg"
+      ]
+    },
+    {
+      "sha256": "b3878684dd32b9b9f7f7961570652411af5f095ce76f4c00bd5e84fbc88d995e",
+      "bytes_per_file": 197876,
+      "potential_saved_bytes": 197876,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_04.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_04.jpg"
+      ]
+    },
+    {
+      "sha256": "57bfd80f43b0ce54135fb57615aa8309177d1a31aa4eef6f80e1282a9e012d63",
+      "bytes_per_file": 196705,
+      "potential_saved_bytes": 196705,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_06.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_06.jpg"
+      ]
+    },
+    {
+      "sha256": "41cad6500767de516e14c15452f7771d7286a0fb12c5f0f860a5bf49bd8d4edf",
+      "bytes_per_file": 196196,
+      "potential_saved_bytes": 196196,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_02.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_02.jpg"
+      ]
+    },
+    {
+      "sha256": "d87e393e0a479b0c2f577ffadabf628af1a7bbf3d16d9c81d19bcdbf60b1dc96",
+      "bytes_per_file": 192808,
+      "potential_saved_bytes": 192808,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_17.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_17.jpg"
+      ]
+    },
+    {
+      "sha256": "c1127db26e13e33e95e20fc33a9cd1d1a56a6e54c544d6e7eea04d960ecd53ca",
+      "bytes_per_file": 190208,
+      "potential_saved_bytes": 190208,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_01.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_01.jpg"
+      ]
+    },
+    {
+      "sha256": "91adbeca826e8144cca7d76786c9d0aa3cea2f2885e199353c462b198c548e3c",
+      "bytes_per_file": 188006,
+      "potential_saved_bytes": 188006,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_18.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_18.jpg"
+      ]
+    },
+    {
+      "sha256": "4e060d53dc3678e55dee7e64bebe353764307e2967609a604bb0eea6d3d16244",
+      "bytes_per_file": 186570,
+      "potential_saved_bytes": 186570,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_16.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_16.jpg"
+      ]
+    },
+    {
+      "sha256": "0ce83c3b200fab795cda0b9ac6bb97c1e787233bd3180eb99fafb304c65cc486",
+      "bytes_per_file": 186553,
+      "potential_saved_bytes": 186553,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_03.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_03.jpg"
+      ]
+    },
+    {
+      "sha256": "3a17a3e01404b4cc645dd91dc3854ec37560789d81f4ce0d64578391702a7386",
+      "bytes_per_file": 185937,
+      "potential_saved_bytes": 185937,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_02.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_02.jpg"
+      ]
+    },
+    {
+      "sha256": "3c84c9833f1e97920c151386ec5127aeef0c1e4999c5a7a627f631089565aa25",
+      "bytes_per_file": 179521,
+      "potential_saved_bytes": 179521,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_14.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_14.jpg"
+      ]
+    },
+    {
+      "sha256": "2bf1f9b4c75973e29bc5145f57430cf01f754c6e23084665a60c1ae9037061af",
+      "bytes_per_file": 176215,
+      "potential_saved_bytes": 176215,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_19.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_19.jpg"
+      ]
+    },
+    {
+      "sha256": "574be4d29a288dc0f8f8aca020891e51104f3a9adeb34b9f900c1644b924462a",
+      "bytes_per_file": 174513,
+      "potential_saved_bytes": 174513,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_07.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_07.jpg"
+      ]
+    },
+    {
+      "sha256": "9406399a8125e66da814ec3f6324790e304fdc91c873a1ce1a6a3ccd7986f4ed",
+      "bytes_per_file": 173745,
+      "potential_saved_bytes": 173745,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/table_v173_royal_08.jpg",
+        "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_08.jpg"
+      ]
+    },
+    {
+      "sha256": "8e8dc5b1eb553eef8238429dd01573f5ca9569a3ad4f432151e5f0da45b9e54d",
+      "bytes_per_file": 170254,
+      "potential_saved_bytes": 170254,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_12.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_12.jpg"
+      ]
+    },
+    {
+      "sha256": "2bf80f2df54e32a0782cf3f94ba6ebc9706a4a010f887db73059174e3bc72039",
+      "bytes_per_file": 169693,
+      "potential_saved_bytes": 169693,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_15.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_15.jpg"
+      ]
+    },
+    {
+      "sha256": "7f7f4ae7060b757f8f29df4dacb85daddd118f52cfc1ab3d79adbf5d16ac5ca3",
+      "bytes_per_file": 164973,
+      "potential_saved_bytes": 164973,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_10.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_10.jpg"
+      ]
+    },
+    {
+      "sha256": "52bf9f3e566e26e38f9a72ba6e3cc17e92983ae780ab31a55ffe6b2a3f499071",
+      "bytes_per_file": 162339,
+      "potential_saved_bytes": 162339,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_11.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_11.jpg"
+      ]
+    },
+    {
+      "sha256": "7eabb04244a2acc423f8b3dfe63988f1c3c807de74c93186de980e1590984df8",
+      "bytes_per_file": 152000,
+      "potential_saved_bytes": 152000,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_13.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_13.jpg"
+      ]
+    },
+    {
+      "sha256": "6e98bbb83b423c09b556f0dfcf47ccfba7d51d62ad69856d9985e504e77a69ca",
+      "bytes_per_file": 145500,
+      "potential_saved_bytes": 145500,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_09.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_09.jpg"
+      ]
+    },
+    {
+      "sha256": "63ae58ab22e7ca281a6207f22ad409bda8edb00a244f87d6c987f33dc56d5402",
+      "bytes_per_file": 134236,
+      "potential_saved_bytes": 134236,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/table_v173_showcase_08.jpg",
+        "backend-laravel/public/assets/store/tables/v173/showcase/table_v173_showcase_08.jpg"
+      ]
+    },
+    {
+      "sha256": "830d4ac8892cfd032239d37b4548ecd99f46fe60cba6bfab3382b37cad579daa",
+      "bytes_per_file": 6216,
+      "potential_saved_bytes": 93240,
+      "files": [
+        "flutter_app/assets/sounds/bid.wav",
+        "flutter_app/assets/sounds/profile_open.wav",
+        "flutter_app/assets/sounds/round_end.wav",
+        "flutter_app/assets/sounds/invite.wav",
+        "flutter_app/assets/sounds/challenge.wav",
+        "flutter_app/assets/sounds/kick.wav",
+        "flutter_app/assets/sounds/room_open.wav",
+        "flutter_app/assets/sounds/round_start.wav",
+        "flutter_app/assets/sounds/tap.wav",
+        "flutter_app/assets/sounds/next_round.wav",
+        "flutter_app/assets/sounds/group.wav",
+        "flutter_app/assets/sounds/card_hover.wav",
+        "flutter_app/assets/sounds/shuffle.wav",
+        "flutter_app/assets/sounds/trick.wav",
+        "flutter_app/assets/sounds/reward.wav",
+        "flutter_app/assets/sounds/block.wav"
+      ]
+    },
+    {
+      "sha256": "69c7f1d0db321638295d9490d91393db58f1827c4d7330c2f93e9f3ba7099939",
+      "bytes_per_file": 47328,
+      "potential_saved_bytes": 47328,
+      "files": [
+        "flutter_app/assets/images/brand/android/ic_launcher_round_xxxhdpi.png",
+        "flutter_app/assets/images/brand/android/ic_launcher_xxxhdpi.png"
+      ]
+    },
+    {
+      "sha256": "573668256db2e362c429325cc4853c9d0d00925a13be5d94ef993a46ed34ccfb",
+      "bytes_per_file": 29941,
+      "potential_saved_bytes": 29941,
+      "files": [
+        "flutter_app/assets/images/brand/android/ic_launcher_round_xxhdpi.png",
+        "flutter_app/assets/images/brand/android/ic_launcher_xxhdpi.png"
+      ]
+    },
+    {
+      "sha256": "ced767a208dc5c68d6b62273162913a03c880777d5aed471bb2a3855884abd37",
+      "bytes_per_file": 15469,
+      "potential_saved_bytes": 15469,
+      "files": [
+        "flutter_app/assets/images/brand/android/ic_launcher_round_xhdpi.png",
+        "flutter_app/assets/images/brand/android/ic_launcher_xhdpi.png"
+      ]
+    },
+    {
+      "sha256": "32a9e28924b3956fe96173c35c34c2a6863b463d3088dc253d84d37d44839e6c",
+      "bytes_per_file": 10024,
+      "potential_saved_bytes": 10024,
+      "files": [
+        "flutter_app/assets/images/tables/v173/royal/catalog.json",
+        "backend-laravel/public/assets/store/tables/v173/royal/catalog.json"
+      ]
+    },
+    {
+      "sha256": "815bf4ff956a5ff090a82569fb9f6e22c82605030ec6d6a9df89d5f7fbd747b3",
+      "bytes_per_file": 9594,
+      "potential_saved_bytes": 9594,
+      "files": [
+        "flutter_app/assets/images/brand/android/ic_launcher_round_hdpi.png",
+        "flutter_app/assets/images/brand/android/ic_launcher_hdpi.png"
+      ]
+    },
+    {
+      "sha256": "2f3d8ae6f4fd0d9d756d221974eb5f49ffbf275a743ebdab39c2cbbaf802fad0",
+      "bytes_per_file": 6978,
+      "potential_saved_bytes": 6978,
+      "files": [
+        "flutter_app/assets/images/tables/v173/showcase/catalog.json",
+        "backend-laravel/public/assets/store/tables/v173/showcase/catalog.json"
+      ]
+    },
+    {
+      "sha256": "35995e3320ea3c73550c37987807ea855a58105bb650677dd788607d42288388",
+      "bytes_per_file": 4954,
+      "potential_saved_bytes": 4954,
+      "files": [
+        "flutter_app/assets/images/brand/android/ic_launcher_round_mdpi.png",
+        "flutter_app/assets/images/brand/android/ic_launcher_mdpi.png"
+      ]
+    },
+    {
+      "sha256": "8a9a78caa1954272d992abc94aa60229355d5b1b63648cb85ff1109a0ddebcd6",
+      "bytes_per_file": 3329,
+      "potential_saved_bytes": 3329,
+      "files": [
+        "flutter_app/assets/images/pasha/v173/catalog.json",
+        "backend-laravel/public/assets/store/pasha/v173/catalog.json"
+      ]
+    },
+    {
+      "sha256": "8c72728142e1b897a480123b4e4235883f174e5c9ae988fa5a7bc1f7cfa5fc3e",
+      "bytes_per_file": 1127,
+      "potential_saved_bytes": 1127,
+      "files": [
+        "backend-laravel/public/assets/icons/maskable.svg",
+        "backend-laravel/public/assets/icons/icon.svg"
+      ]
+    }
+  ],
+  "largest_files": [
+    {
+      "file": "flutter_app/assets/images/brand/store_tables_reference_v172.png",
+      "bytes": 1462116
+    },
+    {
+      "file": "flutter_app/assets/images/design-reference.png",
+      "bytes": 1059650
+    },
+    {
+      "file": "flutter_app/assets/images/games/domino.png",
+      "bytes": 773121
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_100000.png",
+      "bytes": 707683
+    },
+    {
+      "file": "flutter_app/assets/images/brand/warqna_logo.png",
+      "bytes": 706743
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_8000.png",
+      "bytes": 703001
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_2000.png",
+      "bytes": 702317
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_5000.png",
+      "bytes": 701916
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_1000.png",
+      "bytes": 701580
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_4000.png",
+      "bytes": 700827
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_30000.png",
+      "bytes": 698551
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_50.png",
+      "bytes": 698412
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_20000.png",
+      "bytes": 697579
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_10000.png",
+      "bytes": 696894
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_50000.png",
+      "bytes": 696871
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_200.png",
+      "bytes": 694439
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_100.png",
+      "bytes": 693775
+    },
+    {
+      "file": "flutter_app/assets/images/v02/tickets/ticket_500.png",
+      "bytes": 693509
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/bronze_dragon.png",
+      "bytes": 560687
+    },
+    {
+      "file": "backend-laravel/public/assets/css/app.css",
+      "bytes": 516363
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/crimson_lion.png",
+      "bytes": 511006
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/diamond_phoenix.png",
+      "bytes": 492868
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_white_tiger.png",
+      "bytes": 473290
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/obsidian.png",
+      "bytes": 462247
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_tiger.png",
+      "bytes": 460280
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_02.png",
+      "bytes": 452508
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/emerald_eagle.png",
+      "bytes": 445903
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_lion.png",
+      "bytes": 442498
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_09.png",
+      "bytes": 442124
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_white_wolf.png",
+      "bytes": 430240
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_04.png",
+      "bytes": 426304
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_black_horse.png",
+      "bytes": 421065
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_fire_dragon.png",
+      "bytes": 420919
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_gold_dragon.png",
+      "bytes": 416656
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/royal_amethyst.png",
+      "bytes": 413345
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_owl.png",
+      "bytes": 410579
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_07.png",
+      "bytes": 408086
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_whale.png",
+      "bytes": 406003
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_phoenix.png",
+      "bytes": 390616
+    },
+    {
+      "file": "flutter_app/assets/images/games/syrian_tarneeb.png",
+      "bytes": 387745
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_01.png",
+      "bytes": 383969
+    },
+    {
+      "file": "flutter_app/assets/images/cardbacks/v021/cardback_v021_eagle.png",
+      "bytes": 383896
+    },
+    {
+      "file": "flutter_app/assets/images/pasha.png",
+      "bytes": 383252
+    },
+    {
+      "file": "backend-laravel/public/assets/store/basha1.png",
+      "bytes": 383252
+    },
+    {
+      "file": "flutter_app/assets/images/games/basra.png",
+      "bytes": 380404
+    },
+    {
+      "file": "flutter_app/assets/images/games/baloot.png",
+      "bytes": 362045
+    },
+    {
+      "file": "flutter_app/assets/images/tables/v173/royal/table_v173_royal_20.jpg",
+      "bytes": 360757
+    },
+    {
+      "file": "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_20.jpg",
+      "bytes": 360757
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_10.png",
+      "bytes": 346641
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_06.png",
+      "bytes": 344526
+    },
+    {
+      "file": "flutter_app/assets/images/v02/rewards/pasha_day.png",
+      "bytes": 335081
+    },
+    {
+      "file": "flutter_app/assets/images/tables/reference/table_reference_16.png",
+      "bytes": 334402
+    },
+    {
+      "file": "flutter_app/assets/images/tables/v173/royal/table_v173_royal_21.jpg",
+      "bytes": 324909
+    },
+    {
+      "file": "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_21.jpg",
+      "bytes": 324909
+    },
+    {
+      "file": "flutter_app/assets/images/games/hand_partner.png",
+      "bytes": 323033
+    },
+    {
+      "file": "flutter_app/assets/images/games/trix_complex.png",
+      "bytes": 320913
+    },
+    {
+      "file": "flutter_app/assets/images/tables/v173/royal/table_v173_royal_11.jpg",
+      "bytes": 320035
+    },
+    {
+      "file": "backend-laravel/public/assets/store/tables/v173/royal/table_v173_royal_11.jpg",
+      "bytes": 320035
+    },
+    {
+      "file": "flutter_app/assets/images/v02/prize_boxes/bronze_dragon_body.png",
+      "bytes": 310425
+    },
+    {
+      "file": "flutter_app/assets/images/games/trix_partner.png",
+      "bytes": 309913
+    }
+  ],
+  "potential_duplicate_savings_bytes": 14997983
+}

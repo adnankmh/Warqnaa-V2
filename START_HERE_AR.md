@@ -1,29 +1,9 @@
-# ابدأ من هنا — Warqnaa V0.4.8+208 R8 Engine Integrity
+# ابدأ من هنا — Warqnaa R9
 
-## Windows / XAMPP
-1. فك الحزمة داخل `C:\xampp\htdocs\`.
-2. افتح مجلد المشروع.
-3. استخدم `START_WARQNA_WINDOWS.bat` أو ملفات التشغيل داخل `scripts/windows/current/`.
-4. البورت الرئيسي المقترح: **8007**. البدائل: **8008، 8009، 8010**.
-5. افتح المتصفح على `http://127.0.0.1:8007` عند اختيار 8007.
+1. فك المشروع داخل `C:\xampp\htdocs\Warqnaa`.
+2. شغّل `START_WARQNA_WINDOWS.bat`.
+3. اختر **1** للبورت 8007.
+4. للفحص اختر **5** أو شغّل `CHECK_WARQNA_WINDOWS.bat`.
+5. بعد نجاح الفحص ارفع المشروع إلى GitHub Desktop ثم شغّل Actions.
 
-## GitHub Desktop
-1. افتح GitHub Desktop.
-2. اختر **File → Add Local Repository** وحدد هذا المجلد.
-3. اعمل Commit ثم Push/Publish للمستودع.
-4. افتح **Actions** وانتظر نجاح Production Release Gate وBackend CI.
-5. شغّل Android يدويًا من workflow **Build Android APK and AAB** للحصول على APK/AAB.
-
-## Flutter Web / GitHub Pages
-- Workflow يبني Flutter Web دائمًا.
-- حتى لو GitHub Pages غير مفعّل، لن يفشل الـworkflow لهذا السبب؛ ستحصل على Build داخل **Artifacts**.
-- إذا أردت نشره كصفحة GitHub Pages، فعّل Pages للمستودع واجعل Source = **GitHub Actions**؛ في التشغيل التالي سيكتشفه الـworkflow وينشر تلقائيًا.
-
-## الفحص المحلي
-شغّل:
-- `python tools\validate_release.py`
-- `python tools\test_ci_release_compat_contract.py`
-- `scripts\windows\current\CHECK_V200_WINDOWS.bat`
-
-## الإصدار
-المصدر المرجعي الوحيد لرقم الإصدار هو `RELEASE_VERSION.json`، والـCI يتحقق من اتساقه مع Flutter وLaravel وManifest.
+R9 يحافظ على محركات R8.1 ويعيد بناء التصميم، اللغات، المتجر، الاتجاهات والـLive Ops foundation.

@@ -8,7 +8,7 @@ def ok(cond,msg):
     print('[PASS]',msg)
 def read(rel): return (ROOT/rel).read_text(encoding='utf-8')
 meta=json.loads(read('RELEASE_VERSION.json'))
-ok(meta.get('full')=='0.4.8+208' and meta.get('build')==208,'R8 release metadata is 0.4.8+208')
+ok(int(meta.get('build',0))>=208,'current release preserves R8 build 208 or newer')
 
 tarneeb=read('backend-laravel/app/Services/GameEngine/TarneebStandalone/TarneebEngine.php')
 ok("$delta[$bidTeam] = $bidAmount === 13 ? 26 : 16;" in tarneeb and "$delta[$bidTeam] = $bidTricks;" in tarneeb,'Tarneeb successful-contract and sweep scoring hardened')

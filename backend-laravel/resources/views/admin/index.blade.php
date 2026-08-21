@@ -62,15 +62,25 @@ $selectDesignerFields=[
 ];
 $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من الاشتراك بأكثر من لعبة/مسابقة/نادي بنفس الوقت','room_owner_password_invites'=>'إرسال كلمة سر الغرفة الخاصة مع دعوات الأصدقاء','pasha_kick_dropdown_enabled'=>'إظهار الطرد لصاحب الغرفة مع باشا كقائمة منسدلة','exit_penalty_dropdown_enabled'=>'إظهار خصم XP عند الخروج كقائمة منسدلة','autoplay_timeout_enabled'=>'تشغيل الكمبيوتر تلقائيًا عند انتهاء عداد الدور','admin_live_preview_enabled'=>'تفعيل المعاينة المباشرة في لوحة الإدارة'];
 @endphp
-<h1>لوحة الإدارة والتحكم بالموقع</h1>
-<div class="admin-v133-live-strip"><b>v133 Admin Pro</b><span>الغرف والنوادي والمسابقات واللاعبون والمتجر في تبويبات مباشرة.</span><button type="button" onclick="document.querySelector('[data-admin-tab=players]')?.click()">إدارة اللاعبين</button><button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">إدارة المتجر</button></div>
-<div class="stats"><div>الغرف {{$rooms}}</div><div>النوادي {{$clubs}}</div><div>المسابقات {{$tournaments}}</div><div>المقتنيات {{$storeItems->count()}}</div></div>
+<section class="r9-admin-command">
+ <div>
+  <span class="r9-eyebrow">WARQNAA COMMAND CENTER</span>
+  <h1>مركز قيادة ورقنا</h1>
+  <p>إدارة اللاعبين، اللعب المباشر، الاقتصاد، المتجر، المنافسات والحماية من واجهة واحدة متناسقة.</p>
+ </div>
+ <div class="r9-admin-actions">
+  <button type="button" class="primary" onclick="document.querySelector('[data-admin-tab=monitor]')?.click()">المراقبة المباشرة</button>
+  <button type="button" onclick="document.querySelector('[data-admin-tab=players]')?.click()">اللاعبون</button>
+  <button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">المتجر</button>
+ </div>
+</section>
+<div class="stats r9-command-stats"><div><small>الغرف</small><b>{{$rooms}}</b></div><div><small>الأندية</small><b>{{$clubs}}</b></div><div><small>المنافسات</small><b>{{$tournaments}}</b></div><div><small>المقتنيات</small><b>{{$storeItems->count()}}</b></div></div>
 <div class="admin-tabs jumbo-tabs">
  @if(auth()->user()?->hasAdminPermission('site_settings'))<button data-admin-tab="control">تحكم الموقع</button>@endif @if(auth()->user()?->hasAdminPermission('site_design'))<button data-admin-tab="designer">مصمم شامل</button>@endif @if(auth()->user()?->hasAdminPermission('game_rules'))<button data-admin-tab="games-admin">الألعاب والقوانين</button>@endif<button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>
 </div>
 
 <section id="admin-v118" class="admin-section">
- <h2>🔥 مركز منصة V118 الجذرية</h2>
+ <h2>مركز الأدوات المتقدمة</h2>
  <div class="v118-admin-actions">
   <a class="btn primary" href="{{ route('admin.pro.v118') }}" target="_blank">فتح JSON المراقبة المتقدمة</a><a class="btn primary" href="{{ route('admin.engine.audit') }}" target="_blank">🛡️ فحص محركات v124</a>
   <a class="btn" href="{{ route('games.library.pro') }}" target="_blank">مكتبة الألعاب Pro</a>
@@ -80,7 +90,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   <div class="pro-card"><b>الألعاب</b><span>15+</span><small>طرنيب، هاند، تريكس، بلوت، استيميشن، دومينو، لودو، جاكارو والمزيد.</small></div>
   <div class="pro-card"><b>الحماية</b><span>Server</span><small>السيرفر هو الحكم، لا إرسال لأوراق الخصوم، وتسجيل الحركات المشبوهة.</small></div>
   <div class="pro-card"><b>الاقتصاد</b><span>مواسم</span><small>عملات، توكنز، جواهر، عروض، مقتنيات نادرة، مكافآت يومية.</small></div>
-  <div class="pro-card"><b>التخصيص</b><span>7 لغات</span><small>ثيمات فخمة، خطوط متعددة، RTL/LTR، PWA وتخطيط للموبايل.</small></div>
+  <div class="pro-card"><b>التخصيص</b><span>AR / EN</span><small>عربية RTL وإنجليزية LTR مع ثيمات موحدة وتخطيط Responsive.</small></div>
  </div>
 </section>
 
@@ -127,7 +137,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
 <section id="admin-pro-health" class="admin-section">
  <h2>🚀 صحة النظام وخطة الاحتراف</h2>
  <div class="pro-health-grid">
-  <div class="pro-card"><b>إصدار التطوير</b><span>{{ config('warqna_pro_features.version','v115') }}</span><small>النسخة الحالية مجهزة لمرحلة احترافية.</small></div>
+  <div class="pro-card"><b>إصدار المنصة</b><span>{{ config('warqna_pro_features.version','v115') }}</span><small>النسخة الحالية مجهزة لمرحلة احترافية.</small></div>
   <div class="pro-card"><b>PWA</b><span>مفعل</span><small>manifest + service worker للتثبيت كتطبيق.</small></div>
   <div class="pro-card"><b>SEO</b><span>مفعل</span><small>robots.txt + sitemap.xml + structured data.</small></div>
   <div class="pro-card"><b>الأداء</b><span>فهارس جاهزة</span><small>Migration للفهرسة على الرسائل والإشعارات والغرف.</small></div>
@@ -165,7 +175,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   <label class="check-row"><input type="checkbox" name="support_enabled" value="1" {{$bool('support_enabled',true)?'checked':''}}> تشغيل الدعم</label>
   <label>عنوان الصفحة الرئيسية<input name="homepage_headline" value="{{$val('homepage_headline','Warqnaa')}}"></label>
   <label>رسالة عامة / صيانة<input name="maintenance_message" value="{{$val('maintenance_message','')}}"></label>
-  <label>لغة الموقع الافتراضية<select name="default_locale"><option value="ar" {{$val('default_locale','ar')==='ar'?'selected':''}}>عربي</option><option value="en" {{$val('default_locale','ar')==='en'?'selected':''}}>English</option><option value="fr" {{$val('default_locale','ar')==='fr'?'selected':''}}>Français</option><option value="tr" {{$val('default_locale','ar')==='tr'?'selected':''}}>Türkçe</option><option value="de" {{$val('default_locale','ar')==='de'?'selected':''}}>Deutsch</option><option value="es" {{$val('default_locale','ar')==='es'?'selected':''}}>Español</option></select></label>
+  <label>لغة الموقع الافتراضية<select name="default_locale"><option value="ar" {{$val('default_locale','ar')==='ar'?'selected':''}}>العربية</option><option value="en" {{$val('default_locale','ar')==='en'?'selected':''}}>English</option></select></label>
   <label>شكل التنقل<select name="nav_style"><option value="bar">شريط علوي</option><option value="glass">زجاجي فاخر</option><option value="side">جانبي مستقبلاً</option></select></label>
   <label>كثافة الواجهة<select name="layout_density"><option value="compact">مضغوط</option><option value="comfortable">مريح</option><option value="wide">واسع</option></select></label>
   <label>شكل البطاقات<select name="card_style"><option value="rounded">دائري ناعم</option><option value="luxury">فاخر</option><option value="flat">مسطح</option></select></label>

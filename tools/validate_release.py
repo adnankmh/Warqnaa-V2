@@ -378,16 +378,45 @@ def check_yaml_basics() -> None:
 
 
 def check_secrets() -> None:
+    """Reject secret-bearing files that would actually ship.
+
+    Local development legitimately needs backend-laravel/.env.  A release audit
+    must therefore distinguish an untracked local runtime file from a file that
+    is committed/packageable.  Inside a Git working tree we audit tracked
+    files; in an exported source tree without .git we fall back to scanning the
+    package contents.
+    """
     forbidden_names = {".env", "key.properties", "upload-keystore.jks"}
+    secret_suffixes = {".jks", ".keystore", ".p12", ".pem"}
+
+    candidates = []
+    git_dir = ROOT / ".git"
+    if git_dir.exists():
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(ROOT), "ls-files", "-z"],
+                check=True, capture_output=True, text=True,
+            )
+            for rel in [item for item in proc.stdout.split("\0") if item]:
+                path = ROOT / rel
+                if path.is_file():
+                    candidates.append(path)
+        except (OSError, subprocess.CalledProcessError):
+            candidates = []
+
+    if not candidates:
+        candidates = [
+            path for path in ROOT.rglob("*")
+            if path.is_file() and not any(part in SKIP_DIRS for part in path.parts)
+        ]
+
     found = []
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or any(part in SKIP_DIRS for part in path.parts):
-            continue
-        if path.name in forbidden_names or path.suffix.lower() in {".jks", ".keystore", ".p12", ".pem"}:
+    for path in candidates:
+        if path.name in forbidden_names or path.suffix.lower() in secret_suffixes:
             found.append(str(path.relative_to(ROOT)))
     if found:
-        fail("Secret-bearing files must not ship: " + ", ".join(found))
-    print("[OK] No runtime secrets or signing files")
+        fail("Secret-bearing files must not ship: " + ", ".join(sorted(set(found))))
+    print("[OK] No tracked/packageable runtime secrets or signing files")
 
 
 def check_flutter_lock_verification() -> None:

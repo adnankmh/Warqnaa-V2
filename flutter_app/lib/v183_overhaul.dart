@@ -148,60 +148,10 @@ class AdaptiveTablePreviewV183 extends StatelessWidget {
   final StoreProduct product;
   final bool compact;
   final bool gameplay;
-  const AdaptiveTablePreviewV183({
-    super.key,
-    required this.controller,
-    required this.product,
-    this.compact = false,
-    this.gameplay = false,
-  });
+  const AdaptiveTablePreviewV183({super.key, required this.controller, required this.product, this.compact = false, this.gameplay = false});
 
   @override
-  Widget build(BuildContext context) {
-    final c1 = controller.color1For(product);
-    final c2 = controller.color2For(product);
-    final radius = compact ? 18.0 : gameplay ? 28.0 : 30.0;
-    return LayoutBuilder(builder: (context, constraints) {
-      final availableWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : (compact ? 190.0 : 720.0);
-      final width = availableWidth.clamp(compact ? 150.0 : 260.0, gameplay ? 1500.0 : 920.0).toDouble();
-      final ratio = gameplay ? 16 / 10 : 16 / 9;
-      return Center(
-        child: SizedBox(
-          width: width,
-          child: AspectRatio(
-            aspectRatio: ratio,
-            child: Container(
-              padding: EdgeInsets.all(compact ? 4 : 7),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(radius),
-                gradient: RadialGradient(colors: [c2.withValues(alpha: .78), c1, Color.lerp(c1, Colors.black, .60)!]),
-                border: Border.all(color: c2.withValues(alpha: .84), width: compact ? 2 : 3),
-                boxShadow: [BoxShadow(color: c2.withValues(alpha: .22), blurRadius: compact ? 12 : 28, offset: Offset(0, compact ? 5 : 12))],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(radius - 6),
-                child: product.imageAsset == null
-                    ? Stack(fit: StackFit.expand, children: [
-                        const AmbientTableFX(density: 7, subtle: true),
-                        Center(child: Text(product.icon, style: TextStyle(fontSize: compact ? 40 : 74))),
-                      ])
-                    : ColoredBox(
-                        color: Color.lerp(c1, Colors.black, .48)!,
-                        child: Image.asset(
-                          product.imageAsset!,
-                          fit: BoxFit.contain,
-                          alignment: Alignment.center,
-                          filterQuality: gameplay ? FilterQuality.medium : FilterQuality.high,
-                          errorBuilder: (_, __, ___) => Center(child: Text(product.icon, style: TextStyle(fontSize: compact ? 40 : 74))),
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
+  Widget build(BuildContext context) => R9DirectionalTablePreview(controller: controller, product: product, compact: compact);
 }
 
 class CompetitionTicketPreviewV183 extends StatelessWidget {

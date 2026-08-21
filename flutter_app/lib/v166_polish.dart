@@ -37,7 +37,13 @@ const Map<String, Map<String, String>> v166Translations = <String, Map<String, S
   },
 };
 
-String gameArtAsset(String gameId) => 'assets/images/games/$gameId.png';
+String gameArtAsset(String gameId) => switch (gameId) {
+  'tarneeb_41' || 'tarneeb_61' => 'assets/images/games/tarneeb.png',
+  'backgammon' => 'assets/images/games/domino.png',
+  'solitaire_multiplayer' => 'assets/images/games/hand.png',
+  'pinochle' => 'assets/images/games/banakil.png',
+  _ => 'assets/images/games/$gameId.png',
+};
 
 Uint8List? decodeDataImage(String? data) {
   if (data == null || data.isEmpty) return null;

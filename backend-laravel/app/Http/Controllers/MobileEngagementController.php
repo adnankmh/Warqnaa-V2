@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\{AdminDesignerEntity,ChallengeDefinition,CompetitionTicket,DailyPackClaim,PrizeBox,Tournament};
-use App\Services\WarqnaPro\{ChallengeService,CompetitionService,DailyPackService,LuckyWheelService,PrizeBoxService};
+use App\Services\WarqnaPro\{ChallengeService,CompetitionService,DailyPackService,LuckyWheelService,PrizeBoxService,LiveOpsService};
 use Illuminate\Http\Request;
 use RuntimeException;
 
 class MobileEngagementController extends Controller
 {
-    public function center(Request $request, ChallengeService $challenges, PrizeBoxService $prizeBoxes, LuckyWheelService $wheel)
+    public function center(Request $request, ChallengeService $challenges, PrizeBoxService $prizeBoxes, LuckyWheelService $wheel, LiveOpsService $liveOps)
     {
         $user = $request->user();
         return response()->json([
@@ -24,6 +24,7 @@ class MobileEngagementController extends Controller
             'competitions'=>Tournament::whereIn('status', ['open','running'])->withCount('entries')->orderByDesc('featured')->orderBy('starts_at')->get(),
             'designer'=>AdminDesignerEntity::where('active', true)->orderBy('entity_type')->orderBy('sort_order')->get()->groupBy('entity_type'),
             'champion_rank_points'=>(int)($user->profile?->champion_rank_points ?? 0),
+            'live_ops'=>$liveOps->center(),
         ]);
     }
 

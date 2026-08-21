@@ -97,7 +97,7 @@ class MobileApiController extends Controller
             'online_only' => false,
             'features' => [
                 'themes' => true,
-                'languages' => ['ar', 'en', 'de', 'tr', 'fr', 'es'],
+                'languages' => ['ar', 'en'],
                 'chat' => true,
                 'quick_reactions' => true,
                 'rewards' => true,

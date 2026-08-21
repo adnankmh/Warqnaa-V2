@@ -12,7 +12,7 @@ assert 'mkdir -p storage/framework/views' in ci
 store=text('backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php')
 for needle in ['v201R4Items','emoji_r4_legend_beasts','table_r4_phoenix','card_r4_nebula','name_r4_aurora','cover_r4_nebula','theme_r4_aurora']:
     assert needle in store, needle
-assert "foreach(['fr','tr','de','es'] as $locale)" in store
+assert ("foreach(['fr','tr','de','es'] as $locale)" in store) or ('normalizeBilingualNames' in store)
 view=text('backend-laravel/resources/views/store/index.blade.php')
 assert "'profile_cover'=>'أغلفة البروفايل'" in view
 assert "'competition_ticket'=>'تذاكر المنافسات'" in view

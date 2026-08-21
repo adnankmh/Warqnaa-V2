@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import json,re,sys
+ROOT=Path(__file__).resolve().parents[1]
+def read(rel): return (ROOT/rel).read_text(encoding='utf-8')
+def ok(cond,msg):
+    if not cond:
+        print('[FAIL]',msg); raise SystemExit(1)
+    print('[PASS]',msg)
+meta=json.loads(read('RELEASE_VERSION.json'))
+ok(meta.get('full')=='0.4.9+209' and meta.get('build')==209,'R9 release metadata is 0.4.9+209')
+main=read('flutter_app/lib/main.dart')
+ok("Locale('ar')" in main and "Locale('en')" in main and "Locale('de')" not in main and "Locale('tr')" not in main and "Locale('fr')" not in main and "Locale('es')" not in main,'Flutter product locales are Arabic and English only')
+ok("R9Design.theme" in main and "R9HomeDashboard" in main,'Flutter uses R9 design system and lobby')
+ok("part 'r9_release.dart';" in main,'R9 Flutter release module is wired')
+r9=read('flutter_app/lib/r9_release.dart')
+ok('aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'BoxFit.cover' in r9,'R9 table previews are portrait/landscape and full-cover')
+ok('Live lobby • R9' in r9 and 'العب الآن' in r9,'R9 home lobby exists')
+layout=read('backend-laravel/resources/views/layouts/app.blade.php')
+ok('r9-design-system.css' in layout and 'warqna-r9' in layout,'Laravel loads R9 design system')
+ok('data-lang-pick="de"' not in layout and 'data-lang-pick="tr"' not in layout and 'data-lang-pick="fr"' not in layout and 'data-lang-pick="es"' not in layout,'Laravel language picker is bilingual only')
+langs=read('backend-laravel/config/warqna_languages.php')
+ok("'ar'" in langs and "'en'" in langs and "'fr'" not in langs and "'tr'" not in langs and "'de'" not in langs and "'es'" not in langs,'Laravel language config is Arabic/English only')
+store=read('backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php')
+ok('normalizeBilingualNames' in store and 'deactivateExactDuplicates' in store,'store normalizes bilingual names and deactivates exact duplicates')
+mobile=read('backend-laravel/app/Http/Controllers/MobileApiController.php')
+ok("'languages' => ['ar', 'en']" in mobile,'mobile bootstrap exposes only ar/en')
+liveops=read('backend-laravel/app/Services/WarqnaPro/LiveOpsService.php')
+ok('rewarded_enabled' in liveops and "'daily'" in liveops and "'weekly'" in liveops and "'monthly'" in liveops and "'annual'" in liveops,'R9 live-ops foundation includes ads and offer cadences')
+bots=read('flutter_app/lib/premium_v149.dart')
+ok("Text('BOT'" in bots,'bot identity is explicit in the avatar UI')
+asset=ROOT/'docs/ar/reports/current/R9_ASSET_AUDIT.json'
+ok(asset.is_file(),'R9 asset audit report exists')
+audit=json.loads(asset.read_text(encoding='utf-8'))
+ok(audit.get('potential_duplicate_savings_bytes',0)>0,'R9 asset audit quantifies duplicate savings')
+# Verify the exact safe duplicates targeted by the R9 migration are gone.
+# Do not hard-code an absolute total asset-size ceiling: upgraded projects may
+# legitimately contain additional purchased/preview assets from later patches.
+r9_dedupe_targets = [
+    'flutter_app/assets/images/games/backgammon.png',
+    'flutter_app/assets/images/games/game_library_reference.png',
+    'flutter_app/assets/images/games/pinochle.png',
+    'flutter_app/assets/images/games/solitaire_multiplayer.png',
+    'flutter_app/assets/images/games/tarneeb_41.png',
+    'flutter_app/assets/images/games/tarneeb_61.png',
+    'flutter_app/assets/images/v02/rewards/ticket_200.png',
+]
+remaining=[rel for rel in r9_dedupe_targets if (ROOT/rel).exists()]
+ok(not remaining,'R9 safe duplicate assets are removed')
+size=sum(p.stat().st_size for p in (ROOT/'flutter_app/assets').rglob('*') if p.is_file())
+print(f'[INFO] Flutter runtime assets: {size/1024/1024:.2f} MB (informational; no brittle absolute-size gate)')
+for port in (8007,8008,8009,8010):
+    ok((ROOT/f'scripts/windows/current/START_WARQNA_R9_PORT_{port}.bat').is_file(),f'R9 launcher {port}')
+ok((ROOT/'scripts/windows/current/CHECK_R9_WINDOWS.bat').is_file(),'R9 full check launcher exists')
+for wf in ['backend-ci.yml','production-release-check.yml','flutter-android.yml','flutter-ios.yml','flutter-web-pages.yml']:
+    ok('test_v209_r9_contract.py' in read('.github/workflows/'+wf),f'R9 contract wired into {wf}')
+print('V209 R9 VISUAL REVOLUTION CONTRACT: PASS')

@@ -35,13 +35,14 @@ class StoreCatalogService
         foreach($this->v201Items() as $item) $this->upsert($item);
         foreach($this->v201R4Items() as $item) $this->upsert($item);
         foreach($this->v202Items() as $item) $this->upsert($item);
+        $this->normalizeBilingualNames();
+        $this->deactivateExactDuplicates();
 
     }
 
     private function upsert(array $item): void
     {
         $names=['ar'=>$item['ar'],'en'=>$item['en'] ?? $item['key']];
-        foreach(['fr','tr','de','es'] as $locale) if(isset($item[$locale])) $names[$locale]=$item[$locale];
         DB::table('store_items')->updateOrInsert(['key'=>$item['key']],[
             'name'=>json_encode($names,JSON_UNESCAPED_UNICODE),
             'category'=>$item['category'],
@@ -268,6 +269,39 @@ class StoreCatalogService
             ['key'=>'nameframe_v202_aurora','ar'=>'إطار أورورا للاسم','en'=>'Aurora Name Frame','fr'=>'Cadre nom Aurora','tr'=>'Aurora İsim Çerçevesi','de'=>'Aurora-Namensrahmen','es'=>'Marco de nombre Aurora','category'=>'name_frame','price'=>74000,'payload'=>['frame'=>'aurora-name','preview_icon'=>'✨','tier'=>'featured']],
             ['key'=>'emoji_v202_majestic','ar'=>'إيموجي المجلس الأسطوري','en'=>'Majestic Majlis Emojis','fr'=>'Emojis majlis majestueux','tr'=>'Görkemli Meclis Emojileri','de'=>'Majestätische Majlis-Emojis','es'=>'Emojis majlis majestuosos','category'=>'emoji_pack','price'=>59000,'payload'=>['emojis'=>'👑☕🔥🦅🤝🎴🏆💎','emoji_tier'=>'vip','animated'=>true,'preview_icon'=>'😎','collection'=>'v202_elite']],
         ];
+    }
+
+    private function normalizeBilingualNames(): void
+    {
+        DB::table('store_items')->select('id','key','name')->orderBy('id')->chunkById(200, function($rows){
+            foreach($rows as $row){
+                $name=json_decode((string)$row->name,true);
+                if(!is_array($name)) continue;
+                $clean=['ar'=>(string)($name['ar'] ?? $name['en'] ?? $row->key),'en'=>(string)($name['en'] ?? $name['ar'] ?? $row->key)];
+                if($clean!==$name) DB::table('store_items')->where('id',$row->id)->update(['name'=>json_encode($clean,JSON_UNESCAPED_UNICODE),'updated_at'=>now()]);
+            }
+        },'id');
+    }
+
+    /** Deactivate only true duplicate storefront rows; historical inventory remains intact. */
+    private function deactivateExactDuplicates(): void
+    {
+        $rows=DB::table('store_items')->where('active',true)->orderBy('id')->get(['id','key','name','category','payload','price','duration_days']);
+        $seen=[];
+        foreach($rows as $row){
+            $name=json_decode((string)$row->name,true) ?: [];
+            $signature=hash('sha256',json_encode([
+                (string)$row->category,
+                mb_strtolower(trim((string)($name['ar'] ?? ''))),
+                mb_strtolower(trim((string)($name['en'] ?? ''))),
+                (int)$row->price,
+                (int)($row->duration_days ?? 0),
+                json_decode((string)$row->payload,true) ?: [],
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+            if(isset($seen[$signature])){
+                DB::table('store_items')->where('id',$row->id)->update(['active'=>false,'updated_at'=>now()]);
+            } else $seen[$signature]=$row->id;
+        }
     }
 
 }
