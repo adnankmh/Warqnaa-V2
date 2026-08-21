@@ -104,7 +104,6 @@ class _WarqnaAppState extends State<WarqnaApp> {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final palette = AppPalette.fromCode(controller.themeCode);
         final isLight = controller.themeCode == 'light';
         return MaterialApp(
           navigatorKey: warqnaNavigatorKey,

@@ -33,7 +33,6 @@ class R9HomeDashboard extends StatelessWidget {
       );
 
   Widget _hero(BuildContext context, bool wide) {
-    final accent = Theme.of(context).colorScheme.primary;
     return Container(
       constraints: BoxConstraints(minHeight: wide ? 280 : 230),
       padding: EdgeInsets.all(wide ? 30 : 20),
