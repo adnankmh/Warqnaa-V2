@@ -1,0 +1,39 @@
+from pathlib import Path
+import json
+import json,re,sys
+ROOT=Path(__file__).resolve().parents[1]
+def ok(cond,msg):
+    if not cond:
+        print('[FAIL]',msg); sys.exit(1)
+    print('[PASS]',msg)
+meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text(encoding='utf-8'))
+ok(int(meta.get('build',0))>=201,'current release preserves V201 or later')
+core=(ROOT/'backend-laravel/app/Services/GameEngine/GlobalEngines/GlobalCardEngineCore.php').read_text(encoding='utf-8')
+ok('dealBalancedPlayableTrickHands' in core and 'minimumPlayableHonors' in core,'symmetric playable Tarneeb deal policy')
+ok("['C'=>0,'D'=>1,'S'=>2,'H'=>3]" in core,'requested clubs-diamonds-spades-hearts sort order')
+ok("$action['cards'] ?? []" in core and 'sameCardMultiset' in core,'server-authoritative manual hand reorder')
+standalone=(ROOT/'backend-laravel/app/Services/GameEngine/TarneebStandalone/TarneebEngine.php').read_text(encoding='utf-8')
+ok('balancedPlayableDeal' in standalone and 'playableHonorQuality' in standalone,'standalone Tarneeb uses symmetric playable-deal quality')
+local=(ROOT/'flutter_app/lib/engines/local_game_engine.dart').read_text(encoding='utf-8')
+ok('_manualRummyOrder' in local and "payload['cards']" in local and "const suitOrder = <String, int>{'C': 0, 'D': 1, 'S': 2, 'H': 3}" in local,'Flutter local Hand/Banakil keeps manual order and requested suit sort')
+ok("gameId == 'tarneeb'" in local and '_playableHonorQuality' in local and 'minimumQuality = 2' in local,'Flutter offline Tarneeb has real bidding flow and symmetric no-fresh quality policy')
+main=(ROOT/'flutter_app/lib/main.dart').read_text(encoding='utf-8')
+ok('_reorderServerHand' in main and 'LongPressDraggable<int>' in main and 'DragTarget<int>' in main,'Flutter Hand/Banakil supports long-press drag/drop manual ordering')
+user=(ROOT/'backend-laravel/app/Models/User.php').read_text(encoding='utf-8')
+ok('isPrimaryAdmin' in user and 'hasAdminPermission' in user and '100000000000000000000000000000000' in user,'primary/delegated admin policy and ceremonial Adnan display balance')
+seed=(ROOT/'backend-laravel/database/seeders/DatabaseSeeder.php').read_text(encoding='utf-8')
+ok("'username'=>'Abd'" in seed and "Hash::make('123AbdAbd')" in seed and '10000000000000000' in seed,'Abd delegated admin seeded')
+meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text(encoding='utf-8'))
+if int(meta.get('build',0)) >= 210:
+    store=(ROOT/'backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php').read_text(encoding='utf-8')
+    ok('9000000000000000000' in seed and 'grantPrimaryAdminAllCollectibles' in store and 'grantPrimaryAdminItem' in store,'Adnan safe reserve and full inventory seeding')
+else:
+    ok('9000000000000000000' in seed and 'InventoryItem::updateOrCreate' in seed,'Adnan safe reserve and full inventory seeding')
+css=(ROOT/'backend-laravel/public/assets/css/app.css').read_text(encoding='utf-8')
+ok('.admin-tabs.jumbo-tabs,.jumbo-tabs,.designer-preview-v137{position:static!important' in css,'admin navigation no longer sticky')
+ok('border-radius:50%!important' in css and 'game-table{width:min(100%,1480px)' in css,'circular avatars and 100% responsive game table')
+wheel=(ROOT/'backend-laravel/app/Services/WarqnaPro/LuckyWheelService.php').read_text(encoding='utf-8')
+ok(wheel.count("['key'=>") == (12 if int(meta.get('build',0)) >= 221 else 8),'reward wheel exposes the release-appropriate varied prize set')
+flutter=(ROOT/'flutter_app/lib/premium_v151.dart').read_text(encoding='utf-8')
+ok("'abd':" in flutter and '123AbdAbd' in flutter,'Flutter demo Abd account')
+print('V201 GAMEPLAY & ADMIN CONTRACT: PASS')

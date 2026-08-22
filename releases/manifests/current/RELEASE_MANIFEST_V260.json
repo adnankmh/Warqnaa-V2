@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "build": 260,
+  "full": "1.0.0+260",
+  "release": "v260",
+  "display_release": "V1.0.0",
+  "name": "Warqnaa R14 Global Release",
+  "base": "R13 Build 250",
+  "compatibility": ["R8", "R9", "R9.1", "R10", "R10.1", "R11", "R12", "R13"],
+  "channels": ["backend", "web", "android", "ios"],
+  "locales": ["ar", "en"],
+  "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},
+  "source_ready": true,
+  "deployment_owned": ["production secrets", "signing keys", "store submission", "DNS/TLS"],
+  "artifact_policy": {"clean_root": true, "secrets_in_repository": false, "full_repository_and_upgrade_from_b250": true}
+}

@@ -1,0 +1,38 @@
+{
+  "version": "0.4.4",
+  "build": 200,
+  "full": "0.4.4+200",
+  "release": "v200",
+  "name": "Warqnaa V0.4.4 Full Fusion Pro",
+  "base": "Warqnaa-main.zip",
+  "ports": [
+    8007,
+    8008,
+    8009,
+    8010
+  ],
+  "contracts": [
+    "server_authoritative",
+    "fair_unbiased_shuffle",
+    "wallet_min_transfer_10",
+    "transfer_fee_10_percent",
+    "xp_10_pasha_20",
+    "booster_multiplier",
+    "competition_exit_limit_5",
+    "system_competition_50_300",
+    "admin_no_code_designer",
+    "full_assets_preserved",
+    "historical_contracts_additive",
+    "node24_actions",
+    "github_pages_optional_deploy"
+  ],
+  "framework_ci_required": true,
+  "ci_hotfix": "R2",
+  "github_actions": {
+    "checkout": "v6",
+    "configure_pages": "v6",
+    "upload_pages_artifact": "v4",
+    "deploy_pages": "v5",
+    "pages_policy": "build_always_deploy_only_if_enabled"
+  }
+}

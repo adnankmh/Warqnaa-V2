@@ -1,0 +1,11 @@
+WARQNAA R14.1 LEGENDARY EXPERIENCE — 1.0.1+261
+Final source-package check: PASS
+Static contract: tools/test_v261_r14_1_contract.py
+Regression range: R8 / R9 / R9.1 / R10 / R10.1 / R11 / R12 / R13 / R14 / R14.1
+Channels: backend / web / android / ios
+R10 complete manifest verification: PASS — 472 assertions; every declared local asset was hashed.
+R10 Laravel public budgets: source 9.35 MiB / generated build 0 MiB / deployed total 9.35 MiB.
+Global Release Preflight: PASS — four channels, Arabic/English, launch assets, Engine Gold and secret policy.
+Static validation: PASS — JSON=65 YAML=17 XML=2 DART=39 SOURCE_SCAN=574.
+Dart delimiter and local-reference structure: PASS.
+Local runtime boundary: PHP, Composer, Flutter and Dart runtime suites are enforced by GitHub Actions.

@@ -1,0 +1,26 @@
+{
+  "version": "0.5.1",
+  "build": 221,
+  "full": "0.5.1+221",
+  "release": "v221",
+  "display_release": "V0.5.1",
+  "name": "Warqnaa R10.1 Commerce & Visual Experience",
+  "base": "R10 Build 220",
+  "features": [
+    "R10 preserved",
+    "commerce receipt verification boundary",
+    "rewarded and post-match spaced interstitial ads",
+    "daily weekly monthly annual offers",
+    "18 original game covers",
+    "server-only customer hiding",
+    "portrait/landscape table inlay",
+    "six full themes",
+    "circular live avatar preview",
+    "12-reward royal wheel",
+    "admin commerce command center",
+    "Arabic and English product UI",
+    "canonical customer-visible game allowlist",
+    "GUI game deactivation preserved across catalog sync",
+    "web/mobile/tournament server-only hiding"
+  ]
+}
