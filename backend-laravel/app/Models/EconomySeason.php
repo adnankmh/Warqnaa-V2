@@ -1,1 +1,0 @@
-<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class EconomySeason extends Model { protected $fillable=['key','name','starts_at','ends_at','active','rewards']; protected $casts=['name'=>'array','rewards'=>'array','active'=>'boolean','starts_at'=>'datetime','ends_at'=>'datetime']; }

@@ -1,1 +1,0 @@
-<?php namespace App\Models; use Illuminate\Database\Eloquent\Model; class Notification extends Model { protected $casts=['title'=>'array','body'=>'array','meta'=>'array','read'=>'bool']; protected $fillable=['user_id','type','title','body','url','read','meta']; }
