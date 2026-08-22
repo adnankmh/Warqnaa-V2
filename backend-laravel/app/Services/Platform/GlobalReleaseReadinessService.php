@@ -7,7 +7,7 @@ final class GlobalReleaseReadinessService
     public function report(bool $strict = false): array
     {
         $checks = [
-            'release_version' => config('warqna.version') === '1.0.0' && (int)config('warqna.build') === 260,
+            'release_version' => config('warqna.version') === '1.0.1' && (int)config('warqna.build') === 261,
             'bilingual_contract' => config('warqna_global_release.locales') === ['ar', 'en'],
             'four_channels' => count((array)config('warqna_global_release.channels')) === 4,
             'engine_gold' => (int)config('warqna_global_release.engine_gold.engines') === 20
@@ -23,7 +23,7 @@ final class GlobalReleaseReadinessService
         if (!str_starts_with((string)config('app.url'), 'https://')) $warnings[] = 'APP_URL must use HTTPS at deployment time.';
         $ready = !in_array(false, $checks, true) && (!$strict || !$warnings);
         return [
-            'release' => '1.0.0+260', 'contract' => 'r14_global_release_v1',
+            'release' => '1.0.1+261', 'contract' => 'r14_global_release_v1',
             'ready' => $ready, 'strict' => $strict, 'checks' => $checks,
             'warnings' => $warnings, 'channels' => config('warqna_global_release.channels'),
         ];

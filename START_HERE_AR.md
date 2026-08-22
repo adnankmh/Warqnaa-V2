@@ -1,16 +1,17 @@
-# ابدأ من هنا — Warqnaa R14 Build 260
+# ابدأ من هنا — Warqnaa R14.1 Build 261
 
-الإصدار الحالي: **1.0.0+260**  
+الإصدار الحالي: **1.0.1+261**  
 المرحلة: **R14 — Global Release**
 
 R14 مبني مباشرة فوق R13 Build 250 ويحافظ على R8/R9/R9.1/R10/R10.1/R11/R12/R13 وكل المحركات والاقتصاد والمتجر وSocial World وCompetitive Arena. Full Repository مستقل، وUpgrade مخصص لـB250.
 
 ## توثيق R14
 
-- العقد: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
+- العقد الحالي: `docs/ar/releases/current/R14_1_LEGENDARY_EXPERIENCE_CONTRACT_AR.md`
+- عقد الإطلاق العالمي المحفوظ: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
 - Checklist الإطلاق: `docs/ar/deployment/R14_GLOBAL_LAUNCH_CHECKLIST_AR.md`
 - الترقية: `docs/ar/releases/current/R14_UPGRADE_FROM_B250_AR.md`
-- تقرير الجودة: `docs/ar/reports/current/QUALITY_REPORT_V260_AR.md`
+- تقرير الجودة: `docs/ar/reports/current/QUALITY_REPORT_V261_AR.md`
 
 ## التشغيل على Windows / XAMPP
 

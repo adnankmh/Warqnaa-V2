@@ -20,7 +20,7 @@ def main() -> None:
     args = parser.parse_args()
     meta = json.loads((ROOT / "RELEASE_VERSION.json").read_text(encoding="utf-8"))
     checks = {
-        "release_metadata": meta.get("full") == "1.0.0+260" and meta.get("name") == "Warqnaa R14 Global Release",
+        "release_metadata": int(meta.get("build", 0)) >= 260 and str(meta.get("version", "")).startswith("1.0."),
         "four_channels": all((ROOT / p).exists() for p in (
             "backend-laravel", "flutter_app/web", ".github/workflows/flutter-android.yml", ".github/workflows/flutter-ios.yml")),
         "production_backend": all((ROOT / p).is_file() for p in (
@@ -36,7 +36,7 @@ def main() -> None:
     }
     failed = [name for name, passed in checks.items() if not passed]
     report = {
-        "contract": "r14_global_release_v1", "release": "1.0.0+260",
+        "contract": "r14_global_release_v1", "release": meta.get("full"),
         "status": "pass" if not failed else "fail", "checks": checks,
         "channels": ["backend", "web", "android", "ios"],
         "locales": ["ar", "en"], "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},

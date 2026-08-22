@@ -50,6 +50,7 @@ jobs:
           python3 tools/test_v240_php_structure.py
           python3 tools/test_v250_r13_contract.py
           python3 tools/test_v260_r14_contract.py
+          python3 tools/test_v261_r14_1_contract.py
           python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/warqnaa-global-release.json"
           python3 tools/test_v184_flutter_quality_contract.py
           python3 tools/test_v184_official_game_rules_contract.py

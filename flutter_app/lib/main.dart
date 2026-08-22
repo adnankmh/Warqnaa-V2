@@ -42,6 +42,7 @@ part 'r9_release.dart';
 part 'r10_1_release.dart';
 part 'r11_social_world.dart';
 part 'r12_competitive.dart';
+part 'r14_1_legendary.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -3508,7 +3509,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => R9HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => R141LegendaryHomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
@@ -3610,7 +3611,7 @@ class _GamesPageState extends State<GamesPage> {
               childAspectRatio: columns == 2 ? .92 : .82,
             ),
             itemCount: visible.length,
-            itemBuilder: (_, i) => GameCard(
+            itemBuilder: (_, i) => R141LegendaryGameCard(
               game: visible[i],
               lang: lang,
               onTap: () => showGameLobby(context, widget.controller, visible[i]),

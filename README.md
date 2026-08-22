@@ -1,6 +1,6 @@
-# Warqnaa V1.0.0+260 — R14 Global Release
+# Warqnaa V1.0.1+261 — R14.1 Legendary Experience
 
-الإصدار الحالي: **1.0.0+260**
+الإصدار الحالي: **1.0.1+261**
 
 R14 هو الإغلاق العالمي للمشروع عبر Backend وWeb وAndroid وiOS. يضيف بوابة إطلاق موحدة، Production/Store preflight، أدلة SHA-256، ويفرض سلسلة R8–R14 مع Engine Gold قبل اعتبار أي Tag إصدارًا عالميًا.
 
@@ -13,7 +13,9 @@ R14 هو الإغلاق العالمي للمشروع عبر Backend وWeb وAnd
 - فصل واضح بين جاهزية المصدر وبين أسرار الإنتاج والتوقيع وحسابات المتاجر وDNS/TLS.
 - وثائق إطلاق عربية/إنجليزية وChecklist إنتاج وحزم Full/Upgrade موثقة.
 
-عقد R14: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
+عقد R14.1: `docs/ar/releases/current/R14_1_LEGENDARY_EXPERIENCE_CONTRACT_AR.md`
+
+عقد R14 Global Release محفوظ في `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`.
 
 ## R13 المحفوظ بالكامل
 

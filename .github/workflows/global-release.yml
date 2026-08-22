@@ -24,6 +24,7 @@ jobs:
           tools: composer:v2
       - run: python3 tools/validate_release.py
       - run: python3 tools/test_v260_r14_contract.py
+      - run: python3 tools/test_v261_r14_1_contract.py
       - run: python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/global-release.json"
       - name: Engine Gold release evidence
         env:

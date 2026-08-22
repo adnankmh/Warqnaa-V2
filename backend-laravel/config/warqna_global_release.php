@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'release' => '1.0.0+260',
+    'release' => '1.0.1+261',
     'contract' => 'r14_global_release_v1',
     'locales' => ['ar', 'en'],
     'channels' => ['backend', 'web', 'android', 'ios'],
