@@ -166,6 +166,7 @@ def check_required_files() -> None:
         ".github/workflows/engine-gold-nightly.yml",
         "tools/test_v260_r14_contract.py",
         "tools/test_v261_r14_1_contract.py",
+        "tools/test_v262_r14_2_contract.py",
         "tools/global_release_preflight.py",
         "backend-laravel/config/warqna_global_release.php",
         "backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php",
@@ -179,6 +180,11 @@ def check_required_files() -> None:
         "docs/ar/deployment/R14_GLOBAL_LAUNCH_CHECKLIST_AR.md",
         "backend-laravel/public/assets/css/r14-1-legendary-experience.css",
         "flutter_app/lib/r14_1_legendary.dart",
+        "flutter_app/lib/r14_2_account_security.dart",
+        "backend-laravel/app/Services/Account/AccountSecurityService.php",
+        "backend-laravel/app/Http/Controllers/AccountSecurityController.php",
+        "backend-laravel/resources/views/account/security.blade.php",
+        "backend-laravel/tests/Feature/V262AccountSecurityTest.php",
         "flutter_app/lib/services/r10_asset_delivery.dart",
         "backend-laravel/app/Services/WarqnaPro/AssetDeliveryService.php",
         "backend-laravel/app/Http/Controllers/MobileAssetController.php",
@@ -1602,6 +1608,20 @@ def check_v261_r14_1_legendary_experience_contract() -> None:
     print(result.stdout.strip())
     print("[OK] R14.1 Legendary Experience, premium Game Hall and CI size hotfix contract")
 
+
+def check_v262_r14_2_secure_account_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_v262_r14_2_contract.py")],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("R14.2 Secure Account contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R14.2 secure credentials, admin preservation and CI reliability contract")
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1666,6 +1686,7 @@ def main() -> None:
     check_v250_r13_engine_gold_contract()
     check_v260_r14_global_release_contract()
     check_v261_r14_1_legendary_experience_contract()
+    check_v262_r14_2_secure_account_contract()
     check_secrets()
     check_dart_structure()
     print(f"[PASS] Warqna v{EXPECTED_BUILD} source-package preflight completed successfully")

@@ -97,6 +97,8 @@ jobs:
         run: python3 ../tools/test_v260_r14_contract.py
       - name: Verify R14.1 Legendary Experience contract
         run: python3 ../tools/test_v261_r14_1_contract.py
+      - name: Verify R14.2 Secure Account contract
+        run: python3 ../tools/test_v262_r14_2_contract.py
       - name: Verify R14 cross-channel source readiness
         run: python3 ../tools/global_release_preflight.py
       - name: Run R8 deep Tarneeb Hand Banakil audit

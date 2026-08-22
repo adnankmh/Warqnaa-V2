@@ -80,6 +80,9 @@ Route::prefix('mobile/v1')->group(function () {
         Route::post('/competitions/{competitionKey}/leave', [MobileEngagementController::class, 'leaveCompetition'])->middleware('throttle:warqna-sensitive');
 
         Route::get('/account/export', [MobileAccountController::class, 'export'])->middleware('throttle:warqna-sensitive');
+        Route::get('/account/security', [MobileAccountController::class, 'security'])->middleware('throttle:warqna-sensitive');
+        Route::patch('/account/email', [MobileAccountController::class, 'updateEmail'])->middleware('throttle:warqna-sensitive');
+        Route::patch('/account/password', [MobileAccountController::class, 'updatePassword'])->middleware('throttle:warqna-sensitive');
         Route::get('/account/sessions', [MobileAccountController::class, 'sessions']);
         Route::delete('/account/sessions/{tokenId}', [MobileAccountController::class, 'revokeSession'])->middleware('throttle:warqna-sensitive');
         Route::post('/account/deletion-request', [MobileAccountController::class, 'requestDeletion'])->middleware('throttle:warqna-sensitive');

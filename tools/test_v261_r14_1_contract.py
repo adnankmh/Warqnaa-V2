@@ -22,18 +22,9 @@ def text(path: str) -> str:
 
 def main() -> None:
     meta = json.loads(text("RELEASE_VERSION.json"))
-    check(
-        meta == {
-            "version": "1.0.1",
-            "build": 261,
-            "full": "1.0.1+261",
-            "release": "v261",
-            "display_release": "V1.0.1",
-            "name": "Warqnaa R14.1 Legendary Experience",
-        },
-        "metadata is exactly R14.1 Build 261",
-    )
-    check("version: 1.0.1+261" in text("flutter_app/pubspec.yaml"), "Flutter release matches Build 261")
+    build = int(meta.get("build", 0))
+    check(build >= 261 and meta.get("full") == f"{meta.get('version')}+{build}" and meta.get("release") == f"v{build}", "current release preserves R14.1 Build 261 or newer")
+    check(f"version: {meta.get('full')}" in text("flutter_app/pubspec.yaml"), "Flutter package matches the current R14.1-compatible release")
 
     r10 = text("tools/test_v220_r10_contract.py")
     check(

@@ -3,7 +3,14 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder; use Illuminate\Support\Facades\{Hash,DB}; use App\Models\{User,Profile,Wallet,Club,ClubMember,Tournament}; use App\Services\Games\GameCatalog; use App\Services\WarqnaPro\StoreCatalogService;
 class DatabaseSeeder extends Seeder { public function run(): void {
  // v136: country_name() now returns a scalar string, so Seeder can use it directly without helper variables.
- $admin=User::updateOrCreate(['email'=>env('ADMIN_EMAIL','adnanasd63@gmail.com')],['username'=>env('ADMIN_USERNAME','Adnan'),'password'=>Hash::make(env('ADMIN_PASSWORD','Adnan123')),'is_admin'=>true]);
+ // R14.2: credentials are defaults for first creation only. Re-running seeders
+ // must never undo an email/password change made from Account Security.
+ $admin=User::whereRaw('LOWER(username) = ?', ['adnan'])->first();
+ if(!$admin){
+   $admin=User::create(['email'=>env('ADMIN_EMAIL','adnanasd63@gmail.com'),'username'=>env('ADMIN_USERNAME','Adnan'),'password'=>Hash::make(env('ADMIN_PASSWORD','Adnan123')),'is_admin'=>true]);
+ } else {
+   $admin->forceFill(['is_admin'=>true])->save();
+ }
  Profile::updateOrCreate(['user_id'=>$admin->id],['display_name'=>'Adnan','avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine','level'=>99,'xp'=>193947651,'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15','pasha_days'=>3650,'badge'=>'king']);
  Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>1000000000000000000,'gems'=>100000]);
  // R9.1: exactly 10 curated non-admin demo users with stable passwords, varied levels and token balances
@@ -464,10 +471,15 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
  // === R201 FINAL NORMALIZATION: runs last so legacy blocks cannot overwrite current rules. ===
  if (\Illuminate\Support\Facades\Schema::hasColumn('users','admin_role')) {
    $admin->update(['is_admin'=>true,'admin_role'=>'primary_admin','admin_permissions'=>['all'=>true]]);
-   $abd=User::updateOrCreate(['email'=>'abd@warqna.local'],[
-     'username'=>'Abd','password'=>Hash::make('123AbdAbd'),'is_admin'=>true,'is_banned'=>false,
-     'admin_role'=>'delegated_admin','admin_permissions'=>['users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,'economy'=>true,'security'=>true]
-   ]);
+   $abd=User::whereRaw('LOWER(username) = ?', ['abd'])->first();
+   if(!$abd){
+     $abd=User::create(['email'=>'abd@warqna.local',
+       'username'=>'Abd','password'=>Hash::make('123AbdAbd'),'is_admin'=>true,'is_banned'=>false,
+       'admin_role'=>'delegated_admin','admin_permissions'=>['users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,'economy'=>true,'security'=>true]
+     ]);
+   } else {
+     $abd->forceFill(['is_admin'=>true,'is_banned'=>false,'admin_role'=>'delegated_admin','admin_permissions'=>['users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,'economy'=>true,'security'=>true]])->save();
+   }
    Profile::updateOrCreate(['user_id'=>$abd->id],['display_name'=>'Abd','avatar'=>'🛡️','country_code'=>'PS','country_name'=>'Palestine','level'=>90,'xp'=>7800000,'games_played'=>12000,'wins'=>8000,'name_color'=>'#38bdf8','chat_color'=>'#38bdf8','pasha_days'=>365,'badge'=>'admin']);
    Wallet::updateOrCreate(['user_id'=>$abd->id],['tokens'=>10000000000000000,'gems'=>100000]);
  }

@@ -43,6 +43,7 @@ part 'r10_1_release.dart';
 part 'r11_social_world.dart';
 part 'r12_competitive.dart';
 part 'r14_1_legendary.dart';
+part 'r14_2_account_security.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -532,6 +533,9 @@ class AppController extends ChangeNotifier {
     var expected = prefs.getString(_offlineHashKey(alias));
     final demo = demoAccounts[alias];
     if (expected == null && demo != null && demo['password']?.toString() == password) {
+      if (warqnaProductionMode) {
+        return 'حسابات التجربة معطلة في الإنتاج. سجّل الدخول بالخادم مرة واحدة لحفظ دخول أوفلاين آمن.';
+      }
       final canonicalName = alias == 'adnan' ? 'Adnan' : '${alias.substring(0, 1).toUpperCase()}${alias.substring(1)}';
       final demoMail = '$alias@warqna.local';
       await _storeOfflineCredentials(prefs, canonicalName, demoMail, password);
@@ -3143,8 +3147,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final loginController = TextEditingController(text: 'Adnan');
-  final passwordController = TextEditingController(text: 'Adnan123');
+  final loginController = TextEditingController();
+  final passwordController = TextEditingController();
   final emailController = TextEditingController();
   bool registerMode = false;
   bool obscure = true;
@@ -7924,6 +7928,7 @@ void showSettings(BuildContext context, AppController controller) {
           ),
           if (controller.isPrimaryAdmin) ListTile(leading: const Icon(Icons.tune_rounded), title: Text(L.t(controller.localeCode, 'noCode')), subtitle: const Text('مصمم شامل خاص بحساب Adnan مع معاينة فورية'), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); showNoCodeDesignerSheet(context, controller); }),
           ListTile(leading: const Icon(Icons.install_mobile_rounded), title: const Text('تثبيت التطبيق على الهاتف'), subtitle: const Text('استخدم زر التثبيت أو إضافة إلى الشاشة الرئيسية من المتصفح.')),
+          ListTile(leading: const Icon(Icons.shield_lock_rounded, color: Color(0xff55e2c8)), title: Text(r142Text(controller.localeCode, 'title')), subtitle: Text(r142Text(controller.localeCode, 'subtitle')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => AccountSecurityPageR142(controller: controller))); }),
           ListTile(leading: const Icon(Icons.security_rounded, color: Colors.lightBlueAccent), title: Text(v153Text(controller.localeCode, 'productionCenter')), subtitle: Text(v153Text(controller.localeCode, 'productionCenterHint')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); openProductionCenterV153(context, controller); }),
           const ListTile(leading: Icon(Icons.restore_rounded), title: Text('مهلة استعادة الحساب'), subtitle: Text('بعد إلغاء الحساب يمكنك استعادته بمجرد تسجيل الدخول خلال 30 يوماً؛ لا تُحذف الحسابات العادية بسبب عدم النشاط.')),
           const Divider(),

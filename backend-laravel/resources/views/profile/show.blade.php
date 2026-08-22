@@ -35,11 +35,10 @@
    <label>الاسم الظاهر</label><input name="display_name" value="{{$profile?->display_name}}" placeholder="اسمك داخل الموقع">
    <label>الدولة والعلم</label><select name="country_code" onchange="updateCountryPreview(this)">@foreach($countries as $cc=>$name)<option value="{{$cc}}" {{$cc===$code?'selected':''}} data-flag="{{flag_url($cc)}}" data-name="{{$name}}">{{$name}}</option>@endforeach</select><div class="country-preview" data-country-preview>{!! flag_img($code,'flag-img flag-small') !!} <b>{{country_name($code)}}</b></div>
    <label>اللعبة المفضلة</label><select name="favorite_game_key"><option value="">اختر لعبة</option>@foreach($games as $g)<option value="{{$g->key}}" {{$profile?->favorite_game_key===$g->key?'selected':''}}>{{$g->name['ar'] ?? $g->key}}</option>@endforeach</select>
-   <label>الإيميل</label><input name="email" value="{{$user->email}}">
    <label>الصورة الشخصية</label><input type="file" name="avatar" accept="image/*">
-   <div class="two-cols"><div><label>كلمة سر جديدة</label><input type="password" name="password"></div><div><label>تأكيد كلمة السر</label><input type="password" name="password_confirmation"></div></div>
    <button class="btn primary big-save" type="submit">حفظ التعديلات</button>
   </form>
+  <a class="btn r142-profile-security-link" href="{{route('account.security')}}">🛡️ تغيير البريد الإلكتروني أو كلمة المرور بأمان</a>
   @endif
  </div>
 </section>

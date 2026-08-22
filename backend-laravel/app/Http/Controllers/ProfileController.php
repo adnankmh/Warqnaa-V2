@@ -3,7 +3,6 @@ namespace App\Http\Controllers;
 
 use App\Models\{User,Friendship};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class ProfileController
 {
@@ -38,13 +37,8 @@ class ProfileController
             'display_name'=>'nullable|string|max:80',
             'country_code'=>'nullable|string|size:2|not_in:IL,il',
             'favorite_game_key'=>'nullable|string|exists:games,key',
-            'email'=>'nullable|email|max:190|unique:users,email,'.$user->id,
-            'password'=>'nullable|string|min:6|confirmed',
             'avatar'=>'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
-        if(!empty($data['email'])) $user->email=$data['email'];
-        if(!empty($data['password'])) $user->password=Hash::make($data['password']);
-        $user->save();
         $profile=$user->profile;
         if($profile){
             if(isset($data['display_name'])) $profile->display_name=$data['display_name'] ?: $user->username;
