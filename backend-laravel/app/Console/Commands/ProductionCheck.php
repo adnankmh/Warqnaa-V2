@@ -46,7 +46,21 @@ class ProductionCheck extends Command
     private function tablesReady(): bool
     {
         try {
-            foreach (['users','profiles','wallets','games','rooms','store_items','feature_flags'] as $table) {
+            $tables = ['users','profiles','wallets','games','rooms','store_items','feature_flags'];
+            if ((int) config('warqna.build', 0) >= 230) {
+                $tables = array_merge($tables, [
+                    'social_preferences', 'social_follows', 'social_activities', 'social_events',
+                    'social_event_attendees', 'room_spectators', 'match_replays', 'social_gifts',
+                ]);
+            }
+            if ((int) config('warqna.build', 0) >= 240) {
+                $tables = array_merge($tables, [
+                    'competitive_seasons', 'competitive_ratings', 'ranked_queue_entries',
+                    'competitive_matches', 'competitive_rating_events', 'season_reward_claims',
+                    'competitive_standing_snapshots',
+                ]);
+            }
+            foreach ($tables as $table) {
                 if (!Schema::hasTable($table)) return false;
             }
             return true;

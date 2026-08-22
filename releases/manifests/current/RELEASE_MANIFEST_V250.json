@@ -1,0 +1,35 @@
+{
+  "version": "0.8.0",
+  "build": 250,
+  "full": "0.8.0+250",
+  "release": "v250",
+  "display_release": "V0.8.0",
+  "name": "Warqnaa R13 Engine Gold",
+  "base": "R12 Build 240",
+  "compatibility": ["R8", "R9", "R9.1", "R10", "R10.1", "R11", "R12"],
+  "engines": 20,
+  "certification": {
+    "contract": "r13_engine_gold_v1",
+    "smoke_matches_per_engine": 25,
+    "release_matches_per_engine": 2000,
+    "scheduled_matches_per_engine": 5000,
+    "server_authoritative": true,
+    "machine_report": true,
+    "active_deadlocks_allowed": false,
+    "advertised_actions_must_validate": true,
+    "legal_actions_must_transition": true,
+    "seed_replay": true
+  },
+  "compatibility_guarantees": {
+    "r12_competitive_arena_preserved": true,
+    "r11_social_world_preserved": true,
+    "r10_1_commerce_visual_preserved": true,
+    "portrait_landscape_contract_preserved": true,
+    "arabic_and_english_preserved": true
+  },
+  "artifact_policy": {
+    "clean_root": true,
+    "secrets_in_repository": false,
+    "full_repository_and_upgrade_from_b240": true
+  }
+}

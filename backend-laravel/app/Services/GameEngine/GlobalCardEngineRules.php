@@ -35,7 +35,9 @@ class GlobalCardEngineRules implements GameRuleContract
         $target=(int)($options['target'] ?? $this->defaultTarget($this->key));
         if(in_array($this->key,['banakil','pinochle'],true) && $cfgPlayers===2 && $target===222) $target=150;
         $g=$this->engine->newGame($enginePlayers,[
-            'seed'=>random_int(100000,999999999),
+            // R13 Engine Gold: callers may pin the seed so a failed certified
+            // match can be reproduced byte-for-byte in CI or production audit.
+            'seed'=>(int)($options['seed'] ?? random_int(100000,999999999)),
             'targetScore'=>$target,
             'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
         ]);
@@ -159,6 +161,7 @@ class GlobalCardEngineRules implements GameRuleContract
             'game_type'=>$this->gameType(),
             'game'=>$this->key,
             'engine_quality'=>'global_card_engine_final_v1',
+            'engine_certification'=>'r13_engine_gold_v1',
             'players'=>$players,
             'turn'=>$turn,
             'hands'=>$hands,

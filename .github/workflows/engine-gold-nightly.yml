@@ -1,0 +1,39 @@
+name: R13 Engine Gold Scheduled Certification
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 1 * * 1'
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Verify R13 static contract
+        run: python3 tools/test_v250_r13_contract.py
+      - name: Certify 5,000 matches per engine
+        env:
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 5000
+          WARQNA_GOLD_MAX_TRANSITIONS: 400
+          WARQNA_GOLD_REPORT: ${{ runner.temp }}/warqnaa-engine-gold-nightly.json
+        run: php backend-laravel/tools/test-v250-r13-engine-gold.php
+      - name: Upload machine-readable certification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: warqnaa-r13-engine-gold-nightly-${{ github.run_number }}
+          path: ${{ runner.temp }}/warqnaa-engine-gold-nightly.json
+          if-no-files-found: error
+          retention-days: 30

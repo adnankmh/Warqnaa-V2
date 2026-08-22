@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '0.5.1');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 221);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.0.0');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 260);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -125,6 +125,62 @@ class WarqnaApiClient {
       post('/social/chat/$userId', {'body': body});
   Future<Map<String, dynamic>> transferTokens(String receiver, int amount) =>
       post('/social/transfer', {'receiver': receiver, 'amount': amount});
+
+  // R11 Social World contract.
+  Future<Map<String, dynamic>> socialWorldR11() => get('/social-world');
+  Future<Map<String, dynamic>> socialPrivacyR11() => get('/social-world/privacy');
+  Future<Map<String, dynamic>> updateSocialPrivacyR11(Map<String, dynamic> payload) => patch('/social-world/privacy', payload);
+  Future<Map<String, dynamic>> socialHeartbeatR11({String screen = 'world', String? roomCode}) =>
+      post('/social-world/presence', {'screen': screen, if (roomCode != null) 'room_code': roomCode});
+  Future<Map<String, dynamic>> followPlayerR11(int userId) => post('/social-world/follows/$userId', const {});
+  Future<Map<String, dynamic>> unfollowPlayerR11(int userId) => delete('/social-world/follows/$userId');
+  Future<Map<String, dynamic>> publishSocialActivityR11({required String type, required String text, String audience = 'friends', String? roomCode, int? clubId, int? replayId}) =>
+      post('/social-world/activities', {
+        'type': type, 'text': text, 'audience': audience,
+        if (roomCode != null) 'room_code': roomCode,
+        if (clubId != null) 'club_id': clubId,
+        if (replayId != null) 'replay_id': replayId,
+      });
+  Future<Map<String, dynamic>> socialEventsR11() => get('/social-world/events');
+  Future<Map<String, dynamic>> createSocialEventR11({required String title, String? description, required String visibility, required DateTime startsAt, int? capacity, int? clubId, int? gameId}) =>
+      post('/social-world/events', {
+        'title_ar': title, 'title_en': title,
+        if (description != null && description.trim().isNotEmpty) 'description_ar': description.trim(),
+        if (description != null && description.trim().isNotEmpty) 'description_en': description.trim(),
+        'visibility': visibility, 'starts_at': startsAt.toUtc().toIso8601String(),
+        if (capacity != null) 'capacity': capacity,
+        if (clubId != null) 'club_id': clubId,
+        if (gameId != null) 'game_id': gameId,
+      });
+  Future<Map<String, dynamic>> attendSocialEventR11(int eventId) => post('/social-world/events/$eventId/attend', const {});
+  Future<Map<String, dynamic>> cancelSocialEventR11(int eventId) => delete('/social-world/events/$eventId/attend');
+  Future<Map<String, dynamic>> socialGiftCatalogR11() => get('/social-world/gifts');
+  Future<Map<String, dynamic>> sendSocialGiftR11({required int recipientId, required String giftKey, String? roomCode, int? activityId, String? message}) =>
+      post('/social-world/gifts', {
+        'recipient_id': recipientId, 'gift_key': giftKey,
+        if (roomCode != null) 'room_code': roomCode,
+        if (activityId != null) 'activity_id': activityId,
+        if (message != null && message.trim().isNotEmpty) 'message': message.trim(),
+      });
+  Future<Map<String, dynamic>> spectatorLobbyR11() => get('/spectator/rooms');
+  Future<Map<String, dynamic>> joinSpectatorR11(String code) => post('/spectator/rooms/$code/join', const {});
+  Future<Map<String, dynamic>> spectatorStateR11(String code) => get('/spectator/rooms/$code');
+  Future<Map<String, dynamic>> spectatorHeartbeatR11(String code) => post('/spectator/rooms/$code/heartbeat', const {});
+  Future<Map<String, dynamic>> leaveSpectatorR11(String code) => post('/spectator/rooms/$code/leave', const {});
+  Future<Map<String, dynamic>> replaysR11({bool mine = false}) => get('/replays?mine=${mine ? 1 : 0}');
+  Future<Map<String, dynamic>> replayR11(int replayId) => get('/replays/$replayId');
+  Future<Map<String, dynamic>> updateReplayVisibilityR11(int replayId, String visibility) => patch('/replays/$replayId/visibility', {'visibility': visibility});
+  Future<Map<String, dynamic>> hideReplayR11(int replayId) => delete('/replays/$replayId');
+  Future<Map<String, dynamic>> clubsWorldR11() => get('/clubs-world');
+  Future<Map<String, dynamic>> clubWorldR11(int clubId) => get('/clubs-world/$clubId');
+  Future<Map<String, dynamic>> createClubWorldR11({required String name, String? description, String visibility = 'public'}) =>
+      post('/clubs-world', {'name': name, if (description != null && description.trim().isNotEmpty) 'description': description.trim(), 'visibility': visibility});
+  Future<Map<String, dynamic>> joinClubWorldR11(int clubId) => post('/clubs-world/$clubId/join', const {});
+  Future<Map<String, dynamic>> leaveClubWorldR11(int clubId) => post('/clubs-world/$clubId/leave', const {});
+  Future<Map<String, dynamic>> announceClubWorldR11(int clubId, {required String title, required String body, bool pinned = false}) =>
+      post('/clubs-world/$clubId/announcements', {'title': title, 'body': body, 'pinned': pinned});
+  Future<Map<String, dynamic>> respondClubJoinRequestR11(int requestId, String status) =>
+      patch('/clubs-world/join-requests/$requestId', {'status': status});
   Future<Map<String, dynamic>> purchase(String key) =>
       post('/store/purchase', {'key': key, 'confirmed': true});
   Future<Map<String, dynamic>> activateStoreItemV183(String key) =>
@@ -165,6 +221,7 @@ class WarqnaApiClient {
     bool allowOwnerKick = true,
     int? playerCount,
     bool singleRound = false,
+    bool allowSpectators = true,
   }) =>
       post('/games/session', {
         'game': game,
@@ -176,6 +233,7 @@ class WarqnaApiClient {
         'allow_owner_kick': allowOwnerKick,
         if (playerCount != null) 'player_count': playerCount,
         'single_round': singleRound,
+        'allow_spectators': allowSpectators,
         if (roomName != null && roomName.trim().isNotEmpty) 'room_name': roomName.trim(),
         if (visibility == 'private' && password != null && password.isNotEmpty) 'password': password,
       });
@@ -204,7 +262,38 @@ class WarqnaApiClient {
   Future<Map<String, dynamic>> voiceControls(String code, {required bool muted, required bool deafened}) =>
       patch('/games/session/$code/voice/controls', {'muted': muted, 'deafened': deafened});
   Future<Map<String, dynamic>> voiceLeave(String code) => post('/games/session/$code/voice/leave', const {});
+  // R12 Competitive Arena contract.
+  Future<Map<String, dynamic>> competitiveR12() => get('/competitive');
+  Future<Map<String, dynamic>> joinRankedQueueR12({required String game, required int preferredSeats, String region = 'mena'}) =>
+      post('/competitive/queue', {'game': game, 'preferred_seats': preferredSeats, 'region': region});
+  Future<Map<String, dynamic>> rankedQueueR12({String? token}) =>
+      get('/competitive/queue${token == null || token.isEmpty ? '' : '?token=${Uri.encodeQueryComponent(token)}'}');
+  Future<Map<String, dynamic>> cancelRankedQueueR12({String? token}) =>
+      token == null || token.isEmpty ? delete('/competitive/queue') : deleteWithBody('/competitive/queue', {'token': token});
+  Future<Map<String, dynamic>> competitiveLeaderboardR12({String? game, String? country, int? clubId, int limit = 100}) {
+    final query = <String, String>{if (game != null && game.isNotEmpty) 'game': game, if (country != null && country.isNotEmpty) 'country': country, if (clubId != null) 'club_id': '$clubId', 'limit': '$limit'};
+    return get('/competitive/leaderboard?${Uri(queryParameters: query).query}');
+  }
+  Future<Map<String, dynamic>> competitiveHistoryR12() => get('/competitive/history');
+  Future<Map<String, dynamic>> competitiveTournamentR12(int id) => get('/competitive/tournaments/$id');
+  Future<Map<String, dynamic>> joinCompetitiveTournamentR12(int id) => post('/competitive/tournaments/$id/join', const {});
+  Future<Map<String, dynamic>> leaveCompetitiveTournamentR12(int id) => delete('/competitive/tournaments/$id/leave');
+  Future<Map<String, dynamic>> claimCompetitiveRewardR12(int id) => post('/competitive/rewards/$id/claim', const {});
   Future<Map<String, dynamic>> adminDashboard() => get('/admin/dashboard');
+  Future<Map<String, dynamic>> adminSocialWorldR11() => get('/admin/social-world');
+  Future<Map<String, dynamic>> adminUpdateSocialWorldSettingsR11(Map<String, dynamic> payload) => patch('/admin/social-world/settings', payload);
+  Future<Map<String, dynamic>> adminSocialActivityActionR11(int id, String action, {String? note}) => post('/admin/social-world/activities/$id', {'action': action, if (note != null) 'note': note});
+  Future<Map<String, dynamic>> adminSocialEventActionR11(int id, String action) => post('/admin/social-world/events/$id', {'action': action});
+  Future<Map<String, dynamic>> adminReplayActionR11(int id, String action) => post('/admin/social-world/replays/$id', {'action': action});
+  Future<Map<String, dynamic>> adminEvictSpectatorR11(int id) => post('/admin/social-world/spectators/$id/evict', const {});
+  Future<Map<String, dynamic>> adminCompetitiveR12() => get('/admin/competitive');
+  Future<Map<String, dynamic>> adminUpdateCompetitiveSettingsR12(Map<String, dynamic> payload) => patch('/admin/competitive/settings', payload);
+  Future<Map<String, dynamic>> adminCreateCompetitiveSeasonR12(Map<String, dynamic> payload) => post('/admin/competitive/seasons', payload);
+  Future<Map<String, dynamic>> adminCompetitiveMatchActionR12(int id, String action, String reason) => post('/admin/competitive/matches/$id', {'action': action, 'reason': reason});
+  Future<Map<String, dynamic>> adminCompetitiveSeasonActionR12(int id, String action) => post('/admin/competitive/seasons/$id', {'action': action});
+  Future<Map<String, dynamic>> adminAdjustCompetitiveRatingR12(int userId, Map<String, dynamic> payload) => post('/admin/competitive/ratings/$userId', payload);
+  Future<Map<String, dynamic>> adminCreateCompetitiveTournamentR12(Map<String, dynamic> payload) => post('/admin/competitive/tournaments', payload);
+  Future<Map<String, dynamic>> adminBuildCompetitiveBracketR12(int id, {bool force = false}) => post('/admin/competitive/tournaments/$id/bracket', {'force': force});
   Future<Map<String, dynamic>> adminUpdateGame(int gameId, {required bool active}) =>
       patch('/admin/games/$gameId', <String, dynamic>{'active': active});
   Future<Map<String, dynamic>> adminUserAction(int userId, String action, {String? amount}) =>

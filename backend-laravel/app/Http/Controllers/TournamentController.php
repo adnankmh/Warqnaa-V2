@@ -1,10 +1,11 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{Friendship,Tournament,TournamentEntry,Game,Room,RoomPlayer,Notification,User};
+use App\Models\{Friendship,Tournament,TournamentEntry,Game,Room,RoomPlayer,Notification,SiteSetting,User};
 use App\Services\Wallet\WalletService;
 use App\Services\Notifications\FirebasePushService;
 use App\Services\Games\GameCatalog;
+use App\Services\Competitive\{CompetitiveSeasonService,TournamentBracketService};
 use Illuminate\Http\Request; use RuntimeException;
 use Illuminate\Support\Facades\{DB,Schema};
 
@@ -36,18 +37,20 @@ class TournamentController
         }
         $allowed=$this->allowedSeatsForGame($game);
         if(!in_array((int)$data['seats_per_match'],$allowed,true)) return back()->withErrors(['msg'=>'عدد مقاعد المسابقة غير مناسب لهذه اللعبة. الخيارات الصحيحة: '.implode(' / ',$allowed)]);
-        // V200: a player-created prize is escrowed with the primary admin so payout is backed by tokens.
-        if(!auth()->user()->is_admin && (int)$data['prize_pool']>0){
-            try{
-                DB::transaction(function() use($wallet,$data){
+        $capacity=$this->requiredPlayers($game,(int)$data['seats_per_match'],(int)$data['stages']);
+        $distribution=$this->prizeDistribution((int)$data['prize_pool'],(bool)$game->partnership,(int)$data['stages']);
+        $leaderboard=$this->leaderboardPoints((int)$data['stages']);
+        $season=Schema::hasTable('competitive_seasons') ? app(CompetitiveSeasonService::class)->activeSeason(false) : null;
+        try{
+            $t=DB::transaction(function() use($wallet,$data,$season,$distribution,$leaderboard,$capacity){
+                // V240: prize escrow and tournament creation commit or roll back together.
+                if(!auth()->user()->is_admin && (int)$data['prize_pool']>0){
                     $wallet->debit(auth()->user(),(int)$data['prize_pool'],'tournament_prize_escrow',['game_id'=>$data['game_id']]);
                     $wallet->creditPrimaryAdminRevenue(auth()->user(),(int)$data['prize_pool'],'tournament_prize_escrow_income',['game_id'=>$data['game_id']]);
-                });
-            }catch(\Throwable $e){ return back()->withErrors(['msg'=>'رصيدك لا يكفي لتمويل جائزة المنافسة.']); }
-        }
-        $distribution=$this->prizeDistribution((int)$data['prize_pool'], (int)$data['seats_per_match'], (int)$data['stages']);
-        $leaderboard=$this->leaderboardPoints((int)$data['stages']);
-        $t=Tournament::create($this->safeColumns('tournaments',['creator_id'=>auth()->id()]+$data+['status'=>'open','house_cut_percent'=>10,'prize_distribution'=>$distribution,'leaderboard_points'=>$leaderboard,'bracket'=>['round'=>1,'matches'=>[],'messages'=>['تم إنشاء المسابقة بنظام خروج المغلوب.'],'distribution'=>$distribution,'leaderboard_points'=>$leaderboard]]));
+                }
+                return Tournament::create($this->safeColumns('tournaments',['creator_id'=>auth()->id()]+$data+['max_players'=>$capacity,'status'=>'open','season_id'=>$season?->id,'format'=>'single_elimination','scope'=>!empty($data['club_id'])?'club':'global','house_cut_percent'=>10,'prize_distribution'=>$distribution,'leaderboard_points'=>$leaderboard,'competitive_rules'=>['server_authoritative'=>true,'anti_cheat_review'=>true,'bracket_engine'=>'r12'],'bracket'=>['round'=>1,'matches'=>[],'messages'=>['تم إنشاء المسابقة بنظام خروج المغلوب.'],'distribution'=>$distribution,'leaderboard_points'=>$leaderboard]]));
+            });
+        }catch(\Throwable $e){ return back()->withErrors(['msg'=>'رصيدك لا يكفي لتمويل جائزة المنافسة أو تعذر حفظها.']); }
         return back()->with('ok','تم إنشاء المسابقة رقم '.$t->id);
     }
 
@@ -55,9 +58,27 @@ class TournamentController
     {
         abort_unless(in_array($tournament->status,['open','running'],true),403,'المسابقة ليست مفتوحة للتسجيل');
         $bracketState=(array)($tournament->bracket ?: []);
+        abort_if(($bracketState['schema'] ?? null)==='r12_competitive_bracket_v1',403,'تم قفل التسجيل بعد بناء جدول البطولة.');
+        abort_if($tournament->registration_closes_at && now()->gte($tournament->registration_closes_at),403,'أُغلق التسجيل في هذه البطولة.');
+        $season=$tournament->season ?: (Schema::hasTable('competitive_seasons')?app(CompetitiveSeasonService::class)->activeSeason(false):null);
+        if($season){
+            $rating=(int)app(CompetitiveSeasonService::class)->ratingFor(auth()->user(),$season)->rating;
+            abort_if($tournament->min_rating!==null && $rating<(int)$tournament->min_rating,403,'تصنيفك أقل من الحد المطلوب.');
+            abort_if($tournament->max_rating!==null && $rating>(int)$tournament->max_rating,403,'تصنيفك أعلى من نطاق البطولة.');
+        }
+        if(($tournament->scope ?? 'global')==='country'){
+            abort_unless((bool)SiteSetting::getValue('country_championships_enabled',true),503,'بطولات الدول متوقفة مؤقتاً.');
+            abort_if($tournament->country_code && strtoupper((string)auth()->user()->profile?->country_code)!==strtoupper((string)$tournament->country_code),403,'هذه بطولة مخصصة لدولة مختلفة.');
+        }
+        if(($tournament->scope ?? 'global')==='club'){
+            abort_unless((bool)SiteSetting::getValue('club_championships_enabled',true),503,'بطولات الأندية متوقفة مؤقتاً.');
+            $membership=auth()->user()->clubMembership;
+            abort_if(!$membership,403,'يلزم الانضمام إلى نادٍ لدخول بطولة الأندية.');
+            abort_if($tournament->club_id && (int)$membership->club_id!==(int)$tournament->club_id,403,'هذه البطولة مخصصة لنادٍ مختلف.');
+        }
         $exitCount=(int)data_get($bracketState,'exit_counts.'.auth()->id(),0);
         abort_if($exitCount>=5,403,'لا يمكنك العودة إلى هذه المنافسة بعد الخروج منها 5 مرات.');
-        $capacity=$this->requiredPlayers((int)$tournament->seats_per_match,(int)$tournament->stages);
+        $capacity=$this->requiredPlayers($tournament->game,(int)$tournament->seats_per_match,(int)$tournament->stages);
         abort_if($tournament->entries()->count()>=$capacity,409,'اكتمل عدد المشاركين في هذه المنافسة.');
         $activeTournament = TournamentEntry::where('user_id',auth()->id())->whereHas('tournament', fn($q)=>$q->whereIn('status',['open','running']))->where('tournament_id','!=',$tournament->id)->first();
         abort_if($activeTournament,403,'أنت مشترك في مسابقة أخرى بالفعل. اخرج أو انتظر انتهاء المسابقة الحالية قبل الاشتراك في مسابقة جديدة.');
@@ -73,19 +94,28 @@ class TournamentController
                 ->orWhere(fn($q)=>$q->whereIn('requester_id',$participantIds)->where('addressee_id',auth()->id()));
         })->exists();
         abort_if($blockedWithParticipant,403,'لا يمكنك التسجيل في مسابقة تضم لاعباً محظوراً بينكما.');
-        if((int)$tournament->entry_fee>0){
-            try{
-                DB::transaction(function() use($wallet,$tournament){
-                    $wallet->debit(auth()->user(),(int)$tournament->entry_fee,'tournament_entry',['tournament_id'=>$tournament->id]);
-                    $wallet->creditPrimaryAdminRevenue(auth()->user(),(int)$tournament->entry_fee,'tournament_entry_income',['tournament_id'=>$tournament->id]);
-                });
-            }catch(\Throwable $e){ return back()->withErrors(['msg'=>'الرصيد غير كافٍ لدخول المنافسة.']); }
+        try{
+            DB::transaction(function() use($wallet,$tournament,$capacity){
+                $locked=Tournament::with('game')->lockForUpdate()->findOrFail($tournament->id);
+                $state=(array)($locked->bracket ?: []);
+                if(!in_array((string)$locked->status,['open','running'],true)) throw new RuntimeException('المسابقة ليست مفتوحة للتسجيل.');
+                if(($state['schema'] ?? null)==='r12_competitive_bracket_v1') throw new RuntimeException('تم قفل التسجيل بعد بناء جدول البطولة.');
+                if($locked->registration_closes_at && now()->gte($locked->registration_closes_at)) throw new RuntimeException('أُغلق التسجيل في هذه البطولة.');
+                if($locked->entries()->where('user_id',auth()->id())->exists()) throw new RuntimeException('أنت مسجل بالفعل.');
+                if($locked->entries()->count()>=$capacity) throw new RuntimeException('اكتمل عدد المشاركين في هذه المنافسة.');
+                if((int)$locked->entry_fee>0){
+                    $wallet->debit(auth()->user(),(int)$locked->entry_fee,'tournament_entry',['tournament_id'=>$locked->id]);
+                    $wallet->creditPrimaryAdminRevenue(auth()->user(),(int)$locked->entry_fee,'tournament_entry_income',['tournament_id'=>$locked->id]);
+                }
+                TournamentEntry::create(['tournament_id'=>$locked->id,'user_id'=>auth()->id(),'status'=>'registered','entry_mode'=>(int)$locked->entry_fee>0?'tokens':'free','paid_tokens'=>(int)$locked->entry_fee]);
+                $state['messages'][]='سجل اللاعب '.auth()->user()->username.' في المسابقة.';
+                $locked->update(['bracket'=>$state]);
+                $this->tryCreateMatchRoom($locked->fresh(['entries','game']));
+            });
+        }catch(\Throwable $e){
+            $message=$e instanceof RuntimeException?$e->getMessage():'الرصيد غير كافٍ أو تعذر تسجيلك في المنافسة.';
+            return back()->withErrors(['msg'=>$message]);
         }
-        TournamentEntry::create(['tournament_id'=>$tournament->id,'user_id'=>auth()->id(),'status'=>'registered','entry_mode'=>(int)$tournament->entry_fee>0?'tokens':'free','paid_tokens'=>(int)$tournament->entry_fee]);
-        $bracket=$tournament->bracket ?: ['round'=>1,'matches'=>[],'messages'=>[]];
-        $bracket['messages'][]='سجل اللاعب '.auth()->user()->username.' في المسابقة.';
-        $tournament->update(['bracket'=>$bracket]);
-        $this->tryCreateMatchRoom($tournament->fresh(['entries','game']));
         return back()->with('ok','تم التسجيل في المسابقة');
     }
 
@@ -94,6 +124,7 @@ class TournamentController
         $entry=$tournament->entries()->where('user_id',auth()->id())->first();
         abort_unless($entry,404,'أنت غير مسجل في هذه المنافسة.');
         $bracket=(array)($tournament->bracket ?: ['round'=>1,'matches'=>[],'messages'=>[]]);
+        abort_if(($bracket['schema'] ?? null)==='r12_competitive_bracket_v1',403,'تم قفل الانسحاب بعد بناء جدول البطولة؛ تُطبّق قواعد الانسحاب التنافسي على المباراة.');
         $counts=(array)($bracket['exit_counts'] ?? []);
         $key=(string)auth()->id();
         $counts[$key]=(int)($counts[$key] ?? 0)+1;
@@ -115,7 +146,7 @@ class TournamentController
     public function replay(Tournament $tournament)
     {
         $tournament->load('game','entries.user.profile');
-        $match = $tournament->bracket['matches'][0] ?? [];
+        $match = $tournament->bracket['matches'][0] ?? collect((array)($tournament->bracket['rounds'] ?? []))->flatMap(fn($round)=>(array)($round['matches'] ?? []))->first() ?? [];
         $room = !empty($match['room_code']) ? Room::with('players.user.profile','game')->where('code',$match['room_code'])->first() : null;
         $state = $room?->state ?: [];
         $frames = [];
@@ -136,13 +167,22 @@ class TournamentController
 
 
     private function safeColumns(string $table,array $data): array{ try{return array_filter($data,fn($v,$k)=>Schema::hasColumn($table,$k),ARRAY_FILTER_USE_BOTH);}catch(\Throwable $e){return $data;} }
-    private function requiredPlayers(int $seats,int $stages): int { return $seats * (2 ** max(0,$stages-1)); }
+    private function requiredPlayers(Game $game,int $seats,int $stages): int
+    {
+        $advance=max(1,intdiv($seats,2)); $required=max(2,$seats);
+        for($round=1;$round<max(1,$stages);$round++){
+            $numerator=$required*$seats;
+            if($numerator%$advance!==0) throw new RuntimeException('إعداد المقاعد والمراحل لا يكوّن جدولاً كاملاً.');
+            $required=intdiv($numerator,$advance);
+        }
+        return $required;
+    }
     private function stageLabel(int $stages): string { return match($stages){1=>'نهائي فقط',2=>'نصف نهائي ثم نهائي',3=>'ربع نهائي ثم نصف نهائي ثم نهائي',4=>'ثمن نهائي ثم ربع نهائي ثم نصف نهائي ثم نهائي',default=>'نهائي'}; }
 
-    private function prizeDistribution(int $basePrize, int $seats, int $stages): array
+    private function prizeDistribution(int $basePrize, bool $partnership, int $stages): array
     {
         $base=max(0,$basePrize);
-        $partner=$seats>=4;
+        $partner=$partnership;
         return [
             'mode'=>$partner?'team_split':'winner_takes_all',
             'first_percent'=>$partner?55:100,
@@ -163,11 +203,12 @@ class TournamentController
     private function allowedSeatsForGame(Game $game): array
     {
         return match($game->key){
-            'tarneeb','tarneeb_400','tarneeb_41','trix','trix_partner','baloot','hokm','kout4','basra','estimation','leekha','hearts'=>[4],
+            'tarneeb','tarneeb_400','tarneeb_41','trix','trix_partner','baloot','hokm','kout4','estimation','leekha','hearts'=>[4],
             'kout6'=>[6],
-            'backgammon'=>[2],
+            'backgammon','basra'=>[2],
             'pinochle','banakil'=>[2,4],
-            'hand','hand_partner','konkan','domino'=>[2,3,4],
+            'hand','saudi_hand','konkan','domino'=>[2,3,4],
+            'hand_partner'=>[4],
             default=>array_values(array_unique(range((int)$game->min_players,min((int)$game->max_players,6))))
         };
     }
@@ -176,8 +217,18 @@ class TournamentController
     {
         $tournament->load('entries','game');
         $bracket = $tournament->bracket ?: ['round'=>1,'matches'=>[],'messages'=>[]];
+        if(Schema::hasTable('competitive_matches') && Schema::hasColumn('tournaments','bracket_version')){
+            try{
+                $built=app(TournamentBracketService::class)->build($tournament);
+                $rooms=(array)($built['rooms'] ?? []);
+                if($rooms!==[]) return $rooms[0];
+            }catch(RuntimeException $e){
+                if(str_contains($e->getMessage(),'لاعباً لبناء جدول')) return null;
+                throw $e;
+            }
+        }
         if(!empty($bracket['matches'][0]['room_code'])) return Room::where('code',$bracket['matches'][0]['room_code'])->first();
-        $needed=$this->requiredPlayers((int)$tournament->seats_per_match,(int)$tournament->stages);
+        $needed=$this->requiredPlayers($tournament->game,(int)$tournament->seats_per_match,(int)$tournament->stages);
         if($tournament->entries->count() < $needed) return null;
 
         return DB::transaction(function() use($tournament,$bracket){

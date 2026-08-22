@@ -6,11 +6,12 @@ use App\Models\{Friendship,Game,Message,Room,RoomPlayer,User};
 use App\Services\GameEngine\{EngineRegistry,GameFactory,GameRuleContract};
 use App\Services\Games\GameCatalog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Cache,DB,Hash,Schema};
+use Illuminate\Support\Facades\{Cache,DB,Hash,Log,Schema};
 use Illuminate\Support\Str;
 use App\Services\Platform\ProductionConfigService;
 use App\Services\Progression\ProgressionService;
 use App\Services\Notifications\FirebasePushService;
+use App\Services\Social\MatchReplayService;
 
 class MobileGameController extends Controller
 {
@@ -112,6 +113,10 @@ class MobileGameController extends Controller
         $user = $request->user();
         abort_if((int)($user->profile?->level ?? 1) < (int)($room->min_level ?? 1), 403, 'مستواك أقل من الحد المطلوب لدخول هذه الغرفة.');
         $state = $room->state ?: [];
+        if(!empty($state['competitive'])){
+            $official=array_map('intval',(array)($room->competitiveMatch()->first()?->participant_ids ?? []));
+            abort_unless(in_array((int)$user->id,$official,true),403,'هذه غرفة تنافسية مقفلة على اللاعبين الذين اختارهم الخادم.');
+        }
         $kicked = array_map('intval', (array)($state['kicked_user_ids'] ?? []));
         $banned = array_map('intval', (array)($state['banned_user_ids'] ?? []));
         abort_if(in_array((int)$user->id, $kicked, true) || in_array((int)$user->id, $banned, true), 403, 'تم إخراجك من هذه المباراة ولا يمكنك العودة إليها.');
@@ -132,6 +137,8 @@ class MobileGameController extends Controller
         $existing = $room->players()->where('user_id', $user->id)->first();
         if ($existing) {
             $existing->update(['connected' => true, 'missed_turns' => 0]);
+            $awayKey='user:'.$user->id;
+            if(isset($state['away_players'][$awayKey])){unset($state['away_players'][$awayKey]);$room->update(['state'=>$state]);}
             return response()->json(['ok' => true, 'message' => 'عدت إلى مقعدك.', 'room' => $this->roomPayload($room->fresh(['game', 'players.user.profile']), $user->id)]);
         }
 
@@ -179,7 +186,7 @@ class MobileGameController extends Controller
         ], 201);
     }
 
-    public function create(Request $request, ProductionConfigService $productionConfig)
+    public function create(Request $request, ProductionConfigService $productionConfig, MatchReplayService $replays)
     {
         $data = $request->validate([
             'game' => 'required|string|max:80',
@@ -194,6 +201,7 @@ class MobileGameController extends Controller
             'allow_owner_kick' => 'nullable|boolean',
             'player_count' => 'nullable|integer|min:2|max:6',
             'single_round' => 'nullable|boolean',
+            'allow_spectators' => 'nullable|boolean',
         ]);
         if (!empty($data['voice_enabled']) && !$productionConfig->enabled('voice_rooms', true)) {
             return response()->json(['ok'=>false,'message'=>'الغرف الصوتية متوقفة مؤقتًا.'], 503);
@@ -262,6 +270,7 @@ class MobileGameController extends Controller
         $state['turn_seconds'] = (int) ($data['turn_seconds'] ?? 10);
         $state['single_round'] = (bool) ($data['single_round'] ?? false);
         $state['allow_owner_kick'] = (bool) ($data['allow_owner_kick'] ?? true);
+        $state['allow_spectators'] = (bool) ($data['allow_spectators'] ?? ($visibility !== 'private'));
         $state['kicked_user_ids'] = [];
         $state['min_level'] = (int) ($data['min_level'] ?? 1);
         $state['_revision'] = 1;
@@ -271,6 +280,9 @@ class MobileGameController extends Controller
             !empty($state['voice_enabled'])
                 ? '🎙️ هذه غرفة صوتية. يتم طلب إذن الميكروفون فقط بعد دخولها ويمكن لكل لاعب الكتم محليًا.'
                 : '🃏 هذه غرفة عادية بدون محادثة صوتية.',
+            !empty($state['allow_spectators'])
+                ? '🏟️ المدرجات مفتوحة بوضع قراءة آمن؛ الأوراق والصوت والمحادثة الخاصة غير مرئية.'
+                : '🔒 المدرجات مغلقة لهذه الغرفة.',
         ]));
 
         $room = DB::transaction(function () use ($game, $user, $visibility, $data, $maxPlayers, $target, $state, $playerKeys) {
@@ -303,6 +315,8 @@ class MobileGameController extends Controller
             return $room;
         });
 
+        $replays->capture($room->fresh(['game', 'owner.profile']), $user, 'room_created', [], $state);
+
         return response()->json([
             'ok' => true,
             'message' => 'تم إنشاء اللعبة بنجاح',
@@ -310,7 +324,7 @@ class MobileGameController extends Controller
         ], 201);
     }
 
-    public function kick(Request $request, Room $room, User $user)
+    public function kick(Request $request, Room $room, User $user, MatchReplayService $replays)
     {
         abort_unless((int)$room->owner_id === (int)$request->user()->id, 403, 'فقط منشئ الغرفة يستطيع إخراج لاعب.');
         $state = $room->state ?: [];
@@ -320,17 +334,22 @@ class MobileGameController extends Controller
         $kicked = array_values(array_unique(array_merge((array)($state['kicked_user_ids'] ?? []), [(int)$user->id])));
         $state['kicked_user_ids'] = $kicked;
         $state['messages'][] = '🚫 تم إخراج '.$user->username.' من الغرفة بواسطة منشئها.';
+        $before = $room->state ?: [];
         DB::transaction(function() use($room,$player,$state){ $player->update(['connected'=>false]); $room->update(['state'=>$state]); });
+        $replays->capture($room->fresh(), $request->user(), 'player_kicked', $before, $state);
         return response()->json(['ok'=>true,'message'=>'تم إخراج اللاعب ومنعه من العودة إلى نفس المباراة.']);
     }
 
     public function show(Request $request, Room $room)
     {
         $this->authorizeRoom($request, $room);
+        $room->players()->where('user_id',$request->user()->id)->where('is_bot',false)->update(['connected'=>true,'missed_turns'=>0]);
+        $state=(array)($room->state ?: []);$awayKey='user:'.$request->user()->id;
+        if(isset($state['away_players'][$awayKey])){unset($state['away_players'][$awayKey]);$room->update(['state'=>$state]);}
         return response()->json(['ok' => true, 'room' => $this->roomPayload($room->load(['game', 'players.user.profile']), $request->user()->id)]);
     }
 
-    public function action(Request $request, Room $room, ProgressionService $progression)
+    public function action(Request $request, Room $room, ProgressionService $progression, MatchReplayService $replays)
     {
         $this->authorizeRoom($request, $room);
         $data = $request->validate([
@@ -397,6 +416,8 @@ class MobileGameController extends Controller
             'status' => $this->roomStatus((string) ($next['phase'] ?? 'playing')),
             'finished_at' => ($next['phase'] ?? null) === 'finished' ? now() : null,
         ]);
+        $replays->capture($room->fresh(), $user, (string) $data['action'], $state, $next);
+        $this->processCompetitiveResultIfFinished($room);
 
         return response()->json([
             'ok' => true,
@@ -405,7 +426,7 @@ class MobileGameController extends Controller
         ]);
     }
 
-    public function timeout(Request $request, Room $room, ProgressionService $progression)
+    public function timeout(Request $request, Room $room, ProgressionService $progression, MatchReplayService $replays)
     {
         $this->authorizeRoom($request, $room);
         $before = $room->state ?: [];
@@ -427,44 +448,68 @@ class MobileGameController extends Controller
         $state['_revision'] = (int)($before['_revision'] ?? 0) + 1;
 
         if ($wasUsersTurn && $player && !$awayMode && (int)$player->fresh()->missed_turns >= 3) {
-            $oldKey = $playerKey;
-            $newKey = 'bot:'.$player->id;
-            $state = $this->replacePlayerKey($state,$oldKey,$newKey);
-            $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
-            $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
-            $state['messages'][] = '🚪 '.$user->username.' غاب ثلاث لفات؛ البوت يكمل ويمكنه العودة ما لم يسجل خمس مرات خروج يدوي من هذه الغرفة.';
-            $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$this->botName((int)$player->seat),'connected'=>true,'missed_turns'=>0]);
+            if(!empty($state['competitive'])){
+                $state['competitive_abandons']=array_values(array_unique(array_merge((array)($state['competitive_abandons'] ?? []),[(int)$user->id])));
+                $state['away_players'][$playerKey]=true;
+                $state['messages'][]='🏆 '.$user->username.' غاب ثلاث لفات؛ بقي المقعد باسمه ويطبّق الخادم حركات الانقطاع دون إدخال بوت في Ranked.';
+                $player->update(['connected'=>false,'missed_turns'=>0]);
+            }else{
+                $oldKey = $playerKey;
+                $newKey = 'bot:'.$player->id;
+                $state = $this->replacePlayerKey($state,$oldKey,$newKey);
+                $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
+                $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
+                $state['messages'][] = '🚪 '.$user->username.' غاب ثلاث لفات؛ البوت يكمل ويمكنه العودة ما لم يسجل خمس مرات خروج يدوي من هذه الغرفة.';
+                $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$this->botName((int)$player->seat),'connected'=>true,'missed_turns'=>0]);
+            }
         }
 
         $progressionPopup = $this->awardProgressionTransition($progression, $room, $before, $state);
         if ($progressionPopup !== []) $state['progression_popup'] = $progressionPopup;
-        $room->update(['state'=>$state,'status'=>$this->roomStatus((string)($state['phase'] ?? 'playing'))]);
+        $room->update([
+            'state'=>$state,
+            'status'=>$this->roomStatus((string)($state['phase'] ?? 'playing')),
+            'finished_at'=>($state['phase'] ?? null) === 'finished' ? now() : null,
+        ]);
+        $replays->capture($room->fresh(), $user, $awayMode ? 'away_mode' : 'turn_timeout', $before, $state);
+        $this->processCompetitiveResultIfFinished($room);
         return response()->json(['ok'=>true,'room'=>$this->roomPayload($room->fresh(['game','players.user.profile']),$user->id)]);
     }
 
-    public function leave(Request $request, Room $room)
+    public function leave(Request $request, Room $room, MatchReplayService $replays)
     {
         $user = $request->user();
         $player = $room->players()->where('user_id',$user->id)->first();
         abort_unless($player,403,'أنت لست داخل هذه الغرفة');
         $state = $room->state ?: [];
+        $before = $state;
         $counts = (array)($state['manual_exit_counts'] ?? $state['manual_leave_counts'] ?? []);
         $counts[$user->id] = (int)($counts[$user->id] ?? 0) + 1;
         $state['manual_exit_counts'] = $counts;
+        if(!empty($state['competitive'])) $state['competitive_abandons']=array_values(array_unique(array_merge((array)($state['competitive_abandons'] ?? []),[(int)$user->id])));
         unset($state['manual_leave_counts']);
         $oldKey = 'user:'.$user->id;
-        $newKey = 'bot:'.$player->id;
-        $state = $this->replacePlayerKey($state,$oldKey,$newKey);
-        $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
-        $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
         if ($counts[$user->id] >= 5) {
             $banned = array_map('intval',(array)($state['banned_user_ids'] ?? []));
             $banned[] = (int)$user->id;
             $state['banned_user_ids'] = array_values(array_unique($banned));
         }
+        if(!empty($state['competitive'])){
+            $state['away_players'][$oldKey]=true;
+            $state['messages'][]=$user->username.' غادر المباراة التنافسية ('.$counts[$user->id].'/5)؛ بقي مقعده رسمياً بلا بوت وستطبّق عقوبة الانسحاب.';
+            $player->update(['connected'=>false,'missed_turns'=>0]);
+            $room->update(['state'=>$state]);
+            $replays->capture($room->fresh(),$user,'competitive_player_left',$before,$state);
+            return response()->json(['ok'=>true,'message'=>'تم الخروج من Ranked مع إبقاء المقعد رسمياً بلا بوت.','exit_count'=>$counts[$user->id]]);
+        }
+        $newKey = 'bot:'.$player->id;
+        $state = $this->replacePlayerKey($state,$oldKey,$newKey);
+        $returns = (int)data_get($state,'disconnected_replacements.'.$user->id.'.returns',0);
+        $state['disconnected_replacements'][$user->id] = ['room_player_id'=>$player->id,'seat'=>$player->seat,'returns'=>$returns];
         $state['messages'][] = $user->username.' خرج من اللعبة ('.$counts[$user->id].'/5)، والبوت يكمل مكانه.';
         $player->update(['user_id'=>null,'is_bot'=>true,'bot_key'=>$this->botName((int)$player->seat),'connected'=>true,'missed_turns'=>0]);
         $room->update(['state'=>$state]);
+        $replays->capture($room->fresh(), $user, 'player_left', $before, $state);
         return response()->json(['ok'=>true,'message'=>$counts[$user->id] >= 5 ? 'تم الخروج ومنع العودة إلى هذه الغرفة بعد خمس مرات.' : 'تم الخروج ويمكنك العودة إلى المقعد نفسه.','exit_count'=>$counts[$user->id]]);
     }
 
@@ -629,6 +674,19 @@ class MobileGameController extends Controller
             ];
         }
         return $popups;
+    }
+
+    private function processCompetitiveResultIfFinished(Room $room): void
+    {
+        try {
+            $fresh=$room->fresh(['game','players.user']);
+            $state=(array)($fresh?->state ?: []);
+            if($fresh && ($fresh->status==='finished' || ($state['phase'] ?? null)==='finished' || !empty($state['gameOver']))) {
+                app(\App\Services\Competitive\CompetitiveRatingService::class)->processRoom($fresh);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('mobile_competitive_rating_processing_failed',['room'=>$room->id,'error'=>$e->getMessage()]);
+        }
     }
 
     /** @return array<string,mixed> */

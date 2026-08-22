@@ -13,9 +13,9 @@ def text(rel):
 
 def main():
     meta=json.loads(text('RELEASE_VERSION.json'))
-    ok(meta.get('full')=='0.5.1+221' and int(meta.get('build',0))==221,'R10.1 release metadata is 0.5.1+221')
+    ok(int(meta.get('build',0))>=221,'current release is R10.1 Build 221 or a backward-compatible successor')
     pub=text('flutter_app/pubspec.yaml')
-    ok('version: 0.5.1+221' in pub and 'assets/optimized/r101/' in pub,'Flutter packages R10.1 build and original game-cover bundle')
+    ok(f"version: {meta.get('full')}" in pub and 'assets/optimized/r101/' in pub,'Flutter packages current build and preserves the R10.1 game-cover bundle')
     main=text('flutter_app/lib/main.dart')
     r101=text('flutter_app/lib/r10_1_release.dart')
     ok("part 'r10_1_release.dart';" in main and 'r101Theme(controller.themeCode' in main,'R10.1 release module and full theme are wired')
@@ -63,7 +63,7 @@ def main():
     routes=text('backend-laravel/routes/api.php')
     ok("/commerce/catalog" in routes and "/commerce/verify-receipt" in routes,'mobile commerce catalog and verification APIs exist')
     api=text('flutter_app/lib/services/api_client.dart')
-    ok('commerceCatalogR101' in api and 'verifyCommerceReceiptR101' in api and "defaultValue: '0.5.1'" in api and 'defaultValue: 221' in api,'Flutter API client is ready for server commerce verification')
+    ok('commerceCatalogR101' in api and 'verifyCommerceReceiptR101' in api and f"defaultValue: '{meta.get('version')}'" in api and f"defaultValue: {meta.get('build')}" in api,'Flutter API client is ready for server commerce verification on the current release')
 
     ads=text('flutter_app/lib/services/interstitial_ads_mobile.dart')
     ok('_lastShown' in ads and 'now.difference(_lastShown!).inMinutes < minMinutes' in ads,'interstitial ads enforce spacing')

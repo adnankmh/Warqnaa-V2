@@ -156,6 +156,13 @@ jobs:
           python3 ../tools/test_v210_r9_1_contract.py
           python3 ../tools/test_v220_r10_contract.py
           python3 ../tools/test_v221_r101_contract.py
+          python3 ../tools/test_v230_r11_contract.py
+          python3 ../tools/test_v240_r12_contract.py
+          python3 ../tools/test_v240_competitive_engines.py
+          python3 ../tools/test_v240_php_structure.py
+          python3 ../tools/test_v250_r13_contract.py
+          python3 ../tools/test_v260_r14_contract.py
+          python3 ../tools/global_release_preflight.py
           python3 ../tools/test_v184_flutter_quality_contract.py
           python3 ../tools/test_v184_official_game_rules_contract.py
           python3 ../tools/test_v174_offline_progression_navigation_contract.py

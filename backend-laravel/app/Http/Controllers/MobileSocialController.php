@@ -6,11 +6,14 @@ use App\Models\{Friendship,Message,Notification,Room,User};
 use App\Services\Wallet\WalletService;
 use App\Services\Platform\ProductionConfigService;
 use App\Services\Notifications\FirebasePushService;
+use App\Services\Social\SocialWorldPolicy;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MobileSocialController extends Controller
 {
+    public function __construct(private readonly SocialWorldPolicy $socialPolicy) {}
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -20,10 +23,10 @@ class MobileSocialController extends Controller
 
         return response()->json([
             'ok' => true,
-            'accepted' => $relations->where('status', 'accepted')->map(fn ($f) => $this->relationPayload($f, $user->id))->values(),
-            'incoming' => $relations->where('status', 'pending')->where('addressee_id', $user->id)->map(fn ($f) => $this->relationPayload($f, $user->id))->values(),
-            'outgoing' => $relations->where('status', 'pending')->where('requester_id', $user->id)->map(fn ($f) => $this->relationPayload($f, $user->id))->values(),
-            'blocked' => $relations->where('status', 'blocked')->map(fn ($f) => $this->relationPayload($f, $user->id))->values(),
+            'accepted' => $relations->where('status', 'accepted')->map(fn ($f) => $this->relationPayload($f, $user))->values(),
+            'incoming' => $relations->where('status', 'pending')->where('addressee_id', $user->id)->map(fn ($f) => $this->relationPayload($f, $user))->values(),
+            'outgoing' => $relations->where('status', 'pending')->where('requester_id', $user->id)->map(fn ($f) => $this->relationPayload($f, $user))->values(),
+            'blocked' => $relations->where('status', 'blocked')->map(fn ($f) => $this->relationPayload($f, $user))->values(),
         ]);
     }
 
@@ -34,23 +37,23 @@ class MobileSocialController extends Controller
             ->where('id', '!=', $request->user()->id)
             ->when($query !== '', fn ($q) => $q->where(function ($q) use ($query) {
                 $q->where('username', 'like', '%' . $query . '%')
-                    ->orWhere('email', 'like', '%' . $query . '%')
                     ->orWhereHas('profile', fn ($p) => $p->where('display_name', 'like', '%' . $query . '%'));
             }))
-            ->limit(30)->get();
+            ->where('is_banned', false)->limit(60)->get()
+            ->filter(fn (User $candidate) => $this->socialPolicy->canDiscover($request->user(), $candidate))->take(30);
 
-        return response()->json(['ok' => true, 'users' => $users->map(fn ($u) => $this->userPayload($u))]);
+        return response()->json(['ok' => true, 'users' => $users->map(fn ($u) => $this->userPayload($u, $request->user()))->values()]);
     }
 
     public function profile(Request $request, User $user)
     {
-        $this->assertNotBlocked($request->user()->id, $user->id);
-        return response()->json(['ok' => true, 'user' => $this->userPayload($user->load('profile'))]);
+        abort_unless($this->socialPolicy->canViewProfile($request->user(), $user), 403, 'هذا الملف الشخصي خاص.');
+        return response()->json(['ok' => true, 'user' => $this->userPayload($user->load('profile'), $request->user())]);
     }
 
     public function inviteToRoom(Request $request, User $user, FirebasePushService $push)
     {
-        $this->assertFriends($request->user()->id, $user->id);
+        abort_unless($this->socialPolicy->canInvite($request->user(), $user), 403, 'هذا اللاعب لا يسمح بالدعوات.');
         $data = $request->validate(['room_code' => 'required|string|max:20']);
         $room = Room::where('code', strtoupper($data['room_code']))->whereIn('status', ['waiting','bidding','playing'])->firstOrFail();
         abort_unless((int)$room->owner_id === (int)$request->user()->id || $room->players()->where('user_id', $request->user()->id)->exists(), 403, 'يجب أن تكون داخل الغرفة لإرسال الدعوة.');
@@ -69,6 +72,7 @@ class MobileSocialController extends Controller
         foreach($relations as $relation){
             $id=(int)$relation->requester_id===(int)$request->user()->id ? (int)$relation->addressee_id : (int)$relation->requester_id;
             $friend=User::find($id); if(!$friend) continue;
+            if(!$this->socialPolicy->canInvite($request->user(), $friend)) continue;
             $push->sendToUser($friend, 'دعوة جماعية للعبة', $request->user()->username.' دعاك إلى غرفة '.$room->code, ['route'=>'room:'.$room->code,'type'=>'room_invite','room_code'=>$room->code,'sender_id'=>$request->user()->id]);
             Notification::create(['user_id'=>$friend->id,'type'=>'room_invite','title'=>['ar'=>'دعوة لعبة','en'=>'Game invitation'],'body'=>['ar'=>$request->user()->username.' دعاك إلى غرفة '.$room->code],'meta'=>['room_code'=>$room->code,'from'=>$request->user()->id]]); $sent++;
         }
@@ -80,6 +84,7 @@ class MobileSocialController extends Controller
         $me = $request->user();
         abort_if($me->id === $user->id, 422, 'لا يمكنك إرسال طلب لنفسك');
         $this->assertNotBlocked($me->id, $user->id);
+        abort_unless((bool) $this->socialPolicy->preferences($user)->allow_friend_requests, 403, 'هذا اللاعب لا يستقبل طلبات صداقة.');
         $existing = $this->relation($me->id, $user->id);
         if ($existing) {
             return response()->json(['ok' => false, 'message' => 'توجد علاقة أو دعوة سابقة مع هذا اللاعب', 'status' => $existing->status], 409);
@@ -158,7 +163,7 @@ class MobileSocialController extends Controller
 
     public function thread(Request $request, User $user)
     {
-        $this->assertFriends($request->user()->id, $user->id);
+        abort_unless($this->socialPolicy->canMessage($request->user(), $user) || $this->socialPolicy->canMessage($user, $request->user()), 403, 'خصوصية الرسائل لا تسمح بفتح هذه المحادثة.');
         $messages = Message::with('sender.profile')->where(function ($q) use ($request, $user) {
             $q->where('sender_id', $request->user()->id)->where('receiver_id', $user->id);
         })->orWhere(function ($q) use ($request, $user) {
@@ -167,7 +172,7 @@ class MobileSocialController extends Controller
         Message::where('sender_id', $user->id)->where('receiver_id', $request->user()->id)->whereNull('read_at')->update(['read_at' => now()]);
         return response()->json([
             'ok' => true,
-            'friend' => $this->userPayload($user->load('profile')),
+            'friend' => $this->userPayload($user->load('profile'), $request->user()),
             'messages' => $messages->map(fn ($m) => [
                 'id' => $m->id,
                 'mine' => $m->sender_id === $request->user()->id,
@@ -182,7 +187,7 @@ class MobileSocialController extends Controller
 
     public function send(Request $request, User $user, FirebasePushService $push)
     {
-        $this->assertFriends($request->user()->id, $user->id);
+        abort_unless($this->socialPolicy->canMessage($request->user(), $user), 403, 'هذا اللاعب لا يستقبل رسائل منك.');
         $data = $request->validate(['body' => 'required|string|max:1000']);
         $body = $this->cleanChat($data['body']);
         abort_if($body === '', 422, 'الرسالة فارغة');
@@ -256,14 +261,14 @@ class MobileSocialController extends Controller
     }
 
     /** @return array<string,mixed> */
-    private function relationPayload(Friendship $friendship, int $me): array
+    private function relationPayload(Friendship $friendship, User $me): array
     {
-        $other = $friendship->requester_id === $me ? $friendship->addressee : $friendship->requester;
-        return ['id' => $friendship->id, 'status' => $friendship->status, 'mine' => $friendship->requester_id === $me, 'user' => $this->userPayload($other)];
+        $other = $friendship->requester_id === $me->id ? $friendship->addressee : $friendship->requester;
+        return ['id' => $friendship->id, 'status' => $friendship->status, 'mine' => $friendship->requester_id === $me->id, 'user' => $this->userPayload($other, $me)];
     }
 
     /** @return array<string,mixed> */
-    private function userPayload(?User $user): array
+    private function userPayload(?User $user, ?User $viewer = null): array
     {
         if (!$user) return [];
         $profile = $user->profile;
@@ -292,7 +297,8 @@ class MobileSocialController extends Controller
                 'level' => (int) $membership->club->level,
                 'role' => $membership->role,
             ] : null,
-            'online' => $user->last_seen_at?->gt(now()->subMinutes(3)) ?? false,
+            'online' => $viewer && !$this->socialPolicy->canSeePresence($viewer, $user)
+                ? null : ($user->last_seen_at?->gt(now()->subMinutes(3)) ?? false),
         ];
     }
 

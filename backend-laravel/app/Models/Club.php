@@ -16,4 +16,8 @@ class Club extends Model
     public function announcements(){ return $this->hasMany(ClubAnnouncement::class)->latest(); }
     public function tournaments(){ return $this->hasMany(Tournament::class); }
     public function activityLogs(){ return $this->hasMany(ClubActivityLog::class)->latest(); }
+    public function socialEvents(){ return $this->hasMany(SocialEvent::class); }
+    public function socialActivities(){ return $this->hasMany(SocialActivity::class); }
+    public function competitiveSnapshots(){ return $this->hasMany(CompetitiveStandingSnapshot::class); }
+    public function championships(){ return $this->hasMany(Tournament::class)->where('scope', 'club'); }
 }

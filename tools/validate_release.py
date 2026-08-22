@@ -113,6 +113,67 @@ def check_required_files() -> None:
         "tools/test_v201_r5_ci_stability_contract.py",
         "tools/test_v220_r10_contract.py",
         "tools/test_v221_r101_contract.py",
+        "tools/test_v230_r11_contract.py",
+        "backend-laravel/database/migrations/2026_08_21_000230_r11_social_world.php",
+        "backend-laravel/config/warqna_social_world.php",
+        "backend-laravel/app/Services/Social/SocialWorldPolicy.php",
+        "backend-laravel/app/Services/Social/MatchReplayService.php",
+        "backend-laravel/app/Http/Controllers/MobileSocialWorldController.php",
+        "backend-laravel/app/Http/Controllers/MobileSpectatorController.php",
+        "backend-laravel/app/Http/Controllers/MobileReplayController.php",
+        "backend-laravel/app/Http/Controllers/MobileClubWorldController.php",
+        "backend-laravel/app/Http/Controllers/AdminSocialWorldController.php",
+        "backend-laravel/app/Console/Commands/CleanupSocialWorld.php",
+        "backend-laravel/tests/Feature/V230SocialWorldTest.php",
+        "backend-laravel/resources/views/social-world/index.blade.php",
+        "backend-laravel/resources/views/social-world/spectator.blade.php",
+        "backend-laravel/resources/views/social-world/replay.blade.php",
+        "backend-laravel/public/assets/css/r11-social-world.css",
+        "flutter_app/lib/r11_social_world.dart",
+        "docs/ar/releases/current/R11_SOCIAL_WORLD_CONTRACT_AR.md",
+        "docs/en/R11_SOCIAL_WORLD_CONTRACT.md",
+        "tools/test_v240_r12_contract.py",
+        "tools/test_v240_competitive_engines.py",
+        "tools/test_v240_php_structure.py",
+        "backend-laravel/database/migrations/2026_08_21_000240_r12_competitive_arena.php",
+        "backend-laravel/config/warqna_competitive.php",
+        "backend-laravel/app/Services/Competitive/CompetitiveSeasonService.php",
+        "backend-laravel/app/Services/Competitive/CompetitiveMatchmakingService.php",
+        "backend-laravel/app/Services/Competitive/CompetitiveRatingService.php",
+        "backend-laravel/app/Services/Competitive/TournamentBracketService.php",
+        "backend-laravel/app/Http/Controllers/MobileCompetitiveController.php",
+        "backend-laravel/app/Http/Controllers/AdminCompetitiveController.php",
+        "backend-laravel/app/Http/Controllers/CompetitiveController.php",
+        "backend-laravel/app/Console/Commands/CompetitiveTick.php",
+        "backend-laravel/tests/Feature/V240CompetitiveArenaTest.php",
+        "backend-laravel/resources/views/competitive/index.blade.php",
+        "backend-laravel/resources/views/admin/competitive.blade.php",
+        "backend-laravel/public/assets/css/r12-competitive-arena.css",
+        "flutter_app/lib/r12_competitive.dart",
+        "docs/ar/releases/current/R12_COMPETITIVE_ARENA_CONTRACT_AR.md",
+        "docs/en/R12_COMPETITIVE_ARENA_CONTRACT.md",
+        "docs/ar/releases/current/RELEASE_NOTES_V240_AR.md",
+        "docs/ar/releases/current/R12_UPGRADE_FROM_B230_AR.md",
+        "scripts/windows/current/START_WARQNA_R12_PORT.bat",
+        "tools/test_v250_r13_contract.py",
+        "backend-laravel/config/warqna_engine_gold.php",
+        "backend-laravel/tools/test-v250-r13-engine-gold.php",
+        "backend-laravel/tests/Unit/V250EngineGoldContractTest.php",
+        "docs/ar/releases/current/R13_ENGINE_GOLD_CONTRACT_AR.md",
+        "docs/en/R13_ENGINE_GOLD_CONTRACT.md",
+        "docs/ar/releases/current/RELEASE_NOTES_V250_AR.md",
+        "docs/ar/releases/current/R13_UPGRADE_FROM_B240_AR.md",
+        ".github/workflows/engine-gold-nightly.yml",
+        "tools/test_v260_r14_contract.py",
+        "tools/global_release_preflight.py",
+        "backend-laravel/config/warqna_global_release.php",
+        "backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php",
+        "backend-laravel/app/Console/Commands/GlobalReleaseCheck.php",
+        "backend-laravel/tests/Unit/V260GlobalReleaseContractTest.php",
+        ".github/workflows/global-release.yml",
+        "docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md",
+        "docs/en/R14_GLOBAL_RELEASE_CONTRACT.md",
+        "docs/ar/deployment/R14_GLOBAL_LAUNCH_CHECKLIST_AR.md",
         "flutter_app/lib/services/r10_asset_delivery.dart",
         "backend-laravel/app/Services/WarqnaPro/AssetDeliveryService.php",
         "backend-laravel/app/Http/Controllers/MobileAssetController.php",
@@ -169,9 +230,11 @@ def check_required_files() -> None:
         f"docs/ar/deployment/GITHUB_UPLOAD_V{EXPECTED_BUILD}_AR.md",
         f"releases/manifests/current/RELEASE_MANIFEST_V{EXPECTED_BUILD}.json",
         f"docs/ar/reports/current/QUALITY_REPORT_V{EXPECTED_BUILD}_AR.md",
+        f"docs/ar/validation/current/VALIDATION_RESULTS_V{EXPECTED_BUILD}.txt",
         f"scripts/windows/current/CHECK_V{EXPECTED_BUILD}_WINDOWS.bat",
         f"scripts/unix/current/check-v{EXPECTED_BUILD}.sh",
         f"scripts/windows/current/START_WARQNA_V{EXPECTED_BUILD}_WINDOWS.bat",
+        "scripts/windows/current/START_WARQNA_R11_PORT.bat",
         "RELEASE_VERSION.json",
         "tools/release_metadata.py",
         "tools/verify_release_versions.py",
@@ -1461,6 +1524,65 @@ def check_v201_r4_hotfix_contract() -> None:
     print(result.stdout.strip())
     print("[OK] V201 R4 CI/cache, expanded legendary store and translation contract")
 
+
+def check_v230_r11_social_world_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_v230_r11_contract.py")],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("Warqna R11 Social World contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R11 privacy, Social World, spectator, replay, Clubs 2.0 and admin contracts")
+
+
+def check_v240_r12_competitive_arena_contract() -> None:
+    for script, label in (
+        ("test_v240_r12_contract.py", "R12 Competitive Arena contract"),
+        ("test_v240_competitive_engines.py", "R12 competitive engine integration"),
+        ("test_v240_php_structure.py", "R12 PHP fallback structure gate"),
+    ):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "tools" / script)],
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        if result.returncode != 0:
+            fail(label + " failed: " + result.stdout.strip())
+        print(result.stdout.strip())
+        print("[OK] " + label)
+
+
+def check_v250_r13_engine_gold_contract() -> None:
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "tools/test_v250_r13_contract.py")],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if result.returncode != 0:
+        fail("Warqnaa R13 Engine Gold contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R13 seeded certification, legal-action bots and thousands-per-engine CI contract")
+
+
+def check_v260_r14_global_release_contract() -> None:
+    for script, label in (
+        ("test_v260_r14_contract.py", "R14 Global Release contract"),
+        ("global_release_preflight.py", "R14 cross-channel preflight"),
+    ):
+        result = subprocess.run([sys.executable, str(ROOT / "tools" / script)], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if result.returncode != 0:
+            fail(label + " failed: " + result.stdout.strip())
+        print(result.stdout.strip())
+        print("[OK] " + label)
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1520,6 +1642,10 @@ def main() -> None:
     check_v201_gameplay_admin_contract()
     check_v201_r4_hotfix_contract()
     check_v184_official_game_rules_contract()
+    check_v230_r11_social_world_contract()
+    check_v240_r12_competitive_arena_contract()
+    check_v250_r13_engine_gold_contract()
+    check_v260_r14_global_release_contract()
     check_secrets()
     check_dart_structure()
     print(f"[PASS] Warqna v{EXPECTED_BUILD} source-package preflight completed successfully")

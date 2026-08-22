@@ -83,6 +83,20 @@ jobs:
         run: python3 ../tools/test_v220_r10_contract.py
       - name: Verify R10.1 commerce and visual contract
         run: python3 ../tools/test_v221_r101_contract.py
+      - name: Verify R11 Social World contract
+        run: python3 ../tools/test_v230_r11_contract.py
+      - name: Verify R12 Competitive Arena contract
+        run: python3 ../tools/test_v240_r12_contract.py
+      - name: Verify R12 competitive engine integration
+        run: python3 ../tools/test_v240_competitive_engines.py
+      - name: Verify R12 PHP fallback structure
+        run: python3 ../tools/test_v240_php_structure.py
+      - name: Verify R13 Engine Gold contract
+        run: python3 ../tools/test_v250_r13_contract.py
+      - name: Verify R14 Global Release contract
+        run: python3 ../tools/test_v260_r14_contract.py
+      - name: Verify R14 cross-channel source readiness
+        run: python3 ../tools/global_release_preflight.py
       - name: Run R8 deep Tarneeb Hand Banakil audit
         run: php tools/test-v208-r8-rules.php
       - name: Run V184 official game-rule audit
@@ -94,6 +108,25 @@ jobs:
         run: php tools/test-v208-r8-playthrough-stress.php
       - name: Stress all registered game engines
         run: php tools/test-v184-engine-stress.php
+      - name: Run R13 Engine Gold smoke certification
+        env:
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 25
+          WARQNA_GOLD_MAX_TRANSITIONS: 160
+        run: php tools/test-v250-r13-engine-gold.php
+      - name: Run R11 privacy, spectator, replay and economy tests
+        run: php artisan test --filter V230SocialWorldTest
+      - name: Verify R11 Social World retention command
+        run: php artisan warqna:cleanup-social-world --dry-run
+      - name: Run R12 matchmaking, MMR, bracket and reward tests
+        run: php artisan test --filter V240CompetitiveArenaTest
+      - name: Run R13 engine certification unit contract
+        run: php artisan test --filter V250EngineGoldContractTest
+      - name: Run R14 Global Release unit contract
+        run: php artisan test --filter V260GlobalReleaseContractTest
+      - name: Verify R14 operations readiness command
+        run: php artisan warqna:global-release-check --json
+      - name: Verify R12 Competitive lifecycle command
+        run: php artisan warqna:competitive-tick --dry-run
       - name: Run Laravel tests
         run: php artisan test
       - name: Production preflight in non-strict mode

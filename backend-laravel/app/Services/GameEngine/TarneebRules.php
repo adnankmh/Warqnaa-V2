@@ -28,7 +28,11 @@ class TarneebRules implements GameRuleContract
         foreach($players as $i=>$p){
             $standalonePlayers[]=['id'=>$p,'name'=>$this->shortName($p),'bot'=>str_starts_with((string)$p,'bot:')];
         }
-        $state=$this->engine->newGameWithTarget($standalonePlayers,$target,random_int(1,PHP_INT_MAX),[
+        $state=$this->engine->newGameWithTarget(
+            $standalonePlayers,
+            $target,
+            (int)($options['seed'] ?? random_int(1,PHP_INT_MAX)),
+            [
             'turnSeconds'=>max(5,min(10,(int)($options['turn_seconds'] ?? 7))),
             'targetScore'=>$target,
             'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
@@ -36,7 +40,8 @@ class TarneebRules implements GameRuleContract
             'sortHands'=>true,
             'allowBotForAway'=>true,
             'maxMissedTurnsBeforeAway'=>3,
-        ]);
+            ]
+        );
         $state=$this->engine->autoPlayBotsAndAway($state,40);
         return $this->fromStandalone($state,$players,[
             'messages'=>['طرنيب v132: محرك الطرنيب المرفق مدمج الآن. الطلب 7-13، Pass، اختيار الطرنيب، اتباع النوع، وحساب اللمّات والنقاط من السيرفر.'],
@@ -175,6 +180,7 @@ class TarneebRules implements GameRuleContract
             'phase'=>$phase,
             'game_type'=>'tarneeb',
             'engine_quality'=>'standalone_tarneeb_v132',
+            'engine_certification'=>'r13_engine_gold_v1',
             'players'=>$players,
             'dealer'=>$players[(int)($s['dealerSeat'] ?? 3)] ?? null,
             'turn'=>$turn,

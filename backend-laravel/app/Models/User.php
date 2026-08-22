@@ -39,6 +39,16 @@ class User extends Authenticatable
     public function prizeBoxes(){ return $this->hasMany(PrizeBox::class); }
     public function luckyWheelSpins(){ return $this->hasMany(LuckyWheelSpin::class); }
     public function clubMembership(){ return $this->hasOne(ClubMember::class); }
+    public function socialPreference(){ return $this->hasOne(SocialPreference::class); }
+    public function socialFollowers(){ return $this->hasMany(SocialFollow::class, 'followed_id'); }
+    public function socialFollowing(){ return $this->hasMany(SocialFollow::class, 'follower_id'); }
+    public function socialActivities(){ return $this->hasMany(SocialActivity::class, 'actor_id'); }
+    public function socialEvents(){ return $this->hasMany(SocialEvent::class, 'created_by'); }
+    public function roomSpectatorships(){ return $this->hasMany(RoomSpectator::class); }
+    public function matchReplays(){ return $this->hasMany(MatchReplay::class, 'owner_id'); }
+    public function competitiveRatings(){ return $this->hasMany(CompetitiveRating::class); }
+    public function rankedQueueEntries(){ return $this->hasMany(RankedQueueEntry::class); }
+    public function seasonRewardClaims(){ return $this->hasMany(SeasonRewardClaim::class); }
 
     public function isPrimaryAdmin(): bool
     {
@@ -106,6 +116,7 @@ class User extends Authenticatable
             'pasha_days'=>(int)($p?->pasha_days ?? 0),
             'pasha_style'=>'red',
             'champion_rank_points'=>(int)($p?->champion_rank_points ?? 0),
+            'competitive_rating'=>(int)($this->competitiveRatings()->where('scope_key', 'overall')->latest('season_id')->value('rating') ?? config('warqna_competitive.initial_rating', 1000)),
             'chat_color'=>$p?->chat_color,
             'active_table_skin'=>$p?->active_table_skin,
             'active_card_back'=>$p?->active_card_back,

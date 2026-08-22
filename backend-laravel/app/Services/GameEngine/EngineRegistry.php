@@ -82,6 +82,7 @@ final class EngineRegistry
             'name'=>['ar'=>$ar,'en'=>$en],
             'rules'=>['ar'=>$rulesAr,'en'=>$rulesEn],
             'server_authoritative'=>true,
+            'engine_certification'=>'r13_engine_gold_v1',
             'free_play'=>true,
             'fair_shuffle'=>'server_seeded_shuffle_with_unique_deck_validation',
         ];

@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Models\{AdminDesignerEntity,User,Room,Tournament,Club,Game,AntiCheatEvent,Notification,StoreItem,SiteSetting,Friendship,StoreOffer,PurchaseReceipt,RewardedAdClaim};
+use App\Models\{AdminDesignerEntity,User,Room,Tournament,Club,Game,AntiCheatEvent,Notification,StoreItem,SiteSetting,Friendship,StoreOffer,PurchaseReceipt,RewardedAdClaim,SocialActivity,SocialEvent,RoomSpectator,MatchReplay,SocialGift};
 use App\Services\Wallet\WalletService;
 use App\Services\WarqnaPro\StoreCatalogService;
 use Illuminate\Http\Request;
@@ -28,6 +28,21 @@ class AdminController
         $catalog->sync();
         $storeItems=StoreItem::orderBy('category')->orderBy('price')->get();
         $siteSettings=SiteSetting::all()->keyBy('key');
+        $canManageSocial=auth()->user()->hasAdminPermission('social_world');
+        $socialWorldStats=$canManageSocial ? [
+            'activities'=>SocialActivity::where('hidden',false)->count(),
+            'events'=>SocialEvent::whereIn('status',['scheduled','live'])->count(),
+            'spectators'=>RoomSpectator::where('status','active')->where('last_seen_at','>=',now()->subMinute())->count(),
+            'replays'=>MatchReplay::where('status','ready')->count(),
+            'gifts'=>SocialGift::count(),
+        ] : [];
+        $socialActivities=$canManageSocial ? SocialActivity::with('actor.profile','club')->latest('published_at')->limit(40)->get() : collect();
+        $socialEvents=$canManageSocial ? SocialEvent::with('creator.profile','club','game')->latest('starts_at')->limit(40)->get() : collect();
+        $socialSpectators=$canManageSocial ? RoomSpectator::with('user.profile','room.game')->where('status','active')->latest('last_seen_at')->limit(50)->get() : collect();
+        $socialReplays=$canManageSocial ? MatchReplay::query()->select([
+            'id','room_id','owner_id','game_id','visibility','status','duration_seconds','frames_count',
+            'sha256','views','featured','published_at','expires_at','created_at','updated_at',
+        ])->with('owner.profile','room','game')->latest('published_at')->limit(50)->get() : collect();
         return view('admin.index',[
             'users'=>User::with('profile','wallet')->latest()->paginate(50),
             'openRooms'=>Room::with('game','players.user.profile')->whereIn('status',['waiting','bidding','playing'])->latest()->get(),
@@ -49,6 +64,11 @@ class AdminController
             'commerceOffers'=>StoreOffer::latest()->get(),
             'commerceReceipts'=>PurchaseReceipt::latest()->limit(30)->get(),
             'commerceStats'=>['verified'=>PurchaseReceipt::where('status','verified')->count(),'pending'=>PurchaseReceipt::where('status','pending')->count(),'ads_today'=>RewardedAdClaim::whereDate('claim_date',now()->toDateString())->count()],
+            'socialWorldStats'=>$socialWorldStats,
+            'socialActivities'=>$socialActivities,
+            'socialEvents'=>$socialEvents,
+            'socialSpectators'=>$socialSpectators,
+            'socialReplays'=>$socialReplays,
         ]);
     }
 
@@ -70,7 +90,7 @@ class AdminController
             abort_unless(auth()->user()?->isPrimaryAdmin(),403,'فقط Adnan يستطيع تفويض صلاحيات الإدارة.');
             $decoded=json_decode((string)($data['permissions_json'] ?? '{}'),true);
             if(!is_array($decoded)) return back()->withErrors(['permissions_json'=>'JSON الصلاحيات غير صالح']);
-            $allowed=['users','store','rooms','clubs','tournaments','economy','site_settings','site_design','game_rules','security'];
+            $allowed=['users','store','rooms','clubs','tournaments','economy','site_settings','site_design','game_rules','security','social_world','competitive'];
             $clean=[]; foreach($allowed as $key) if(!empty($decoded[$key])) $clean[$key]=true;
             $user->update(['is_admin'=>true,'admin_role'=>'delegated_admin','admin_permissions'=>$clean]);
         }

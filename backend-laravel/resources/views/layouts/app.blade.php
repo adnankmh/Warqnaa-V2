@@ -27,7 +27,9 @@
     <link rel="stylesheet" href="/assets/css/mobile-app.css?v=139-mobile-app-no-studio">
     <link rel="stylesheet" href="/assets/css/v201-r4-store.css?v=4">
     <link rel="stylesheet" href="/assets/css/r9-design-system.css?v=209">
-    <script>window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
+    <link rel="stylesheet" href="/assets/css/r11-social-world.css?v=230">
+    <link rel="stylesheet" href="/assets/css/r12-competitive-arena.css?v=240">
+    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
@@ -93,6 +95,8 @@
             <button type="button" class="nav-drop-btn games-top-only-v128" onclick="toggleTopPanel('gamesCurtain')" data-i18n="all_games">🎮 الألعاب ▾</button>
             <a href="{{ route('game.rules') }}" data-i18n="rules">قوانين الألعاب</a>
             <a href="{{ route('store') }}" data-i18n="store">المتجر</a><a href="{{ route('rewards') }}">المكافآت</a>
+            <a href="{{ route('social-world') }}">✦ {{ app()->getLocale()==='ar'?'العالم الاجتماعي':'Social World' }}</a>
+            <a href="{{ route('competitive') }}">♛ {{ app()->getLocale()==='ar'?'الساحة التنافسية':'Competitive' }}</a>
             <a href="{{ route('clubs') }}" data-i18n="groups">المجموعات</a>
             <a href="{{ route('tournaments') }}" data-i18n="competitions">المنافسات</a>
             <a class="nav-drop-btn" href="{{ route('notifications') }}">الإشعارات</a>

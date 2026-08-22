@@ -1171,8 +1171,91 @@ class GlobalCardEngineCore
 
     protected function chooseBotAction(array $state, string $pid, array $actions): array
     {
-        foreach ($actions as $a) if (($a['type']??'')==='bid') { $power=$this->handPower($state['hands'][$pid]??[]); if($power>85) return $a; }
-        foreach (['choose_trump','choose_contract','pass_trix','layoff','meld_many','meld','draw_discard','draw_deck','play_card','discard','draw_stock','move_to_foundation','pass'] as $pref) foreach ($actions as $a) if (($a['type']??'')===$pref) return $a;
+        $hand = array_values((array)($state['hands'][$pid] ?? []));
+
+        // Every choice below is selected from availableActions(). The policy is
+        // deterministic for a given state so an R13 certification seed always
+        // reproduces the same match and never bypasses server validation.
+        $bidActions = $this->botActionsOfType($actions, 'bid');
+        if ($bidActions) {
+            $power = $this->handPower($hand);
+            $desired = max(2, min(13, (int)floor($power / max(1, count($hand) * 1.15))));
+            $legal = array_values(array_filter($bidActions, fn($a)=>(int)($a['amount'] ?? 0) <= $desired));
+            if ($legal) return $legal[count($legal) - 1];
+            foreach ($actions as $action) if (($action['type'] ?? '') === 'pass') return $action;
+            return $bidActions[0];
+        }
+
+        $trumps = $this->botActionsOfType($actions, 'choose_trump');
+        if ($trumps) {
+            $strength = ['C'=>0, 'D'=>0, 'S'=>0, 'H'=>0];
+            foreach ($hand as $card) {
+                $suit = $this->suit((string)$card);
+                if (array_key_exists($suit, $strength)) $strength[$suit] += $this->rankValue((string)$card);
+            }
+            arsort($strength, SORT_NUMERIC);
+            foreach (array_keys($strength) as $suit) {
+                foreach ($trumps as $action) if (($action['suit'] ?? '') === $suit) return $action;
+            }
+        }
+
+        foreach (['replace_wild','layoff','meld_many','meld'] as $type) {
+            $candidates = $this->botActionsOfType($actions, $type);
+            if ($candidates) {
+                usort($candidates, fn($a,$b)=>$this->botActionCardCount($b) <=> $this->botActionCardCount($a));
+                return $candidates[0];
+            }
+        }
+
+        $foundation = $this->botActionsOfType($actions, 'move_to_foundation');
+        if ($foundation) return $foundation[0];
+
+        $plays = $this->botActionsOfType($actions, 'play_card');
+        if ($plays) return $this->botChooseCardAction($state, $pid, $plays, false);
+
+        $discards = $this->botActionsOfType($actions, 'discard');
+        if ($discards) return $this->botChooseCardAction($state, $pid, $discards, true);
+
+        $contracts = $this->botActionsOfType($actions, 'choose_contract');
+        if ($contracts) {
+            // Avoid a fixed first-option bias while remaining reproducible.
+            $index = abs((int)crc32($pid.'|'.($state['round'] ?? 1).'|'.count($state['events'] ?? []))) % count($contracts);
+            return $contracts[$index];
+        }
+
+        foreach (['draw_discard','draw_deck','draw_stock','pass_trix','pass','organize'] as $pref) {
+            foreach ($actions as $action) if (($action['type']??'')===$pref) return $action;
+        }
+        return $actions[0];
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    protected function botActionsOfType(array $actions, string $type): array
+    {
+        return array_values(array_filter($actions, fn($action)=>($action['type'] ?? '') === $type));
+    }
+
+    protected function botActionCardCount(array $action): int
+    {
+        if (isset($action['groups']) && is_array($action['groups'])) {
+            return array_sum(array_map(fn($group)=>count((array)$group), $action['groups']));
+        }
+        return count((array)($action['cards'] ?? (isset($action['card']) ? [$action['card']] : [])));
+    }
+
+    protected function botChooseCardAction(array $state, string $pid, array $actions, bool $discard): array
+    {
+        usort($actions, function(array $a, array $b) use ($state, $discard): int {
+            $cardA = (string)($a['card'] ?? '');
+            $cardB = (string)($b['card'] ?? '');
+            $wildA = str_starts_with($cardA, 'JOKER') || str_starts_with($cardA, '2_');
+            $wildB = str_starts_with($cardB, 'JOKER') || str_starts_with($cardB, '2_');
+            if ($discard && $wildA !== $wildB) return $wildA ? 1 : -1;
+            $valueA = $this->rankValue($cardA, (string)($state['config']['mode'] ?? ''), $state['trump'] ?? null);
+            $valueB = $this->rankValue($cardB, (string)($state['config']['mode'] ?? ''), $state['trump'] ?? null);
+            $direction = $discard ? -1 : 1; // discard deadwood high; conserve strength while playing.
+            return $direction * ($valueA <=> $valueB) ?: strcmp($cardA, $cardB);
+        });
         return $actions[0];
     }
 

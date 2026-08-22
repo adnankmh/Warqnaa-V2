@@ -31,6 +31,7 @@ $targets = $isTarneeb ? [31,41,61] : ((array)($game->rules['targets'] ?? []));
    @endif
    <label>سرعة اللعب</label><select name="speed"><option value="slow">بطيئة - 10 ثوانٍ</option><option value="medium" selected>متوسطة - 7 ثوانٍ</option><option value="fast">سريعة - 5 ثوانٍ</option></select>
    <label>إمكانية الطرد لصاحب الغرفة الباشا</label><select name="allow_owner_kick"><option value="0" selected>معطلة</option><option value="1">مفعّلة — للباشا فقط</option></select>
+   <label>مدرجات Social World</label><select name="allow_spectators"><option value="1" selected>مفتوحة — بدون كشف الأوراق أو الصوت</option><option value="0">مغلقة</option></select>
    <label>خصم XP عند الخروج اليدوي</label><select name="leave_xp_penalty"><option value="0" selected>بدون خصم</option><option value="1">خصم 200 XP إذا خرج اللاعب وحده أثناء اللعبة</option></select>
    <label>أقل مستوى للدخول</label><select name="min_level">@for($lvl=1;$lvl<=min(100,$userLevel);$lvl++)<option value="{{$lvl}}">المستوى {{$lvl}}</option>@endfor</select>
    @if(count($targets))<label>نهاية اللعبة</label><select name="target_score">@foreach($targets as $target)<option value="{{$target}}">{{$target}}</option>@endforeach</select>@endif

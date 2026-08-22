@@ -40,6 +40,8 @@ part 'v182_rewards.dart';
 part 'v183_overhaul.dart';
 part 'r9_release.dart';
 part 'r10_1_release.dart';
+part 'r11_social_world.dart';
+part 'r12_competitive.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -2438,6 +2440,7 @@ class L {
       'store': 'المتجر',
       'clubs': 'المجموعات',
       'events': 'المنافسات',
+      'social_world': 'العالم',
       'welcome': 'مرحباً بعودتك',
       'level': 'المستوى',
       'coins': 'العملات',
@@ -2540,6 +2543,7 @@ class L {
       'store': 'Store',
       'clubs': 'Groups',
       'events': 'Competitions',
+      'social_world': 'Social',
       'welcome': 'Welcome back',
       'level': 'Level',
       'coins': 'Coins',
@@ -3440,8 +3444,8 @@ class _HomeShellState extends State<HomeShell> {
       StorePage(controller: widget.controller),
       GamesPage(controller: widget.controller),
       HomePage(controller: widget.controller, onTab: (v) => setState(() => index = v)),
-      ClubsPage(controller: widget.controller),
-      EventsPage(controller: widget.controller),
+      R11ClubsWorldPage(controller: widget.controller),
+      R11SocialWorldPage(controller: widget.controller),
     ];
     return LayoutBuilder(builder: (context, constraints) {
       final desktop = isDesktopWebV183(constraints.maxWidth);
@@ -3482,7 +3486,7 @@ class _HomeShellState extends State<HomeShell> {
             NavigationDestination(icon: const Icon(Icons.style), label: L.t(widget.controller.localeCode, 'games')),
             NavigationDestination(icon: const Icon(Icons.home_rounded), label: L.t(widget.controller.localeCode, 'home')),
             NavigationDestination(icon: const Icon(Icons.shield), label: L.t(widget.controller.localeCode, 'clubs')),
-            NavigationDestination(icon: const Icon(Icons.calendar_month), label: L.t(widget.controller.localeCode, 'events')),
+            NavigationDestination(icon: const Icon(Icons.public_rounded), label: L.t(widget.controller.localeCode, 'social_world')),
           ],
         ),
       );
@@ -5397,6 +5401,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               allowOwnerKick: widget.options.allowOwnerKick,
               playerCount: widget.options.playerCount,
               singleRound: widget.options.singleRound,
+              allowSpectators: widget.options.allowSpectators,
             );
       if (!mounted) return;
       final updatedRoom = Map<String, dynamic>.from(data['room'] as Map);
@@ -8059,7 +8064,7 @@ void showChallenges(BuildContext context, AppController controller) {
 }
 
 void showCompetitions(BuildContext context, AppController controller) {
-  showCompetitionsV173(context, controller);
+  Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => R12CompetitiveArenaPage(controller: controller)));
 }
 
 void showGameLobby(BuildContext context, AppController controller, GameInfo game) {
@@ -8316,6 +8321,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
   var minLevel = 1;
   var allowOwnerKick = true;
   var singleRound = false;
+  var allowSpectators = true;
   var playerCount = v170AllowedPlayerCounts(game.id).first;
   var botCount = (playerCount - 1).clamp(0, 7).toInt();
   final selectedInviteeIds = <int>{};
@@ -8463,6 +8469,13 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             title: const Text('مباراة من جولة واحدة فقط'),
             subtitle: const Text('تنتهي المباراة مباشرة بعد انتهاء الجولة الحالية وإظهار النتيجة.'),
           ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: allowSpectators,
+            onChanged: (value) => setLocalState(() => allowSpectators = value),
+            title: const Text('فتح مدرجات Social World'),
+            subtitle: const Text('المشاهدون لا يرون الأوراق ولا يسمعون الصوت ولا يشاركون في اللعب.'),
+          ),
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: () async {
@@ -8485,6 +8498,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 playerCount: playerCount,
                 botCount: botCount,
                 singleRound: singleRound,
+                allowSpectators: allowSpectators,
                 inviteeIds: selectedInviteeIds.toList(growable: false),
               );
               final navigationContext = warqnaNavigatorKey.currentContext;
@@ -9225,7 +9239,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
   @override
   void initState() {
     super.initState();
-    tabs = TabController(length: 6, vsync: this);
+    tabs = TabController(length: 8, vsync: this);
     _load();
   }
 
@@ -9253,9 +9267,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
       appBar: AppBar(
         title: const Text('لوحة إدارة Warqna', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
-        bottom: TabBar(controller: tabs, isScrollable: true, tabs: const [Tab(text:'نظرة عامة'),Tab(text:'الألعاب'),Tab(text:'المتجر'),Tab(text:'اللاعبون'),Tab(text:'مصمم بدون كود'),Tab(text:'النظام')]),
+        bottom: TabBar(controller: tabs, isScrollable: true, tabs: const [Tab(text:'نظرة عامة'),Tab(text:'الألعاب'),Tab(text:'المتجر'),Tab(text:'اللاعبون'),Tab(text:'مصمم بدون كود'),Tab(text:'Social World'),Tab(text:'Competitive'),Tab(text:'النظام')]),
       ),
-      body: loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: tabs, children: [_overview(), _games(), _store(), _users(), _designer(), _system()]),
+      body: loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: tabs, children: [_overview(), _games(), _store(), _users(), _designer(), R11AdminSocialWorldPanel(controller: widget.controller), R12AdminCompetitivePanel(controller: widget.controller), _system()]),
     );
   }
 

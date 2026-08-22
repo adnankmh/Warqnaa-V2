@@ -1,6 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{HomeController,AuthController,GameController,RoomController,StoreController,ProfileController,FriendController,ClubController,TournamentController,AdminController,WalletController,NotificationController,PageController,ChatController,RealtimeController,EconomyController,AdminMonitorController,EconomyAdminController,GameLibraryController,RewardController,InteractionController,ProAdminController,EngineAuditController,LegalPageController,MobileAuthRecoveryController,SocialAuthController,CommerceAdminController};
+use App\Http\Controllers\{HomeController,AuthController,GameController,RoomController,StoreController,ProfileController,FriendController,ClubController,TournamentController,AdminController,WalletController,NotificationController,PageController,ChatController,RealtimeController,EconomyController,AdminMonitorController,EconomyAdminController,GameLibraryController,RewardController,InteractionController,ProAdminController,EngineAuditController,LegalPageController,MobileAuthRecoveryController,SocialAuthController,CommerceAdminController,SocialWorldController,AdminSocialWorldController,CompetitiveController,AdminCompetitiveController};
 Route::get('/', [HomeController::class,'index'])->name('home');
 
 Route::get('/health', function(\App\Services\Platform\PlatformHealthService $health){ return response()->json($health->snapshot()); })->name('warqna.health');
@@ -90,6 +90,22 @@ Route::middleware('auth')->group(function(){
  Route::post('/profile/update',[ProfileController::class,'update'])->name('profile.update'); Route::get('/profile/{user?}',[ProfileController::class,'show'])->name('profile.show'); Route::get('/friends',[FriendController::class,'index'])->name('friends'); Route::get('/tokens',[WalletController::class,'index'])->name('tokens'); Route::get('/players/search',[ProfileController::class,'search'])->name('players.search'); Route::post('/wallet/transfer',[WalletController::class,'transfer'])->name('wallet.transfer');
  Route::post('/friends/request/{user}',[FriendController::class,'request'])->name('friends.request'); Route::post('/friends/respond/{friendship}',[FriendController::class,'respond'])->name('friends.respond'); Route::post('/friends/cancel/{friendship}',[FriendController::class,'cancel'])->name('friends.cancel'); Route::post('/friends/unblock/{user}',[FriendController::class,'unblock'])->name('friends.unblock'); Route::post('/friends/block/{user}',[FriendController::class,'block'])->name('friends.block'); Route::post('/chat/private/{user}',[ChatController::class,'privateMessage'])->name('chat.private'); Route::get('/chat/friends',[ChatController::class,'friends'])->name('chat.friends'); Route::get('/chat/search',[ChatController::class,'search'])->name('chat.search'); Route::get('/chat/thread/{user}',[ChatController::class,'thread'])->name('chat.thread'); Route::post('/chat/send/{user}',[ChatController::class,'send'])->name('chat.send');
  Route::get('/clubs',[ClubController::class,'index'])->name('clubs'); Route::post('/clubs',[ClubController::class,'store'])->name('clubs.store'); Route::get('/clubs/{club}',[ClubController::class,'show'])->name('clubs.show'); Route::post('/clubs/{club}/join',[ClubController::class,'requestJoin'])->name('clubs.join'); Route::post('/clubs/{club}/leave',[ClubController::class,'leave'])->name('clubs.leave'); Route::post('/clubs/{club}/delete',[ClubController::class,'delete'])->name('clubs.delete'); Route::post('/clubs/{club}/settings',[ClubController::class,'updateSettings'])->name('clubs.settings.update'); Route::post('/clubs/{club}/member/{member}',[ClubController::class,'memberAction'])->name('clubs.memberAction'); Route::post('/club-requests/{request}/respond',[ClubController::class,'respond'])->name('clubs.respond'); Route::post('/clubs/{club}/announcements',[ClubController::class,'announcementStore'])->name('clubs.announcements.store'); Route::post('/clubs/{club}/announcements/{announcement}/delete',[ClubController::class,'announcementDelete'])->name('clubs.announcements.delete'); Route::post('/clubs/{club}/tournaments',[ClubController::class,'createTournament'])->name('clubs.tournaments.store');
+ Route::get('/social-world',[SocialWorldController::class,'index'])->name('social-world');
+ Route::patch('/social-world/privacy',[SocialWorldController::class,'updatePrivacy'])->name('social-world.privacy');
+ Route::post('/social-world/publish',[SocialWorldController::class,'publish'])->name('social-world.publish');
+ Route::post('/social-world/follow/{user}',[SocialWorldController::class,'follow'])->name('social-world.follow');
+ Route::delete('/social-world/follow/{user}',[SocialWorldController::class,'unfollow'])->name('social-world.unfollow');
+ Route::post('/social-world/events',[SocialWorldController::class,'createEvent'])->name('social-world.events.create');
+ Route::post('/social-world/events/{event}/attend',[SocialWorldController::class,'attend'])->name('social-world.events.attend');
+ Route::delete('/social-world/events/{event}/attend',[SocialWorldController::class,'cancelAttendance'])->name('social-world.events.cancel');
+ Route::post('/social-world/gifts',[SocialWorldController::class,'sendGift'])->name('social-world.gifts.send');
+ Route::post('/social-world/spectate/{room:code}',[SocialWorldController::class,'spectate'])->name('social-world.spectate');
+ Route::get('/social-world/spectate/{room:code}/state',[SocialWorldController::class,'spectatorState'])->name('social-world.spectator.state');
+ Route::get('/social-world/replays/{replay}',[SocialWorldController::class,'replay'])->name('social-world.replay');
+ Route::get('/competitive',[CompetitiveController::class,'index'])->name('competitive');
+ Route::post('/competitive/queue',[CompetitiveController::class,'queue'])->name('competitive.queue');
+ Route::delete('/competitive/queue',[CompetitiveController::class,'cancel'])->name('competitive.queue.cancel');
+ Route::post('/competitive/rewards/{claim}/claim',[CompetitiveController::class,'claim'])->name('competitive.rewards.claim');
  Route::get('/tournaments',[TournamentController::class,'index'])->name('tournaments'); Route::post('/tournaments',[TournamentController::class,'store'])->name('tournaments.store'); Route::post('/tournaments/{tournament}/join',[TournamentController::class,'join'])->name('tournaments.join'); Route::post('/tournaments/{tournament}/leave',[TournamentController::class,'leave'])->name('tournaments.leave'); Route::post('/tournaments/{tournament}/launch',[TournamentController::class,'launch'])->name('tournaments.launch'); Route::get('/tournaments/{tournament}/replay',[TournamentController::class,'replay'])->name('tournaments.replay');
  Route::prefix('admin')->middleware('admin')->group(function(){
     Route::get('/',[AdminController::class,'index'])->name('admin');
@@ -114,6 +130,19 @@ Route::middleware('auth')->group(function(){
     Route::post('/commerce/settings',[CommerceAdminController::class,'saveSettings'])->name('admin.commerce.settings');
     Route::post('/commerce/offers',[CommerceAdminController::class,'saveOffer'])->name('admin.commerce.offer.save');
     Route::post('/commerce/offers/{offer}/delete',[CommerceAdminController::class,'deleteOffer'])->name('admin.commerce.offer.delete');
+    Route::post('/social-world/settings',[AdminSocialWorldController::class,'updateSettings'])->name('admin.social-world.settings');
+    Route::post('/social-world/activities/{activity}',[AdminSocialWorldController::class,'activityAction'])->name('admin.social-world.activity');
+    Route::post('/social-world/events/{event}',[AdminSocialWorldController::class,'eventAction'])->name('admin.social-world.event');
+    Route::post('/social-world/replays/{replay}',[AdminSocialWorldController::class,'replayAction'])->name('admin.social-world.replay');
+    Route::post('/social-world/spectators/{spectator}/evict',[AdminSocialWorldController::class,'evictSpectator'])->name('admin.social-world.spectator.evict');
+    Route::get('/competitive',[AdminCompetitiveController::class,'dashboard'])->name('admin.competitive');
+    Route::patch('/competitive/settings',[AdminCompetitiveController::class,'updateSettings'])->name('admin.competitive.settings');
+    Route::post('/competitive/seasons',[AdminCompetitiveController::class,'createSeason'])->name('admin.competitive.season.create');
+    Route::post('/competitive/seasons/{season}',[AdminCompetitiveController::class,'seasonAction'])->name('admin.competitive.season.action');
+    Route::post('/competitive/ratings/{user}',[AdminCompetitiveController::class,'adjustRating'])->name('admin.competitive.rating.adjust');
+    Route::post('/competitive/matches/{match}',[AdminCompetitiveController::class,'matchAction'])->name('admin.competitive.match.action');
+    Route::post('/competitive/tournaments',[AdminCompetitiveController::class,'createTournament'])->name('admin.competitive.tournament.create');
+    Route::post('/competitive/tournaments/{tournament}/bracket',[AdminCompetitiveController::class,'buildBracket'])->name('admin.competitive.tournament.bracket');
     Route::get('/pro-v118', fn()=>response()->json(['ok'=>true,'version'=>config('warqna_pro_features.version'),'status'=>'admin pro dashboard route restored v134']))->name('admin.pro.v118');
     Route::get('/engine-audit', [\App\Http\Controllers\EngineAuditController::class,'index'])->name('admin.engine.audit');
     Route::post('/economy/season', fn()=>back()->with('ok','تم حفظ الموسم من لوحة الإدارة'))->name('admin.economy.season');

@@ -172,7 +172,7 @@ class R9HomeDashboard extends StatelessWidget {
     final items = <({IconData icon, String ar, String en, VoidCallback tap})>[
       (icon: Icons.groups_2_outlined, ar: 'الأندية', en: 'Clubs', tap: () => onTab(3)),
       (icon: Icons.storefront_outlined, ar: 'المتجر', en: 'Store', tap: () => onTab(0)),
-      (icon: Icons.people_outline_rounded, ar: 'الأصدقاء', en: 'Friends', tap: () => showFriends(context, controller)),
+      (icon: Icons.public_rounded, ar: 'العالم الاجتماعي', en: 'Social World', tap: () => onTab(4)),
       (icon: Icons.task_alt_rounded, ar: 'المهام', en: 'Missions', tap: () => showRewards(context, controller)),
     ];
     return GridView.builder(

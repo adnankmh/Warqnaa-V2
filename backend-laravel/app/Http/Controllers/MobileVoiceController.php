@@ -6,15 +6,19 @@ use App\Models\{Room, RoomPlayer, VoiceSignal};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\Platform\ProductionConfigService;
+use App\Services\Social\SocialWorldPolicy;
 
 class MobileVoiceController extends Controller
 {
-    public function __construct(private readonly ProductionConfigService $productionConfig) {}
+    public function __construct(
+        private readonly ProductionConfigService $productionConfig,
+        private readonly SocialWorldPolicy $socialPolicy,
+    ) {}
 
     public function join(Request $request, Room $room)
     {
         $player = $this->player($request, $room);
-        $this->assertVoiceRoom($room);
+        $this->assertVoiceRoom($room, $request);
 
         $player->update([
             'voice_joined_at' => now(),
@@ -41,7 +45,7 @@ class MobileVoiceController extends Controller
     public function poll(Request $request, Room $room)
     {
         $player = $this->player($request, $room);
-        $this->assertVoiceRoom($room);
+        $this->assertVoiceRoom($room, $request);
         $player->update(['voice_last_seen_at' => now()]);
 
         $signals = DB::transaction(function () use ($room, $request) {
@@ -85,7 +89,7 @@ class MobileVoiceController extends Controller
     public function signal(Request $request, Room $room)
     {
         $this->player($request, $room);
-        $this->assertVoiceRoom($room);
+        $this->assertVoiceRoom($room, $request);
         $data = $request->validate([
             'recipient_id' => 'required|integer',
             'type' => 'required|in:offer,answer,candidate,renegotiate',
@@ -114,7 +118,7 @@ class MobileVoiceController extends Controller
     public function controls(Request $request, Room $room)
     {
         $player = $this->player($request, $room);
-        $this->assertVoiceRoom($room);
+        $this->assertVoiceRoom($room, $request);
         $data = $request->validate([
             'muted' => 'required|boolean',
             'deafened' => 'required|boolean',
@@ -156,9 +160,10 @@ class MobileVoiceController extends Controller
         return $player;
     }
 
-    private function assertVoiceRoom(Room $room): void
+    private function assertVoiceRoom(Room $room, Request $request): void
     {
         abort_unless($this->productionConfig->enabled('voice_rooms', true), 503, 'الغرف الصوتية متوقفة مؤقتًا.');
+        abort_unless((bool) $this->socialPolicy->preferences($request->user())->allow_voice, 403, 'الصوت معطل من إعدادات خصوصيتك.');
         $state = $room->state ?: [];
         abort_unless(!empty($state['voice_enabled']) || !empty($state['voice_room']), 422, 'هذه غرفة عادية وليست صوتية.');
         abort_if(in_array($room->status, ['closed', 'finished'], true), 410, 'الغرفة مغلقة.');

@@ -10,6 +10,7 @@ class RoomLaunchOptions {
   final int playerCount;
   final int botCount;
   final bool singleRound;
+  final bool allowSpectators;
   final List<int> inviteeIds;
 
   const RoomLaunchOptions({
@@ -24,6 +25,7 @@ class RoomLaunchOptions {
     this.playerCount = 4,
     this.botCount = 3,
     this.singleRound = false,
+    this.allowSpectators = true,
     this.inviteeIds = const <int>[],
   });
 
@@ -41,6 +43,7 @@ class RoomLaunchOptions {
     int? playerCount,
     int? botCount,
     bool? singleRound,
+    bool? allowSpectators,
     List<int>? inviteeIds,
   }) {
     return RoomLaunchOptions(
@@ -55,6 +58,7 @@ class RoomLaunchOptions {
       playerCount: playerCount ?? this.playerCount,
       botCount: botCount ?? this.botCount,
       singleRound: singleRound ?? this.singleRound,
+      allowSpectators: allowSpectators ?? this.allowSpectators,
       inviteeIds: inviteeIds ?? this.inviteeIds,
     );
   }

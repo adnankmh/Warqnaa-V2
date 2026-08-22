@@ -18,6 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Setup PHP 8.3 for executable engine gates
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl
+          coverage: none
       - name: Validate source package and reject merge markers
         run: |
           python3 tools/test_clean_root_policy.py
@@ -38,6 +44,13 @@ jobs:
           python3 tools/test_v210_r9_1_contract.py
           python3 tools/test_v220_r10_contract.py
           python3 tools/test_v221_r101_contract.py
+          python3 tools/test_v230_r11_contract.py
+          python3 tools/test_v240_r12_contract.py
+          python3 tools/test_v240_competitive_engines.py
+          python3 tools/test_v240_php_structure.py
+          python3 tools/test_v250_r13_contract.py
+          python3 tools/test_v260_r14_contract.py
+          python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/warqnaa-global-release.json"
           python3 tools/test_v184_flutter_quality_contract.py
           python3 tools/test_v184_official_game_rules_contract.py
           python3 tools/test_v174_offline_progression_navigation_contract.py
@@ -62,6 +75,18 @@ jobs:
         run: php backend-laravel/tools/test-v208-r8-playthrough-stress.php
       - name: Stress all registered game engines
         run: php backend-laravel/tools/test-v184-engine-stress.php
+      - name: Certify R13 Engine Gold release profile
+        env:
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 2000
+          WARQNA_GOLD_MAX_TRANSITIONS: 320
+          WARQNA_GOLD_REPORT: ${{ runner.temp }}/warqnaa-engine-gold-release.json
+        run: php backend-laravel/tools/test-v250-r13-engine-gold.php
+      - name: Upload R13 Engine Gold certification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: warqnaa-r13-engine-gold-release
+          path: ${{ runner.temp }}/warqnaa-engine-gold-release.json
+          if-no-files-found: error
 
       - name: Run source preflight
         run: python3 tools/validate_release.py

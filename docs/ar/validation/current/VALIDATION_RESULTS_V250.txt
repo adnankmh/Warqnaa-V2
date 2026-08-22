@@ -1,0 +1,14 @@
+WARQNAA R13 BUILD 250 — VALIDATION LEDGER
+Release: 0.8.0+250
+Scope: R8/R9/R9.1/R10/R10.1/R11/R12/R13
+
+Static contracts R8–R13: PASS
+Release source preflight: PASS
+Static inventory: JSON=63 YAML=16 XML=2 DART=38 SOURCE_SCAN=562
+PHP Engine Gold smoke: enforced locally when PHP is available.
+Release Gold: 2,000 matches per engine, enforced in GitHub Actions.
+Scheduled Gold: 5,000 matches per engine, enforced in GitHub Actions with JSON artifact.
+Laravel/Flutter runtime suites: enforced in GitHub Actions.
+
+Local runtime availability in the build environment: PHP/Composer/Flutter/Dart/Docker unavailable.
+The package does not claim unavailable local runtimes as locally passed; those suites remain mandatory in GitHub Actions.
