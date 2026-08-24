@@ -38,7 +38,7 @@
    <label>الصورة الشخصية</label><input type="file" name="avatar" accept="image/*">
    <button class="btn primary big-save" type="submit">حفظ التعديلات</button>
   </form>
-  <a class="btn r142-profile-security-link" href="{{route('account.security')}}">🛡️ تغيير البريد الإلكتروني أو كلمة المرور بأمان</a>
+  <a class="btn" href="{{route('account.security')}}">🔐 تغيير البريد وكلمة المرور من مركز الأمان</a>
   @endif
  </div>
 </section>

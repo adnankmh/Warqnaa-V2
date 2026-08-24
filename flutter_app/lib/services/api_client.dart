@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.0.2');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 262);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.0.3');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 263);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -58,11 +58,6 @@ class WarqnaApiClient {
   Future<Map<String, dynamic>> startSocialAuth(String provider) => post('/social-auth/start/$provider', const {}, authenticated: false);
   Future<Map<String, dynamic>> socialAuthStatus(String state) => get('/social-auth/status/$state', authenticated: false);
   Future<Map<String, dynamic>> exportAccount() => get('/account/export');
-  Future<Map<String, dynamic>> accountSecurityR142() => get('/account/security');
-  Future<Map<String, dynamic>> updateAccountEmailR142({required String currentPassword, required String email}) =>
-      patch('/account/email', {'current_password': currentPassword, 'email': email.trim()});
-  Future<Map<String, dynamic>> updateAccountPasswordR142({required String currentPassword, required String password}) =>
-      patch('/account/password', {'current_password': currentPassword, 'password': password, 'password_confirmation': password});
   Future<Map<String, dynamic>> sessions() => get('/account/sessions');
   Future<Map<String, dynamic>> revokeSession(int tokenId) => delete('/account/sessions/$tokenId');
   Future<Map<String, dynamic>> requestDeletion(String password, {String? reason}) =>
@@ -89,6 +84,16 @@ class WarqnaApiClient {
       }, authenticated: false);
   Future<Map<String, dynamic>> sendEmailVerification() =>
       post('/email/verification-notification', const {});
+  Future<Map<String, dynamic>> updateAccountSecurity({
+    required String currentPassword,
+    required String email,
+    String? newPassword,
+  }) => patch('/account/security', {
+        'current_password': currentPassword,
+        'email': email,
+        if (newPassword != null && newPassword.isNotEmpty) 'password': newPassword,
+        if (newPassword != null && newPassword.isNotEmpty) 'password_confirmation': newPassword,
+      });
 
   Future<Map<String, dynamic>> login(String login, String password) =>
       post('/login', {'login': login, 'password': password}, authenticated: false);

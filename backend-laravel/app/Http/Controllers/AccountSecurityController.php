@@ -2,46 +2,71 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Account\AccountSecurityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\{DB,Hash,Schema};
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
-class AccountSecurityController extends Controller
+final class AccountSecurityController extends Controller
 {
     public function show(Request $request)
     {
-        $user = $request->user();
-        return view('account.security', [
-            'user' => $user,
-            'activeSessions' => $user->tokens()->count() + 1,
+        return view('account.security', ['user' => $request->user()]);
+    }
+
+    public function updateWeb(Request $request)
+    {
+        $this->updateAccount($request);
+        $request->session()->regenerate();
+
+        return back()->with('ok', 'تم تحديث البريد وكلمة المرور وإغلاق الجلسات الأخرى بأمان.');
+    }
+
+    public function updateMobile(Request $request)
+    {
+        $user = $this->updateAccount($request)->fresh('profile');
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم تحديث أمان الحساب بنجاح.',
+            'user' => $user->publicProfile() + ['email' => $user->email],
         ]);
     }
 
-    public function updateEmail(Request $request, AccountSecurityService $security)
+    private function updateAccount(Request $request)
     {
         $user = $request->user();
         $data = $request->validate([
-            'current_password' => 'required|string|max:120',
+            'current_password' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
+            'password' => ['nullable', 'confirmed', 'different:current_password', Password::min(10)->mixedCase()->numbers()],
         ]);
 
-        $security->changeEmail($user, $data['current_password'], $data['email']);
-        $request->session()->regenerate();
+        abort_unless(Hash::check($data['current_password'], $user->password), 422, 'كلمة المرور الحالية غير صحيحة.');
 
-        return back()->with('ok', 'تم تغيير البريد الإلكتروني. أرسلنا رابط تأكيد إلى البريد الجديد.');
-    }
+        $newEmail = mb_strtolower(trim($data['email']));
+        $emailChanged = strcasecmp((string)$user->email, $newEmail) !== 0;
+        if ($emailChanged) {
+            $user->email = $newEmail;
+            $user->email_verified_at = null;
+        }
+        if (!empty($data['password'])) $user->password = Hash::make($data['password']);
+        $user->save();
 
-    public function updatePassword(Request $request, AccountSecurityService $security)
-    {
-        $data = $request->validate([
-            'current_password' => 'required|string|max:120',
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers(), 'max:120'],
-        ]);
+        if (!empty($data['password'])) {
+            $currentTokenId = $request->user()?->currentAccessToken()?->id;
+            $tokens = $user->tokens();
+            if ($currentTokenId) $tokens->where('id', '!=', $currentTokenId);
+            $tokens->delete();
 
-        $security->changePassword($request->user(), $data['current_password'], $data['password']);
-        $request->session()->regenerate();
+            if (Schema::hasTable('sessions')) {
+                $currentSessionId = $request->hasSession() ? $request->session()->getId() : null;
+                $sessions = DB::table('sessions')->where('user_id', $user->id);
+                if ($currentSessionId) $sessions->where('id', '!=', $currentSessionId);
+                $sessions->delete();
+            }
+        }
 
-        return back()->with('ok', 'تم تغيير كلمة المرور وإغلاق جلسات التطبيق الأخرى بنجاح.');
+        return $user;
     }
 }

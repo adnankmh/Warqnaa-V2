@@ -4,69 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountDeletionRequest;
 use App\Services\Account\AccountCancellationService;
-use App\Services\Account\AccountSecurityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB, Hash};
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class MobileAccountController extends Controller
 {
-    public function security(Request $request)
-    {
-        $user = $request->user();
-        return response()->json([
-            'ok' => true,
-            'account' => [
-                'username' => $user->username,
-                'email' => $user->email,
-                'email_verified' => (bool) $user->email_verified_at,
-                'is_admin' => (bool) $user->is_admin,
-                'admin_role' => $user->admin_role,
-                'active_sessions' => $user->tokens()->count(),
-            ],
-        ]);
-    }
-
-    public function updateEmail(Request $request, AccountSecurityService $security)
-    {
-        $user = $request->user();
-        $data = $request->validate([
-            'current_password' => 'required|string|max:120',
-            'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
-        ]);
-        $currentToken = $user->currentAccessToken()?->getKey();
-        $updated = $security->changeEmail($user, $data['current_password'], $data['email'], $currentToken ? (int) $currentToken : null);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'تم تغيير البريد. افتح رابط التأكيد المرسل إلى البريد الجديد.',
-            'account' => [
-                'username' => $updated->username,
-                'email' => $updated->email,
-                'email_verified' => false,
-                'is_admin' => (bool) $updated->is_admin,
-            ],
-        ]);
-    }
-
-    public function updatePassword(Request $request, AccountSecurityService $security)
-    {
-        $data = $request->validate([
-            'current_password' => 'required|string|max:120',
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers(), 'max:120'],
-        ]);
-        $user = $request->user();
-        $currentToken = $user->currentAccessToken()?->getKey();
-        $security->changePassword($user, $data['current_password'], $data['password'], $currentToken ? (int) $currentToken : null);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'تم تغيير كلمة المرور وإغلاق جلسات التطبيق الأخرى.',
-            'current_session_preserved' => true,
-        ]);
-    }
-
     public function export(Request $request)
     {
         $user = $request->user()->load([

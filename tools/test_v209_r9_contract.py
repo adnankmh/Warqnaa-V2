@@ -15,9 +15,7 @@ ok("Locale('ar')" in main and "Locale('en')" in main and "Locale('de')" not in m
 r101 = read('flutter_app/lib/r10_1_release.dart') if (ROOT/'flutter_app/lib/r10_1_release.dart').is_file() else ''
 uses_r9_direct = "R9Design.theme" in main
 uses_r101_wrapper = build >= 221 and 'theme: r101Theme(' in main and 'R9Design.theme' in r101
-r141 = read('flutter_app/lib/r14_1_legendary.dart') if (ROOT/'flutter_app/lib/r14_1_legendary.dart').is_file() else ''
-uses_r141_lobby = build >= 261 and "R141LegendaryHomeDashboard" in main and "R141LegendaryHomeDashboard" in r141
-ok((uses_r9_direct or uses_r101_wrapper) and ("R9HomeDashboard" in main or uses_r141_lobby),'Flutter preserves R9 design system foundation and lobby')
+ok((uses_r9_direct or uses_r101_wrapper) and "R9HomeDashboard" in main,'Flutter preserves R9 design system foundation and lobby')
 ok('final palette = AppPalette.fromCode(controller.themeCode);' not in main,'R9 app shell has no stale unused palette local')
 ok("part 'r9_release.dart';" in main,'R9 Flutter release module is wired')
 r9=read('flutter_app/lib/r9_release.dart')

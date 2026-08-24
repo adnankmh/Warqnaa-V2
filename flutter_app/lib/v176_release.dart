@@ -166,7 +166,7 @@ extension WarqnaV176Controller on AppController {
 
   bool isOwnedActiveV176(String productId) {
     if (isPrimaryAdmin) {
-      for (final product in storeCatalog) {
+      for (final product in products) {
         if (product.id == productId && product.category != 'pasha' && product.category != 'competition_ticket') return true;
       }
     }

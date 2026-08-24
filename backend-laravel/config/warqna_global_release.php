@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'release' => '1.0.2+262',
-    'contract' => 'r14_global_release_v1',
+    'release' => '1.0.3+263',
+    'contract' => 'r14_3_ci_engine_security_v1',
     'locales' => ['ar', 'en'],
     'channels' => ['backend', 'web', 'android', 'ios'],
     'required_gates' => [

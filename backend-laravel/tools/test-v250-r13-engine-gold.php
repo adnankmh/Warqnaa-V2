@@ -156,17 +156,22 @@ foreach ($registryEngines as $engineIndex => $key) {
             $actions = method_exists($rules, 'availableActions') ? $rules->availableActions($state, $turn) : [];
             $ordered = goldOrderedActions(is_array($actions) ? $actions : [], $state);
             $selected = null;
+            $selectedState = null;
+            $before = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             foreach ($ordered as $candidate) {
                 $type = (string)($candidate['type'] ?? '');
                 if ($type !== '' && (!method_exists($rules, 'validate') || $rules->validate($state, $turn, $type, goldPayload($candidate)))) {
-                    $selected = $candidate;
-                    break;
+                    $preview = $rules->apply($state, $turn, $type, goldPayload($candidate));
+                    $previewJson = json_encode($preview, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    if (empty($preview['last_error']) && empty($preview['last_error_message']) && $previewJson !== $before) {
+                        $selected = $candidate;
+                        $selectedState = $preview;
+                        break;
+                    }
                 }
             }
-            $before = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             if ($selected !== null) {
-                $type = (string)$selected['type'];
-                $state = $rules->apply($state, $turn, $type, goldPayload($selected));
+                $state = $selectedState;
             } elseif (method_exists($rules, 'onTurnTimeout')) {
                 $state = $rules->onTurnTimeout($state);
             } else {

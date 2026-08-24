@@ -1,8 +1,6 @@
 part of 'main.dart';
 
 const Map<String, Map<String, Object>> demoAccounts = <String, Map<String, Object>>{
-  'adnan': <String, Object>{'password': 'Adnan123', 'name': 'Adnan', 'coins': '100000000000000000000000000000000', 'admin': true, 'primary_admin': true, 'level': 99},
-  'abd': <String, Object>{'password': '123AbdAbd', 'name': 'Abd', 'coins': '10000000000000000', 'admin': true, 'delegated_admin': true, 'level': 90},
   'kareem': <String, Object>{'password': 'Kareem123', 'name': 'كريم', 'coins': '1250000', 'admin': false, 'level': 42},
   'rami': <String, Object>{'password': 'Rami12345', 'name': 'رامي', 'coins': '1180000', 'admin': false, 'level': 35},
   'lina': <String, Object>{'password': 'Lina12345', 'name': 'لينا', 'coins': '1120000', 'admin': false, 'level': 28},

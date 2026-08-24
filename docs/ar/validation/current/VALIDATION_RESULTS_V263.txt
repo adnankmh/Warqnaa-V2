@@ -1,0 +1,8 @@
+WARQNAA R14.3 CI ENGINE SECURITY — 1.0.3+263
+Static contracts R8–R14.3: PASS
+Cross-channel preflight: PASS
+Release source preflight: PASS — JSON=64 YAML=17 XML=2 DART=38 SOURCE_SCAN=570
+Flutter analyzer regressions: fixed in source and enforced in GitHub Actions
+Engine Gold legal transition policy: fixed and enforced in release CI
+Account email/password security: protected by current-password validation
+Deployment-only: production secrets, signing, store submission, DNS/TLS

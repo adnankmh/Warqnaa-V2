@@ -20,8 +20,8 @@ def text(path: str) -> str:
 
 def main() -> None:
     meta = json.loads(text("RELEASE_VERSION.json"))
-    check(int(meta.get("build", 0)) >= 260 and str(meta.get("version", "")).startswith("1.0."), "current release preserves R14 Build 260 or newer")
-    check("version: " + str(meta.get("full")) in text("flutter_app/pubspec.yaml"), "Flutter package matches the current R14-compatible release")
+    check(int(meta.get("build", 0)) >= 260 and str(meta.get("name", "")).startswith("Warqnaa R14"), "metadata preserves the cumulative R14 Global Release line")
+    check(int(meta.get("build", 0)) >= 260 and f"version: {meta['full']}" in text("flutter_app/pubspec.yaml"), "Flutter package matches current cumulative R14 metadata")
     config = text("backend-laravel/config/warqna_global_release.php")
     check(all(item in config for item in ("'backend', 'web', 'android', 'ios'", "'locales' => ['ar', 'en']", "'matches_per_engine' => 2000", "'release_checksums'")), "four channels, bilingual contract and mandatory gates are fixed")
     service = text("backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php")

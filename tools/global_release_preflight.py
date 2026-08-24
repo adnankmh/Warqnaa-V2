@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
 """R14 cross-channel source preflight and machine-readable evidence generator."""
 from __future__ import annotations
-import argparse, json, struct
+import argparse, json, struct, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def tracked(path: str) -> bool:
+    """Reject committed secrets without failing after CI creates a runtime .env."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(ROOT), "ls-files", "--error-unmatch", path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        return result.returncode == 0
+    except OSError:
+        return False
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -20,7 +34,7 @@ def main() -> None:
     args = parser.parse_args()
     meta = json.loads((ROOT / "RELEASE_VERSION.json").read_text(encoding="utf-8"))
     checks = {
-        "release_metadata": int(meta.get("build", 0)) >= 260 and str(meta.get("version", "")).startswith("1.0."),
+        "release_metadata": meta.get("full") == "1.0.3+263" and meta.get("name") == "Warqnaa R14.3 CI Engine Security",
         "four_channels": all((ROOT / p).exists() for p in (
             "backend-laravel", "flutter_app/web", ".github/workflows/flutter-android.yml", ".github/workflows/flutter-ios.yml")),
         "production_backend": all((ROOT / p).is_file() for p in (
@@ -31,12 +45,12 @@ def main() -> None:
         "play_icon_512": png_size(ROOT / "assets/play-store/icon-512.png") == (512, 512),
         "feature_graphic_1024x500": png_size(ROOT / "assets/play-store/feature-graphic-1024x500.png") == (1024, 500),
         "web_manifest": any((ROOT / p).is_file() for p in ("flutter_app/web/manifest.json", "flutter_app/web/manifest.webmanifest")),
-        "secret_policy": not (ROOT / "backend-laravel/.env").exists(),
+        "secret_policy": not tracked("backend-laravel/.env"),
         "global_workflow": (ROOT / ".github/workflows/global-release.yml").is_file(),
     }
     failed = [name for name, passed in checks.items() if not passed]
     report = {
-        "contract": "r14_global_release_v1", "release": meta.get("full"),
+        "contract": "r14_3_ci_engine_security_v1", "release": "1.0.3+263",
         "status": "pass" if not failed else "fail", "checks": checks,
         "channels": ["backend", "web", "android", "ios"],
         "locales": ["ar", "en"], "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},

@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'services/app_sounds.dart';
+
 /// Visual and UX primitives introduced in Warqna v149.
 /// These widgets are dependency-light so they work on Web, Android and iOS.
 

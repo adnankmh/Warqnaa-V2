@@ -29,8 +29,7 @@
     <link rel="stylesheet" href="/assets/css/r9-design-system.css?v=209">
     <link rel="stylesheet" href="/assets/css/r11-social-world.css?v=230">
     <link rel="stylesheet" href="/assets/css/r12-competitive-arena.css?v=240">
-    <link rel="stylesheet" href="/assets/css/r14-1-legendary-experience.css?v=262">
-    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_1={version:'1.0.1',build:261,legendaryExperience:true}; window.WARQNAA_R14_2={version:'1.0.2',build:262,secureAccount:true,ciReliability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
+    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
@@ -58,7 +57,7 @@
     $activeRoom = $currentUser ? \App\Models\Room::with('game')->whereHas('players', fn($q)=>$q->where('user_id',$currentUser->id)->where('is_bot',false))->whereIn('status',['waiting','bidding','playing'])->latest()->first() : null;
 @endphp
 @php $globalAnnouncement = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('global_announcement','') : ''; $customCss = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('custom_css','') : ''; @endphp
-<body class="warqna-pro-social warqna-r9 warqna-r14-1 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('rooms.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
+<body class="warqna-pro-social warqna-r9 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
     @if($globalAnnouncement)<div class="global-announcement">{{ $globalAnnouncement }}</div>@endif
     @if($customCss)<style id="adminCustomCss">{!! $customCss !!}</style>@endif
     @php
@@ -91,7 +90,7 @@
     .game-table.premium-table,.game-table{min-height:var(--admin-table-height)!important;border-radius:@if($tableShape==='stadium')999px @elseif($tableShape==='square-soft')var(--admin-table-radius) @else var(--admin-table-radius) @endif!important;border-width:var(--admin-table-border)!important;border-color:var(--admin-table-border-color)!important;background:radial-gradient(circle at center,var(--admin-table-bg1),var(--admin-table-bg2) 72%)!important}.center-board{scale:calc(var(--admin-table-scale) / 100)!important}.hand-row .card,.card{width:var(--admin-play-card-w)!important;height:var(--admin-play-card-h)!important}.seat-profile img,.player-ring,.player-ring img{width:var(--admin-player-avatar)!important;height:var(--admin-player-avatar)!important}.chat-dock{width:var(--admin-chat-w)!important;height:var(--admin-chat-h)!important;border-radius:var(--admin-chat-radius)!important;font-size:var(--admin-chat-font)!important;background:linear-gradient(145deg,var(--admin-chat-bg),color-mix(in srgb,var(--admin-chat-bg),#000 28%))!important}.chat-head{background:linear-gradient(135deg,var(--admin-chat-head),color-mix(in srgb,var(--admin-chat-head),#000 34%))!important}.chat-tabs{gap:var(--admin-chat-gap)!important;padding:var(--admin-chat-gap)!important}.chat-tabs button,.chat-head button,.chat-send button{min-width:var(--admin-chat-btn-w)!important;min-height:var(--admin-chat-btn-h)!important;border-radius:var(--admin-chat-btn-radius)!important;background:var(--admin-chat-btn-bg)!important;color:var(--admin-chat-btn-text)!important}.chat-send input,.chat-search{min-height:var(--admin-chat-input-h)!important;background:var(--admin-chat-input-bg)!important}.chat-body .msg,.game-chat-msg{background:var(--admin-chat-message-bg)!important}.emoji-palette button,.quick-reactions-box-v132 button{font-size:var(--admin-chat-emoji)!important;min-width:calc(var(--admin-chat-emoji) + 18px)!important;min-height:calc(var(--admin-chat-emoji) + 18px)!important}.notification-drawer,.notification-drawer-v136{width:min(var(--admin-notif-w),calc(100vw - 24px))!important}.profile-modal,.profile-modal-card{width:min(var(--admin-profile-w),calc(100vw - 22px))!important;font-size:var(--admin-profile-font)!important}@if($animationLevel==='none')*,*:before,*:after{animation:none!important;transition:none!important}@elseif($animationLevel==='premium').btn:hover,button:hover,.game-card:hover,.store-card:hover{transform:translateY(-4px) scale(1.015)!important;filter:brightness(1.08)!important}@endif
     </style>
     <div class="topbar">
-        <a class="brand r141-brand" href="{{ auth()->check() ? route('games') : route('home') }}"><span class="r141-brand-mark">W</span><span>ورقنا <small>WARQNAA</small></span></a>
+        <a class="brand" href="{{ auth()->check() ? route('games') : route('home') }}">ورقنا زون</a>
         @auth
             <button type="button" class="nav-drop-btn games-top-only-v128" onclick="toggleTopPanel('gamesCurtain')" data-i18n="all_games">🎮 الألعاب ▾</button>
             <a href="{{ route('game.rules') }}" data-i18n="rules">قوانين الألعاب</a>
@@ -230,14 +229,6 @@
 <button id="installAppBtn" class="install-app-btn hidden" type="button">📲 تثبيت التطبيق</button>
 <div id="mobileSafeToast" class="mobile-safe-toast hidden"></div>
     </main>
-    <footer class="r141-footer">
-        <div><a class="r141-footer-brand" href="{{ route('home') }}">WARQNAA</a><span>{{ app()->getLocale()==='ar' ? 'عالم عربي للّعب والتنافس والتواصل' : 'An Arab world for play, competition and connection' }}</span></div>
-        <nav aria-label="footer">
-            @auth<a href="{{ route('games') }}">{{ app()->getLocale()==='ar' ? 'الألعاب' : 'Games' }}</a><a href="{{ route('social-world') }}">{{ app()->getLocale()==='ar' ? 'العالم الاجتماعي' : 'Social' }}</a><a href="{{ route('competitive') }}">{{ app()->getLocale()==='ar' ? 'التنافس' : 'Competitive' }}</a>@endauth
-            <a href="{{ route('legal.show','privacy') }}">{{ app()->getLocale()==='ar' ? 'الخصوصية' : 'Privacy' }}</a>
-            <span>R14.1 • B261</span>
-        </nav>
-    </footer>
     @auth
         <aside id="chatDock" class="chat-dock chat-expanded">
             <div class="chat-head"><span data-i18n="chat_center">مركز الدردشة</span> <span><button type="button" onclick="toggleChat()">—</button><button type="button" onclick="minimizeChat()">▾</button><button type="button" onclick="maximizeChat()">□</button><button type="button" onclick="closeChat()">×</button></span></div>
@@ -251,7 +242,7 @@
             <div class="chat-body" id="chatBody"><p class="muted">اختر <span data-i18n="game_chat">دردشة اللعبة</span> أو صديقًا للبدء.</p></div>
             <form class="chat-send" onsubmit="sendChat(event)"><input id="chatInput" placeholder="{{ app()->getLocale()==="ar" ? "اكتب رسالة واضغط Enter" : "Type message" }}"><button type="submit"><span data-i18n="send">إرسال</span></button></form>
         </aside>
-        <script>window.WARQNA_EMOJIS=@json($emojiList); window.CHAT_HAS_ROOM=@json(request()->routeIs('rooms.show')); window.CHAT_ROOM_LABEL=@json($activeRoom?->code ?? null);</script>
+        <script>window.WARQNA_EMOJIS=@json($emojiList); window.CHAT_HAS_ROOM=@json(request()->routeIs('room.show')); window.CHAT_ROOM_LABEL=@json($activeRoom?->code ?? null);</script>
         <button id="chatReopen" class="chat-reopen hidden" type="button" onclick="reopenChat()">💬</button>
         <div id="profileModal" class="profile-modal hidden"></div>
     @endauth

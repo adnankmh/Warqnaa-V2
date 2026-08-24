@@ -1,17 +1,24 @@
-# ابدأ من هنا — Warqnaa R14.2 Build 262
+# ابدأ من هنا — Warqnaa R14.3 Build 263
 
-الإصدار الحالي: **1.0.2+262**  
-المرحلة: **R14 — Global Release**
+الإصدار الحالي: **1.0.3+263**  
+المرحلة: **R14.3 — CI Engine Security**
 
-R14 مبني مباشرة فوق R13 Build 250 ويحافظ على R8/R9/R9.1/R10/R10.1/R11/R12/R13 وكل المحركات والاقتصاد والمتجر وSocial World وCompetitive Arena. Full Repository مستقل، وUpgrade مخصص لـB250.
+R14.3 مبني فوق R14 ويحافظ على R8/R9/R9.1/R10/R10.1/R11/R12/R13/R14 وكل المحركات والاقتصاد والمتجر وSocial World وCompetitive Arena. هذه الحزمة Full Repository مستقلة ولا تحتاج نسخة سابقة.
+
+## إصلاحات R14.3
+
+- إصلاح أخطاء Flutter Analyzer والأيقونات والرموز غير المعرفة.
+- إصلاح توقف Engine Gold عندما لا تغيّر حركة Bot الحالة.
+- إصلاح فحص الأسرار حتى يسمح بملف `.env` المؤقت غير المتتبع ويمنع الملف الملتزم داخل Git.
+- مركز أمان لتغيير البريد وكلمة المرور من الويب وFlutter مع طلب كلمة المرور الحالية.
+- منع Seeder من إعادة بيانات الدخول إلى القيم الافتراضية بعد أن يغيّرها المستخدم.
 
 ## توثيق R14
 
-- العقد الحالي: `docs/ar/releases/current/R14_1_LEGENDARY_EXPERIENCE_CONTRACT_AR.md`
-- عقد الإطلاق العالمي المحفوظ: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
+- العقد: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
 - Checklist الإطلاق: `docs/ar/deployment/R14_GLOBAL_LAUNCH_CHECKLIST_AR.md`
 - الترقية: `docs/ar/releases/current/R14_UPGRADE_FROM_B250_AR.md`
-- تقرير الجودة: `docs/ar/reports/current/QUALITY_REPORT_V262_AR.md`
+- تقرير الجودة: `docs/ar/reports/current/QUALITY_REPORT_V260_AR.md`
 
 ## التشغيل على Windows / XAMPP
 

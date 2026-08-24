@@ -147,7 +147,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
                 const SizedBox(height: 14),
                 FilledButton.icon(
                   onPressed: () => Navigator.pop(sheet, true),
-                  icon: const Icon(Icons.swords),
+                  icon: const Icon(Icons.sports_mma_rounded),
                   label: Text(ar ? 'ابدأ البحث العادل' : 'Start fair matchmaking'),
                 ),
               ],
@@ -191,7 +191,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   ]));
 
   Widget _queueCard() {
-    if(queue.isEmpty||!['waiting','matching','matched'].contains(queue['status'])) return _R12Glass(accent:_r12Gold,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Row(children:[const Icon(Icons.swords,color:_r12Gold,size:32),const SizedBox(width:11),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar?'مواجهة Ranked':'Ranked battle',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(ar?'خصوم مناسبون، لا بوتات، ولا نتيجة من العميل.':'Matched opponents, no bots, no client-trusted result.',style:const TextStyle(color:Colors.white54,fontSize:10))]))]),const SizedBox(height:13),FilledButton.icon(onPressed:_joinQueue,icon:const Icon(Icons.radar),label:Text(ar?'ابحث عن منافسين':'Find opponents'))]));
+    if(queue.isEmpty||!['waiting','matching','matched'].contains(queue['status'])) return _R12Glass(accent:_r12Gold,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Row(children:[const Icon(Icons.sports_mma_rounded,color:_r12Gold,size:32),const SizedBox(width:11),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar?'مواجهة Ranked':'Ranked battle',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(ar?'خصوم مناسبون، لا بوتات، ولا نتيجة من العميل.':'Matched opponents, no bots, no client-trusted result.',style:const TextStyle(color:Colors.white54,fontSize:10))]))]),const SizedBox(height:13),FilledButton.icon(onPressed:_joinQueue,icon:const Icon(Icons.radar),label:Text(ar?'ابحث عن منافسين':'Find opponents'))]));
     final matched=queue['status']=='matched',code=queue['room_code']?.toString()??'';
     return _R12Glass(accent:_r12Mint,child:Column(children:[Row(children:[const _R12Radar(),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(matched?(ar?'وجدنا منافستك!':'Match found!'):(ar?'جارٍ البحث…':'Searching…'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text('${queue['game']} • ${queue['region']} • ±${queue['search_window']??100} MMR',style:const TextStyle(color:_r12Mint,fontSize:9))]))]),const SizedBox(height:12),Row(children:[if(matched&&code.isNotEmpty)Expanded(child:FilledButton(onPressed:()=>_enterMatch(queue),child:Text(ar?'ادخل الآن':'Enter now')))else Expanded(child:OutlinedButton(onPressed:_cancelQueue,child:Text(ar?'إلغاء البحث':'Cancel search')))])]));
   }

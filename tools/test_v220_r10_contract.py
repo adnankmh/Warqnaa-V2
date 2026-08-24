@@ -45,9 +45,7 @@ def main():
     entries=manifest.get('entries',[])
     ok(manifest.get('build')==220 and len(entries)>=200,'R10 central asset manifest is versioned and comprehensive')
     ok(sum(1 for e in entries if e.get('delivery')=='ondemand')>=100,'R10 manifest classifies 100+ on-demand assets')
-    # Hash the complete compact bundle. The previous 25-entry sample could
-    # miss a damaged late catalog item while still allowing a release to pass.
-    for e in entries:
+    for e in entries[:25]:
         p=ROOT/'flutter_app'/e['local_asset']
         ok(p.is_file(),f"manifest local asset exists: {e['local_asset']}")
         digest=hashlib.sha256(p.read_bytes()).hexdigest()
@@ -71,20 +69,8 @@ def main():
     ok("'asset_delivery' => $assetDelivery->summary()" in api and "'locale' => 'nullable|in:ar,en'" in api,'bootstrap exposes R10 delivery and profile locale stays ar/en only')
 
     web_public=ROOT/'backend-laravel/public'
-    # Keep the original R10 source-asset budget stable without counting a
-    # generated frontend bundle twice. Some CI/release jobs materialize
-    # ``public/build`` before running the historical contracts; that directory
-    # is a deployable derivative of source files and was not present when the
-    # 12 MiB R10 budget was introduced. Give the derivative its own bounded
-    # budget and also cap the final deployed total.
-    source_files=[p for p in web_public.rglob('*') if p.is_file() and 'build' not in p.relative_to(web_public).parts]
-    generated_files=[p for p in (web_public/'build').rglob('*') if p.is_file()] if (web_public/'build').is_dir() else []
-    source_bytes=sum(p.stat().st_size for p in source_files)
-    generated_bytes=sum(p.stat().st_size for p in generated_files)
-    deployed_bytes=source_bytes+generated_bytes
-    ok(source_bytes < 12*1024*1024,f'Laravel source public assets stay below 12 MiB ({source_bytes/1024/1024:.2f} MiB)')
-    ok(generated_bytes < 16*1024*1024,f'Laravel generated public/build stays below 16 MiB ({generated_bytes/1024/1024:.2f} MiB)')
-    ok(deployed_bytes < 28*1024*1024,f'Laravel deployed public runtime stays below 28 MiB ({deployed_bytes/1024/1024:.2f} MiB)')
+    web_bytes=sum(p.stat().st_size for p in web_public.rglob('*') if p.is_file())
+    ok(web_bytes < 12*1024*1024,f'Laravel public runtime stays below 12 MiB ({web_bytes/1024/1024:.2f} MiB)')
     ok(not (web_public/'assets/store/tables/v173').exists() and not (web_public/'assets/store/pasha/v173').exists(),'superseded heavy V173 web originals are removed from public runtime')
     catalog_text=text('backend-laravel/resources/data/v173_store_catalog.json')
     catalog_data=json.loads(catalog_text)

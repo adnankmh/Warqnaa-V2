@@ -1,0 +1,16 @@
+{
+  "version": "1.0.3",
+  "build": 263,
+  "full": "1.0.3+263",
+  "release": "v263",
+  "display_release": "V1.0.3",
+  "name": "Warqnaa R14.3 CI Engine Security",
+  "base": "R14 Build 260",
+  "compatibility": ["R8", "R9", "R9.1", "R10", "R10.1", "R11", "R12", "R13", "R14"],
+  "channels": ["backend", "web", "android", "ios"],
+  "locales": ["ar", "en"],
+  "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},
+  "source_ready": true,
+  "deployment_owned": ["production secrets", "signing keys", "store submission", "DNS/TLS"],
+  "artifact_policy": {"clean_root": true, "secrets_in_repository": false, "full_repository_only": true}
+}

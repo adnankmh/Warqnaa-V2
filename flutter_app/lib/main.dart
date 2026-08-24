@@ -42,7 +42,6 @@ part 'r9_release.dart';
 part 'r10_1_release.dart';
 part 'r11_social_world.dart';
 part 'r12_competitive.dart';
-part 'r14_1_legendary.dart';
 part 'r14_2_account_security.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
@@ -111,7 +110,6 @@ class _WarqnaAppState extends State<WarqnaApp> {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final isLight = controller.themeCode == 'light';
         return MaterialApp(
           navigatorKey: warqnaNavigatorKey,
           debugShowCheckedModeBanner: false,
@@ -516,13 +514,20 @@ class AppController extends ChangeNotifier {
       .convert(utf8.encode('warqna-v175|${user.trim().toLowerCase()}|$password|local-session'))
       .toString();
 
-  Future<void> _storeOfflineCredentials(SharedPreferences prefs, String user, String mail, String password) async {
+  Future<void> _storeOfflineCredentials(
+    SharedPreferences prefs,
+    String user,
+    String mail,
+    String password, {
+    bool? admin,
+  }) async {
     final canonical = user.trim().toLowerCase();
     await prefs.setString(_offlineAliasKey(user), canonical);
     if (mail.trim().isNotEmpty) await prefs.setString(_offlineAliasKey(mail), canonical);
     await prefs.setString(_offlineHashKey(canonical), _offlineCredentialHash(canonical, password));
     await prefs.setString('warqna.offline.username.$canonical', user.trim());
     await prefs.setString('warqna.offline.email.$canonical', mail.trim());
+    if (admin != null) await prefs.setBool('warqna.offline.admin.$canonical', admin);
     await prefs.setString('lastOfflineUsername', user.trim());
     await prefs.setBool('offlineLoggedIn', true);
   }
@@ -532,13 +537,10 @@ class AppController extends ChangeNotifier {
     var alias = prefs.getString(_offlineAliasKey(loginId)) ?? loginId.trim().toLowerCase();
     var expected = prefs.getString(_offlineHashKey(alias));
     final demo = demoAccounts[alias];
-    if (expected == null && demo != null && demo['password']?.toString() == password) {
-      if (warqnaProductionMode) {
-        return 'حسابات التجربة معطلة في الإنتاج. سجّل الدخول بالخادم مرة واحدة لحفظ دخول أوفلاين آمن.';
-      }
-      final canonicalName = alias == 'adnan' ? 'Adnan' : '${alias.substring(0, 1).toUpperCase()}${alias.substring(1)}';
+    if (!warqnaProductionMode && expected == null && demo != null && demo['password']?.toString() == password) {
+      final canonicalName = '${alias.substring(0, 1).toUpperCase()}${alias.substring(1)}';
       final demoMail = '$alias@warqna.local';
-      await _storeOfflineCredentials(prefs, canonicalName, demoMail, password);
+      await _storeOfflineCredentials(prefs, canonicalName, demoMail, password, admin: false);
       alias = canonicalName.toLowerCase();
       expected = prefs.getString(_offlineHashKey(alias));
     }
@@ -549,7 +551,7 @@ class AppController extends ChangeNotifier {
     email = prefs.getString('warqna.offline.email.$alias') ?? '$alias@warqna.local';
     final demoProfile = demoAccounts[alias];
     displayName = demoProfile?['name']?.toString() ?? username;
-    isAdmin = demoProfile?['admin'] == true || username.toLowerCase() == 'adnan';
+    isAdmin = prefs.getBool('warqna.offline.admin.$alias') ?? false;
     await _loadAccountState(
       prefs,
       defaultCoins: demoProfile?['coins']?.toString() ?? (isAdmin ? '1000000000000000000' : '1500'),
@@ -576,8 +578,8 @@ class AppController extends ChangeNotifier {
     username = user.trim();
     displayName = username;
     email = mail.trim();
-    isAdmin = username.toLowerCase() == 'adnan';
-    await _storeOfflineCredentials(prefs, username, email, password);
+    isAdmin = false;
+    await _storeOfflineCredentials(prefs, username, email, password, admin: false);
     await _loadAccountState(prefs, defaultCoins: isAdmin ? '1000000000000000000' : '1500', defaultLevel: isAdmin ? 99 : 1, defaultVipDays: isAdmin ? 3650 : 0);
     _applyLocalLoginStreak();
     authToken = null;
@@ -938,7 +940,7 @@ class AppController extends ChangeNotifier {
       isAuthenticated = true;
       serverConnected = true;
       final prefs = await SharedPreferences.getInstance();
-      await _storeOfflineCredentials(prefs, username, email, password);
+      await _storeOfflineCredentials(prefs, username, email, password, admin: isAdmin);
       unawaited(_refreshPushRegistration());
       unawaited(startConnectivityMonitorV173());
       await _save();
@@ -965,7 +967,7 @@ class AppController extends ChangeNotifier {
       isAuthenticated = true;
       serverConnected = true;
       final prefs = await SharedPreferences.getInstance();
-      await _storeOfflineCredentials(prefs, username, email, password);
+      await _storeOfflineCredentials(prefs, username, email, password, admin: isAdmin);
       unawaited(_refreshPushRegistration());
       unawaited(startConnectivityMonitorV173());
       await _save();
@@ -3215,8 +3217,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> chooseDemoAccount() async {
     const accounts = <(String, String, String)>[
-      ('Adnan', 'Adnan123', 'مدير رئيسي • رصيد إدارة غير محدود'),
-      ('Abd', '123AbdAbd', 'مدير مفوّض • 10,000,000,000,000,000 توكن'),
       ('Kareem', 'Kareem123', 'لاعب مستوى 42'),
       ('Rami', 'Rami12345', 'لاعب مستوى 35'),
       ('Lina', 'Lina12345', 'لاعبة مستوى 28'),
@@ -3513,7 +3513,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => R141LegendaryHomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => R9HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
@@ -3615,7 +3615,7 @@ class _GamesPageState extends State<GamesPage> {
               childAspectRatio: columns == 2 ? .92 : .82,
             ),
             itemCount: visible.length,
-            itemBuilder: (_, i) => R141LegendaryGameCard(
+            itemBuilder: (_, i) => GameCard(
               game: visible[i],
               lang: lang,
               onTap: () => showGameLobby(context, widget.controller, visible[i]),
@@ -7908,6 +7908,16 @@ void showSettings(BuildContext context, AppController controller) {
           ListTile(leading:const Icon(Icons.format_size),title:Text(L.t(controller.localeCode,'fontSize')),subtitle:Text('${(controller.uiFontScale*100).round()}%'),trailing:Wrap(spacing:4,children:[IconButton.filledTonal(onPressed:(){controller.adjustFontScale(-.08);setLocalState((){});},icon:const Text('A−')),IconButton.filledTonal(onPressed:(){controller.adjustFontScale(.08);setLocalState((){});},icon:const Text('A+'))])),
           ListTile(leading:const Icon(Icons.health_and_safety_outlined),title:Text(L.t(controller.localeCode,'connectionCheck')),subtitle:const Text('الخادم والإنترنت والميكروفون'),trailing:const Icon(Icons.chevron_right),onTap:()=>showConnectionDiagnosticsDialog(context,controller)),
           ListTile(leading:const Icon(Icons.privacy_tip_outlined),title:Text(L.t(controller.localeCode,'privacyPolicy')),trailing:const Icon(Icons.chevron_right),onTap:()=>showPrivacyPolicyPage(context,controller)),
+          ListTile(
+            leading: const Icon(Icons.security_rounded, color: Colors.lightBlueAccent),
+            title: Text(controller.localeCode == 'ar' ? 'أمان الحساب' : 'Account security'),
+            subtitle: Text(controller.localeCode == 'ar' ? 'تغيير البريد وكلمة المرور بأمان' : 'Securely change email and password'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => R143AccountSecurityPage(controller: controller)));
+            },
+          ),
           const Divider(),
           ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => const [PopupMenuItem(value:'ar',child:Text('العربية')),PopupMenuItem(value:'en',child:Text('English'))])),
           ListTile(
@@ -7928,12 +7938,11 @@ void showSettings(BuildContext context, AppController controller) {
           ),
           if (controller.isPrimaryAdmin) ListTile(leading: const Icon(Icons.tune_rounded), title: Text(L.t(controller.localeCode, 'noCode')), subtitle: const Text('مصمم شامل خاص بحساب Adnan مع معاينة فورية'), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); showNoCodeDesignerSheet(context, controller); }),
           ListTile(leading: const Icon(Icons.install_mobile_rounded), title: const Text('تثبيت التطبيق على الهاتف'), subtitle: const Text('استخدم زر التثبيت أو إضافة إلى الشاشة الرئيسية من المتصفح.')),
-          ListTile(leading: const Icon(Icons.shield_lock_rounded, color: Color(0xff55e2c8)), title: Text(r142Text(controller.localeCode, 'title')), subtitle: Text(r142Text(controller.localeCode, 'subtitle')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => AccountSecurityPageR142(controller: controller))); }),
           ListTile(leading: const Icon(Icons.security_rounded, color: Colors.lightBlueAccent), title: Text(v153Text(controller.localeCode, 'productionCenter')), subtitle: Text(v153Text(controller.localeCode, 'productionCenterHint')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); openProductionCenterV153(context, controller); }),
           const ListTile(leading: Icon(Icons.restore_rounded), title: Text('مهلة استعادة الحساب'), subtitle: Text('بعد إلغاء الحساب يمكنك استعادته بمجرد تسجيل الدخول خلال 30 يوماً؛ لا تُحذف الحسابات العادية بسبب عدم النشاط.')),
           const Divider(),
           if (!controller.isAdmin) OutlinedButton.icon(onPressed: () => showCancelAccountDialog(context, controller), icon: const Icon(Icons.person_off_rounded, color: Colors.redAccent), label: Text(L.t(controller.localeCode, 'deleteAccount'), style: const TextStyle(color: Colors.redAccent))),
-          if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('Adnan: مدير رئيسي ورصيد غير محدود • Abd: مدير مفوّض حسب صلاحيات Adnan.')),
+          if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('بيانات المدير لا تُضمّن داخل التطبيق، وتُدار من مركز أمان الحساب.')),
           const SizedBox(height: 8),
           FilledButton(onPressed: () { Navigator.pop(context); showToast(context, 'تم حفظ الإعدادات وتطبيقها على التطبيق.'); }, child: Text(L.t(controller.localeCode, 'save'))),
         ],

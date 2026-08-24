@@ -65,6 +65,26 @@ if not exist ".env" (
   echo .env already exists.
 )
 
+findstr /B /C:"ADMIN_PASSWORD=CHANGE_ME_STRONG_ADMIN_PASSWORD" ".env" >nul
+if %errorlevel% equ 0 (
+  echo.
+  echo Create the initial administrator password. It must be at least 10 characters.
+  set "WARQNAA_SETUP_ADMIN_PASSWORD="
+  set /p "WARQNAA_SETUP_ADMIN_PASSWORD=Admin password: "
+  if not defined WARQNAA_SETUP_ADMIN_PASSWORD (
+    echo ERROR: Administrator password cannot be empty.
+    pause
+    exit /b 1
+  )
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=[Environment]::GetEnvironmentVariable('WARQNAA_SETUP_ADMIN_PASSWORD'); if($p.Length -lt 10){exit 2}; $f='.env'; $c=Get-Content -LiteralPath $f; $c=$c -replace '^ADMIN_PASSWORD=.*$',('ADMIN_PASSWORD='+$p); Set-Content -LiteralPath $f -Value $c -Encoding UTF8"
+  if %errorlevel% neq 0 (
+    echo ERROR: Password must contain at least 10 characters.
+    pause
+    exit /b 1
+  )
+  set "WARQNAA_SETUP_ADMIN_PASSWORD="
+)
+
 if not exist "database" mkdir "database"
 if not exist "database\database.sqlite" (
   echo Creating SQLite database file...
@@ -130,8 +150,7 @@ echo.
 echo ==================================================
 echo Setup completed successfully.
 echo Admin username: Adnan
-echo Admin email: adnanasd63@gmail.com
-echo Admin password: Adnan123
+echo Change email/password later from Account Security.
 echo Now run: start-windows.bat
 echo ==================================================
 pause

@@ -1,6 +1,8 @@
-# Warqnaa V1.0.2+262 — R14.2 Secure Account & CI Reliability
+# Warqnaa V1.0.3+263 — R14.3 CI Engine Security
 
-الإصدار الحالي: **1.0.2+262**
+الإصدار الحالي: **1.0.3+263**
+
+R14.3 يصلح أخطاء Flutter وEngine Gold وفحص أسرار GitHub الظاهرة في سجل البناء، ويضيف مركزًا آمنًا لتغيير البريد وكلمة المرور في الموقع والتطبيق مع الحفاظ على ميزات R8–R14.
 
 R14 هو الإغلاق العالمي للمشروع عبر Backend وWeb وAndroid وiOS. يضيف بوابة إطلاق موحدة، Production/Store preflight، أدلة SHA-256، ويفرض سلسلة R8–R14 مع Engine Gold قبل اعتبار أي Tag إصدارًا عالميًا.
 
@@ -13,11 +15,7 @@ R14 هو الإغلاق العالمي للمشروع عبر Backend وWeb وAnd
 - فصل واضح بين جاهزية المصدر وبين أسرار الإنتاج والتوقيع وحسابات المتاجر وDNS/TLS.
 - وثائق إطلاق عربية/إنجليزية وChecklist إنتاج وحزم Full/Upgrade موثقة.
 
-عقد R14.1: `docs/ar/releases/current/R14_1_LEGENDARY_EXPERIENCE_CONTRACT_AR.md`
-
-عقد R14.2: `docs/ar/releases/current/R14_2_SECURE_ACCOUNT_CONTRACT_AR.md`
-
-عقد R14 Global Release محفوظ في `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`.
+عقد R14: `docs/ar/releases/current/R14_GLOBAL_RELEASE_CONTRACT_AR.md`
 
 ## R13 المحفوظ بالكامل
 

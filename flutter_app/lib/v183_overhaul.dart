@@ -6,6 +6,14 @@ const String warqnaaV183Release = '0.3.2+183';
 bool isDesktopWebV183(double width) => kIsWeb && width >= 1024;
 bool isWideDesktopV183(double width) => kIsWeb && width >= 1440;
 
+String _multiplierLabelV183(double? multiplier) {
+  if (multiplier == null || multiplier <= 1) return '';
+  final rounded = multiplier == multiplier.roundToDouble()
+      ? multiplier.toStringAsFixed(0)
+      : multiplier.toStringAsFixed(1);
+  return '×$rounded';
+}
+
 int raisedStorePriceV183(StoreProduct product) {
   if (product.price <= 0) return product.price;
   if (product.category == 'pasha') return product.price;

@@ -42,7 +42,7 @@ class MobileApiController extends Controller
             'ok' => true,
             'message' => 'تم إنشاء الحساب بنجاح',
             'token' => $token,
-            'user' => array_merge($user->fresh('profile')->publicProfile(), ['email' => $user->email]),
+            'user' => $this->selfProfile($user->fresh('profile')),
             'wallet' => $this->walletPayload($user),
         ], 201);
     }
@@ -67,7 +67,7 @@ class MobileApiController extends Controller
         return response()->json([
             'ok' => true,
             'token' => $user->createToken('mobile', ['*'], now()->addDays(30))->plainTextToken,
-            'user' => array_merge($user->load('profile')->publicProfile(), ['email' => $user->email]),
+            'user' => $this->selfProfile($user->load('profile')),
             'wallet' => $this->walletPayload($user),
             'streak_reward' => $streakReward,
             'account_reactivated' => $reactivated,
@@ -83,7 +83,7 @@ class MobileApiController extends Controller
         $user->load('profile', 'wallet');
         return response()->json([
             'ok' => true,
-            'user' => array_merge($user->publicProfile(), ['email' => $user->email]),
+            'user' => $this->selfProfile($user),
             'wallet' => $this->walletPayload($user),
             'games' => Game::where('active', true)->whereIn('key', GameCatalog::customerKeys())->orderBy('id')->get(),
             'store' => StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get(),
@@ -125,7 +125,7 @@ class MobileApiController extends Controller
     {
         $user = $this->ensurePrimaryAdmin($request->user());
         $user->load('profile', 'wallet');
-        return response()->json(['ok' => true, 'user' => array_merge($user->publicProfile(), ['email' => $user->email]), 'wallet' => $this->walletPayload($user)]);
+        return response()->json(['ok' => true, 'user' => $this->selfProfile($user), 'wallet' => $this->walletPayload($user)]);
     }
 
     public function updateProfile(Request $request)
@@ -165,8 +165,7 @@ class MobileApiController extends Controller
         if (isset($data['pasha_style'])) $profile->pasha_style = 'red';
         $profile->save();
 
-        $freshUser = $request->user()->fresh('profile');
-        return response()->json(['ok' => true, 'message' => 'تم تحديث الملف الشخصي', 'user' => array_merge($freshUser->publicProfile(), ['email' => $freshUser->email])]);
+        return response()->json(['ok' => true, 'message' => 'تم تحديث الملف الشخصي', 'user' => $this->selfProfile($request->user()->fresh('profile'))]);
     }
 
     public function wallet(Request $request)
@@ -515,6 +514,12 @@ class MobileApiController extends Controller
             'tokens_formatted' => number_format((int) $wallet->tokens),
             'gems' => (string) $wallet->gems,
         ];
+    }
+
+    /** Email is returned only on authenticated self endpoints, never in public profiles. */
+    private function selfProfile(User $user): array
+    {
+        return $user->publicProfile() + ['email' => (string)$user->email];
     }
 
     /** Keep the named primary account authoritative even on upgraded databases. */

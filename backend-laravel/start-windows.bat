@@ -50,6 +50,6 @@ echo.
 echo Open this link:
 echo http://127.0.0.1:8007
 echo.
-echo Admin: Adnan / Adnan123
+echo Sign in with the administrator password created during setup.
 echo.
 pause

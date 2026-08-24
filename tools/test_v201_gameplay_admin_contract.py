@@ -22,7 +22,10 @@ ok('_reorderServerHand' in main and 'LongPressDraggable<int>' in main and 'DragT
 user=(ROOT/'backend-laravel/app/Models/User.php').read_text(encoding='utf-8')
 ok('isPrimaryAdmin' in user and 'hasAdminPermission' in user and '100000000000000000000000000000000' in user,'primary/delegated admin policy and ceremonial Adnan display balance')
 seed=(ROOT/'backend-laravel/database/seeders/DatabaseSeeder.php').read_text(encoding='utf-8')
-ok("'username'=>'Abd'" in seed and "Hash::make('123AbdAbd')" in seed and '10000000000000000' in seed,'Abd delegated admin seeded')
+if int(meta.get('build',0)) >= 263:
+    ok("'username'=>'Abd'" in seed and 'Str::random(48)' in seed and '10000000000000000' in seed,'delegated admin is seeded without a published password')
+else:
+    ok("'username'=>'Abd'" in seed and "Hash::make('123AbdAbd')" in seed and '10000000000000000' in seed,'Abd delegated admin seeded')
 meta=json.loads((ROOT/'RELEASE_VERSION.json').read_text(encoding='utf-8'))
 if int(meta.get('build',0)) >= 210:
     store=(ROOT/'backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php').read_text(encoding='utf-8')
@@ -35,5 +38,8 @@ ok('border-radius:50%!important' in css and 'game-table{width:min(100%,1480px)' 
 wheel=(ROOT/'backend-laravel/app/Services/WarqnaPro/LuckyWheelService.php').read_text(encoding='utf-8')
 ok(wheel.count("['key'=>") == (12 if int(meta.get('build',0)) >= 221 else 8),'reward wheel exposes the release-appropriate varied prize set')
 flutter=(ROOT/'flutter_app/lib/premium_v151.dart').read_text(encoding='utf-8')
-ok("'abd':" in flutter and '123AbdAbd' in flutter,'Flutter demo Abd account')
+if int(meta.get('build',0)) >= 263:
+    ok("'abd':" not in flutter and '123AbdAbd' not in flutter,'Flutter does not publish delegated-admin credentials')
+else:
+    ok("'abd':" in flutter and '123AbdAbd' in flutter,'Flutter demo Abd account')
 print('V201 GAMEPLAY & ADMIN CONTRACT: PASS')
