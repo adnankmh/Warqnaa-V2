@@ -98,6 +98,7 @@ jobs:
           python3 ../tools/test_v300_world_experience_contract.py
           python3 ../tools/test_v301_ci_i18n_contract.py
           python3 ../tools/test_v302_flutter_hand_final_contract.py
+          python3 ../tools/test_v303_runtime_premium_contract.py
           python3 ../tools/global_release_preflight.py
           python3 ../tools/test_v184_flutter_quality_contract.py
           python3 ../tools/test_v184_official_game_rules_contract.py

@@ -149,7 +149,7 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
         TextField(controller: description, minLines: 2, maxLines: 5, maxLength: 2000, decoration: InputDecoration(labelText: ar ? 'الوصف' : 'Description')),
         DropdownButtonFormField<String>(initialValue: visibility, decoration: InputDecoration(labelText: ar ? 'الخصوصية' : 'Visibility'), items: const [DropdownMenuItem(value:'public',child:Text('Public')),DropdownMenuItem(value:'friends',child:Text('Friends')),DropdownMenuItem(value:'private',child:Text('Private'))], onChanged: (value) => setDialogState(() => visibility = value ?? visibility)),
         const SizedBox(height: 10),
-        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined, color: _r11Gold), title: Text(ar ? 'موعد البداية' : 'Starts at'), subtitle: Text(MaterialLocalizations.of(context).formatFullDate(startsAt) + ' • ' + TimeOfDay.fromDateTime(startsAt).format(context)), onTap: () async {
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule_outlined, color: _r11Gold), title: Text(ar ? 'موعد البداية' : 'Starts at'), subtitle: Text('${MaterialLocalizations.of(context).formatFullDate(startsAt)} • ${TimeOfDay.fromDateTime(startsAt).format(context)}'), onTap: () async {
           final date = await showDatePicker(context: context, initialDate: startsAt, firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
           if (date == null || !context.mounted) return;
           final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(startsAt));
@@ -321,12 +321,13 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
     if (catalog.isEmpty) return;
     Map<String, dynamic>? selected;
     selected = await showModalBottomSheet<Map<String, dynamic>>(context: context, showDragHandle: true, builder: (context) => SafeArea(child: Padding(padding: const EdgeInsets.all(16), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [Text(ar ? 'هدية إلى ${recipient['display_name']}' : 'Gift to ${recipient['display_name']}', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),const SizedBox(height: 12),Wrap(spacing: 8, runSpacing: 8, children: catalog.map((gift) => InkWell(onTap: () => Navigator.pop(context, gift), borderRadius: BorderRadius.circular(16), child: Container(width: 92, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(16), border: Border.all(color: _r11Gold.withValues(alpha: .18))), child: Column(children: [Text(gift['icon']?.toString() ?? '✨', style: const TextStyle(fontSize: 30)),Text(_r11Localized(gift[ar ? 'ar' : 'en'], widget.controller.localeCode, gift[ar ? 'ar' : 'en']?.toString() ?? ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9)),Text('🪙 ${gift['cost']}', style: const TextStyle(color: _r11Gold, fontSize: 9))])))).toList()),const SizedBox(height: 10),const Text('⚖️ Social-only • no competitive advantage', textAlign: TextAlign.center, style: TextStyle(color: Colors.white38, fontSize: 9))]))));
-    if (selected == null) return;
+    final gift = selected;
+    if (gift == null) return;
     final recipientId = int.tryParse(recipient['id']?.toString() ?? '');
     if (recipientId == null) return;
     try {
-      await widget.controller.api.sendSocialGiftR11(recipientId: recipientId, giftKey: selected['key'].toString());
-      if (mounted) await showDialog<void>(context: context, barrierColor: Colors.black87, builder: (_) => _R11GiftCelebration(icon: selected['icon']?.toString() ?? '✨', title: _r11Localized(selected[ar ? 'ar' : 'en'], widget.controller.localeCode, ar ? 'هدية وصلت' : 'Gift delivered')));
+      await widget.controller.api.sendSocialGiftR11(recipientId: recipientId, giftKey: gift['key'].toString());
+      if (mounted) await showDialog<void>(context: context, barrierColor: Colors.black87, builder: (_) => _R11GiftCelebration(icon: gift['icon']?.toString() ?? '✨', title: _r11Localized(gift[ar ? 'ar' : 'en'], widget.controller.localeCode, ar ? 'هدية وصلت' : 'Gift delivered')));
       await _load();
     } catch (e) { if (mounted) showToast(context, e.toString()); }
   }
@@ -564,7 +565,7 @@ class _R11AdminSocialWorldPanelState extends State<R11AdminSocialWorldPanel> {
   void initState() { super.initState(); _load(); }
   Future<void> _load() async { if (!widget.controller.serverConnected) { if (mounted) setState(() => loading = false); return; } try { final response = await widget.controller.api.adminSocialWorldR11(); if (mounted) setState(() => data = response); } catch (e) { if (mounted) showToast(context, e.toString()); } finally { if (mounted) setState(() => loading = false); } }
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     if (loading) return const Center(child: CircularProgressIndicator());
     final stats = _r11Map(data['stats']), settings = _r11Map(data['settings']), activities = _r11List(data['activities']), events = _r11List(data['events']), replays = _r11List(data['replays']), spectators = _r11List(data['spectators']);
     return RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.all(12), children: [

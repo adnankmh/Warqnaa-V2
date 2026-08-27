@@ -20,11 +20,11 @@ ok((uses_r9_direct or uses_r101_wrapper) and "R9HomeDashboard" in successor_home
 ok('final palette = AppPalette.fromCode(controller.themeCode);' not in main,'R9 app shell has no stale unused palette local')
 ok("part 'r9_release.dart';" in main,'R9 Flutter release module is wired')
 r9=read('flutter_app/lib/r9_release.dart')
-ok('final accent = Theme.of(context).colorScheme.primary;' not in r9,'R9 lobby has no stale unused accent local')
+ok('final accent = Theme.of(context).colorScheme.primary;' not in r9 or 'accent.withValues' in r9,'R9 lobby has no stale unused accent local')
 legacy_table_preview = 'aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'BoxFit.cover' in r9
 r101_table_preview = build >= 221 and 'aspectRatio: portrait ? 10 / 16 : 16 / 9' in r9 and 'FractionallySizedBox' in r9 and 'BoxFit.contain' in r9
 ok(legacy_table_preview or r101_table_preview,'R9 directional table preview foundation is preserved (R10.1 may use proportional artwork inlay)')
-ok('Live lobby • R9' in r9 and 'العب الآن' in r9,'R9 home lobby exists')
+ok(('Live lobby • R9' in r9 and 'العب الآن' in r9) or ('premiumHeroTitle' in r9 and 'worldStatus' in r9),'R9 home lobby foundation or successor premium hero exists')
 layout=read('backend-laravel/resources/views/layouts/app.blade.php')
 ok('r9-design-system.css' in layout and 'warqna-r9' in layout,'Laravel loads R9 design system')
 ok('data-lang-pick="ar"' in layout and 'data-lang-pick="en"' in layout,'Laravel language picker preserves the R9 Arabic/English baseline')

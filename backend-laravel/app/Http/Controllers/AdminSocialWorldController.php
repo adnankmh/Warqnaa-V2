@@ -8,6 +8,7 @@ use App\Models\{
 };
 use App\Services\Platform\AdminAuditService;
 use App\Services\Social\MatchReplayService;
+use App\Support\AuthenticatedActor;
 use Illuminate\Http\Request;
 
 class AdminSocialWorldController extends Controller
@@ -143,8 +144,9 @@ class AdminSocialWorldController extends Controller
 
     private function guard(Request $request): void
     {
-        abort_unless((bool) $request->user()?->is_admin, 403, 'هذه الصفحة للإدارة فقط.');
-        abort_unless($request->user()->hasAdminPermission('social_world'), 403, 'تحتاج صلاحية إدارة Social World.');
+        $actor = AuthenticatedActor::resolve($request);
+        abort_unless((bool) $actor->is_admin, 403, 'هذه الصفحة للإدارة فقط.');
+        abort_unless($actor->hasAdminPermission('social_world'), 403, 'تحتاج صلاحية إدارة Social World.');
     }
 
     /** @param array<string,mixed> $extra */

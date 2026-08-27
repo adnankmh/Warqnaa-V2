@@ -146,11 +146,13 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
 
   Future<void> _load() async {
     if (!widget.controller.serverConnected) {
-      if (mounted) setState(() {
-        challenges = fallback.map(Map<String,dynamic>.from).toList();
-        loading = false;
-        error = bi('الوضع المحلي فعّال؛ مسار المراحل والمكافآت محفوظ على هذا الجهاز.', 'Local mode is active; stage-road progress and rewards are saved on this device.');
-      });
+      if (mounted) {
+        setState(() {
+          challenges = fallback.map(Map<String,dynamic>.from).toList();
+          loading = false;
+          error = bi('الوضع المحلي فعّال؛ مسار المراحل والمكافآت محفوظ على هذا الجهاز.', 'Local mode is active; stage-road progress and rewards are saved on this device.');
+        });
+      }
       return;
     }
     try {
@@ -158,7 +160,9 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       final raw = data['challenges'];
       final parsed = raw is List ? raw.whereType<Map>().map((e) => Map<String,dynamic>.from(e)).toList() : <Map<String,dynamic>>[];
       final roadRaw = data['challenge_road'];
-      if (roadRaw is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      if (roadRaw is Map) {
+        widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      }
       if (mounted) setState(() {
         challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed;
         loading = false;
@@ -230,15 +234,20 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       if (matchRaw is! Map) throw const ApiException('Invalid challenge matchmaking response.');
       final match = Map<String,dynamic>.from(matchRaw);
       final roadRaw = match['road'];
-      if (roadRaw is Map) widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      if (roadRaw is Map) {
+        widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
+      }
       final code = match['room_code']?.toString().trim() ?? '';
       if (code.isEmpty) throw const ApiException('Challenge room code is missing.');
       final opponent = match['opponent'];
       String opponentName = bi('منافس عشوائي','Random opponent');
-      if (opponent is Map) opponentName = opponent['display_name']?.toString() ?? opponent['username']?.toString() ?? opponentName;
-      final navigationContext = Navigator.of(context, rootNavigator:true).context;
-      if (mounted) showToast(context, bi('تم اختيار $opponentName للمرحلة التالية.','Matched with $opponentName for the next stage.'));
-      if (mounted) Navigator.pop(context);
+      if (opponent is Map) {
+        opponentName = opponent['display_name']?.toString() ?? opponent['username']?.toString() ?? opponentName;
+      }
+      if (!mounted) return;
+      final navigationContext = Navigator.of(context, rootNavigator: true).context;
+      showToast(context, bi('تم اختيار $opponentName للمرحلة التالية.','Matched with $opponentName for the next stage.'));
+      Navigator.pop(context);
       await openGameRoom(navigationContext, widget.controller, game, options: RoomLaunchOptions(
         roomCode: code,
         roomName: bi('مسار التحدي','Challenge Road'),

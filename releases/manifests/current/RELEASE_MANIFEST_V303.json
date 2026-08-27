@@ -1,0 +1,15 @@
+{
+  "version": "1.2.0",
+  "build": 303,
+  "full": "1.2.0+303",
+  "release": "v303",
+  "name": "Warqnaa WORLD EXPERIENCE — Runtime Social Stability & Global Premium UI",
+  "baseline": "1.1.2+302",
+  "focus": [
+    "V230 Social World runtime stability",
+    "Flutter analyzer zero-error fixes",
+    "global premium web home",
+    "premium Flutter home hero",
+    "historical regression compatibility"
+  ]
+}

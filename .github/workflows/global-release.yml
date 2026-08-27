@@ -31,6 +31,7 @@ jobs:
       - run: python3 tools/test_v300_world_experience_contract.py
       - run: python3 tools/test_v301_ci_i18n_contract.py
       - run: python3 tools/test_v302_flutter_hand_final_contract.py
+      - run: python3 tools/test_v303_runtime_premium_contract.py
       - run: python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/global-release.json"
       - name: Engine Gold release evidence
         env:
@@ -46,6 +47,7 @@ jobs:
           php artisan key:generate
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
+          php artisan test --filter V303RuntimeStabilityTest
           php artisan test
           php artisan warqna:global-release-check --json
       - uses: actions/upload-artifact@v6

@@ -8,6 +8,7 @@ use App\Models\{
 };
 use App\Services\Social\SocialWorldPolicy;
 use App\Services\Wallet\WalletService;
+use App\Support\AuthenticatedActor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -25,6 +26,7 @@ class MobileClubWorldController extends Controller
 
     public function index(Request $request)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $membership = ClubMember::with('club')->where('user_id', $request->user()->id)->first();
         $clubs = Club::with(['owner.profile', 'members.user.profile'])->withCount('members')
@@ -42,6 +44,7 @@ class MobileClubWorldController extends Controller
 
     public function show(Request $request, Club $club)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $member = $club->members()->where('user_id', $request->user()->id)->first();
         abort_if($club->visibility === 'private' && !$member && !$request->user()->is_admin, 403, 'هذا النادي خاص.');
@@ -84,6 +87,7 @@ class MobileClubWorldController extends Controller
 
     public function create(Request $request, WalletService $wallet)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         abort_unless(($request->user()->profile?->pasha_days ?? 0) > 0 || $request->user()->is_admin, 403, 'إنشاء النادي متاح لأعضاء الباشا.');
         abort_if(ClubMember::where('user_id', $request->user()->id)->exists(), 409, 'أنت عضو في نادي بالفعل.');
@@ -118,6 +122,7 @@ class MobileClubWorldController extends Controller
 
     public function join(Request $request, Club $club)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $status = DB::transaction(function () use ($request, $club) {
             User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
@@ -157,6 +162,7 @@ class MobileClubWorldController extends Controller
 
     public function leave(Request $request, Club $club)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $closed = DB::transaction(function () use ($request, $club) {
             User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
@@ -179,6 +185,7 @@ class MobileClubWorldController extends Controller
 
     public function announce(Request $request, Club $club)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         abort_unless($this->can($club, $request, 'create_announcements'), 403, 'لا تملك صلاحية النشر.');
         $data = $request->validate(['title' => 'required|string|max:140', 'body' => 'required|string|max:2000', 'pinned' => 'nullable|boolean']);
@@ -196,6 +203,7 @@ class MobileClubWorldController extends Controller
 
     public function respond(Request $request, ClubJoinRequest $joinRequest)
     {
+        AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $club = $joinRequest->club;
         abort_unless($this->can($club, $request, 'accept_members'), 403);

@@ -103,6 +103,8 @@ jobs:
         run: python3 ../tools/test_v301_ci_i18n_contract.py
       - name: Verify V302 Flutter and Hand final stability
         run: python3 ../tools/test_v302_flutter_hand_final_contract.py
+      - name: Verify V303 runtime social and premium UI stability
+        run: python3 ../tools/test_v303_runtime_premium_contract.py
       - name: Verify R14 cross-channel source readiness
         run: python3 ../tools/global_release_preflight.py
       - name: Run R8 deep Tarneeb Hand Banakil audit
@@ -123,6 +125,8 @@ jobs:
         run: php tools/test-v250-r13-engine-gold.php
       - name: Run R11 privacy, spectator, replay and economy tests
         run: php artisan test --filter V230SocialWorldTest
+      - name: Run B303 bearer-actor and permission refresh regression tests
+        run: php artisan test --filter V303RuntimeStabilityTest
       - name: Verify R11 Social World retention command
         run: php artisan warqna:cleanup-social-world --dry-run
       - name: Run R12 matchmaking, MMR, bracket and reward tests

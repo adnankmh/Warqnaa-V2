@@ -198,11 +198,73 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   Widget _cups() { final cups=_r12List(data['tournaments']); return RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[_R12SectionHero(icon:'♜',eyebrow:'LEAGUES • CUPS • CHAMPIONSHIPS',title:ar?'طريقك إلى الكأس':'Your road to the cup',subtitle:ar?'عالمي، أندية، ودول — جداول خادمية وجائزة نهائية موثقة.':'Global, club and country brackets with verified final payouts.'),const SizedBox(height:12),if(cups.isEmpty)_R12Empty(text:ar?'لا توجد بطولة مفتوحة الآن.':'No open championship right now.')else ...cups.map((cup)=>Padding(padding:const EdgeInsets.only(bottom:10),child:_R12CupCard(cup:cup,locale:widget.controller.localeCode,onTap:()=>_openCup(cup))))])); }
 
-  Future<void> _openCup(Map<String,dynamic> cup) async {
-    Map<String,dynamic> details=cup; final id=_r12Int(cup['id']);
-    if(widget.controller.serverConnected&&id>0){try{final r=await widget.controller.api.competitiveTournamentR12(id);details=_r12Map(r['tournament']);}catch(e){if(mounted)showToast(context,e.toString());}}
-    if(!mounted)return; final rounds=_r12List(_r12Map(details['bracket'])['rounds']);
-    await showModalBottomSheet<void>(context:context,isScrollControlled:true,showDragHandle:true,builder:(sheet)=>DraggableScrollableSheet(expand:false,initialChildSize:.78,maxChildSize:.94,builder:(context,scroll)=>ListView(controller:scroll,padding:const EdgeInsets.fromLTRB(16,0,16,26),children:[Text(_r12Local(details['name'],widget.controller.localeCode,details['key']?.toString()??'Cup'),style:const TextStyle(fontSize:25,fontWeight:FontWeight.w900)),Text('${details['format']??'single_elimination'} • ${details['scope']??'global'} • 🪙 ${details['prize_pool']??0}',style:const TextStyle(color:_r12Gold)),const SizedBox(height:13),if(rounds.isEmpty)const _R12Empty(text:'Bracket locks when registration reaches capacity.')else ...rounds.map((round)=>_R12BracketRound(round:round,locale:widget.controller.localeCode)),const SizedBox(height:13),if(details['registered']!=true&&details['status']=='open')FilledButton.icon(onPressed:widget.controller.serverConnected?()async{try{await widget.controller.api.joinCompetitiveTournamentR12(id);if(sheet.mounted)Navigator.pop(sheet);if(mounted)showToast(context,ar?'تم التسجيل في البطولة.':'Tournament registration complete.');await _load(quiet:true);}catch(e){if(mounted)showToast(context,e.toString());}}:null,icon:const Icon(Icons.how_to_reg),label:Text(ar?'سجّل في البطولة':'Register'))])));
+  Future<void> _openCup(Map<String, dynamic> cup) async {
+    Map<String, dynamic> details = cup;
+    final id = _r12Int(cup['id']);
+
+    if (widget.controller.serverConnected && id > 0) {
+      try {
+        final response = await widget.controller.api.competitiveTournamentR12(id);
+        details = _r12Map(response['tournament']);
+      } catch (error) {
+        if (!mounted) return;
+        showToast(context, error.toString());
+      }
+    }
+
+    if (!mounted) return;
+    final rounds = _r12List(_r12Map(details['bracket'])['rounds']);
+    final tournament = Map<String, dynamic>.from(details);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: .78,
+        maxChildSize: .94,
+        builder: (scrollContext, scrollController) => ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 26),
+          children: [
+            Text(
+              _r12Local(tournament['name'], widget.controller.localeCode, tournament['key']?.toString() ?? 'Cup'),
+              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
+            ),
+            Text(
+              '${tournament['format'] ?? 'single_elimination'} • ${tournament['scope'] ?? 'global'} • 🪙 ${tournament['prize_pool'] ?? 0}',
+              style: const TextStyle(color: _r12Gold),
+            ),
+            const SizedBox(height: 13),
+            if (rounds.isEmpty)
+              const _R12Empty(text: 'Bracket locks when registration reaches capacity.')
+            else
+              ...rounds.map((round) => _R12BracketRound(round: round, locale: widget.controller.localeCode)),
+            const SizedBox(height: 13),
+            if (tournament['registered'] != true && tournament['status'] == 'open')
+              FilledButton.icon(
+                onPressed: widget.controller.serverConnected
+                    ? () async {
+                        try {
+                          await widget.controller.api.joinCompetitiveTournamentR12(id);
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                          if (!mounted) return;
+                          showToast(context, ar ? 'تم التسجيل في البطولة.' : 'Tournament registration complete.');
+                          await _load(quiet: true);
+                        } catch (error) {
+                          if (!mounted) return;
+                          showToast(context, error.toString());
+                        }
+                      }
+                    : null,
+                icon: const Icon(Icons.how_to_reg),
+                label: Text(ar ? 'سجّل في البطولة' : 'Register'),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _ladder() => RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[_R12SectionHero(icon:'♛',eyebrow:'GLOBAL RANKED LADDER',title:ar?'صالة المتصدرين':'Hall of contenders',subtitle:_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season')),const SizedBox(height:10),...leaders.asMap().entries.map((entry)=>_R12LeaderRow(row:entry.value,rank:entry.key+1,locale:widget.controller.localeCode,isMe:_r12Int(entry.value['user_id'])==(widget.controller.currentUserId??-1))) ]));
@@ -446,7 +508,7 @@ class _R12AdminCompetitivePanelState extends State<R12AdminCompetitivePanel> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     if (loading) return const Center(child: CircularProgressIndicator());
     final stats = _r12Map(data['stats']);
     final settings = _r12Map(data['settings']);

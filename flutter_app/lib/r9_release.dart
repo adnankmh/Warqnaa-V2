@@ -33,80 +33,223 @@ class R9HomeDashboard extends StatelessWidget {
       );
 
   Widget _hero(BuildContext context, bool wide) {
+    final accent = Theme.of(context).colorScheme.primary;
+    final copy = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: R9Design.gold.withValues(alpha: .08),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: R9Design.gold.withValues(alpha: .20)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF5FF0A4),
+                  boxShadow: [BoxShadow(color: Color(0x665FF0A4), blurRadius: 12)],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                L.t(controller.localeCode, 'worldStatus'),
+                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFFF0D486), letterSpacing: .8),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          L.t(controller.localeCode, 'premiumHeroTitle'),
+          style: TextStyle(
+            fontSize: wide ? 46 : 32,
+            height: 1.02,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1.1,
+          ),
+        ),
+        const SizedBox(height: 11),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Text(
+            L.t(controller.localeCode, 'premiumHeroSubtitle'),
+            style: TextStyle(fontSize: wide ? 15 : 12.5, height: 1.62, color: Colors.white.withValues(alpha: .68)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 9,
+          runSpacing: 9,
+          children: [
+            FilledButton.icon(
+              onPressed: () => showGameLobby(context, controller, controller.homeGames.first),
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: Text(L.t(controller.localeCode, 'play')),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => V300WorldHubPage(controller: controller))),
+              icon: const Icon(Icons.public_rounded),
+              label: Text(L.t(controller.localeCode, 'worldHub')),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => showCompetitions(context, controller),
+              icon: const Icon(Icons.emoji_events_outlined),
+              label: Text(L.t(controller.localeCode, 'enterArena')),
+            ),
+          ],
+        ),
+      ],
+    );
+
     return Container(
-      constraints: BoxConstraints(minHeight: wide ? 280 : 230),
+      constraints: BoxConstraints(minHeight: wide ? 320 : 270),
       padding: EdgeInsets.all(wide ? 30 : 20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(R9Design.rHero),
+        borderRadius: BorderRadius.circular(32),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF13263B), Color(0xFF0B1727), Color(0xFF08111E)],
+          colors: [Color(0xFF0A2531), Color(0xFF081824), Color(0xFF07120F)],
         ),
-        border: Border.all(color: R9Design.gold.withValues(alpha: .18)),
-        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 34, offset: Offset(0, 18))],
+        border: Border.all(color: R9Design.gold.withValues(alpha: .16)),
+        boxShadow: const [BoxShadow(color: Color(0x4A000000), blurRadius: 42, offset: Offset(0, 20))],
       ),
-      child: Stack(
-        children: [
-          PositionedDirectional(
-            end: -24,
-            bottom: -36,
-            child: Text('♠♥♦♣', style: TextStyle(fontSize: wide ? 132 : 92, fontWeight: FontWeight.w900, color: Colors.white.withValues(alpha: .035))),
-          ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: R9Design.gold.withValues(alpha: .08),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: R9Design.gold.withValues(alpha: .18)),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF4ADE80))),
-                      const SizedBox(width: 7),
-                      Text(_ar ? 'اللوبي مباشر • R9' : 'Live lobby • R9', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFF0D486))),
-                    ]),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    _ar ? 'اللعب يبدأ من هنا.' : 'Your table starts here.',
-                    style: TextStyle(fontSize: wide ? 42 : 31, height: 1.04, fontWeight: FontWeight.w900, letterSpacing: -.8),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _ar
-                        ? 'ادخل مباراة بسرعة، تابع أصدقاءك، أو ابدأ منافسة بدون ازدحام بصري أو خطوات زائدة.'
-                        : 'Jump into a match, follow friends, or enter a competition without visual clutter or extra steps.',
-                    style: TextStyle(fontSize: wide ? 15 : 13, height: 1.55, color: Colors.white.withValues(alpha: .68)),
-                  ),
-                  const SizedBox(height: 19),
-                  Wrap(spacing: 9, runSpacing: 9, children: [
-                    FilledButton.icon(
-                      onPressed: () => showGameLobby(context, controller, controller.homeGames.first),
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(_ar ? 'العب الآن' : 'Play now'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () => showCompetitions(context, controller),
-                      icon: const Icon(Icons.emoji_events_outlined),
-                      label: Text(_ar ? 'المنافسات' : 'Competitions'),
-                    ),
-                  ]),
-                ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(27),
+        child: Stack(
+          children: [
+            PositionedDirectional(
+              end: -60,
+              top: -90,
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .08)),
               ),
+            ),
+            PositionedDirectional(
+              start: -80,
+              bottom: -120,
+              child: Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: R9Design.gold.withValues(alpha: .045)),
+              ),
+            ),
+            PositionedDirectional(
+              end: -22,
+              bottom: -32,
+              child: Text(
+                '♠♥♦♣',
+                style: TextStyle(fontSize: wide ? 126 : 82, fontWeight: FontWeight.w900, color: Colors.white.withValues(alpha: .025)),
+              ),
+            ),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: wide
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(child: copy),
+                        const SizedBox(width: 24),
+                        _heroStatusCard(),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [copy, const SizedBox(height: 18), _heroStatusCard(compact: true)],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _heroStatusCard({bool compact = false}) {
+    final connected = controller.serverConnected;
+    return Container(
+      width: compact ? double.infinity : 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xA80A1720),
+        border: Border.all(color: Colors.white.withValues(alpha: .08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(colors: [Color(0x3358C9FF), Color(0x3357E0B4)]),
+                ),
+                child: const Icon(Icons.hub_rounded, size: 19, color: Color(0xFF70E6BF)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(L.t(controller.localeCode, 'liveNetwork'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                    Text(
+                      connected ? 'ONLINE • API' : 'LOCAL • READY',
+                      style: TextStyle(fontSize: 8, color: connected ? const Color(0xFF70E6BF) : Colors.white54, fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _heroMetric('LV.${controller.level}', L.t(controller.localeCode, 'level'))),
+              const SizedBox(width: 8),
+              Expanded(child: _heroMetric('${controller.vipDays}', L.t(controller.localeCode, 'vip'))),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+            decoration: BoxDecoration(color: const Color(0x1457E0B4), borderRadius: BorderRadius.circular(14)),
+            child: Row(
+              children: [
+                const Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF70E6BF)),
+                const SizedBox(width: 7),
+                Expanded(child: Text(L.t(controller.localeCode, 'serverFair'), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800))),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _heroMetric(String value, String label) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .035), borderRadius: BorderRadius.circular(14)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white54)),
+          ],
+        ),
+      );
 
   Widget _liveStrip(BuildContext context) => R9Section(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

@@ -1,4 +1,18 @@
-# Warqnaa V1.1.2+302 — WORLD EXPERIENCE Final Stability
+# Warqnaa V1.2.0+303 — WORLD EXPERIENCE Runtime Social Stability & Global Premium UI
+
+الإصدار الحالي: **1.2.0+303**
+
+## إضافات B303
+
+- إصلاح Runtime حقيقي لتبديل هوية مستخدم الـAPI بين Bearer tokens داخل Social World/Clubs بدل الاعتماد على User مخزّن في الـguard.
+- إعادة تحميل صلاحيات الإدارة من قاعدة البيانات لكل طلب حساس، بحيث تصبح صلاحية `social_world` فعالة فور تحديثها مع نفس access token.
+- Regression test جديد يعيد سيناريو `V230SocialWorldTest` الذي كان يفشل بـ409/403.
+- إصلاح أخطاء وتحذيرات Flutter analyzer الظاهرة في Social World وCompetitive وV175، مع حماية من null وBuildContext عبر async gaps.
+- Premium Global Home/Lobby جديد للويب وFlutter مع Hero عالمي، Live Network status، Game Hub وSocial/Competitive surfaces متجاوبة.
+- Manifest وتنظيف تلقائي للملفات القديمة داخل `flutter_app/lib` قبل GitHub push، لمنع بقاء Dart files من إصدارات سابقة بعد Copy/Replace.
+- بوابة CI تراكمية `test_v303_runtime_premium_contract.py` مضافة لكل قنوات Backend/Android/iOS/Web/Global Release.
+
+> B303 إصدار تراكمي؛ كل متطلبات R8–R14.3 وB300–B302 تبقى محفوظة ولا تُستبدل.
 
 الإصدار الحالي: **1.1.2+302**
 

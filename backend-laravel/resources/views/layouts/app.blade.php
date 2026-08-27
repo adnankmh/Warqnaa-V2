@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>@yield('title','Warqnaa | منصة ألعاب ورق عربية')</title>
-    <meta name="description" content="Warqnaa منصة ألعاب ورق عربية اجتماعية: طرنيب، هاند، بناكل، بلوت، تركس، دومينو وطاولة مع غرف، مجموعات، منافسات ومتجر.">
-    <meta name="keywords" content="ألعاب ورق, طرنيب, هاند, بناكل, بلوت, تركس, دومينو, طاولة, Warqna">
+    <meta name="description" content="Warqnaa منصة ألعاب ورق عربية اجتماعية: طرنيب، هاند، بناكل، بلوت، تركس وطاولة مع غرف، مجموعات، منافسات ومتجر.">
+    <meta name="keywords" content="ألعاب ورق, طرنيب, هاند, بناكل, بلوت, تركس, طاولة, Warqnaa">
     <meta property="og:title" content="Warqnaa">
     <meta property="og:description" content="منصة ألعاب ورق عربية احترافية وآمنة وممتعة.">
     <meta name="theme-color" content="#0B3F1D">
@@ -29,7 +29,8 @@
     <link rel="stylesheet" href="/assets/css/r9-design-system.css?v=209">
     <link rel="stylesheet" href="/assets/css/r11-social-world.css?v=230">
     <link rel="stylesheet" href="/assets/css/r12-competitive-arena.css?v=240">
-    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
+    <link rel="stylesheet" href="/assets/css/b303-global-premium.css?v=303">
+    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
@@ -57,7 +58,7 @@
     $activeRoom = $currentUser ? \App\Models\Room::with('game')->whereHas('players', fn($q)=>$q->where('user_id',$currentUser->id)->where('is_bot',false))->whereIn('status',['waiting','bidding','playing'])->latest()->first() : null;
 @endphp
 @php $globalAnnouncement = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('global_announcement','') : ''; $customCss = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('custom_css','') : ''; @endphp
-<body class="warqna-pro-social warqna-r9 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
+<body class="warqna-pro-social warqna-r9 warqna-b303 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
     @if($globalAnnouncement)<div class="global-announcement">{{ $globalAnnouncement }}</div>@endif
     @if($customCss)<style id="adminCustomCss">{!! $customCss !!}</style>@endif
     @php
