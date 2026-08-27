@@ -66,7 +66,7 @@ def main():
     routes=text('backend-laravel/routes/api.php')
     ok("Route::get('/assets/manifest'" in routes,'public mobile asset-manifest endpoint exists')
     api=text('backend-laravel/app/Http/Controllers/MobileApiController.php')
-    ok("'asset_delivery' => $assetDelivery->summary()" in api and "'locale' => 'nullable|in:ar,en'" in api,'bootstrap exposes R10 delivery and profile locale stays ar/en only')
+    ok("'asset_delivery' => $assetDelivery->summary()" in api and "'locale' => 'nullable|in:ar,en" in api,'bootstrap exposes R10 delivery and preserves ar/en in the profile locale validator')
 
     web_public=ROOT/'backend-laravel/public'
     web_bytes=sum(p.stat().st_size for p in web_public.rglob('*') if p.is_file())

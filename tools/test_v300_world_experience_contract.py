@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Warqnaa V1.1.0+300 WORLD EXPERIENCE additive release contract."""
+"""Warqnaa Build 300 WORLD EXPERIENCE additive feature-baseline contract."""
 from __future__ import annotations
 import json,re
 from pathlib import Path
@@ -14,7 +14,7 @@ def check(ok:bool,label:str):
     print('[PASS] '+label)
 
 meta=json.loads(text('RELEASE_VERSION.json'))
-check(meta.get('full')=='1.1.0+300','release metadata is WORLD EXPERIENCE 1.1.0+300')
+check(int(meta.get('build',0))>=300,'release preserves WORLD EXPERIENCE build 300 or newer')
 main=text('flutter_app/lib/main.dart'); world=text('flutter_app/lib/v300_world_experience.dart'); themes=text('flutter_app/lib/r10_1_release.dart')
 for code in ('ar','en','de','tr','fr','es'): check(f"Locale('{code}')" in main and f"'{code}'" in world, f'locale {code} is wired')
 check(themes.count('R101ThemeSpec(code:')>=15,'15+ product themes')

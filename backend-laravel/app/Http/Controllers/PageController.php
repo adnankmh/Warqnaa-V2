@@ -16,7 +16,7 @@ class PageController {
   return back()->with('ok','تم حفظ الإعدادات');
  }
  public function quickPreference(Request $r){
-  $data=$r->validate(['theme'=>'nullable|string|in:dark,light,green,gold,purple,classic','lang'=>'nullable|string|in:ar,en']);
+  $data=$r->validate(['theme'=>'nullable|string|in:dark,light,green,gold,purple,classic','lang'=>'nullable|string|in:ar,en,de,tr,fr,es']);
   session(['warqna_locale'=>$data['lang'] ?? session('warqna_locale','ar')]);
   $p=auth()->user()?->profile;
   if($p && !empty($data['theme'])){ $p->active_site_theme=$data['theme']; $p->save(); }

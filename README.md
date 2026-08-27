@@ -1,10 +1,10 @@
-# Warqnaa V1.0.3+263 — R14.3 CI Engine Security
+# Warqnaa V1.1.1+301 — WORLD EXPERIENCE CI & Six-Language Stability
 
-الإصدار الحالي: **1.0.3+263**
+الإصدار الحالي: **1.1.1+301**
 
-R14.3 يصلح أخطاء Flutter وEngine Gold وفحص أسرار GitHub الظاهرة في سجل البناء، ويضيف مركزًا آمنًا لتغيير البريد وكلمة المرور في الموقع والتطبيق مع الحفاظ على ميزات R8–R14.
+B301 هو Hotfix تراكمي فوق WORLD EXPERIENCE Build 300. يصلح تعارض عقود GitHub Actions التاريخية مع الست لغات و15+ ثيم، يوحّد اللغة بين Flutter وLaravel وMobile API ولوحة الإدارة، يحفظ Locale لكل لاعب، ويصلح wiring خطوات V300 داخل CI. لا يحذف أي ميزة من R8–R14.3 أو V300.
 
-R14 هو الإغلاق العالمي للمشروع عبر Backend وWeb وAndroid وiOS. يضيف بوابة إطلاق موحدة، Production/Store preflight، أدلة SHA-256، ويفرض سلسلة R8–R14 مع Engine Gold قبل اعتبار أي Tag إصدارًا عالميًا.
+للتشغيل بأقل تدخل على Windows: شغّل `START_WARQNA_WINDOWS.bat`. للفحص قبل GitHub: شغّل `CHECK_WARQNA_WINDOWS.bat`. وللتجهيز/الدفع شبه التلقائي استخدم `scripts/windows/current/RUN_GITHUB_READY_B301.bat`.
 
 ## إضافات R14 النهائية
 

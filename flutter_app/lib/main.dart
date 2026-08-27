@@ -1379,6 +1379,9 @@ class AppController extends ChangeNotifier {
   void changeLocale(String value) {
     localeCode = v300SupportedLocaleCodes.contains(value) ? value : 'ar';
     _save();
+    if (serverConnected) {
+      api.updateProfile({'locale': localeCode}).catchError((_) => <String, dynamic>{});
+    }
     notifyListeners();
   }
 

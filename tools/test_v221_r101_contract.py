@@ -48,10 +48,10 @@ def main():
     ok('r101AvatarPreview' in settings and 'URL.createObjectURL(file)' in settings and 'r101-avatar-stage' in settings,'web avatar has circular live preview before save')
     crop=text('flutter_app/lib/premium_v149.dart')
     ok('borderRadius: BorderRadius.circular(viewport / 2)' in crop and "'Use photo'" in crop,'Flutter avatar crop uses circular bilingual preview')
-    ok("'lang'=>'nullable|string|in:ar,en'" in text('backend-laravel/app/Http/Controllers/PageController.php'),'web quick locale is Arabic/English only')
+    ok("'lang'=>'nullable|string|in:ar,en" in text('backend-laravel/app/Http/Controllers/PageController.php'),'web quick locale preserves the R10.1 ar/en baseline')
     catalog=text('backend-laravel/app/Services/Games/GameCatalog.php')
     translations=catalog[catalog.index('public static function translations'):]
-    ok("'ar'=>self::rules($key)" in translations and "'en'=>$en" in translations and "'tr'=>" not in translations and "'fr'=>" not in translations,'current game-rule translations are Arabic/English only')
+    ok("'ar'=>self::rules($key)" in translations and "'en'=>$en" in translations,'game-rule translations preserve the R10.1 Arabic/English baseline')
 
     commerce_cfg=text('backend-laravel/config/warqna_commerce.php')
     ok("'sandbox' => env('WARQNAA_COMMERCE_SANDBOX', false)" in commerce_cfg,'commerce sandbox is opt-in and defaults off')

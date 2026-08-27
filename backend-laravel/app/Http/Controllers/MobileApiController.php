@@ -133,7 +133,7 @@ class MobileApiController extends Controller
         $data = $request->validate([
             'display_name' => 'nullable|string|min:2|max:80',
             'country_code' => 'nullable|string|size:2|not_in:IL,il',
-            'locale' => 'nullable|in:ar,en',
+            'locale' => 'nullable|in:ar,en,de,tr,fr,es',
             'theme' => 'nullable|string|max:40',
             'sound_enabled' => 'nullable|boolean',
             'avatar' => 'nullable|string|max:32',
@@ -155,6 +155,7 @@ class MobileApiController extends Controller
             $profile->country_code = safe_country_code($data['country_code']);
             $profile->country_name = country_name($data['country_code']);
         }
+        if (isset($data['locale'])) $profile->locale = $data['locale'];
         if (isset($data['theme'])) $profile->active_site_theme = $data['theme'];
         if (isset($data['sound_enabled'])) $profile->sound_enabled = $data['sound_enabled'];
         if (array_key_exists('avatar',$data)) $profile->avatar = $data['avatar'];

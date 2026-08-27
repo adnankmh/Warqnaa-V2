@@ -97,7 +97,10 @@ jobs:
         run: python3 ../tools/test_v260_r14_contract.py
       - name: Verify R14.3 CI Engine Security contract
         run: python3 ../tools/test_v263_r14_3_contract.py
-          python3 ../tools/test_v300_world_experience_contract.py
+      - name: Verify V300 WORLD EXPERIENCE baseline
+        run: python3 ../tools/test_v300_world_experience_contract.py
+      - name: Verify V301 CI and six-language stability
+        run: python3 ../tools/test_v301_ci_i18n_contract.py
       - name: Verify R14 cross-channel source readiness
         run: python3 ../tools/global_release_preflight.py
       - name: Run R8 deep Tarneeb Hand Banakil audit

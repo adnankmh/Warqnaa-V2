@@ -24,3 +24,4 @@ __pycache__/
 *.pyc
 # R9.2 explicit local Laravel runtime secret
 backend-laravel/.env
+backend-laravel/storage/app/LOCAL_ADMIN_ACCESS.txt

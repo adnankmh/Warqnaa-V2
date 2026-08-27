@@ -10,6 +10,6 @@ locale_files=[]
 for path in (ROOT/'flutter_app/lib').rglob('*.dart'):
     t=path.read_text(encoding='utf-8',errors='ignore')
     if re.search(r"['\"](?:fr|de|tr|es)['\"]\s*:", t): locale_files.append(str(path.relative_to(ROOT)))
-report={'product_locales':['ar','en'],'legacy_locale_map_files':sorted(locale_files),'high_traffic_checks':checks}
+report={'product_locales':['ar','en','de','tr','fr','es'],'legacy_locale_map_files':sorted(locale_files),'high_traffic_checks':checks}
 out=ROOT/'docs/ar/reports/current/R9_TRANSLATION_AUDIT.json';out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
 print(f"R9 translation audit: product locales=ar/en, legacy-map files={len(locale_files)}")

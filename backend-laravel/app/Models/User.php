@@ -83,6 +83,7 @@ class User extends Authenticatable
             'avatar_data'=>$p?->avatar_data,
             'country_code'=>$p?->country_code,
             'country_name'=>$p?->country_name,
+            'locale'=>$p?->locale ?? 'ar',
             'level'=>$p?->level,
             'xp'=>(int)($p?->xp ?? 0),
             'xp_next'=>(new \App\Services\Leveling\XpService())->requiredXp((int)($p?->level ?? 1)),

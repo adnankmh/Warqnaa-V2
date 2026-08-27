@@ -167,6 +167,10 @@
             <div class="language-grid-v138">
                 <button type="button" data-lang-pick="ar" onclick="setWarqnaLang('ar');toggleTopPanel('languagePanel')">🇵🇸 عربي</button>
                 <button type="button" data-lang-pick="en" onclick="setWarqnaLang('en');toggleTopPanel('languagePanel')">🇬🇧 English</button>
+                <button type="button" data-lang-pick="de" onclick="setWarqnaLang('de');toggleTopPanel('languagePanel')">🇩🇪 Deutsch</button>
+                <button type="button" data-lang-pick="tr" onclick="setWarqnaLang('tr');toggleTopPanel('languagePanel')">🇹🇷 Türkçe</button>
+                <button type="button" data-lang-pick="fr" onclick="setWarqnaLang('fr');toggleTopPanel('languagePanel')">🇫🇷 Français</button>
+                <button type="button" data-lang-pick="es" onclick="setWarqnaLang('es');toggleTopPanel('languagePanel')">🇪🇸 Español</button>
             </div>
         </div>
 
