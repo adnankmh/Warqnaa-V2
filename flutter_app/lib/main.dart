@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -43,6 +44,7 @@ part 'r9_release.dart';
 part 'r10_1_release.dart';
 part 'r11_social_world.dart';
 part 'r12_competitive.dart';
+part 'r14_1_legendary.dart';
 part 'r14_2_account_security.dart';
 part 'v300_world_experience.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.

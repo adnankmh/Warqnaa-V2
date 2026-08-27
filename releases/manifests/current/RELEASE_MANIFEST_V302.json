@@ -1,0 +1,15 @@
+{
+  "version": "1.1.2",
+  "build": 302,
+  "full": "1.1.2+302",
+  "release": "v302",
+  "display_release": "V1.1.2",
+  "name": "Warqnaa WORLD EXPERIENCE — Flutter & Hand Gold Stability Final",
+  "baseline": "1.1.1+301",
+  "notes": [
+    "Flutter analyzer blocker fixes",
+    "R14.1 stale-file compatibility tombstone",
+    "Hand discard-draw deadlock fix",
+    "R13 Engine Gold focused diagnostics"
+  ]
+}

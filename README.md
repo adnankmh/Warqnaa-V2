@@ -1,10 +1,19 @@
-# Warqnaa V1.1.1+301 — WORLD EXPERIENCE CI & Six-Language Stability
+# Warqnaa V1.1.2+302 — WORLD EXPERIENCE Final Stability
 
-الإصدار الحالي: **1.1.1+301**
+الإصدار الحالي: **1.1.2+302**
+
+
+## إصلاحات B302 النهائية
+
+- إصلاح أخطاء Flutter analyzer في R10.1 باستيراد Cupertino الصحيح وتهريب `$` في أسعار العروض.
+- استبدال أي نسخة قديمة من `r14_1_legendary.dart` بملف compatibility tombstone صالح، لمنع بقاء ملف متعقب قديم عند الترقية فوق مستودع GitHub موجود.
+- إزالة تحذير analyzer الخاص بـ `selected!` في Social World.
+- إصلاح deadlock محرك Hand عند `draw_discard`: لا يسمح بالسحب إلا إذا كان هناك مسار meld قانوني يحقق شرط الافتتاح، مع منع مجموعات meld المتداخلة.
+- بوابة CI جديدة `test_v302_flutter_hand_final_contract.py` على Backend/Android/iOS/Web/Global Release.
 
 B301 هو Hotfix تراكمي فوق WORLD EXPERIENCE Build 300. يصلح تعارض عقود GitHub Actions التاريخية مع الست لغات و15+ ثيم، يوحّد اللغة بين Flutter وLaravel وMobile API ولوحة الإدارة، يحفظ Locale لكل لاعب، ويصلح wiring خطوات V300 داخل CI. لا يحذف أي ميزة من R8–R14.3 أو V300.
 
-للتشغيل بأقل تدخل على Windows: شغّل `START_WARQNA_WINDOWS.bat`. للفحص قبل GitHub: شغّل `CHECK_WARQNA_WINDOWS.bat`. وللتجهيز/الدفع شبه التلقائي استخدم `scripts/windows/current/RUN_GITHUB_READY_B301.bat`.
+للتشغيل بأقل تدخل على Windows: شغّل `START_WARQNA_WINDOWS.bat`. للفحص قبل GitHub: شغّل `CHECK_WARQNA_WINDOWS.bat`. وللتجهيز/الدفع شبه التلقائي استخدم `scripts/windows/current/RUN_GITHUB_READY_B302.bat`.
 
 ## إضافات R14 النهائية
 

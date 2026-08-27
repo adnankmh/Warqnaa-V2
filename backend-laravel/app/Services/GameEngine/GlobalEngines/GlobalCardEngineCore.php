@@ -284,7 +284,13 @@ class GlobalCardEngineCore
             foreach (($state['hands'][$playerId] ?? []) as $card) $actions[] = ['type'=>'discard','card'=>$card];
             return $actions;
         }
-        foreach ($this->suggestMelds($state['hands'][$playerId] ?? [], $this->rummyOpeningRequirement($state,$playerId)) as $meld) $actions[] = ['type'=>'meld','cards'=>$meld['cards']];
+        $openingRequired = $this->hasRummyOpened($state, $playerId) ? 0 : $this->rummyOpeningRequirement($state, $playerId);
+        $suggested = $this->suggestMelds($state['hands'][$playerId] ?? [], 0);
+        foreach ($suggested as $meld) {
+            if ($openingRequired === 0 || (int)($meld['value'] ?? 0) >= $openingRequired) {
+                $actions[] = ['type'=>'meld','cards'=>$meld['cards']];
+            }
+        }
         if ($this->hasRummyOpened($state,$playerId)) {
             foreach (($state['melds'] ?? []) as $targetPlayer=>$meldList) {
                 $sameSide = $targetPlayer === $playerId || (!empty($state['config']['partnership']) && $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId));
@@ -301,8 +307,8 @@ class GlobalCardEngineCore
                 }
             }
         }
-        $suggested=$this->suggestMelds($state['hands'][$playerId] ?? [], $this->rummyOpeningRequirement($state,$playerId));
-        if(count($suggested)>=2) $actions[]=['type'=>'meld_many','groups'=>array_values(array_map(fn($m)=>$m['cards'],array_slice($suggested,0,3)))];
+        $manyGroups = $this->selectDisjointMeldGroups($suggested, $state['hands'][$playerId] ?? [], $openingRequired, null);
+        if (count($manyGroups) >= 2) $actions[] = ['type'=>'meld_many','groups'=>$manyGroups];
         if (empty($state['rummyTurnMeta'][$playerId]['must_meld'])) {
             foreach (($state['hands'][$playerId] ?? []) as $card) $actions[] = ['type'=>'discard','card'=>$card];
         }
@@ -952,10 +958,57 @@ class GlobalCardEngineCore
 
     protected function canDrawDiscardLegally(array $state,string $playerId): bool
     {
-        if(empty($state['discard'])) return false;
-        $top=(string)end($state['discard']);
-        $hand=array_values(array_merge($state['hands'][$playerId] ?? [],[$top]));
-        return !empty($this->suggestMelds($hand,$this->rummyOpeningRequirement($state,$playerId)));
+        if (empty($state['discard'])) return false;
+        $top = (string)end($state['discard']);
+        if ($top === '') return false;
+        $hand = array_values(array_merge($state['hands'][$playerId] ?? [], [$top]));
+        $openingRequired = $this->hasRummyOpened($state, $playerId) ? 0 : $this->rummyOpeningRequirement($state, $playerId);
+        $suggested = $this->suggestMelds($hand, 0);
+
+        // Taking the discard is only legal when that exact top card can
+        // participate in a server-valid meld path. This prevents a state where
+        // draw_discard sets must_meld=true but every advertised meld is below
+        // the opening threshold, which previously deadlocked Hand matches.
+        foreach ($suggested as $meld) {
+            $cards = array_values((array)($meld['cards'] ?? []));
+            if (!in_array($top, $cards, true)) continue;
+            if ($openingRequired === 0 || (int)($meld['value'] ?? 0) >= $openingRequired) return true;
+        }
+
+        // Opening may legally consist of multiple disjoint melds whose total
+        // reaches the threshold. Require the discard card to be in one of them.
+        return count($this->selectDisjointMeldGroups($suggested, $hand, $openingRequired, $top)) >= 2;
+    }
+
+    /** @return array<int,array<int,string>> */
+    protected function selectDisjointMeldGroups(array $suggested, array $hand, int $openingRequired, ?string $mustIncludeCard): array
+    {
+        $available = array_count_values(array_map('strval', $hand));
+        $chosen = [];
+        $used = [];
+        $total = 0;
+        $includesRequired = $mustIncludeCard === null;
+
+        foreach ($suggested as $meld) {
+            $cards = array_values(array_map('strval', (array)($meld['cards'] ?? [])));
+            if (count($cards) < 3) continue;
+            $candidateCounts = $used;
+            $fits = true;
+            foreach ($cards as $card) {
+                $candidateCounts[$card] = ($candidateCounts[$card] ?? 0) + 1;
+                if ($candidateCounts[$card] > ($available[$card] ?? 0)) { $fits = false; break; }
+            }
+            if (!$fits) continue;
+            $used = $candidateCounts;
+            $chosen[] = $cards;
+            $total += (int)($meld['value'] ?? $this->meldValue($cards));
+            if ($mustIncludeCard !== null && in_array($mustIncludeCard, $cards, true)) $includesRequired = true;
+            if (count($chosen) >= 2 && $includesRequired && ($openingRequired === 0 || $total >= $openingRequired)) break;
+            if (count($chosen) >= 3) break;
+        }
+
+        if (count($chosen) < 2 || !$includesRequired || ($openingRequired > 0 && $total < $openingRequired)) return [];
+        return $chosen;
     }
 
     protected function canReplaceJoker(array $meld,string $replacement): bool
@@ -1017,13 +1070,19 @@ class GlobalCardEngineCore
 
     protected function suggestMelds(array $hand, int $opening): array
     {
-        $out=[]; $n=count($hand);
-        for($i=0;$i<$n;$i++) for($j=$i+1;$j<$n;$j++) for($k=$j+1;$k<$n;$k++) {
-            $cards=[$hand[$i],$hand[$j],$hand[$k]]; if($this->isValidMeld($cards)) $out[]=['cards'=>$cards,'value'=>$this->meldValue($cards)];
-            if(count($out)>8) return $out;
+        $out = []; $seen = []; $n = count($hand);
+        for ($i=0; $i<$n; $i++) for ($j=$i+1; $j<$n; $j++) for ($k=$j+1; $k<$n; $k++) {
+            $cards = [(string)$hand[$i], (string)$hand[$j], (string)$hand[$k]];
+            if (!$this->isValidMeld($cards)) continue;
+            $keyCards = $cards; sort($keyCards); $key = implode('|', $keyCards);
+            if (isset($seen[$key])) continue;
+            $value = $this->meldValue($cards);
+            if ($opening > 0 && $value < $opening) continue;
+            $seen[$key] = true;
+            $out[] = ['cards'=>$cards,'value'=>$value];
         }
-        usort($out, fn($a,$b)=>$b['value']<=>$a['value']);
-        return $out;
+        usort($out, fn($a,$b)=>($b['value'] <=> $a['value']) ?: strcmp(implode('|',$a['cards']), implode('|',$b['cards'])));
+        return array_slice($out, 0, 12);
     }
 
     protected function organize(array $state, string $playerId, string $strategy, array $requestedOrder=[]): array

@@ -111,6 +111,20 @@ $expectedEngines = [
 $registryEngines = array_keys(EngineRegistry::all());
 sort($expectedEngines); sort($registryEngines);
 if ($expectedEngines !== $registryEngines) goldFail('EngineRegistry differs from the R13 certified engine set');
+$engineOrdinals = array_flip($registryEngines);
+
+// Optional local/diagnostic filter. CI release certification leaves this unset
+// and still runs the full engine set. It lets maintainers stress one engine
+// with thousands of deterministic matches without paying the cost of every
+// other engine during a focused regression investigation.
+$engineFilter = trim((string)(getenv('WARQNA_GOLD_ENGINE_FILTER') ?: ''));
+if ($engineFilter !== '') {
+    $requested = array_values(array_unique(array_filter(array_map('trim', explode(',', $engineFilter)))));
+    $unknown = array_values(array_diff($requested, $registryEngines));
+    if ($unknown) goldFail('Unknown WARQNA_GOLD_ENGINE_FILTER value(s): '.implode(', ', $unknown));
+    $registryEngines = array_values(array_filter($registryEngines, fn($engine) => in_array($engine, $requested, true)));
+    if (!$registryEngines) goldFail('WARQNA_GOLD_ENGINE_FILTER selected no engines');
+}
 
 $matchesPerEngine = goldEnvInt('WARQNA_GOLD_MATCHES_PER_ENGINE', 25, 1, 5000);
 $maxTransitions = goldEnvInt('WARQNA_GOLD_MAX_TRANSITIONS', 160, 20, 600);
@@ -124,7 +138,8 @@ $report = [
     'engines' => [],
 ];
 
-foreach ($registryEngines as $engineIndex => $key) {
+foreach ($registryEngines as $key) {
+    $engineIndex = (int)($engineOrdinals[$key] ?? 0);
     $meta = EngineRegistry::get($key);
     if (!$meta) goldFail("{$key}: registry metadata missing");
     $playerCount = max((int)($meta['min'] ?? 2), min((int)($meta['max'] ?? 4), 4));

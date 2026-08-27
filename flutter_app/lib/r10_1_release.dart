@@ -134,10 +134,10 @@ class R101CommercialOffer {
 }
 
 const List<R101CommercialOffer> r101CommercialOffers = <R101CommercialOffer>[
-  R101CommercialOffer(key:'daily',titleAr:'عرض اليوم',titleEn:'Daily Drop',subtitleAr:'توكنز + مسرّع قصير + فرصة صندوق',subtitleEn:'Tokens + short booster + box chance',badge:'24H',priceLabel:'US$0.99',icon:'☀️',cadence:'daily'),
-  R101CommercialOffer(key:'weekly',titleAr:'حزمة الأسبوع',titleEn:'Weekly Bundle',subtitleAr:'توكنز أكثر + طاولة مؤقتة + إيموت متحرك',subtitleEn:'More tokens + temporary table + animated emote',badge:'7D',priceLabel:'US$3.99',icon:'✨',cadence:'weekly'),
-  R101CommercialOffer(key:'monthly',titleAr:'حزمة النخبة',titleEn:'Monthly Elite',subtitleAr:'مقتنيات موسمية + تذاكر + مسرّعات',subtitleEn:'Seasonal cosmetics + tickets + boosters',badge:'30D',priceLabel:'US$9.99',icon:'💎',cadence:'monthly'),
-  R101CommercialOffer(key:'annual',titleAr:'عام ورقنا',titleEn:'Warqnaa Year',subtitleAr:'هوية سنوية حصرية ومكافآت شهرية بدون أفضلية لعب',subtitleEn:'Annual identity and monthly rewards with no gameplay advantage',badge:'365D',priceLabel:'US$39.99',icon:'👑',cadence:'annual'),
+  R101CommercialOffer(key:'daily',titleAr:'عرض اليوم',titleEn:'Daily Drop',subtitleAr:'توكنز + مسرّع قصير + فرصة صندوق',subtitleEn:'Tokens + short booster + box chance',badge:'24H',priceLabel:'US\$0.99',icon:'☀️',cadence:'daily'),
+  R101CommercialOffer(key:'weekly',titleAr:'حزمة الأسبوع',titleEn:'Weekly Bundle',subtitleAr:'توكنز أكثر + طاولة مؤقتة + إيموت متحرك',subtitleEn:'More tokens + temporary table + animated emote',badge:'7D',priceLabel:'US\$3.99',icon:'✨',cadence:'weekly'),
+  R101CommercialOffer(key:'monthly',titleAr:'حزمة النخبة',titleEn:'Monthly Elite',subtitleAr:'مقتنيات موسمية + تذاكر + مسرّعات',subtitleEn:'Seasonal cosmetics + tickets + boosters',badge:'30D',priceLabel:'US\$9.99',icon:'💎',cadence:'monthly'),
+  R101CommercialOffer(key:'annual',titleAr:'عام ورقنا',titleEn:'Warqnaa Year',subtitleAr:'هوية سنوية حصرية ومكافآت شهرية بدون أفضلية لعب',subtitleEn:'Annual identity and monthly rewards with no gameplay advantage',badge:'365D',priceLabel:'US\$39.99',icon:'👑',cadence:'annual'),
 ];
 
 class R101CommerceShowcase extends StatelessWidget {

@@ -326,7 +326,7 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
     if (recipientId == null) return;
     try {
       await widget.controller.api.sendSocialGiftR11(recipientId: recipientId, giftKey: selected['key'].toString());
-      if (mounted) await showDialog<void>(context: context, barrierColor: Colors.black87, builder: (_) => _R11GiftCelebration(icon: selected!['icon']?.toString() ?? '✨', title: _r11Localized(selected![ar ? 'ar' : 'en'], widget.controller.localeCode, ar ? 'هدية وصلت' : 'Gift delivered')));
+      if (mounted) await showDialog<void>(context: context, barrierColor: Colors.black87, builder: (_) => _R11GiftCelebration(icon: selected['icon']?.toString() ?? '✨', title: _r11Localized(selected[ar ? 'ar' : 'en'], widget.controller.localeCode, ar ? 'هدية وصلت' : 'Gift delivered')));
       await _load();
     } catch (e) { if (mounted) showToast(context, e.toString()); }
   }
