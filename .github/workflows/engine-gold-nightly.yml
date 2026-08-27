@@ -31,7 +31,7 @@ jobs:
           WARQNA_GOLD_REPORT: ${{ runner.temp }}/warqnaa-engine-gold-nightly.json
         run: php backend-laravel/tools/test-v250-r13-engine-gold.php
       - name: Upload machine-readable certification evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: warqnaa-r13-engine-gold-nightly-${{ github.run_number }}
           path: ${{ runner.temp }}/warqnaa-engine-gold-nightly.json

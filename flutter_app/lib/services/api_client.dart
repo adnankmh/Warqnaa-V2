@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.0.3');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 263);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.1.0');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 300);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -135,6 +135,18 @@ class WarqnaApiClient {
       post('/social/chat/$userId', {'body': body});
   Future<Map<String, dynamic>> transferTokens(String receiver, int amount) =>
       post('/social/transfer', {'receiver': receiver, 'amount': amount});
+
+  // WORLD EXPERIENCE: parties, match lifecycle and economy operations.
+  Future<Map<String, dynamic>> myPartyV300() => get('/parties/mine');
+  Future<Map<String, dynamic>> createPartyV300({String? gameKey, int maxMembers = 4}) => post('/parties', {if(gameKey != null) 'game_key': gameKey, 'max_members': maxMembers});
+  Future<Map<String, dynamic>> invitePartyV300(int partyId, int userId) => post('/parties/$partyId/invite/$userId', const {});
+  Future<Map<String, dynamic>> joinPartyV300(String code) => post('/parties/join/${Uri.encodeComponent(code)}', const {});
+  Future<Map<String, dynamic>> leavePartyV300(int partyId) => post('/parties/$partyId/leave', const {});
+  Future<Map<String, dynamic>> heartbeatRoomV300(String code) => post('/games/session/${Uri.encodeComponent(code)}/heartbeat', const {});
+  Future<Map<String, dynamic>> reconnectRoomV300(String code) => post('/games/session/${Uri.encodeComponent(code)}/reconnect', const {});
+  Future<Map<String, dynamic>> lifecycleRoomV300(String code) => get('/games/session/${Uri.encodeComponent(code)}/lifecycle');
+  Future<Map<String, dynamic>> adminEconomyAuditV300({bool refresh = false}) => get('/admin/economy-audit${refresh ? '?refresh=1' : ''}');
+
 
   // R11 Social World contract.
   Future<Map<String, dynamic>> socialWorldR11() => get('/social-world');

@@ -35,6 +35,7 @@ class StoreCatalogService
         foreach($this->v201Items() as $item) $this->upsert($item);
         foreach($this->v201R4Items() as $item) $this->upsert($item);
         foreach($this->v202Items() as $item) $this->upsert($item);
+        foreach($this->v300WorldItems() as $item) $this->upsert($item);
         $this->normalizeAllActivePricesR91();
         $this->normalizeBilingualNames();
         $this->deactivateExactDuplicates();
@@ -67,7 +68,10 @@ class StoreCatalogService
 
     private function upsert(array $item): void
     {
-        $names=['ar'=>$item['ar'],'en'=>$item['en'] ?? $item['key']];
+        $names=[];
+        foreach(['ar','en','de','tr','fr','es'] as $locale) {
+            $names[$locale]=(string)($item[$locale] ?? $item['en'] ?? $item['ar'] ?? $item['key']);
+        }
         $payload=(array)($item['payload'] ?? []);
         if(($item['category'] ?? '')!=='pasha'){
             $payload['r91_price_normalized']=true;
@@ -93,6 +97,7 @@ class StoreCatalogService
             'emoji_pack'=>3.25,
             'effect'=>3.50,
             'profile_cover'=>3.10,
+            'profile_frame'=>3.00,
             'badge'=>3.00,
             'name_color','text_color','name_frame'=>2.85,
             'xp_booster'=>2.25,
@@ -137,6 +142,50 @@ class StoreCatalogService
     }
 
 
+
+    /** @return array<int,array<string,mixed>> */
+    public function v300WorldItems(): array
+    {
+        $covers = [
+            ['aurora','غلاف الشفق العالمي','World Aurora Cover','Welt-Aurora-Cover','Dünya Aurora Kapağı','Couverture Aurore Mondiale','Portada Aurora Mundial',22000,'#0f172a','#7c3aed'],
+            ['emerald','غلاف زمرد النخبة','Elite Emerald Cover','Elite-Smaragd-Cover','Elit Zümrüt Kapağı','Couverture Émeraude Élite','Portada Esmeralda Élite',24000,'#052e16','#34d399'],
+            ['sunset','غلاف غروب الملك','Royal Sunset Cover','Königliches Sonnenuntergang-Cover','Kraliyet Günbatımı Kapağı','Couverture Coucher Royal','Portada Atardecer Real',26000,'#431407','#fb923c'],
+            ['ocean','غلاف محيط عميق','Deep Ocean Cover','Tiefsee-Cover','Derin Okyanus Kapağı','Couverture Océan Profond','Portada Océano Profundo',26000,'#082f49','#38bdf8'],
+            ['rose','غلاف ورد ملكي','Royal Rose Cover','Königliches Rosen-Cover','Kraliyet Gül Kapağı','Couverture Rose Royale','Portada Rosa Real',28000,'#4c0519','#fb7185'],
+            ['obsidian','غلاف أوبسيديان','Obsidian Cover','Obsidian-Cover','Obsidyen Kapağı','Couverture Obsidienne','Portada Obsidiana',32000,'#020617','#64748b'],
+            ['palestine','غلاف فلسطين','Palestine Cover','Palästina-Cover','Filistin Kapağı','Couverture Palestine','Portada Palestina',30000,'#111827','#16a34a'],
+            ['celestial','غلاف سماوي','Celestial Cover','Himmels-Cover','Göksel Kapak','Couverture Céleste','Portada Celestial',34000,'#172554','#facc15'],
+            ['crimson','غلاف قرمزي','Crimson Cover','Karmesin-Cover','Kızıl Kapak','Couverture Cramoisie','Portada Carmesí',34000,'#21070d','#ef4444'],
+            ['platinum','غلاف بلاتيني','Platinum Cover','Platin-Cover','Platin Kapak','Couverture Platine','Portada Platino',38000,'#334155','#e2e8f0'],
+            ['desert','غلاف الصحراء','Desert Cover','Wüsten-Cover','Çöl Kapağı','Couverture Désert','Portada Desierto',22000,'#422006','#d97706'],
+            ['forest','غلاف الغابة','Forest Cover','Wald-Cover','Orman Kapağı','Couverture Forêt','Portada Bosque',22000,'#052e16','#84cc16'],
+            ['neon','غلاف نيون','Neon Cover','Neon-Cover','Neon Kapak','Couverture Néon','Portada Neón',42000,'#1e1b4b','#22d3ee'],
+            ['sky','غلاف السماء','Sky Cover','Himmel-Cover','Gökyüzü Kapağı','Couverture Ciel','Portada Cielo',20000,'#e0f2fe','#38bdf8'],
+            ['gold','غلاف الذهب الملكي','Royal Gold Cover','Königliches Gold-Cover','Kraliyet Altın Kapağı','Couverture Or Royal','Portada Oro Real',52000,'#211709','#f5c75b'],
+            ['lilac','غلاف الليلك','Lilac Cover','Flieder-Cover','Leylak Kapağı','Couverture Lilas','Portada Lila',26000,'#2e1065','#c4b5fd'],
+            ['ice','غلاف الجليد','Ice Cover','Eis-Cover','Buz Kapağı','Couverture Glace','Portada Hielo',26000,'#164e63','#cffafe'],
+            ['coffee','غلاف المجلس','Majlis Cover','Majlis-Cover','Meclis Kapağı','Couverture Majlis','Portada Majlis',28000,'#3f2d20','#d6aa59'],
+            ['sapphire','غلاف الياقوت','Sapphire Cover','Saphir-Cover','Safir Kapağı','Couverture Saphir','Portada Zafiro',42000,'#172554','#3b82f6'],
+            ['mint','غلاف النعناع','Mint Cover','Minz-Cover','Nane Kapağı','Couverture Menthe','Portada Menta',20000,'#d1fae5','#10b981'],
+        ];
+        $items=[];
+        foreach($covers as [$key,$ar,$en,$de,$tr,$fr,$es,$price,$c1,$c2]) $items[]=[
+            'key'=>'cover_world_'.$key,'ar'=>$ar,'en'=>$en,'de'=>$de,'tr'=>$tr,'fr'=>$fr,'es'=>$es,
+            'category'=>'profile_cover','price'=>$price,
+            'payload'=>['cover'=>'cover_world_'.$key,'color1'=>$c1,'color2'=>$c2,'tier'=>'world','collection'=>'world_2026','preview_icon'=>'🌌'],
+        ];
+        foreach([
+            ['gold','إطار الذهب','Gold Frame','Goldrahmen','Altın Çerçeve','Cadre Or','Marco Dorado',18000,'#f59e0b','#fef3c7','👑'],
+            ['neon','إطار النيون','Neon Frame','Neonrahmen','Neon Çerçeve','Cadre Néon','Marco Neón',24000,'#22d3ee','#a855f7','⚡'],
+            ['emerald','إطار الزمرد','Emerald Frame','Smaragdrahmen','Zümrüt Çerçeve','Cadre Émeraude','Marco Esmeralda',22000,'#10b981','#d1fae5','💚'],
+            ['obsidian','إطار الأوبسيديان','Obsidian Frame','Obsidianrahmen','Obsidyen Çerçeve','Cadre Obsidienne','Marco Obsidiana',30000,'#020617','#cbd5e1','💎'],
+        ] as [$key,$ar,$en,$de,$tr,$fr,$es,$price,$c1,$c2,$icon]) $items[]=[
+            'key'=>'frame_world_'.$key,'ar'=>$ar,'en'=>$en,'de'=>$de,'tr'=>$tr,'fr'=>$fr,'es'=>$es,
+            'category'=>'profile_frame','price'=>$price,
+            'payload'=>['frame'=>'frame_world_'.$key,'color1'=>$c1,'color2'=>$c2,'tier'=>'world','collection'=>'world_2026','preview_icon'=>$icon],
+        ];
+        return $items;
+    }
 
     /** @return array<int,array<string,mixed>> */
     public function v201R4Items(): array

@@ -1,4 +1,4 @@
-name: R14 Global Release Gate
+name: WORLD EXPERIENCE Global Release Gate
 
 on:
   workflow_dispatch:
@@ -17,6 +17,9 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v6
+      - name: Load release metadata
+        id: release
+        run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -25,6 +28,7 @@ jobs:
       - run: python3 tools/validate_release.py
       - run: python3 tools/test_v260_r14_contract.py
       - run: python3 tools/test_v263_r14_3_contract.py
+          python3 tools/test_v300_world_experience_contract.py
       - run: python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/global-release.json"
       - name: Engine Gold release evidence
         env:
@@ -42,7 +46,7 @@ jobs:
           php artisan migrate:fresh --seed --force
           php artisan test
           php artisan warqna:global-release-check --json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: r14-foundation-evidence
           path: |
@@ -53,15 +57,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Load release metadata
+        id: release
+        run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
       - name: Build production backend image
         working-directory: backend-laravel
-        run: docker build -t warqnaa-api:1.0.3 .
+        run: docker build -t warqnaa-api:${{ steps.release.outputs.version }} .
 
   android-web:
     runs-on: ubuntu-latest
     timeout-minutes: 70
     steps:
       - uses: actions/checkout@v6
+      - name: Load release metadata
+        id: release
+        run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -82,9 +92,9 @@ jobs:
       - name: Build appbundle and web
         working-directory: flutter_app
         run: |
-          flutter build appbundle --release --build-name=1.0.3 --build-number=263
-          flutter build web --release --dart-define=WARQNA_APP_VERSION=1.0.3 --dart-define=WARQNA_APP_BUILD=263
-      - uses: actions/upload-artifact@v4
+          flutter build appbundle --release --build-name=${{ steps.release.outputs.version }} --build-number=${{ steps.release.outputs.build }}
+          flutter build web --release --dart-define=WARQNA_APP_VERSION=${{ steps.release.outputs.version }} --dart-define=WARQNA_APP_BUILD=${{ steps.release.outputs.build }}
+      - uses: actions/upload-artifact@v6
         with:
           name: r14-android-web-unsigned
           path: |
@@ -96,6 +106,9 @@ jobs:
     timeout-minutes: 70
     steps:
       - uses: actions/checkout@v6
+      - name: Load release metadata
+        id: release
+        run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.44.0'
@@ -108,13 +121,17 @@ jobs:
           flutter pub get
       - name: Build unsigned iOS
         working-directory: flutter_app
-        run: flutter build ios --release --no-codesign --build-name=1.0.3 --build-number=263
+        run: flutter build ios --release --no-codesign --build-name=${{ steps.release.outputs.version }} --build-number=${{ steps.release.outputs.build }}
 
   release-evidence:
     needs: [foundation, backend-image, android-web, ios]
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - uses: actions/checkout@v6
+      - name: Load release metadata
+        id: release
+        run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
       - name: Require every global channel
         run: |
           test "${{ needs.foundation.result }}" = success
@@ -123,11 +140,11 @@ jobs:
           test "${{ needs.ios.result }}" = success
       - name: Write global release evidence
         run: |
-          printf '%s\n' 'Warqnaa 1.0.3+263 R14.3: all four channel gates passed.' > global-release-evidence.txt
+          printf '%s\n' "Warqnaa ${{ steps.release.outputs.full }} WORLD EXPERIENCE: all four channel gates passed." > global-release-evidence.txt
           sha256sum global-release-evidence.txt > SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
-          name: warqnaa-r14-global-release-evidence
+          name: warqnaa-world-${{ steps.release.outputs.build }}-global-release-evidence
           path: |
             global-release-evidence.txt
             SHA256SUMS.txt

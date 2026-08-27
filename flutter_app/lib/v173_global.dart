@@ -142,6 +142,12 @@ extension WarqnaV173Controller on AppController {
       try {
         final data = await api.bootstrap();
         _applySession(data);
+        final roomCode = activeRoomCode;
+        if (roomCode != null && roomCode.trim().isNotEmpty) {
+          // Match presence is independent from bootstrap health. A stale room
+          // must not make the whole application appear offline.
+          try { await api.heartbeatRoomV300(roomCode); } catch (_) {}
+        }
         if (!serverConnected) { serverConnected = true; refreshUi(); }
       } catch (_) {
         if (serverConnected) { serverConnected = false; refreshUi(); }

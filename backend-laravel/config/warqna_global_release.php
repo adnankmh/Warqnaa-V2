@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'release' => '1.0.3+263',
+    'release' => '1.1.0+300',
     'contract' => 'r14_3_ci_engine_security_v1',
-    'locales' => ['ar', 'en'],
+    'locales' => ['ar', 'en', 'de', 'tr', 'fr', 'es'],
     'channels' => ['backend', 'web', 'android', 'ios'],
     'required_gates' => [
         'r8_r13_regression', 'engine_gold_release', 'laravel_phpunit',

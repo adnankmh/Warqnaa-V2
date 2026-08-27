@@ -1,0 +1,20 @@
+{
+  "version": "1.1.0",
+  "build": 300,
+  "full": "1.1.0+300",
+  "release": "v300",
+  "display_release": "V1.1.0",
+  "name": "Warqnaa WORLD EXPERIENCE — Gameplay, Social, Economy & Security",
+  "base": "R14.3 Build 263",
+  "compatibility": ["R8", "R9", "R9.1", "R10", "R10.1", "R11", "R12", "R13", "R14", "R14.3"],
+  "channels": ["backend", "web", "android", "ios"],
+  "locales": ["ar", "en", "de", "tr", "fr", "es"],
+  "themes": 15,
+  "customer_games_excluded": ["domino", "jackaroo", "chess"],
+  "world_experience": ["party", "reconnect", "afk", "spectators", "matchmaking", "economy_audit", "world_ops", "lottie", "profile_frames"],
+  "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},
+  "source_ready": true,
+  "runtime_gate_required": ["composer install", "php artisan test", "flutter analyze", "flutter test", "flutter build appbundle", "flutter build web", "flutter build ios --no-codesign"],
+  "deployment_owned": ["production secrets", "signing keys", "store submission", "DNS/TLS"],
+  "artifact_policy": {"clean_root": true, "secrets_in_repository": false, "full_repository_only": true}
+}

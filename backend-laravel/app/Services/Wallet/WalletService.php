@@ -1,8 +1,9 @@
 <?php
 namespace App\Services\Wallet;
 
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use App\Models\{User,WalletTransaction};
+use App\Services\Economy\EconomyAuditService;
+use Illuminate\Support\Facades\{DB,Schema};
 use RuntimeException;
 
 class WalletService
@@ -21,13 +22,13 @@ class WalletService
         $this->validateAmount($amount);
         DB::transaction(function() use($user,$amount,$type,$meta){
             $w=$user->wallet()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],['tokens'=>50]);
-            if ($user->isPrimaryAdmin()) {
-                $user->walletTransactions()->create(['type'=>$type,'amount'=>-$amount,'meta'=>array_merge($meta,['primary_admin_unlimited'=>true])]);
-                return;
+            $transactionMeta = $user->isPrimaryAdmin() ? array_merge($meta,['primary_admin_unlimited'=>true]) : $meta;
+            if (!$user->isPrimaryAdmin()) {
+                if($w->tokens < $amount) throw new RuntimeException('Insufficient tokens');
+                if($amount > 0) $w->decrement('tokens',$amount);
             }
-            if($w->tokens < $amount) throw new RuntimeException('Insufficient tokens');
-            if($amount > 0) $w->decrement('tokens',$amount);
-            $user->walletTransactions()->create(['type'=>$type,'amount'=>-$amount,'meta'=>$meta]);
+            $transaction = $user->walletTransactions()->create($this->transactionPayload($type, -$amount, $transactionMeta));
+            $this->audit($transaction);
         });
     }
 
@@ -37,8 +38,36 @@ class WalletService
         DB::transaction(function() use($user,$amount,$type,$meta){
             $w=$user->wallet()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],['tokens'=>50]);
             if($amount > 0) $w->increment('tokens',$amount);
-            $user->walletTransactions()->create(['type'=>$type,'amount'=>$amount,'meta'=>$meta]);
+            $transaction = $user->walletTransactions()->create($this->transactionPayload($type, $amount, $meta));
+            $this->audit($transaction);
         });
+    }
+
+    /** @return array<string,mixed> */
+    private function transactionPayload(string $type, int $amount, array $meta): array
+    {
+        $counterparty = $meta['counterparty_id'] ?? $meta['to'] ?? $meta['from'] ?? null;
+        $fee = max(0, (int)($meta['fee'] ?? 0));
+        return [
+            'type' => $type,
+            'amount' => $amount,
+            'fee' => $fee,
+            'counterparty_id' => is_numeric($counterparty) ? (int)$counterparty : null,
+            'meta' => $meta,
+        ];
+    }
+
+    private function audit(WalletTransaction $transaction): void
+    {
+        // Auditing is deliberately non-blocking: a telemetry/storage problem must
+        // never partially apply or reject a valid player wallet operation.
+        try {
+            if (Schema::hasTable('economy_audit_events')) {
+                app(EconomyAuditService::class)->inspect($transaction);
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**

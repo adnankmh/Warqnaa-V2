@@ -15,7 +15,7 @@ if(!function_exists('country_name')){
   $map=config('countries',[]);
   $name=$map[$c]??$c;
   if(is_array($name)){
-   $locale=in_array($locale,['ar','en'],true)?$locale:'ar';
+   $locale=in_array($locale,['ar','en','de','tr','fr','es'],true)?$locale:'ar';
    return (string)($name[$locale] ?? $name['ar'] ?? $name['en'] ?? $c);
   }
   return (string)($name ?: $c);

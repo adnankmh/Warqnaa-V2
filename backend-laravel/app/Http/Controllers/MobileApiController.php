@@ -99,7 +99,7 @@ class MobileApiController extends Controller
             'online_only' => false,
             'features' => [
                 'themes' => true,
-                'languages' => ['ar', 'en'],
+                'languages' => ['ar', 'en', 'de', 'tr', 'fr', 'es'],
                 'chat' => true,
                 'quick_reactions' => true,
                 'rewards' => true,
@@ -234,7 +234,7 @@ class MobileApiController extends Controller
                 ]);
 
                 // Only one cosmetic from the same category remains active.
-                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','xp_booster','card_back','name_frame','effect','emoji_pack','profile_cover'], true)) {
+                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','xp_booster','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
                     $user->inventoryItems()
                         ->whereHas('storeItem', fn ($query) => $query->where('category', $item->category))
                         ->update(['active' => false]);

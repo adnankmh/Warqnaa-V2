@@ -20,10 +20,10 @@ def text(path: str) -> str:
 
 def main() -> None:
     meta = json.loads(text("RELEASE_VERSION.json"))
-    check(int(meta.get("build", 0)) >= 260 and str(meta.get("name", "")).startswith("Warqnaa R14"), "metadata preserves the cumulative R14 Global Release line")
+    check(int(meta.get("build", 0)) >= 260 and str(meta.get("name", "")).startswith("Warqnaa"), "metadata preserves the cumulative R14 Global Release line")
     check(int(meta.get("build", 0)) >= 260 and f"version: {meta['full']}" in text("flutter_app/pubspec.yaml"), "Flutter package matches current cumulative R14 metadata")
     config = text("backend-laravel/config/warqna_global_release.php")
-    check(all(item in config for item in ("'backend', 'web', 'android', 'ios'", "'locales' => ['ar', 'en']", "'matches_per_engine' => 2000", "'release_checksums'")), "four channels, bilingual contract and mandatory gates are fixed")
+    check(all(item in config for item in ("'backend', 'web', 'android', 'ios'", "'locales' => ['ar', 'en', 'de', 'tr', 'fr', 'es']", "'matches_per_engine' => 2000", "'release_checksums'")), "four channels, six-locale contract and mandatory gates are fixed")
     service = text("backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php")
     check(all(item in service for item in ("release_version", "production_definition", "android_store_icon", "web_manifest", "APP_DEBUG", "HTTPS")), "Laravel distinguishes source readiness from production warnings")
     command = text("backend-laravel/app/Console/Commands/GlobalReleaseCheck.php")

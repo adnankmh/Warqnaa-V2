@@ -95,6 +95,7 @@ jobs:
           python3 ../tools/test_v250_r13_contract.py
           python3 ../tools/test_v260_r14_contract.py
           python3 ../tools/test_v263_r14_3_contract.py
+          python3 ../tools/test_v300_world_experience_contract.py
           python3 ../tools/global_release_preflight.py
           python3 ../tools/test_v184_flutter_quality_contract.py
           python3 ../tools/test_v184_official_game_rules_contract.py
@@ -160,7 +161,7 @@ jobs:
 
       - name: Upload GitHub Pages artifact
         if: steps.pages.outputs.enabled == 'true'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: flutter_app/build/web
 

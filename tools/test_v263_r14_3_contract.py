@@ -23,7 +23,7 @@ def check(value: bool, label: str) -> None:
 
 def main() -> None:
     meta = json.loads(text("RELEASE_VERSION.json"))
-    check(meta.get("full") == "1.0.3+263", "release metadata is Build 263")
+    check(int(meta.get("build", 0)) >= 263, "release preserves Build 263 security baseline")
     main_dart = text("flutter_app/lib/main.dart")
     check("part 'r14_2_account_security.dart';" in main_dart and "R143AccountSecurityPage" in main_dart, "Flutter security center is reachable")
     check("Icons.swords" not in text("flutter_app/lib/r12_competitive.dart"), "unsupported competitive icon removed")

@@ -11,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:lottie/lottie.dart';
 
 import 'engines/tarneeb_engine.dart';
 import 'engines/local_game_engine.dart';
@@ -43,6 +44,7 @@ part 'r10_1_release.dart';
 part 'r11_social_world.dart';
 part 'r12_competitive.dart';
 part 'r14_2_account_security.dart';
+part 'v300_world_experience.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -114,10 +116,7 @@ class _WarqnaAppState extends State<WarqnaApp> {
           navigatorKey: warqnaNavigatorKey,
           debugShowCheckedModeBanner: false,
           locale: Locale(controller.localeCode),
-          supportedLocales: const [
-            Locale('ar'),
-            Locale('en'),
-          ],
+          supportedLocales: const [Locale('ar'), Locale('en'), Locale('de'), Locale('tr'), Locale('fr'), Locale('es')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -174,6 +173,7 @@ class AppController extends ChangeNotifier {
   String selectedEmojiPack = 'emoji_free_basic';
   String selectedEffect = 'effect_gold_entry';
   String selectedCover = 'cover_royal_gold';
+  String selectedProfileFrameV300 = 'frame_world_gold';
   String botDifficultyCode = 'pro';
   double uiButtonHeight = 48;
   double uiRadius = 18;
@@ -326,6 +326,7 @@ class AppController extends ChangeNotifier {
       selectedEmojiPack = 'emoji_free_basic';
       selectedEffect = 'effect_gold_entry';
       selectedCover = 'cover_royal_gold';
+      selectedProfileFrameV300 = 'frame_world_gold';
       activeClub = null;
       clubImageEmojiV182 = '🛡️';
       clubDescriptionV182 = 'نادي احترافي داخل مجتمع ورقنا.';
@@ -384,6 +385,7 @@ class AppController extends ChangeNotifier {
     selectedEmojiPack = prefs.getString(_accountKey('selectedEmojiPack')) ?? 'emoji_free_basic';
     selectedEffect = prefs.getString(_accountKey('selectedEffect')) ?? 'effect_gold_entry';
     selectedCover = prefs.getString(_accountKey('selectedCover')) ?? 'cover_royal_gold';
+    selectedProfileFrameV300 = prefs.getString(_accountKey('selectedProfileFrameV300')) ?? 'frame_world_gold';
     activeXpMultiplier = prefs.getDouble(_accountKey('activeXpMultiplier')) ?? 1.0;
     gamesPlayed = prefs.getInt(_accountKey('gamesPlayed')) ?? 0;
     wins = prefs.getInt(_accountKey('wins')) ?? 0;
@@ -468,6 +470,7 @@ class AppController extends ChangeNotifier {
     await prefs.setString(_accountKey('selectedEmojiPack'), selectedEmojiPack);
     await prefs.setString(_accountKey('selectedEffect'), selectedEffect);
     await prefs.setString(_accountKey('selectedCover'), selectedCover);
+    await prefs.setString(_accountKey('selectedProfileFrameV300'), selectedProfileFrameV300);
     await prefs.setString(_accountKey('uiFontFamily'), uiFontFamily);
     await prefs.setDouble(_accountKey('activeXpMultiplier'), activeXpMultiplier);
     await prefs.setInt(_accountKey('gamesPlayed'), gamesPlayed);
@@ -672,7 +675,7 @@ class AppController extends ChangeNotifier {
     customApiUrl = prefs.getString('customApiUrl') ?? '';
     if (customApiUrl.trim().isNotEmpty) api.updateBaseUrl(customApiUrl);
     final savedLocale = prefs.getString('locale');
-    localeCode = savedLocale == 'en' ? 'en' : 'ar';
+    localeCode = savedLocale != null && v300SupportedLocaleCodes.contains(savedLocale) ? savedLocale : 'ar';
     themeCode = prefs.getString('theme') ?? themeCode;
     final storedCoins = prefs.getString('coins');
     if (storedCoins != null) coins = BigInt.tryParse(storedCoins) ?? coins;
@@ -692,6 +695,7 @@ class AppController extends ChangeNotifier {
     selectedEmojiPack = prefs.getString('selectedEmojiPack') ?? selectedEmojiPack;
     selectedEffect = prefs.getString('selectedEffect') ?? selectedEffect;
     selectedCover = prefs.getString('selectedCover') ?? selectedCover;
+    selectedProfileFrameV300 = prefs.getString('selectedProfileFrameV300') ?? selectedProfileFrameV300;
     botDifficultyCode = prefs.getString('botDifficultyCode') ?? botDifficultyCode;
     uiButtonHeight = prefs.getDouble('uiButtonHeight') ?? uiButtonHeight;
     uiRadius = prefs.getDouble('uiRadius') ?? uiRadius;
@@ -846,6 +850,7 @@ class AppController extends ChangeNotifier {
     await prefs.setString('selectedEmojiPack', selectedEmojiPack);
     await prefs.setString('selectedEffect', selectedEffect);
     await prefs.setString('selectedCover', selectedCover);
+    await prefs.setString('selectedProfileFrameV300', selectedProfileFrameV300);
     await prefs.setString('botDifficultyCode', botDifficultyCode);
     await prefs.setDouble('uiButtonHeight', uiButtonHeight);
     await prefs.setDouble('uiRadius', uiRadius);
@@ -1372,7 +1377,7 @@ class AppController extends ChangeNotifier {
   }
 
   void changeLocale(String value) {
-    localeCode = value == 'en' ? 'en' : 'ar';
+    localeCode = v300SupportedLocaleCodes.contains(value) ? value : 'ar';
     _save();
     notifyListeners();
   }
@@ -1587,6 +1592,9 @@ class AppController extends ChangeNotifier {
         break;
       case 'effects':
         selectedEffect = product.id;
+        break;
+      case 'frames':
+        selectedProfileFrameV300 = product.id;
         break;
       case 'covers':
         selectedCover = product.id;
@@ -2671,7 +2679,7 @@ class L {
   };
 
   static String t(String lang, String key) =>
-      v166Translations[lang]?[key] ?? extra[lang]?[key] ?? data[lang]?[key] ?? v166Translations['en']?[key] ?? extra['en']?[key] ?? data['en']?[key] ?? data['ar']?[key] ?? key;
+      v300Translations[lang]?[key] ?? v166Translations[lang]?[key] ?? extra[lang]?[key] ?? data[lang]?[key] ?? v166Translations['en']?[key] ?? extra['en']?[key] ?? data['en']?[key] ?? data['ar']?[key] ?? key;
 }
 
 class GameInfo {
@@ -2859,6 +2867,7 @@ List<StoreProduct> buildTimedColorProducts() {
 
 
 final List<StoreProduct> products = <StoreProduct>[
+  ...v300WorldStoreProducts,
   ...buildV201R4StoreProducts(),
   StoreProduct(id: 'daily_pack_name_gold_24h_v176', category: 'names', icon: '🎨', nameAr: 'صندوق الجوائز: لون لاعب ذهبي', nameEn: 'Prize Box: Golden Player Color', descriptionAr: 'لون لاعب ذهبي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary golden player color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#facc15', previewColor1: Color(0xfffacc15), previewColor2: Color(0xff422006), collection: 'daily_pack_v176'),
   StoreProduct(id: 'daily_pack_chat_cyan_24h_v176', category: 'chat_colors', icon: '💬', nameAr: 'صندوق الجوائز: لون كتابة سماوي', nameEn: 'Prize Box: Cyan Writing Color', descriptionAr: 'لون كتابة سماوي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary cyan writing color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#22d3ee', previewColor1: Color(0xff22d3ee), previewColor2: Color(0xff083344), collection: 'daily_pack_v176'),
@@ -3513,7 +3522,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => R9HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => V300WorldHome(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
@@ -7919,21 +7928,14 @@ void showSettings(BuildContext context, AppController controller) {
             },
           ),
           const Divider(),
-          ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => const [PopupMenuItem(value:'ar',child:Text('العربية')),PopupMenuItem(value:'en',child:Text('English'))])),
+          ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => v300SupportedLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(v300LocaleNames[code] ?? code.toUpperCase()))).toList())),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(L.t(controller.localeCode, 'theme')),
             subtitle: Text(controller.themeCode),
             trailing: PopupMenuButton<String>(
               onSelected: (v) { controller.changeTheme(v); setLocalState(() {}); },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value:'dark',child:Text('Midnight • منتصف الليل')),
-                PopupMenuItem(value:'light',child:Text('Ivory • عاجي')),
-                PopupMenuItem(value:'green',child:Text('Emerald Majlis • زمردي')),
-                PopupMenuItem(value:'gold',child:Text('Royal Gold • ذهبي ملكي')),
-                PopupMenuItem(value:'purple',child:Text('Neon Night • نيون هادئ')),
-                PopupMenuItem(value:'classic',child:Text('Desert Bronze • برونزي')),
-              ],
+              itemBuilder: (_) => r101Themes.keys.map((code) => PopupMenuItem<String>(value: code, child: Text(code.replaceAll('_', ' ').toUpperCase()))).toList(),
             ),
           ),
           if (controller.isPrimaryAdmin) ListTile(leading: const Icon(Icons.tune_rounded), title: Text(L.t(controller.localeCode, 'noCode')), subtitle: const Text('مصمم شامل خاص بحساب Adnan مع معاينة فورية'), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); showNoCodeDesignerSheet(context, controller); }),
@@ -9254,7 +9256,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
   @override
   void initState() {
     super.initState();
-    tabs = TabController(length: 8, vsync: this);
+    tabs = TabController(length: 9, vsync: this);
     _load();
   }
 
@@ -9282,9 +9284,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
       appBar: AppBar(
         title: const Text('لوحة إدارة Warqna', style: TextStyle(fontWeight: FontWeight.w900)),
         actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
-        bottom: TabBar(controller: tabs, isScrollable: true, tabs: const [Tab(text:'نظرة عامة'),Tab(text:'الألعاب'),Tab(text:'المتجر'),Tab(text:'اللاعبون'),Tab(text:'مصمم بدون كود'),Tab(text:'Social World'),Tab(text:'Competitive'),Tab(text:'النظام')]),
+        bottom: TabBar(controller: tabs, isScrollable: true, tabs: const [Tab(text:'نظرة عامة'),Tab(text:'الألعاب'),Tab(text:'المتجر'),Tab(text:'اللاعبون'),Tab(text:'مصمم بدون كود'),Tab(text:'Social World'),Tab(text:'Competitive'),Tab(text:'WORLD OPS'),Tab(text:'النظام')]),
       ),
-      body: loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: tabs, children: [_overview(), _games(), _store(), _users(), _designer(), R11AdminSocialWorldPanel(controller: widget.controller), R12AdminCompetitivePanel(controller: widget.controller), _system()]),
+      body: loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: tabs, children: [_overview(), _games(), _store(), _users(), _designer(), R11AdminSocialWorldPanel(controller: widget.controller), R12AdminCompetitivePanel(controller: widget.controller), V300AdminWorldOpsPanel(controller: widget.controller), _system()]),
     );
   }
 

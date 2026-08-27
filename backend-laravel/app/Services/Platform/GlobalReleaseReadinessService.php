@@ -8,7 +8,7 @@ final class GlobalReleaseReadinessService
     {
         $checks = [
             'release_version' => config('warqna.version') === '1.0.3' && (int)config('warqna.build') === 263,
-            'bilingual_contract' => config('warqna_global_release.locales') === ['ar', 'en'],
+            'locale_contract' => config('warqna_global_release.locales') === ['ar', 'en', 'de', 'tr', 'fr', 'es'],
             'four_channels' => count((array)config('warqna_global_release.channels')) === 4,
             'engine_gold' => (int)config('warqna_global_release.engine_gold.engines') === 20
                 && (int)config('warqna_global_release.engine_gold.matches_per_engine') >= 2000,

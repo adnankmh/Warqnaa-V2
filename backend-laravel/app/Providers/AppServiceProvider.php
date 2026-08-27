@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureLocale(): void
     {
-        $allowed = ['ar','en'];
+        $allowed = ['ar','en','de','tr','fr','es'];
         $locale = 'ar';
         try {
             if (!app()->runningInConsole() && request()->hasSession()) $locale = session('warqna_locale', 'ar');
@@ -47,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('warqna-sensitive', fn (Request $request) => [
             Limit::perMinute(12)->by((string) ($request->user()?->id ?: $request->ip())),
             Limit::perHour(80)->by((string) ($request->user()?->id ?: $request->ip())),
+        ]);
+        RateLimiter::for('warqna-presence', fn (Request $request) => [
+            Limit::perMinute(180)->by((string) ($request->user()?->id ?: $request->ip())),
         ]);
         RateLimiter::for('warqna-report', fn (Request $request) => [
             Limit::perMinute(3)->by((string) ($request->user()?->id ?: $request->ip())),

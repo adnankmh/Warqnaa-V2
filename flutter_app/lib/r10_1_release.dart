@@ -22,6 +22,15 @@ const Map<String, R101ThemeSpec> r101Themes = <String, R101ThemeSpec>{
   'gold': R101ThemeSpec(code:'gold',accent:Color(0xfff5c75b),accent2:Color(0xffc08457),background:Color(0xff211709),surface:Color(0xff3a2a12),light:false),
   'purple': R101ThemeSpec(code:'purple',accent:Color(0xffc4a7ff),accent2:Color(0xffff7ab8),background:Color(0xff160f2b),surface:Color(0xff2b2050),light:false),
   'classic': R101ThemeSpec(code:'classic',accent:Color(0xfff3d27a),accent2:Color(0xffb24a4a),background:Color(0xff10221b),surface:Color(0xff19382b),light:false),
+  'ocean': R101ThemeSpec(code:'ocean',accent:Color(0xff38bdf8),accent2:Color(0xff22d3ee),background:Color(0xff041b2d),surface:Color(0xff0b2d45),light:false),
+  'sky': R101ThemeSpec(code:'sky',accent:Color(0xff0284c7),accent2:Color(0xff0ea5e9),background:Color(0xffe0f2fe),surface:Color(0xfff0f9ff),light:true),
+  'forest': R101ThemeSpec(code:'forest',accent:Color(0xff84cc16),accent2:Color(0xff22c55e),background:Color(0xff102a16),surface:Color(0xff183c20),light:false),
+  'desert': R101ThemeSpec(code:'desert',accent:Color(0xffd97706),accent2:Color(0xfff59e0b),background:Color(0xff2b1b0f),surface:Color(0xff4a2f18),light:false),
+  'rose': R101ThemeSpec(code:'rose',accent:Color(0xfffb7185),accent2:Color(0xfff472b6),background:Color(0xff2c0b17),surface:Color(0xff4c1024),light:false),
+  'graphite': R101ThemeSpec(code:'graphite',accent:Color(0xff94a3b8),accent2:Color(0xff64748b),background:Color(0xff0f172a),surface:Color(0xff1e293b),light:false),
+  'royal_blue': R101ThemeSpec(code:'royal_blue',accent:Color(0xff60a5fa),accent2:Color(0xff818cf8),background:Color(0xff0a1740),surface:Color(0xff13275a),light:false),
+  'emerald_light': R101ThemeSpec(code:'emerald_light',accent:Color(0xff047857),accent2:Color(0xff0d9488),background:Color(0xffecfdf5),surface:Color(0xfff0fdfa),light:true),
+  'sunset': R101ThemeSpec(code:'sunset',accent:Color(0xffff8a4c),accent2:Color(0xfff43f5e),background:Color(0xff2a0d14),surface:Color(0xff4b1720),light:false),
 };
 
 ThemeData r101Theme(String code, String fallbackAccentHex) {
@@ -99,6 +108,13 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
       behavior: SnackBarBehavior.floating,
     ),
     dividerColor: spec.accent.withValues(alpha: .16),
+    pageTransitionsTheme: const PageTransitionsTheme(builders: <TargetPlatform, PageTransitionsBuilder>{
+      TargetPlatform.android: ZoomPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+      TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+    }),
   );
 }
 

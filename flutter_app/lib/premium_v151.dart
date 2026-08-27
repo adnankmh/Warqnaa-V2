@@ -64,6 +64,15 @@ const List<(String, String, Color)> v151ThemeOptions = <(String, String, Color)>
   ('gold', 'Royal Gold • ذهبي ملكي', Color(0xffe9c46a)),
   ('purple', 'Neon Night • نيون هادئ', Color(0xff8b5cf6)),
   ('classic', 'Desert Bronze • برونزي صحراوي', Color(0xffb77942)),
+  ('ocean', 'Ocean • محيط', Color(0xff38bdf8)),
+  ('sky', 'Sky Light • سماء فاتحة', Color(0xff0ea5e9)),
+  ('forest', 'Forest • غابة', Color(0xff84cc16)),
+  ('desert', 'Desert • صحراء', Color(0xffd97706)),
+  ('rose', 'Royal Rose • ورد ملكي', Color(0xfffb7185)),
+  ('graphite', 'Graphite • جرافيت', Color(0xff94a3b8)),
+  ('royal_blue', 'Royal Blue • أزرق ملكي', Color(0xff60a5fa)),
+  ('emerald_light', 'Emerald Light • زمردي فاتح', Color(0xff10b981)),
+  ('sunset', 'Sunset • غروب', Color(0xffff8a4c)),
 ];
 
 const List<String> v151AccentColors = <String>[

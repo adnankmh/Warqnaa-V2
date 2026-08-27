@@ -30,7 +30,7 @@ for rel in ('tools/test_v183_overhaul_contract.py', 'tools/test_v030_contract.py
 web = text('.github/workflows/flutter-web-pages.yml')
 for required in (
     'actions/configure-pages@v6',
-    'actions/upload-pages-artifact@v4',
+    'actions/upload-pages-artifact@v5',
     'actions/deploy-pages@v5',
     'actions/upload-artifact@v6',
     'pages: read',

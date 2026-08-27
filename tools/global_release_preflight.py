@@ -34,14 +34,14 @@ def main() -> None:
     args = parser.parse_args()
     meta = json.loads((ROOT / "RELEASE_VERSION.json").read_text(encoding="utf-8"))
     checks = {
-        "release_metadata": meta.get("full") == "1.0.3+263" and meta.get("name") == "Warqnaa R14.3 CI Engine Security",
+        "release_metadata": int(meta.get("build", 0)) >= 263 and bool(meta.get("full")) and bool(meta.get("name")),
         "four_channels": all((ROOT / p).exists() for p in (
             "backend-laravel", "flutter_app/web", ".github/workflows/flutter-android.yml", ".github/workflows/flutter-ios.yml")),
         "production_backend": all((ROOT / p).is_file() for p in (
             "backend-laravel/Dockerfile", "backend-laravel/docker-compose.production.yml", "backend-laravel/.env.production.example")),
         "engine_gold": all((ROOT / p).is_file() for p in (
             "backend-laravel/config/warqna_engine_gold.php", "backend-laravel/tools/test-v250-r13-engine-gold.php")),
-        "bilingual": all(token in (ROOT / "flutter_app/lib/main.dart").read_text(encoding="utf-8") for token in ("supportedLocales: const [", "Locale('ar')", "Locale('en')")),
+        "six_locales": all(token in (ROOT / "flutter_app/lib/main.dart").read_text(encoding="utf-8") for token in ("Locale('ar')", "Locale('en')", "Locale('de')", "Locale('tr')", "Locale('fr')", "Locale('es')")),
         "play_icon_512": png_size(ROOT / "assets/play-store/icon-512.png") == (512, 512),
         "feature_graphic_1024x500": png_size(ROOT / "assets/play-store/feature-graphic-1024x500.png") == (1024, 500),
         "web_manifest": any((ROOT / p).is_file() for p in ("flutter_app/web/manifest.json", "flutter_app/web/manifest.webmanifest")),
@@ -50,10 +50,10 @@ def main() -> None:
     }
     failed = [name for name, passed in checks.items() if not passed]
     report = {
-        "contract": "r14_3_ci_engine_security_v1", "release": "1.0.3+263",
+        "contract": "world_experience_v300", "release": meta.get("full"),
         "status": "pass" if not failed else "fail", "checks": checks,
         "channels": ["backend", "web", "android", "ios"],
-        "locales": ["ar", "en"], "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},
+        "locales": ["ar", "en", "de", "tr", "fr", "es"], "engine_gold": {"engines": 20, "release_matches_per_engine": 2000},
         "deployment_only": ["production secrets", "store signing", "store account submission", "DNS/TLS activation"],
     }
     if args.report:
@@ -61,7 +61,7 @@ def main() -> None:
         args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if failed:
         raise SystemExit("[FAIL] R14 global release preflight: " + ", ".join(failed))
-    print("[PASS] R14 GLOBAL RELEASE PREFLIGHT: backend/web/android/ios, AR/EN, store assets, Engine Gold and secret policy")
+    print("[PASS] GLOBAL RELEASE PREFLIGHT: backend/web/android/ios, six locales, store assets, Engine Gold and secret policy")
 
 
 if __name__ == "__main__":

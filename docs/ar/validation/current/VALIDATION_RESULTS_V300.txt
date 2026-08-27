@@ -1,0 +1,10 @@
+Warqnaa WORLD EXPERIENCE 1.1.0+300
+SOURCE VALIDATION SUMMARY
+- R14.3 security baseline contract: PASS
+- V300 WORLD EXPERIENCE contract: PASS
+- GitHub Actions YAML parse: PASS
+- Global release preflight: PASS
+- PHP syntax for new controllers/services/models/migration: PASS
+- Legacy engine/source checks: mandatory and retained
+- Laravel Composer runtime suite: mandatory in GitHub Actions
+- Flutter analyze/test/build: mandatory in GitHub Actions

@@ -24,7 +24,10 @@ use App\Http\Controllers\{
     MobileCompetitiveController,
     AdminSocialWorldController,
     AdminCompetitiveController,
-    AccountSecurityController
+    AccountSecurityController,
+    MobileLifecycleController,
+    MobilePartyController,
+    AdminEconomyAuditController
 };
 
 // Backward-compatible public aliases for older Flutter/PWA builds. They
@@ -102,6 +105,13 @@ Route::prefix('mobile/v1')->group(function () {
         Route::get('/games/session/{room:code}/chat', [MobileGameController::class, 'chat']);
         Route::post('/games/session/{room:code}/chat', [MobileGameController::class, 'sendChat']);
 
+
+        // WORLD EXPERIENCE lifecycle: heartbeat/reconnect/AFK state is server authoritative.
+        Route::get('/games/session/{room:code}/lifecycle', [MobileLifecycleController::class, 'status'])->middleware('throttle:warqna-presence');
+        Route::post('/games/session/{room:code}/heartbeat', [MobileLifecycleController::class, 'heartbeat'])->middleware('throttle:warqna-presence');
+        Route::post('/games/session/{room:code}/disconnect', [MobileLifecycleController::class, 'disconnect'])->middleware('throttle:30,1');
+        Route::post('/games/session/{room:code}/reconnect', [MobileLifecycleController::class, 'reconnect'])->middleware('throttle:warqna-presence');
+
         Route::post('/games/session/{room:code}/voice/join', [MobileVoiceController::class, 'join'])->middleware('throttle:30,1');
         Route::get('/games/session/{room:code}/voice/poll', [MobileVoiceController::class, 'poll'])->middleware('throttle:120,1');
         Route::post('/games/session/{room:code}/voice/signal', [MobileVoiceController::class, 'signal'])->middleware('throttle:240,1');
@@ -121,6 +131,15 @@ Route::prefix('mobile/v1')->group(function () {
         Route::get('/social/chat/{user}', [MobileSocialController::class, 'thread']);
         Route::post('/social/chat/{user}', [MobileSocialController::class, 'send']);
         Route::post('/social/transfer', [MobileSocialController::class, 'transfer'])->middleware('throttle:warqna-sensitive');
+
+        // Party system — friend-only squads that can move into matchmaking/rooms together.
+        Route::get('/parties/mine', [MobilePartyController::class, 'mine']);
+        Route::post('/parties', [MobilePartyController::class, 'create'])->middleware('throttle:warqna-sensitive');
+        Route::patch('/parties/{party}', [MobilePartyController::class, 'configure'])->middleware('throttle:warqna-sensitive');
+        Route::post('/parties/{party}/invite/{user}', [MobilePartyController::class, 'invite'])->middleware('throttle:warqna-sensitive');
+        Route::post('/parties/join/{code}', [MobilePartyController::class, 'join'])->middleware('throttle:warqna-sensitive');
+        Route::post('/parties/{party}/leave', [MobilePartyController::class, 'leave'])->middleware('throttle:warqna-sensitive');
+
 
         // R11 Social World — privacy-first feed, events, following and animated gifts.
         Route::get('/social-world', [MobileSocialWorldController::class, 'dashboard']);
@@ -197,6 +216,10 @@ Route::prefix('mobile/v1')->group(function () {
         Route::post('/admin/competitive/matches/{match}', [AdminCompetitiveController::class, 'matchAction']);
         Route::post('/admin/competitive/tournaments', [AdminCompetitiveController::class, 'createTournament']);
         Route::post('/admin/competitive/tournaments/{tournament}/bracket', [AdminCompetitiveController::class, 'buildBracket']);
+
+        Route::get('/admin/economy-audit', [AdminEconomyAuditController::class, 'index'])->middleware('throttle:warqna-sensitive');
+        Route::patch('/admin/economy-audit/{event}', [AdminEconomyAuditController::class, 'review'])->middleware('throttle:warqna-sensitive');
+
 
         Route::post('/logout', [MobileApiController::class, 'logout']);
     });
