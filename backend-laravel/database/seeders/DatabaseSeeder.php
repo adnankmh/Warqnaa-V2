@@ -28,7 +28,8 @@ class DatabaseSeeder extends Seeder { public function run(): void {
  // Preserve user-selected avatar/display/colors while enforcing only privileged progression entitlements.
  $adminProfile->forceFill(['level'=>99,'pasha_days'=>36500,'badge'=>'king'])->save();
  Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
- // R9.1/B304: exactly 10 curated non-admin demo users for local/testing only by default.
+ // R9.1: exactly 10 curated non-admin demo users
+ // B304: demo users are local/testing only by default; production requires explicit opt-in.
  // Production never gets known demo credentials unless WARQNAA_SEED_DEMO_USERS=true is explicitly set.
  $seedDemoUsers = !app()->environment('production') || filter_var(env('WARQNAA_SEED_DEMO_USERS', false), FILTER_VALIDATE_BOOL);
  $demoUsers = [

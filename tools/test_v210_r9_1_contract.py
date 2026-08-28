@@ -21,8 +21,11 @@ def main():
     xp=has('backend-laravel/config/warqna_xp_levels.php','80 => 4000000','89 => 7428796','90 => 9000000','95 => 15000000','98 => 19000000','99 => 20000000')
     dart=has('flutter_app/lib/v175_release.dart','80: 4000000','90: 9000000','95: 15000000','98: 19000000','99: 20000000')
     store=has('backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php','grantPrimaryAdminAllCollectibles','grantPrimaryAdminItem',"'table'=>5.25","'card_back'=>3.50","'xp_booster'=>2.25", "if($category==='pasha') return $price;")
-    seed=has('backend-laravel/database/seeders/DatabaseSeeder.php',"'level'=>99,'xp'=>193947651",'// R9.1: exactly 10 curated non-admin demo users')
-    ok(seed.count("@warqna.local")>=10,'10 demo user accounts are seeded')
+    seed=has('backend-laravel/database/seeders/DatabaseSeeder.php',"'level'=>99,'xp'=>193947651")
+    demo_block=re.search(r'\$demoUsers\s*=\s*\[(.*?)\];\s*if \(!\$seedDemoUsers\)', seed, re.S)
+    ok(demo_block is not None,'curated demo-user block exists')
+    demo_emails=re.findall(r"['\"]([^'\"]+@warqna\.local)['\"]", demo_block.group(1)) if demo_block else []
+    ok(len(demo_emails)==10 and len(set(demo_emails))==10,'exactly 10 curated non-admin demo users are defined semantically')
     admin=has('backend-laravel/app/Http/Controllers/AdminController.php','deleteStoreItem','purgeStoreItem','grantPrimaryAdminItem')
     routes=has('backend-laravel/routes/web.php',"admin.store.update","admin.store.delete","admin.store.purge")
     booster=has('flutter_app/lib/v183_overhaul.dart','class _BoosterPreviewV210State','_BoosterShieldClipperV210','_BoosterCircuitPainterV210')
