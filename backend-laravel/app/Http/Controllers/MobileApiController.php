@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{AdminDesignerEntity,ChallengeDefinition,Club,CompetitionTicket,DailyPackClaim,DailyRewardClaim,Game,Profile,RewardedAdClaim,Room,StoreItem,Tournament,User,Wallet};
+use App\Models\{AdminDesignerEntity,ChallengeDefinition,Club,CompetitionTicket,DailyPackClaim,DailyRewardClaim,Game,InventoryItem,Profile,RewardedAdClaim,Room,StoreItem,Tournament,User,Wallet};
 use App\Services\Wallet\WalletService;
 use App\Services\Platform\ProductionConfigService;
 use App\Services\Account\AccountCancellationService;
@@ -99,7 +99,8 @@ class MobileApiController extends Controller
             'online_only' => false,
             'features' => [
                 'themes' => true,
-                'languages' => ['ar', 'en', 'de', 'tr', 'fr', 'es'],
+                'languages' => ['ar', 'en'],
+                'future_languages' => ['de', 'tr', 'fr', 'es'],
                 'chat' => true,
                 'quick_reactions' => true,
                 'rewards' => true,
@@ -133,7 +134,7 @@ class MobileApiController extends Controller
         $data = $request->validate([
             'display_name' => 'nullable|string|min:2|max:80',
             'country_code' => 'nullable|string|size:2|not_in:IL,il',
-            'locale' => 'nullable|in:ar,en,de,tr,fr,es',
+            'locale' => 'nullable|in:ar,en',
             'theme' => 'nullable|string|max:40',
             'sound_enabled' => 'nullable|boolean',
             'avatar' => 'nullable|string|max:32',
@@ -324,34 +325,63 @@ class MobileApiController extends Controller
 
     public function claimRewardedAd(Request $request, WalletService $wallet, ProductionConfigService $productionConfig)
     {
-        abort_unless($productionConfig->enabled('rewarded_ads', true), 503, 'الإعلانات المكافِئة متوقفة مؤقتًا.');
+        abort_unless($productionConfig->enabled('rewarded_ads', true), 503, 'Rewarded ads are temporarily unavailable.');
         $data = $request->validate([
             'verification_id'=>'required|string|min:8|max:190',
             'network'=>'nullable|string|max:40',
-            'reward_type'=>'nullable|in:standard,double',
         ]);
         $user = $request->user();
         $today = now()->toDateString();
         $dailyCount = RewardedAdClaim::where('user_id',$user->id)->whereDate('claim_date',$today)->count();
-        $dailyLimit = max(0, (int) data_get($productionConfig->flags(), 'rewarded_ads.payload.daily_limit', 5));
-        if ($dailyLimit === 0 || $dailyCount >= $dailyLimit) return response()->json(['ok'=>false,'message'=>'وصلت إلى الحد اليومي للإعلانات المكافِئة.'],429);
+        $dailyLimit = min(8, max(0, (int) data_get($productionConfig->flags(), 'rewarded_ads.payload.daily_limit', 8)));
+        if ($dailyLimit === 0 || $dailyCount >= $dailyLimit) return response()->json(['ok'=>false,'message'=>'Daily rewarded-ad limit reached.'],429);
         if (RewardedAdClaim::where('verification_id',$data['verification_id'])->exists()) {
-            return response()->json(['ok'=>false,'message'=>'تم استخدام إثبات الإعلان مسبقاً.'],409);
+            return response()->json(['ok'=>false,'message'=>'This ad verification was already used.'],409);
         }
-        $multiplier = ($data['reward_type'] ?? 'standard') === 'double' ? 2 : 1;
-        $tokens = 50 * $multiplier;
-        $xp = 15 * $multiplier;
-        DB::transaction(function () use ($user,$wallet,$data,$today,$tokens,$xp) {
-            $wallet->credit($user,$tokens,'rewarded_ad',['verification_id'=>$data['verification_id']]);
+
+        $ladder = [
+            1=>['tokens'=>50,'xp'=>15],
+            2=>['tokens'=>75,'xp'=>25],
+            3=>['tokens'=>100,'xp'=>40,'ticket'=>50],
+            4=>['tokens'=>150,'xp'=>60],
+            5=>['tokens'=>200,'xp'=>90,'store_key'=>'b304_profile_aurora_30d','duration_days'=>2],
+            6=>['tokens'=>250,'xp'=>120,'ticket'=>100],
+            7=>['tokens'=>350,'xp'=>160,'store_key'=>'b304_table_aurora','duration_days'=>2],
+            8=>['tokens'=>500,'xp'=>250,'store_key'=>'b304_table_phoenix','duration_days'=>7],
+        ];
+        $claimNumber = min(8, $dailyCount + 1);
+        $reward = $ladder[$claimNumber];
+        $tokens = (int)$reward['tokens'];
+        $xp = (int)$reward['xp'];
+        $temporary = null;
+
+        DB::transaction(function () use ($user,$wallet,$data,$today,$tokens,$xp,$reward,$claimNumber,&$temporary) {
+            $wallet->credit($user,$tokens,'rewarded_ad',['verification_id'=>$data['verification_id'],'claim_number'=>$claimNumber]);
+            $user->profile?->increment('xp',$xp);
+            if (!empty($reward['ticket'])) {
+                $ticket = CompetitionTicket::query()->firstOrCreate(
+                    ['user_id'=>$user->id,'denomination'=>(int)$reward['ticket']],
+                    ['quantity'=>0]
+                );
+                $ticket->increment('quantity');
+            }
+            if (!empty($reward['store_key'])) {
+                $item = StoreItem::where('key',$reward['store_key'])->where('active',true)->first();
+                if ($item) {
+                    $days=(int)($reward['duration_days'] ?? 2);
+                    $inventory=InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays($days)]);
+                    $temporary=['store_key'=>$item->key,'duration_days'=>$days,'expires_at'=>$inventory->expires_at?->toIso8601String()];
+                }
+            }
             RewardedAdClaim::create([
                 'user_id'=>$user->id,'claim_date'=>$today,'reward_tokens'=>$tokens,'reward_xp'=>$xp,
                 'network'=>$data['network'] ?? 'admob','verification_id'=>$data['verification_id'],
-                'payload'=>['reward_type'=>$data['reward_type'] ?? 'standard'],
+                'payload'=>['claim_number'=>$claimNumber,'temporary'=>$temporary,'ticket'=>$reward['ticket'] ?? null],
             ]);
-            $user->profile?->increment('xp',$xp);
         });
         return response()->json([
-            'ok'=>true,'message'=>'تمت إضافة مكافأة الإعلان','tokens'=>$tokens,'xp'=>$xp,
+            'ok'=>true,'message'=>'Reward added','claim_number'=>$claimNumber,'tokens'=>$tokens,'xp'=>$xp,
+            'ticket'=>$reward['ticket'] ?? null,'temporary_reward'=>$temporary,
             'remaining'=>max(0,$dailyLimit-$dailyCount-1),'wallet'=>$this->walletPayload($user->fresh()),
             'profile'=>$user->profile?->fresh(),
         ]);
@@ -523,13 +553,13 @@ class MobileApiController extends Controller
         return $user->publicProfile() + ['email' => (string)$user->email];
     }
 
-    /** Keep the named primary account authoritative even on upgraded databases. */
+    /** Keep the durable primary-admin role authoritative even after username/email changes. */
     private function ensurePrimaryAdmin(User $user): User
     {
-        if (strcasecmp(trim((string) $user->username), 'Adnan') === 0) {
+        if ($user->isPrimaryAdmin()) {
             if (!$user->is_admin) $user->forceFill(['is_admin' => true])->save();
             $profile = $user->profile()->firstOrCreate([], [
-                'display_name'=>'Adnan','country_code'=>'PS','country_name'=>country_name('PS'),
+                'display_name'=>$user->username,'country_code'=>'PS','country_name'=>country_name('PS'),
             ]);
             if ((int)$profile->level < 99 || $profile->pasha_style !== 'red') {
                 $profile->forceFill(['level'=>99,'pasha_style'=>'red'])->save();

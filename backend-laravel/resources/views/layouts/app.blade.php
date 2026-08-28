@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="/assets/css/r11-social-world.css?v=230">
     <link rel="stylesheet" href="/assets/css/r12-competitive-arena.css?v=240">
     <link rel="stylesheet" href="/assets/css/b303-global-premium.css?v=303">
+    <link rel="stylesheet" href="/assets/css/b304-vertical-legend.css?v=304">
     <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
@@ -58,7 +59,7 @@
     $activeRoom = $currentUser ? \App\Models\Room::with('game')->whereHas('players', fn($q)=>$q->where('user_id',$currentUser->id)->where('is_bot',false))->whereIn('status',['waiting','bidding','playing'])->latest()->first() : null;
 @endphp
 @php $globalAnnouncement = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('global_announcement','') : ''; $customCss = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('custom_css','') : ''; @endphp
-<body class="warqna-pro-social warqna-r9 warqna-b303 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
+<body class="warqna-pro-social warqna-r9 warqna-b303 warqna-b304 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
     @if($globalAnnouncement)<div class="global-announcement">{{ $globalAnnouncement }}</div>@endif
     @if($customCss)<style id="adminCustomCss">{!! $customCss !!}</style>@endif
     @php
@@ -167,12 +168,7 @@
             <p class="muted">اختر اللغة وسيتم تطبيق الاتجاه والترجمة مباشرة على الواجهة.</p>
             <div class="language-grid-v138">
                 <button type="button" data-lang-pick="ar" onclick="setWarqnaLang('ar');toggleTopPanel('languagePanel')">🇵🇸 عربي</button>
-                <button type="button" data-lang-pick="en" onclick="setWarqnaLang('en');toggleTopPanel('languagePanel')">🇬🇧 English</button>
-                <button type="button" data-lang-pick="de" onclick="setWarqnaLang('de');toggleTopPanel('languagePanel')">🇩🇪 Deutsch</button>
-                <button type="button" data-lang-pick="tr" onclick="setWarqnaLang('tr');toggleTopPanel('languagePanel')">🇹🇷 Türkçe</button>
-                <button type="button" data-lang-pick="fr" onclick="setWarqnaLang('fr');toggleTopPanel('languagePanel')">🇫🇷 Français</button>
-                <button type="button" data-lang-pick="es" onclick="setWarqnaLang('es');toggleTopPanel('languagePanel')">🇪🇸 Español</button>
-            </div>
+                <button type="button" data-lang-pick="en" onclick="setWarqnaLang('en');toggleTopPanel('languagePanel')">🇬🇧 English</button>            </div>
         </div>
 
         <div class="userbar">

@@ -54,10 +54,7 @@ class GameCatalog
         return [
             'ar'=>self::rules($key),
             'en'=>$en.': Official Warqnaa rules are enforced by the server, including legal turns/actions, scoring, timeout auto-play, reconnect protection and anti-cheat validation.',
-            'de'=>$en.': Die offiziellen Warqnaa-Regeln werden serverseitig durchgesetzt, einschließlich gültiger Züge/Aktionen, Wertung, automatischem Spiel bei Zeitüberschreitung, Wiederverbindung und Anti-Cheat-Prüfung.',
-            'tr'=>$en.': Resmî Warqnaa kuralları sunucu tarafından uygulanır; geçerli sıra/hamle denetimi, puanlama, süre aşımında otomatik oynama, yeniden bağlanma ve hile önleme kontrolleri dahildir.',
-            'fr'=>$en.': Les règles officielles de Warqnaa sont appliquées côté serveur, avec validation des tours/actions, calcul des scores, jeu automatique en cas d’expiration, reconnexion et protection anti-triche.',
-            'es'=>$en.': Las reglas oficiales de Warqnaa se aplican en el servidor, incluyendo validación de turnos/acciones, puntuación, juego automático por tiempo agotado, reconexión y protección antitrampas.',
         ];
     }
 }
+

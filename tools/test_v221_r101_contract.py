@@ -19,7 +19,10 @@ def main():
     main=text('flutter_app/lib/main.dart')
     r101=text('flutter_app/lib/r10_1_release.dart')
     ok("part 'r10_1_release.dart';" in main and 'r101Theme(controller.themeCode' in main,'R10.1 release module and full theme are wired')
-    ok('customerGamesR101' in main and 'gamesCatalog.where((game) => !game.serverOnly)' in r101,'server-only games are hidden from customer Flutter catalogs')
+    if int(meta.get('build',0))>=304:
+        ok('customerGamesR101' in main and '!game.serverOnly && !b304BannedCustomerGames.contains(game.id)' in r101,'server-only and B304-removed games are hidden from customer Flutter catalogs')
+    else:
+        ok('customerGamesR101' in main and 'gamesCatalog.where((game) => !game.serverOnly)' in r101,'server-only games are hidden from customer Flutter catalogs')
     game_catalog=text('backend-laravel/app/Services/Games/GameCatalog.php')
     game_controller=text('backend-laravel/app/Http/Controllers/GameController.php')
     mobile_game=text('backend-laravel/app/Http/Controllers/MobileGameController.php')
@@ -55,7 +58,8 @@ def main():
 
     commerce_cfg=text('backend-laravel/config/warqna_commerce.php')
     ok("'sandbox' => env('WARQNAA_COMMERCE_SANDBOX', false)" in commerce_cfg,'commerce sandbox is opt-in and defaults off')
-    ok("'during_match' => false" in commerce_cfg and "'offer_cadences' => ['daily','weekly','monthly','annual']" in commerce_cfg,'ads never run during matches and all offer cadences exist')
+    cadence = "'offer_cadences' => ['daily','weekly','monthly','annual','custom']" if int(meta.get('build',0))>=304 else "'offer_cadences' => ['daily','weekly','monthly','annual']"
+    ok("'during_match' => false" in commerce_cfg and cadence in commerce_cfg,'ads never run during matches and release-appropriate offer cadences exist')
     verifier=text('backend-laravel/app/Services/Commerce/ReceiptVerificationService.php')
     ok('provider_verifier_not_configured' in verifier and "str_starts_with($receiptToken,'sandbox:')" in verifier,'real-money rewards require server receipt verification')
     mobile=text('backend-laravel/app/Http/Controllers/MobileCommerceController.php')

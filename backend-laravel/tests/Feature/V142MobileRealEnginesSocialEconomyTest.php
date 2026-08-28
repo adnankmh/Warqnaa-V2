@@ -37,7 +37,7 @@ class V142MobileRealEnginesSocialEconomyTest extends TestCase
 
     public function test_token_transfer_charges_sender_ten_percent_and_credits_admin(): void
     {
-        $admin = User::create(['username' => 'Adnan', 'email' => 'adnan@example.test', 'password' => Hash::make('Adnan123'), 'is_admin' => true]);
+        $admin = User::create(['username' => 'Adnan', 'email' => 'adnan@example.test', 'password' => Hash::make('TestAdminPassword123!'), 'is_admin' => true]);
         $sender = User::create(['username' => 'sender', 'email' => 'sender@example.test', 'password' => Hash::make('password')]);
         $receiver = User::create(['username' => 'receiver', 'email' => 'receiver@example.test', 'password' => Hash::make('password')]);
         Wallet::create(['user_id' => $admin->id, 'tokens' => 0, 'gems' => 0]);

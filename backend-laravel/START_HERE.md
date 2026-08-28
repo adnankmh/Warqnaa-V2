@@ -8,8 +8,8 @@
 5. افتح: http://127.0.0.1:8000
 
 ## Admin Login
-Email: `adnanasd63@gmail.com`  
-Password: `Adnan123`
+Email: `PRIVATE_LOCAL_ADMIN_EMAIL`  
+Password: `PRIVATE_LOCAL_ADMIN_PASSWORD`
 
 ## ملاحظات
 - ملف setup يعيد بناء قاعدة البيانات تلقائيًا عبر `migrate:fresh --seed` حتى تظهر كل إضافات v58.

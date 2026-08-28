@@ -37,8 +37,11 @@ class WalletService
         $this->validateAmount($amount);
         DB::transaction(function() use($user,$amount,$type,$meta){
             $w=$user->wallet()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],['tokens'=>50]);
-            if($amount > 0) $w->increment('tokens',$amount);
-            $transaction = $user->walletTransactions()->create($this->transactionPayload($type, $amount, $meta));
+            // Primary Adnan is represented as an unlimited server-side economy account. Keeping
+            // its persisted BIGINT reserve fixed prevents overflow as store fees/revenue accumulate.
+            $transactionMeta = $user->isPrimaryAdmin() ? array_merge($meta,['primary_admin_unlimited'=>true]) : $meta;
+            if($amount > 0 && !$user->isPrimaryAdmin()) $w->increment('tokens',$amount);
+            $transaction = $user->walletTransactions()->create($this->transactionPayload($type, $amount, $transactionMeta));
             $this->audit($transaction);
         });
     }
@@ -78,7 +81,7 @@ class WalletService
     {
         $this->validateAmount($amount);
         if ($amount <= 0) return;
-        $admin = User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin', true)->first()
+        $admin = User::where('is_admin', true)->where('admin_role', 'primary_admin')->first() ?: User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin', true)->first()
             ?? User::where('is_admin', true)->orderBy('id')->first();
         if (!$admin || (int)$admin->id === (int)$buyer->id) return;
         $this->credit($admin, $amount, $type, array_merge($meta, ['buyer_id'=>(int)$buyer->id]));

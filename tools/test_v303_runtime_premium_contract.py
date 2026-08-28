@@ -15,8 +15,9 @@ def check(value:bool,label:str)->None:
     print('[PASS] '+label)
 
 meta=json.loads(read('RELEASE_VERSION.json'))
-check(meta.get('full')=='1.2.0+303' and meta.get('release')=='v303','release metadata is 1.2.0+303')
-check('version: 1.2.0+303' in read('flutter_app/pubspec.yaml'),'Flutter packages build 303')
+build=int(meta.get('build',0))
+check(build>=303,'release preserves B303 or a later additive successor')
+check(f"version: {meta.get('full')}" in read('flutter_app/pubspec.yaml'),'Flutter package matches current successor metadata')
 
 resolver=read('backend-laravel/app/Support/AuthenticatedActor.php')
 check('PersonalAccessToken::findToken($bearer)' in resolver,'API actor resolves directly from bearer token')
@@ -38,10 +39,15 @@ check('if (!mounted) return;\n      final navigationContext = Navigator.of(conte
 
 css=read('backend-laravel/public/assets/css/b303-global-premium.css')
 home=read('backend-laravel/resources/views/home.blade.php')
-check('.b303-hero' in css and '.b303-game-grid' in css and '.b303-feature-grid' in css,'premium responsive web design system exists')
-check('WORLD EXPERIENCE • B303' in home and "'de'=>" in home and "'es'=>" in home,'premium web home ships six-language copy')
-r9=read('flutter_app/lib/r9_release.dart')
-check("L.t(controller.localeCode, 'premiumHeroTitle')" in r9 and '_heroStatusCard' in r9,'Flutter home uses premium global hero')
+check('.b303-hero' in css and '.b303-game-grid' in css and '.b303-feature-grid' in css,'B303 premium responsive design assets remain preserved')
+if build>=304:
+    b304css=read('backend-laravel/public/assets/css/b304-vertical-legend.css')
+    check('VERTICAL LEGEND • B304' in home and '.b304-grid' in b304css and "$ar?'" in home,'B304 replaces the B303 hero with compact Arabic/English premium home')
+    check('B304HomeDashboard' in read('flutter_app/lib/v304_vertical_legend.dart'),'Flutter B304 home successor is present')
+else:
+    check('WORLD EXPERIENCE • B303' in home and "'de'=>" in home and "'es'=>" in home,'premium web home ships six-language copy')
+    r9=read('flutter_app/lib/r9_release.dart')
+    check("L.t(controller.localeCode, 'premiumHeroTitle')" in r9 and '_heroStatusCard' in r9,'Flutter home uses premium global hero')
 v300=read('flutter_app/lib/v300_world_experience.dart')
 for locale in ('ar','en','de','tr','fr','es'):
     check("'premiumHeroTitle'" in v300 and f"'{locale}'" in v300,f'premium translation registry preserves {locale}')

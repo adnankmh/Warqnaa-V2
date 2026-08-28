@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureLocale(): void
     {
-        $allowed = ['ar','en','de','tr','fr','es'];
+        $allowed = ['ar','en'];
         $locale = 'ar';
         try {
             if (!app()->runningInConsole() && request()->hasSession()) $locale = session('warqna_locale', 'ar');

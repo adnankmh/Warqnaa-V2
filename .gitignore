@@ -25,3 +25,35 @@ __pycache__/
 # R9.2 explicit local Laravel runtime secret
 backend-laravel/.env
 backend-laravel/storage/app/LOCAL_ADMIN_ACCESS.txt
+
+# B304 private/local credentials and runtime state
+backend-laravel/.env
+backend-laravel/.env.*.local
+backend-laravel/.warqnaa-admin.local.env
+backend-laravel/auth.json
+backend-laravel/*.sqlite
+backend-laravel/*.sqlite3
+backend-laravel/*.db
+backend-laravel/database/*.sqlite
+backend-laravel/database/*.sqlite3
+backend-laravel/storage/logs/*
+backend-laravel/storage/app/LOCAL_ADMIN_ACCESS.txt
+*.jks
+*.keystore
+**/key.properties
+*.p8
+*.p12
+*.pem
+*.key
+**/service-account*.json
+**/firebase-admin*.json
+**/credentials*.json
+**/id_rsa
+**/id_ed25519
+*.sql
+*.dump
+*.bak
+vendor/
+node_modules/
+build/
+.dart_tool/

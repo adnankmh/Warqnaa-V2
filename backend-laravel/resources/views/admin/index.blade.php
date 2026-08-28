@@ -156,7 +156,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   <form class="pro-card" method="post" action="{{route('admin.commerce.offer.save')}}">@csrf
    <h3>إنشاء عرض تجاري</h3>
    <label>Key<input name="key" value="offer_r101_weekly" required></label>
-   <label>الدورية<select name="cadence"><option value="daily">يومي</option><option value="weekly" selected>أسبوعي</option><option value="monthly">شهري</option><option value="annual">سنوي</option></select></label>
+   <label>الدورية<select name="cadence"><option value="daily">يومي</option><option value="weekly" selected>أسبوعي</option><option value="monthly">شهري</option><option value="annual">سنوي</option><option value="custom">مخصص</option></select></label>
    <label>العنوان العربي<input name="title_ar" value="عرض ورقنا الملكي" required></label>
    <label>English title<input name="title_en" value="Warqnaa Royal Offer" required></label>
    <label>الوصف العربي<textarea name="description_ar">عرض محدود يتم التحكم به من Live Ops.</textarea></label>
@@ -225,7 +225,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   <label class="check-row"><input type="checkbox" name="support_enabled" value="1" {{$bool('support_enabled',true)?'checked':''}}> تشغيل الدعم</label>
   <label>عنوان الصفحة الرئيسية<input name="homepage_headline" value="{{$val('homepage_headline','Warqnaa')}}"></label>
   <label>رسالة عامة / صيانة<input name="maintenance_message" value="{{$val('maintenance_message','')}}"></label>
-  <label>لغة الموقع الافتراضية<select name="default_locale"><option value="ar" {{$val('default_locale','ar')==='ar'?'selected':''}}>العربية</option><option value="en" {{$val('default_locale','ar')==='en'?'selected':''}}>English</option><option value="de" {{$val('default_locale','ar')==='de'?'selected':''}}>Deutsch</option><option value="tr" {{$val('default_locale','ar')==='tr'?'selected':''}}>Türkçe</option><option value="fr" {{$val('default_locale','ar')==='fr'?'selected':''}}>Français</option><option value="es" {{$val('default_locale','ar')==='es'?'selected':''}}>Español</option></select></label>
+  <label>لغة الموقع الافتراضية<select name="default_locale"><option value="ar" {{$val('default_locale','ar')==='ar'?'selected':''}}>العربية</option><option value="en" {{$val('default_locale','ar')==='en'?'selected':''}}>English</option></select></label>
   <label>شكل التنقل<select name="nav_style"><option value="bar">شريط علوي</option><option value="glass">زجاجي فاخر</option><option value="side">جانبي مستقبلاً</option></select></label>
   <label>كثافة الواجهة<select name="layout_density"><option value="compact">مضغوط</option><option value="comfortable">مريح</option><option value="wide">واسع</option></select></label>
   <label>شكل البطاقات<select name="card_style"><option value="rounded">دائري ناعم</option><option value="luxury">فاخر</option><option value="flat">مسطح</option></select></label>

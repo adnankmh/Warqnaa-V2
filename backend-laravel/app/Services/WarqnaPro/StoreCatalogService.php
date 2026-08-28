@@ -39,6 +39,7 @@ class StoreCatalogService
         $this->normalizeAllActivePricesR91();
         $this->normalizeBilingualNames();
         $this->deactivateExactDuplicates();
+        $this->syncB304VerticalLegend();
         $this->grantPrimaryAdminAllCollectibles();
 
     }
@@ -48,7 +49,7 @@ class StoreCatalogService
     public function grantPrimaryAdminAllCollectibles(): void
     {
         if(!Schema::hasTable('users') || !Schema::hasTable('store_items') || !Schema::hasTable('inventory_items')) return;
-        $admin=\App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
+        $admin=\App\Models\User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
         if(!$admin) return;
         $items=\App\Models\StoreItem::where('active',true)->whereNotIn('category',['pasha','competition_ticket'])->get();
         foreach($items as $item) $this->grantPrimaryAdminItem((int)$item->id, $admin);
@@ -57,7 +58,7 @@ class StoreCatalogService
     public function grantPrimaryAdminItem(int $storeItemId, ?\App\Models\User $admin=null): void
     {
         if(!Schema::hasTable('inventory_items')) return;
-        $admin ??= \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
+        $admin ??= \App\Models\User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
         $item=\App\Models\StoreItem::find($storeItemId);
         if(!$admin || !$item || !$item->active || in_array($item->category,['pasha','competition_ticket'],true)) return;
         \App\Models\InventoryItem::updateOrCreate(
@@ -69,7 +70,7 @@ class StoreCatalogService
     private function upsert(array $item): void
     {
         $names=[];
-        foreach(['ar','en','de','tr','fr','es'] as $locale) {
+        foreach(['ar','en'] as $locale) {
             $names[$locale]=(string)($item[$locale] ?? $item['en'] ?? $item['ar'] ?? $item['key']);
         }
         $payload=(array)($item['payload'] ?? []);
@@ -134,6 +135,7 @@ class StoreCatalogService
     {
         $price=(int)($item['price'] ?? 0);
         if($price<=0) return $price;
+        if(!empty($item['payload']['b304'])) return $price; // B304 prices are authoritative and match Flutter exactly.
         $category=(string)($item['category'] ?? '');
         if($category==='pasha') return $price;
         // R9.1 luxury economy. Pasha remains unchanged; tables are the premium anchor.
@@ -142,6 +144,41 @@ class StoreCatalogService
     }
 
 
+
+    private function syncB304VerticalLegend(): void
+    {
+        $tables=[
+            ['b304_table_aurora','طاولة الشفق العمودية','Vertical Aurora Table',180000,'#062b31','#67e8f9'],
+            ['b304_table_obsidian','طاولة الأوبسيديان العمودية','Vertical Obsidian Table',240000,'#020617','#94a3b8'],
+            ['b304_table_royal','طاولة التاج الملكي','Royal Crown Vertical Table',320000,'#0b1f4d','#facc15'],
+            ['b304_table_emerald','طاولة الزمرد العمودية','Emerald Vertical Table',380000,'#052e26','#10b981'],
+            ['b304_table_crimson','طاولة القرمزي العمودية','Crimson Vertical Table',460000,'#3f0712','#fb7185'],
+            ['b304_table_desert','طاولة الصحراء الملكية','Royal Desert Vertical Table',540000,'#3b2410','#d97706'],
+            ['b304_table_ocean','طاولة المحيط العمودية','Ocean Vertical Table',620000,'#06233a','#22d3ee'],
+            ['b304_table_phoenix','طاولة العنقاء العمودية','Phoenix Vertical Table',760000,'#450a0a','#ff7a18'],
+            ['b304_table_sapphire','طاولة الياقوت العمودية','Sapphire Vertical Table',880000,'#172554','#60a5fa'],
+            ['b304_table_palace','طاولة القصر الأسطورية','Legendary Palace Vertical Table',1000000,'#2a1805','#ffd166'],
+        ];
+        DB::table('store_items')->where('category','table')->update(['active'=>false,'updated_at'=>now()]);
+        DB::table('store_items')->where('category','card_back')->update(['active'=>false,'updated_at'=>now()]);
+        DB::table('store_items')->whereIn('category',['badge','effect'])->update(['active'=>false,'updated_at'=>now()]);
+        foreach($tables as [$key,$ar,$en,$price,$c1,$c2]) $this->upsert([
+            'key'=>$key,'ar'=>$ar,'en'=>$en,'category'=>'table','price'=>$price,
+            'payload'=>['table'=>$key,'preferred_orientation'=>'portrait','b304'=>true,'gradient'=>[$c1,$c2]],
+        ]);
+        $this->upsert(['key'=>'b304_cardback_vertical','ar'=>'ظهر ورق VERTICAL LEGEND','en'=>'VERTICAL LEGEND Card Back','category'=>'card_back','price'=>0,'payload'=>['card_back'=>'b304_cardback_vertical','b304'=>true,'preferred_orientation'=>'portrait']]);
+        foreach([
+            ['b304_profile_aurora_30d','لون بروفايل الشفق','Aurora Profile Color',100000,'#0f766e','#67e8f9'],
+            ['b304_profile_royal_30d','لون بروفايل ملكي','Royal Profile Color',140000,'#172554','#facc15'],
+            ['b304_profile_emerald_30d','لون بروفايل زمردي','Emerald Profile Color',170000,'#052e26','#10b981'],
+            ['b304_profile_crimson_30d','لون بروفايل قرمزي','Crimson Profile Color',210000,'#450a0a','#fb7185'],
+            ['b304_profile_obsidian_30d','لون بروفايل أوبسيديان','Obsidian Profile Color',260000,'#020617','#64748b'],
+            ['b304_profile_legend_30d','لون بروفايل الأسطورة','Legend Profile Color',320000,'#1e1b4b','#c4b5fd'],
+        ] as [$key,$ar,$en,$price,$c1,$c2]) $this->upsert([
+            'key'=>$key,'ar'=>$ar,'en'=>$en,'category'=>'profile_color','price'=>$price,'duration_days'=>30,
+            'payload'=>['b304'=>true,'gradient'=>[$c1,$c2],'duration_days'=>30],
+        ]);
+    }
 
     /** @return array<int,array<string,mixed>> */
     public function v300WorldItems(): array

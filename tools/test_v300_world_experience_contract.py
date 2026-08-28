@@ -16,13 +16,21 @@ def check(ok:bool,label:str):
 meta=json.loads(text('RELEASE_VERSION.json'))
 check(int(meta.get('build',0))>=300,'release preserves WORLD EXPERIENCE build 300 or newer')
 main=text('flutter_app/lib/main.dart'); world=text('flutter_app/lib/v300_world_experience.dart'); themes=text('flutter_app/lib/r10_1_release.dart')
-for code in ('ar','en','de','tr','fr','es'): check(f"Locale('{code}')" in main and f"'{code}'" in world, f'locale {code} is wired')
+build=int(meta.get('build',0))
+active_locales=('ar','en') if build>=304 else ('ar','en','de','tr','fr','es')
+for code in active_locales: check(f"Locale('{code}')" in main and f"'{code}'" in world, f'active locale {code} is wired')
+if build>=304:
+    future=text('backend-laravel/config/warqna_languages_future.php')
+    for code in ('de','tr','fr','es'): check(f"'{code}'" in future, f'future locale {code} remains registered but inactive')
 check(themes.count('R101ThemeSpec(code:')>=15,'15+ product themes')
 check("lottie: ^3.3.3" in text('flutter_app/pubspec.yaml') and 'assets/lottie/world/' in text('flutter_app/pubspec.yaml'),'Lottie dependency and local animation bundle')
 check(world.count("category:'covers'")>=20,'20+ new WORLD profile covers')
 check(len(re.findall(r"'[^']+'",world.split('v300EmojiLibrary',1)[1].split('];',1)[0]))>=60,'60+ reaction emoji library')
 check("category:'frames'" in world and "case 'frames':" in main,'profile frames are purchasable/activatable')
-check('V300WorldHome' in main and 'V300WorldHubPage' in world,'new world lobby/home hub is reachable')
+if build>=304:
+    check('B304HomeDashboard' in main and 'V300WorldHubPage' in world,'B304 home replaces the V300 hero while the world hub remains available')
+else:
+    check('V300WorldHome' in main and 'V300WorldHubPage' in world,'new world lobby/home hub is reachable')
 check('V300AdminWorldOpsPanel' in world and "Tab(text:'WORLD OPS')" in main,'admin WORLD OPS panel is reachable')
 for rel in (
  'backend-laravel/app/Services/Gameplay/MatchLifecycleService.php',
@@ -35,7 +43,11 @@ for rel in (
 routes=text('backend-laravel/routes/api.php')
 for route in ('/heartbeat','/reconnect','/parties/mine','/parties/{party}/invite/{user}','/admin/economy-audit'):
     check(route in routes,'route '+route)
-check("$allowed = ['ar','en','de','tr','fr','es'];" in text('backend-laravel/app/Providers/AppServiceProvider.php'),'Laravel locale allow-list matches Flutter')
+provider=text('backend-laravel/app/Providers/AppServiceProvider.php')
+if build>=304:
+    check("$allowed = ['ar','en'];" in provider,'Laravel active locale allow-list matches B304 Flutter')
+else:
+    check("$allowed = ['ar','en','de','tr','fr','es'];" in provider,'Laravel locale allow-list matches Flutter')
 cat=text('backend-laravel/app/Services/Games/GameCatalog.php')
 check(all(bad not in re.findall(r"'([a-z0-9_]+)'",cat.split('customerKeys',1)[-1]) for bad in ('domino','jackaroo','chess')),'removed games remain outside customer catalog')
 global_wf=text('.github/workflows/global-release.yml')

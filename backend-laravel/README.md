@@ -4,8 +4,8 @@
 
 ## بيانات الدخول الافتراضية
 
-- Email: `adnanasd63@gmail.com`
-- Password: `Adnan123`
+- Email: `PRIVATE_LOCAL_ADMIN_EMAIL`
+- Password: `PRIVATE_LOCAL_ADMIN_PASSWORD`
 
 ## التشغيل السريع على Windows / XAMPP
 

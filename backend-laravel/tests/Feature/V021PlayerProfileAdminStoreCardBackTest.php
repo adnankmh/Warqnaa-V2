@@ -16,7 +16,7 @@ class V021PlayerProfileAdminStoreCardBackTest extends TestCase
     {
         $user = User::factory()->create([
             'username' => 'Adnan',
-            'password' => Hash::make('Adnan123'),
+            'password' => Hash::make('TestAdminPassword123!'),
             'is_admin' => false,
         ]);
 
@@ -25,7 +25,7 @@ class V021PlayerProfileAdminStoreCardBackTest extends TestCase
 
         $response = $this->postJson('/api/mobile/v1/login', [
             'login' => 'Adnan',
-            'password' => 'Adnan123',
+            'password' => 'TestAdminPassword123!',
         ]);
 
         $response->assertOk()->assertJsonPath('user.is_admin', true);

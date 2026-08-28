@@ -33,15 +33,19 @@ def main() -> None:
     if int(meta.get("build", 0)) < 176:
         fail("metadata build is older than v176")
 
-    main_dart = require(
-        "flutter_app/lib/main.dart",
+    required_main = [
         "part 'v176_release.dart';",
         "packInventoryExpiriesV176",
         "dailyPackHistoryV176",
         "syncPackInventoryV176(data['inventory'])",
         "final navigationContext = warqnaNavigatorKey.currentContext;",
-        "('inventory', 'مقتنياتي')",
-    )
+    ]
+    main_dart = require("flutter_app/lib/main.dart", *required_main)
+    if int(meta.get("build", 0)) >= 304:
+        if "('inventory', lang == 'ar' ? 'مقتنياتي' : 'My items')" not in main_dart and "'inventory': 'مقتنياتي'" not in main_dart:
+            fail("B304 localized inventory store entry is missing")
+    elif "('inventory', 'مقتنياتي')" not in main_dart:
+        fail("legacy inventory store entry is missing")
     if "_openingRoomRouteV174" in main_dart:
         fail("unused _openingRoomRouteV174 field returned")
     if "PackInventoryStripV176(" in main_dart or "DailyPackCardV176(" in main_dart:

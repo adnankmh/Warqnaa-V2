@@ -3,14 +3,34 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder; use Illuminate\Support\Facades\{Hash,DB}; use Illuminate\Support\Str; use App\Models\{User,Profile,Wallet,Club,ClubMember,Tournament}; use App\Services\Games\GameCatalog; use App\Services\WarqnaPro\StoreCatalogService;
 class DatabaseSeeder extends Seeder { public function run(): void {
  // v136: country_name() now returns a scalar string, so Seeder can use it directly without helper variables.
- $admin=User::where('username',env('ADMIN_USERNAME','Adnan'))->first();
- $adminPassword=(string)env('ADMIN_PASSWORD','');
- if(in_array($adminPassword,['','Adnan123','password','CHANGE_ME_STRONG_ADMIN_PASSWORD'],true)) $adminPassword=Str::random(48);
- if(!$admin) $admin=User::create(['username'=>env('ADMIN_USERNAME','Adnan'),'email'=>env('ADMIN_EMAIL','admin@example.com'),'password'=>Hash::make($adminPassword),'is_admin'=>true]);
- elseif(!$admin->is_admin) $admin->forceFill(['is_admin'=>true])->save();
- Profile::updateOrCreate(['user_id'=>$admin->id],['display_name'=>'Adnan','avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine','level'=>99,'xp'=>193947651,'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15','pasha_days'=>3650,'badge'=>'king']);
- Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>1000000000000000000,'gems'=>100000]);
- // R9.1: exactly 10 curated non-admin demo users with stable passwords, varied levels and token balances
+ // B304: find the primary administrator by durable identity first so reseeding never
+ // recreates Adnan after the user changes username/email/password from Account Security.
+ $adminUsername=(string)env('ADMIN_USERNAME','PrimaryAdmin');
+ $adminEmail=(string)env('ADMIN_EMAIL','admin@warqnaa.local');
+ $admin=null;
+ if (\Illuminate\Support\Facades\Schema::hasColumn('users','admin_role')) {
+   $admin=User::query()->where('admin_role','primary_admin')->first();
+ }
+ $admin ??= User::query()->where('email',$adminEmail)->first();
+ $admin ??= User::query()->where('username',$adminUsername)->first();
+ if(!$admin) {
+   $adminPassword=(string)env('ADMIN_PASSWORD','');
+   if(in_array($adminPassword,['','password','CHANGE_ME_STRONG_ADMIN_PASSWORD'],true)) $adminPassword=Str::random(48);
+   $admin=User::create(['username'=>$adminUsername,'email'=>$adminEmail,'password'=>Hash::make($adminPassword),'is_admin'=>true]);
+ } elseif(!$admin->is_admin) {
+   $admin->forceFill(['is_admin'=>true])->save();
+ }
+ $adminProfile=Profile::firstOrCreate(['user_id'=>$admin->id],[
+   'display_name'=>$admin->username ?: 'Adnan','avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine',
+   'level'=>99,'xp'=>193947651,'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15',
+   'pasha_days'=>36500,'badge'=>'king'
+ ]);
+ // Preserve user-selected avatar/display/colors while enforcing only privileged progression entitlements.
+ $adminProfile->forceFill(['level'=>99,'pasha_days'=>36500,'badge'=>'king'])->save();
+ Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ // R9.1/B304: exactly 10 curated non-admin demo users for local/testing only by default.
+ // Production never gets known demo credentials unless WARQNAA_SEED_DEMO_USERS=true is explicitly set.
+ $seedDemoUsers = !app()->environment('production') || filter_var(env('WARQNAA_SEED_DEMO_USERS', false), FILTER_VALIDATE_BOOL);
  $demoUsers = [
    ['Kareem','kareem@warqna.local','Kareem123','#38bdf8','JO',42,250000,'🦅'],
    ['Rami','rami@warqna.local','Rami12345','#22c55e','PS',35,180000,'🐺'],
@@ -23,10 +43,11 @@ class DatabaseSeeder extends Seeder { public function run(): void {
    ['Sara','sara@warqna.local','Sara12345','#f472b6','LB',29,72000,'👑'],
    ['Basel','basel@warqna.local','Basel12345','#ef4444','SY',33,84000,'🔥'],
  ];
+ if (!$seedDemoUsers) $demoUsers = [];
  $seededDemoUsers = [];
  foreach ($demoUsers as [$username,$email,$password,$color,$country,$level,$tokens,$avatar]) {
    $u=User::updateOrCreate(['email'=>$email],['username'=>$username,'password'=>Hash::make($password),'is_admin'=>false,'is_banned'=>false]);
-   Profile::updateOrCreate(['user_id'=>$u->id],['display_name'=>$username,'avatar'=>$avatar,'country_code'=>$country,'country_name'=>country_name($country),'level'=>$level,'xp'=>$level*1200,'games_played'=>$level*15,'wins'=>$level*7,'name_color'=>$color,'chat_color'=>$color,'pasha_days'=>0,'badge'=>'pro']);
+   Profile::updateOrCreate(['user_id'=>$u->id],['display_name'=>$username,'avatar'=>$avatar,'country_code'=>$country,'country_name'=>country_name($country),'level'=>$level,'xp'=>$level*1200,'games_played'=>$level*15,'wins'=>$level*7,'name_color'=>$color,'chat_color'=>$color,'pasha_days'=>['Kareem'=>30,'Rami'=>14,'Lina'=>7,'Samar'=>3,'Layla'=>21,'Jameel'=>5,'Nour'=>2,'Omar'=>10,'Sara'=>18,'Basel'=>45][$username] ?? 0,'badge'=>'pro']);
    Wallet::updateOrCreate(['user_id'=>$u->id],['tokens'=>$tokens,'gems'=>0]);
    $seededDemoUsers[strtolower($username)] = $u;
  }
@@ -468,16 +489,33 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
  // === R201 FINAL NORMALIZATION: runs last so legacy blocks cannot overwrite current rules. ===
  if (\Illuminate\Support\Facades\Schema::hasColumn('users','admin_role')) {
    $admin->update(['is_admin'=>true,'admin_role'=>'primary_admin','admin_permissions'=>['all'=>true]]);
-   $delegatedPassword=(string)env('DELEGATED_ADMIN_PASSWORD','');
-   if(in_array($delegatedPassword,['','123AbdAbd','password'],true)) $delegatedPassword=Str::random(48);
-   $abd=User::firstOrCreate(['username'=>'Abd'],[
-     'email'=>env('DELEGATED_ADMIN_EMAIL','abd@warqna.local'),'password'=>Hash::make($delegatedPassword),'is_admin'=>true,'is_banned'=>false
-   ]);
+   // Locate the deputy by durable role/email first. Seeder never resets a changed password.
+   $delegatedEmail=(string)env('DELEGATED_ADMIN_EMAIL','abd@warqna.local');
+   $abd=User::query()->where('admin_role','delegated_admin')->first()
+     ?: User::query()->where('email',$delegatedEmail)->first()
+     ?: User::query()->where('username','Abd')->first();
+   if(!$abd) {
+     $delegatedPassword=(string)env('DELEGATED_ADMIN_PASSWORD','');
+     if(in_array($delegatedPassword,['','123AbdAbd','password'],true)) $delegatedPassword=Str::random(48);
+     $abd=User::create([
+       'username'=>'Abd','email'=>$delegatedEmail,'password'=>Hash::make($delegatedPassword),'is_admin'=>true,'is_banned'=>false
+     ]);
+   }
    $abd->forceFill([
      'is_admin'=>true,'is_banned'=>false,'admin_role'=>'delegated_admin',
-     'admin_permissions'=>['users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,'economy'=>true,'security'=>true]
+     // B304: Abd is the high-trust deputy administrator. `all` is intentional here,
+     // while primary-admin-only safeguards still remain protected by isPrimaryAdmin().
+     'admin_permissions'=>[
+       'all'=>true,'users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,'tournaments'=>true,
+       'economy'=>true,'security'=>true,'social_world'=>true,'designer'=>true,'moderation'=>true,
+       'analytics'=>true,'settings'=>true,'releases'=>true,'support'=>true
+     ]
    ])->save();
-   Profile::updateOrCreate(['user_id'=>$abd->id],['display_name'=>'Abd','avatar'=>'🛡️','country_code'=>'PS','country_name'=>'Palestine','level'=>90,'xp'=>7800000,'games_played'=>12000,'wins'=>8000,'name_color'=>'#38bdf8','chat_color'=>'#38bdf8','pasha_days'=>365,'badge'=>'admin']);
+   $abdProfile=Profile::firstOrCreate(['user_id'=>$abd->id],[
+     'display_name'=>$abd->username ?: 'Abd','avatar'=>'🛡️','country_code'=>'PS','country_name'=>'Palestine','level'=>90,
+     'xp'=>7800000,'games_played'=>12000,'wins'=>8000,'name_color'=>'#38bdf8','chat_color'=>'#38bdf8','pasha_days'=>365,'badge'=>'admin'
+   ]);
+   $abdProfile->forceFill(['level'=>90,'pasha_days'=>365,'badge'=>'admin'])->save();
    Wallet::updateOrCreate(['user_id'=>$abd->id],['tokens'=>10000000000000000,'gems'=>100000]);
  }
  // BIGINT cannot store the requested 10^32 ceremonial Adnan balance, so keep a safe DB reserve and an unlimited primary-admin wallet policy.
@@ -488,7 +526,17 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
  User::whereIn('email',['hala@warqna.local','yazan@warqna.local','yaser@warqna.local'])->where('is_admin',false)->each(fn($legacyDemo)=>$legacyDemo->delete());
  try { app(StoreCatalogService::class)->sync(); } catch (\Throwable $e) {}
  // StoreCatalogService::sync() grants Adnan every current non-consumable/current collectible automatically.
- // Pasha remains a duration entitlement (already 36,500 days) and competition tickets remain consumables.
+ // B304: primary admin also receives effectively permanent Pasha entitlement and a large reserve
+ // of every supported competition-ticket denomination, while inventory semantics stay domain-correct.
+ $admin->profile?->update(['pasha_days'=>36500,'level'=>99,'badge'=>'king']);
+ if (\Illuminate\Support\Facades\Schema::hasTable('competition_tickets')) {
+   foreach ([50,100,200,500,1000,2000,4000,5000,8000,10000,20000,30000,50000,100000] as $denomination) {
+     \App\Models\CompetitionTicket::updateOrCreate(
+       ['user_id'=>$admin->id,'denomination'=>$denomination],
+       ['quantity'=>999999,'total_used'=>0]
+     );
+   }
+ }
  if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
    foreach([
     ['deal_policy','balanced_playable','string','gameplay','توزيع عادل قابل للعب'],
@@ -497,5 +545,11 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
     ['admin_tabs_sticky','0','bool','appearance','قائمة الإدارة غير ثابتة'],
     ['profile_avatar_shape','circle','string','appearance','صورة شخصية دائرية']
    ] as [$key,$value,$type,$group,$label]) \App\Models\SiteSetting::setValue($key,$value,$type,$group,$label);
+ }
+
+ // === B304 FINAL CUSTOMER CATALOG: hidden legacy engines remain available only for regression. ===
+ if (\Illuminate\Support\Facades\Schema::hasTable('games')) {
+   DB::table('games')->whereIn('key',['jackaroo','backgammon','domino','chess'])->update(['active'=>false,'updated_at'=>now()]);
+   DB::table('games')->where('key','basra')->update(['min_players'=>2,'max_players'=>2,'updated_at'=>now()]);
  }
 }}

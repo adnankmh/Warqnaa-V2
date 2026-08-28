@@ -1,3 +1,24 @@
+# Warqnaa V1.3.0+304 — VERTICAL LEGEND
+
+> **الإصدار الحالي والمرجعي الوحيد: 1.3.0+304 (Build 304).** الأقسام التي تذكر B303/R14/R13 وما قبلها أدناه محفوظة كتوثيق تاريخي وعقود Regression، وليست رقم الإصدار الحالي.
+
+## B304 — Global Premium Gameplay & LiveOps
+
+- 12 لعبة ظاهرة للعميل؛ Jackaroo/Backgammon/Domino/Chess مخفية من المنتج مع إبقاء محركات Regression الداخلية.
+- العربية والإنجليزية فقط كلغات فعالة، مع Future Locale Registry لإضافة لغات لاحقًا بعد تدقيقها.
+- 10 طاولات رأسية فخمة + ظهر ورق واحد + Profile Colors لمدة 30 يومًا.
+- Tarneeb بطلب 7–13 + Pass، Basra لاعبان، Hand/Banakil ترتيب يدوي ومجموعات، وAFK expiry بعد 10 دقائق.
+- Secure balanced fair deal، Bot AI محسّن، trick ownership/collection، نتائج الجولات والنقاط.
+- Rewarded Ads متدرجة، عروض وتحديات قابلة للإدارة، Challenge Road ومكافآت مؤقتة.
+- إعداد المدير والنائب عبر حزمة خاصة منفصلة **DO NOT UPLOAD**؛ Full Repository لا يحتوي البريد الشخصي أو كلمات المرور.
+- قبل GitHub استخدم `scripts/windows/current/RUN_GITHUB_READY_B304.bat`.
+
+ابدأ من: `docs/ar/releases/current/START_HERE_V304_AR.md`
+
+---
+
+## توثيق الإصدارات التاريخية المحفوظ للتوافق
+
 # Warqnaa V1.2.0+303 — WORLD EXPERIENCE Runtime Social Stability & Global Premium UI
 
 الإصدار الحالي: **1.2.0+303**

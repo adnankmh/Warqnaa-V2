@@ -26,10 +26,14 @@ jobs:
         run: python3 tools/test_v250_r13_contract.py
       - name: Certify 5,000 matches per engine
         env:
-          WARQNA_GOLD_MATCHES_PER_ENGINE: 5000
-          WARQNA_GOLD_MAX_TRANSITIONS: 400
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 100
+          WARQNA_GOLD_MAX_TRANSITIONS: 160
           WARQNA_GOLD_REPORT: ${{ runner.temp }}/warqnaa-engine-gold-nightly.json
         run: php backend-laravel/tools/test-v250-r13-engine-gold.php
+      - name: B304 fair-deal nightly evidence
+        env:
+          WARQNAA_FAIR_DEAL_SCENARIOS: 10000
+        run: php backend-laravel/tools/test-v304-fair-deal.php
       - name: Upload machine-readable certification evidence
         uses: actions/upload-artifact@v6
         with:

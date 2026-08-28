@@ -47,6 +47,7 @@ part 'r12_competitive.dart';
 part 'r14_1_legendary.dart';
 part 'r14_2_account_security.dart';
 part 'v300_world_experience.dart';
+part 'v304_vertical_legend.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -118,7 +119,7 @@ class _WarqnaAppState extends State<WarqnaApp> {
           navigatorKey: warqnaNavigatorKey,
           debugShowCheckedModeBanner: false,
           locale: Locale(controller.localeCode),
-          supportedLocales: const [Locale('ar'), Locale('en'), Locale('de'), Locale('tr'), Locale('fr'), Locale('es')],
+          supportedLocales: const [Locale('ar'), Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
@@ -157,14 +158,15 @@ class AppController extends ChangeNotifier {
   bool ready = false;
   bool isAuthenticated = false;
   bool isAdmin = false;
-  bool get isPrimaryAdmin => isAdmin && username.trim().toLowerCase() == 'adnan';
+  String adminRole = 'player';
+  bool get isPrimaryAdmin => isAdmin && adminRole == 'primary_admin';
   int? currentUserId;
   bool serverConnected = false;
   String? lastStoreError;
   bool soundEnabled = true;
   bool landscapeMode = false;
-  String selectedTable = 'table_premium_01';
-  String selectedCardBack = 'cardback_01';
+  String selectedTable = 'b304_table_aurora';
+  String selectedCardBack = b304CardBackId;
   String selectedNameColor = '#facc15';
   String selectedChatColor = '#ffffff';
   DateTime? nameColorExpiresAt;
@@ -176,6 +178,8 @@ class AppController extends ChangeNotifier {
   String selectedEffect = 'effect_gold_entry';
   String selectedCover = 'cover_royal_gold';
   String selectedProfileFrameV300 = 'frame_world_gold';
+  String selectedProfileColorB304 = 'b304_profile_aurora_30d';
+  DateTime? profileColorExpiresAtB304;
   String botDifficultyCode = 'pro';
   double uiButtonHeight = 48;
   double uiRadius = 18;
@@ -320,8 +324,8 @@ class AppController extends ChangeNotifier {
       roundPoints = 0;
       tournamentPoints = 0;
       clubPoints = 0;
-      selectedTable = 'table_premium_01';
-      selectedCardBack = 'cardback_01';
+      selectedTable = 'b304_table_aurora';
+      selectedCardBack = b304CardBackId;
       selectedNameColor = '#facc15';
       selectedChatColor = '#ffffff';
       selectedBadge = 'badge_pro';
@@ -377,8 +381,8 @@ class AppController extends ChangeNotifier {
     vipDays = prefs.getInt(_accountKey('vipDays')) ?? defaultVipDays ?? 0;
     avatarEmoji = prefs.getString(_accountKey('avatarEmoji')) ?? defaultAvatar ?? demoAvatarFor(username);
     avatarData = prefs.getString(_accountKey('avatarData'));
-    selectedTable = prefs.getString(_accountKey('selectedTable')) ?? 'table_premium_01';
-    selectedCardBack = prefs.getString(_accountKey('selectedCardBack')) ?? 'cardback_01';
+    selectedTable = prefs.getString(_accountKey('selectedTable')) ?? 'b304_table_aurora';
+    selectedCardBack = prefs.getString(_accountKey('selectedCardBack')) ?? b304CardBackId;
     selectedNameColor = prefs.getString(_accountKey('selectedNameColor')) ?? '#facc15';
     selectedChatColor = prefs.getString(_accountKey('selectedChatColor')) ?? '#ffffff';
     nameColorExpiresAt = DateTime.tryParse(prefs.getString(_accountKey('nameColorExpiresAt')) ?? '');
@@ -388,6 +392,8 @@ class AppController extends ChangeNotifier {
     selectedEffect = prefs.getString(_accountKey('selectedEffect')) ?? 'effect_gold_entry';
     selectedCover = prefs.getString(_accountKey('selectedCover')) ?? 'cover_royal_gold';
     selectedProfileFrameV300 = prefs.getString(_accountKey('selectedProfileFrameV300')) ?? 'frame_world_gold';
+    selectedProfileColorB304 = prefs.getString(_accountKey('selectedProfileColorB304')) ?? 'b304_profile_aurora_30d';
+    profileColorExpiresAtB304 = DateTime.tryParse(prefs.getString(_accountKey('profileColorExpiresAtB304')) ?? '');
     activeXpMultiplier = prefs.getDouble(_accountKey('activeXpMultiplier')) ?? 1.0;
     gamesPlayed = prefs.getInt(_accountKey('gamesPlayed')) ?? 0;
     wins = prefs.getInt(_accountKey('wins')) ?? 0;
@@ -473,6 +479,8 @@ class AppController extends ChangeNotifier {
     await prefs.setString(_accountKey('selectedEffect'), selectedEffect);
     await prefs.setString(_accountKey('selectedCover'), selectedCover);
     await prefs.setString(_accountKey('selectedProfileFrameV300'), selectedProfileFrameV300);
+    await prefs.setString(_accountKey('selectedProfileColorB304'), selectedProfileColorB304);
+    if (profileColorExpiresAtB304 == null) { await prefs.remove(_accountKey('profileColorExpiresAtB304')); } else { await prefs.setString(_accountKey('profileColorExpiresAtB304'), profileColorExpiresAtB304!.toIso8601String()); }
     await prefs.setString(_accountKey('uiFontFamily'), uiFontFamily);
     await prefs.setDouble(_accountKey('activeXpMultiplier'), activeXpMultiplier);
     await prefs.setInt(_accountKey('gamesPlayed'), gamesPlayed);
@@ -677,7 +685,7 @@ class AppController extends ChangeNotifier {
     customApiUrl = prefs.getString('customApiUrl') ?? '';
     if (customApiUrl.trim().isNotEmpty) api.updateBaseUrl(customApiUrl);
     final savedLocale = prefs.getString('locale');
-    localeCode = savedLocale != null && v300SupportedLocaleCodes.contains(savedLocale) ? savedLocale : 'ar';
+    localeCode = savedLocale != null && b304ActiveLocaleCodes.contains(savedLocale) ? savedLocale : 'ar';
     themeCode = prefs.getString('theme') ?? themeCode;
     final storedCoins = prefs.getString('coins');
     if (storedCoins != null) coins = BigInt.tryParse(storedCoins) ?? coins;
@@ -698,6 +706,8 @@ class AppController extends ChangeNotifier {
     selectedEffect = prefs.getString('selectedEffect') ?? selectedEffect;
     selectedCover = prefs.getString('selectedCover') ?? selectedCover;
     selectedProfileFrameV300 = prefs.getString('selectedProfileFrameV300') ?? selectedProfileFrameV300;
+    selectedProfileColorB304 = prefs.getString('selectedProfileColorB304') ?? selectedProfileColorB304;
+    profileColorExpiresAtB304 = DateTime.tryParse(prefs.getString('profileColorExpiresAtB304') ?? '');
     botDifficultyCode = prefs.getString('botDifficultyCode') ?? botDifficultyCode;
     uiButtonHeight = prefs.getDouble('uiButtonHeight') ?? uiButtonHeight;
     uiRadius = prefs.getDouble('uiRadius') ?? uiRadius;
@@ -797,7 +807,8 @@ class AppController extends ChangeNotifier {
       username = storedUsername.trim();
       displayName = prefs.getString('displayName') ?? username;
       email = prefs.getString('email') ?? email;
-      isAdmin = (prefs.getBool('isAdmin') ?? false) || username.trim().toLowerCase() == 'adnan' || displayName.trim().toLowerCase() == 'adnan';
+      isAdmin = prefs.getBool('isAdmin') ?? false;
+      adminRole = prefs.getString('adminRole') ?? (isAdmin ? 'admin' : 'player');
     }
     if (authToken != null && authToken!.isNotEmpty) {
       api.token = authToken;
@@ -853,6 +864,8 @@ class AppController extends ChangeNotifier {
     await prefs.setString('selectedEffect', selectedEffect);
     await prefs.setString('selectedCover', selectedCover);
     await prefs.setString('selectedProfileFrameV300', selectedProfileFrameV300);
+    await prefs.setString('selectedProfileColorB304', selectedProfileColorB304);
+    if (profileColorExpiresAtB304 == null) { await prefs.remove('profileColorExpiresAtB304'); } else { await prefs.setString('profileColorExpiresAtB304', profileColorExpiresAtB304!.toIso8601String()); }
     await prefs.setString('botDifficultyCode', botDifficultyCode);
     await prefs.setDouble('uiButtonHeight', uiButtonHeight);
     await prefs.setDouble('uiRadius', uiRadius);
@@ -914,6 +927,7 @@ class AppController extends ChangeNotifier {
     await prefs.setString('displayName', displayName);
     await prefs.setString('email', email);
     await prefs.setBool('isAdmin', isAdmin);
+    await prefs.setString('adminRole', adminRole);
     if (authToken == null) {
       await prefs.remove('authToken');
     } else {
@@ -1082,10 +1096,8 @@ class AppController extends ChangeNotifier {
       nameColorExpiresAt = DateTime.tryParse(user['name_color_expires_at']?.toString() ?? '');
       chatColorExpiresAt = DateTime.tryParse(user['chat_color_expires_at']?.toString() ?? '');
       consecutiveLoginDays = int.tryParse(user['login_streak']?.toString() ?? '') ?? consecutiveLoginDays;
-      isAdmin = user['is_admin'] == true ||
-          user['is_admin'] == 1 ||
-          username.trim().toLowerCase() == 'adnan' ||
-          displayName.trim().toLowerCase() == 'adnan';
+      isAdmin = user['is_admin'] == true || user['is_admin'] == 1;
+      adminRole = user['admin_role']?.toString() ?? (isAdmin ? 'admin' : 'player');
       level = int.tryParse(user['level']?.toString() ?? '') ?? level;
       final serverTotalXp = int.tryParse(user['xp']?.toString() ?? '');
       if (serverTotalXp != null) xp = xpProgressFromTotal(serverTotalXp, level);
@@ -1185,6 +1197,14 @@ class AppController extends ChangeNotifier {
       awardLocalPrizeBoxV02('level_$reachedLevel');
       rewards.add('صندوق مستوى');
     }
+    final temporaryChoices = <String>['b304_profile_aurora_30d','b304_profile_royal_30d','b304_table_aurora','b304_table_emerald','booster_green_v183','booster_blue_v183'];
+    final first = temporaryChoices[reachedLevel % temporaryChoices.length];
+    final second = temporaryChoices[(reachedLevel + 3) % temporaryChoices.length];
+    final expiry = DateTime.now().add(const Duration(days: 7));
+    packInventoryExpiriesV176['level_temp_${reachedLevel}_$first'] = expiry;
+    packInventoryExpiriesV176['level_temp_${reachedLevel}_$second'] = expiry;
+    rewards.add('${storeProductById(first)?.name(localeCode) ?? first} • 7 ${localeCode == 'ar' ? 'أيام' : 'days'}');
+    rewards.add('${storeProductById(second)?.name(localeCode) ?? second} • 7 ${localeCode == 'ar' ? 'أيام' : 'days'}');
     transactions.insert(0, TokenTransaction('مكافأة المستوى $reachedLevel', tokenReward, 'الآن'));
     notices.insert(0, AppNotice('⭐', 'وصلت إلى المستوى $reachedLevel', 'مكافأتك: ${rewards.join(' • ')}.'));
   }
@@ -1226,10 +1246,11 @@ class AppController extends ChangeNotifier {
       boosterExpiresAtV173 = null;
     }
     if (temporaryTableExpiresAtV173 != null && now.isAfter(temporaryTableExpiresAtV173!)) {
-      selectedTable = 'table_premium_01';
+      selectedTable = 'b304_table_aurora';
       temporaryTableExpiresAtV173 = null;
     }
-    purgeExpiredPackInventoryV176(now);
+    if (profileColorExpiresAtB304 != null && !profileColorExpiresAtB304!.isAfter(now)) { selectedProfileColorB304='b304_profile_aurora_30d'; profileColorExpiresAtB304=null; }
+        purgeExpiredPackInventoryV176(now);
   }
 
   void _resetAdCounterIfNeeded() {
@@ -1242,7 +1263,7 @@ class AppController extends ChangeNotifier {
 
   int get rewardedAdsRemaining {
     _resetAdCounterIfNeeded();
-    return math.max(0, 5 - rewardedAdClaimsToday);
+    return math.max(0, 8 - rewardedAdClaimsToday);
   }
 
   void _applyLocalLoginStreak() {
@@ -1343,9 +1364,12 @@ class AppController extends ChangeNotifier {
 
   Future<String?> grantRewardedAd(String verificationId) async {
     _resetAdCounterIfNeeded();
-    if (rewardedAdClaimsToday >= 5) return 'وصلت إلى الحد اليومي: 5 إعلانات مكافِئة.';
-    var tokens = 50;
-    var earnedXp = 15;
+    if (rewardedAdClaimsToday >= 8) return localeCode == 'ar' ? 'وصلت إلى الحد اليومي: 8 إعلانات مكافِئة.' : 'You reached today’s limit of 8 rewarded ads.';
+    final claimNumber = rewardedAdClaimsToday + 1;
+    const localTokens = <int>[50,75,100,150,200,250,350,500];
+    const localXp = <int>[15,25,40,60,90,120,160,250];
+    var tokens = localTokens[(claimNumber - 1).clamp(0, 7)];
+    var earnedXp = localXp[(claimNumber - 1).clamp(0, 7)];
     if (serverConnected) {
       try {
         final data = await api.claimRewardedAd(verificationId);
@@ -1372,14 +1396,14 @@ class AppController extends ChangeNotifier {
     }
     rewardedAdClaimsToday += 1;
     transactions.insert(0, TokenTransaction('مكافأة مشاهدة إعلان', tokens, serverConnected ? 'الآن • خادم' : 'الآن • محلي'));
-    notices.insert(0, AppNotice('📺', 'مكافأة إعلان', '${serverConnected ? 'اعتمد الخادم' : 'تم محلياً اعتماد'} $tokens توكن و$earnedXp XP.'));
+    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة ${rewardedAdClaimsToday + 1}/8' : '$tokens tokens and $earnedXp XP • reward ${rewardedAdClaimsToday + 1}/8'));
     await _save();
     notifyListeners();
     return null;
   }
 
   void changeLocale(String value) {
-    localeCode = v300SupportedLocaleCodes.contains(value) ? value : 'ar';
+    localeCode = b304ActiveLocaleCodes.contains(value) ? value : 'ar';
     _save();
     if (serverConnected) {
       api.updateProfile({'locale': localeCode}).catchError((_) => <String, dynamic>{});
@@ -1402,14 +1426,14 @@ class AppController extends ChangeNotifier {
   }
 
   void changeFontFamily(String value) {
-    if (!const {'Roboto','Arial','serif','monospace'}.contains(value)) return;
+    if (!const {'Roboto','Arial','Tahoma','Verdana','serif','monospace'}.contains(value)) return;
     uiFontFamily = value;
     _save();
     notifyListeners();
   }
 
   void adjustFontScale(double delta) {
-    uiFontScale = (uiFontScale + delta).clamp(.85, 1.35).toDouble();
+    uiFontScale = (uiFontScale + delta).clamp(.70, 1.70).toDouble();
     _save();
     notifyListeners();
   }
@@ -1518,7 +1542,13 @@ class AppController extends ChangeNotifier {
       : product.durationDays;
   Color color1For(StoreProduct product) => colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
   Color color2For(StoreProduct product) => colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
-  bool isStoreProductVisible(StoreProduct product) => !hiddenStoreProducts.contains(product.id);
+  bool isStoreProductVisible(StoreProduct product) {
+    if (hiddenStoreProducts.contains(product.id)) return false;
+    if (const {'badges','effects'}.contains(product.category)) return false;
+    if (product.category == 'tables') return b304VerticalTableIds.contains(product.id);
+    if (product.category == 'cards') return product.id == b304CardBackId;
+    return true;
+  }
 
   Future<void> updateStoreProductAdmin(
     StoreProduct product, {
@@ -1588,6 +1618,10 @@ class AppController extends ChangeNotifier {
         final chatHours = product.durationHours;
         final chatDays = durationFor(product);
         chatColorExpiresAt = chatExpiry ?? (chatHours != null && chatHours > 0 ? DateTime.now().add(Duration(hours: chatHours)) : chatDays == null || chatDays <= 0 ? null : DateTime.now().add(Duration(days: chatDays)));
+        break;
+      case 'profile_colors':
+        selectedProfileColorB304 = product.id;
+        profileColorExpiresAtB304 = DateTime.now().add(Duration(days: durationFor(product) ?? 30));
         break;
       case 'badges':
         selectedBadge = product.id;
@@ -2872,6 +2906,7 @@ List<StoreProduct> buildTimedColorProducts() {
 
 
 final List<StoreProduct> products = <StoreProduct>[
+  ...b304VerticalStoreProducts,
   ...v300WorldStoreProducts,
   ...buildV201R4StoreProducts(),
   StoreProduct(id: 'daily_pack_name_gold_24h_v176', category: 'names', icon: '🎨', nameAr: 'صندوق الجوائز: لون لاعب ذهبي', nameEn: 'Prize Box: Golden Player Color', descriptionAr: 'لون لاعب ذهبي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary golden player color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#facc15', previewColor1: Color(0xfffacc15), previewColor2: Color(0xff422006), collection: 'daily_pack_v176'),
@@ -3464,7 +3499,7 @@ class _HomeShellState extends State<HomeShell> {
       GamesPage(controller: widget.controller),
       HomePage(controller: widget.controller, onTab: (v) => setState(() => index = v)),
       R11ClubsWorldPage(controller: widget.controller),
-      R11SocialWorldPage(controller: widget.controller),
+      R12CompetitiveArenaPage(controller: widget.controller),
     ];
     return LayoutBuilder(builder: (context, constraints) {
       final desktop = isDesktopWebV183(constraints.maxWidth);
@@ -3505,7 +3540,7 @@ class _HomeShellState extends State<HomeShell> {
             NavigationDestination(icon: const Icon(Icons.style), label: L.t(widget.controller.localeCode, 'games')),
             NavigationDestination(icon: const Icon(Icons.home_rounded), label: L.t(widget.controller.localeCode, 'home')),
             NavigationDestination(icon: const Icon(Icons.shield), label: L.t(widget.controller.localeCode, 'clubs')),
-            NavigationDestination(icon: const Icon(Icons.public_rounded), label: L.t(widget.controller.localeCode, 'social_world')),
+            NavigationDestination(icon: const Icon(Icons.emoji_events_rounded), label: widget.controller.localeCode == 'ar' ? 'المسابقات' : 'Competitions'),
           ],
         ),
       );
@@ -3527,7 +3562,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => V300WorldHome(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => B304HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
@@ -3694,21 +3729,20 @@ class _StorePageState extends State<StorePage> {
       final text = '${p.name(lang)} ${p.description(lang)}'.toLowerCase();
       return categoryMatch && tierMatch && tableCollectionMatch && text.contains(query.toLowerCase());
     }).toList();
-    const categories = [
-      ('all', 'الكل'),
-      ('inventory', 'مقتنياتي'),
-      ('pasha', 'الباشا'),
-      ('competition_ticket', 'تذاكر المنافسات'),
-      ('themes', 'الثيمات'),
-      ('tables', 'الطاولات'),
-      ('cards', 'ظهر الورق'),
-      ('emoji', 'الإيموجي'),
-      ('boost', 'المسرعات'),
-      ('names', 'ألوان اللاعب'),
-      ('chat_colors', 'ألوان الدردشة'),
-      ('badges', 'الشارات'),
-      ('effects', 'المؤثرات'),
-      ('covers', 'أغلفة البروفايل'),
+    final categories = <(String,String)>[
+      ('all', lang == 'ar' ? 'الكل' : 'All'),
+      ('inventory', lang == 'ar' ? 'مقتنياتي' : 'My items'),
+      ('pasha', lang == 'ar' ? 'الباشا' : 'Pasha'),
+      ('competition_ticket', lang == 'ar' ? 'تذاكر المنافسات' : 'Competition tickets'),
+      ('themes', lang == 'ar' ? 'الثيمات' : 'Themes'),
+      ('tables', lang == 'ar' ? 'الطاولات الرأسية' : 'Vertical tables'),
+      ('cards', lang == 'ar' ? 'ظهر الورق' : 'Card back'),
+      ('profile_colors', lang == 'ar' ? 'لون البروفايل' : 'Profile colors'),
+      ('emoji', lang == 'ar' ? 'الإيموجي' : 'Emoji'),
+      ('boost', lang == 'ar' ? 'مسرعات XP' : 'XP boosters'),
+      ('names', lang == 'ar' ? 'ألوان اللاعب' : 'Player colors'),
+      ('chat_colors', lang == 'ar' ? 'ألوان الدردشة' : 'Chat colors'),
+      ('covers', lang == 'ar' ? 'أغلفة البروفايل' : 'Profile covers'),
     ];
     return ListView(
       padding: const EdgeInsets.all(13),
@@ -7460,7 +7494,7 @@ Future<void> showAvatarPreview(BuildContext context, AppController controller) a
                 ProfileCover(
                   coverId: controller.selectedCover,
                   height: 300,
-                  colors: coverColorsForV151(controller, controller.selectedCover),
+                  colors: b304ProfileGradient(controller),
                   child: Center(
                     child: Hero(
                       tag: 'profile-avatar-${controller.username}',
@@ -7558,7 +7592,7 @@ void showProfile(BuildContext context, AppController controller) {
         ProfileCover(
           coverId: controller.selectedCover,
           height: 205,
-          colors: coverColorsForV151(controller, controller.selectedCover),
+          colors: b304ProfileGradient(controller),
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -7652,7 +7686,6 @@ void showProfile(BuildContext context, AppController controller) {
             Chip(avatar: const Icon(Icons.style_outlined, size: 16), label: Text(storeProductById(controller.selectedCardBack)?.name(controller.localeCode) ?? 'ظهر افتراضي')),
             Chip(avatar: const Icon(Icons.bolt, size: 16), label: Text('XP ×${controller.activeXpMultiplier.toStringAsFixed(2)}')),
             Chip(avatar: const Text('😀'), label: Text(storeProductById(controller.selectedEmojiPack)?.name(controller.localeCode) ?? 'إيموجي أساسية')),
-            Chip(avatar: const Text('✨'), label: Text(storeProductById(controller.selectedEffect)?.name(controller.localeCode) ?? 'مؤثر أساسي')),
           ],
         ),
         const SizedBox(height: 11),
@@ -7863,7 +7896,7 @@ void showRewards(BuildContext context, AppController controller) {
         const SizedBox(height: 10),
         PremiumListTile(icon: '🎁', title: 'المكافأة اليومية', subtitle: '100 توكن + 20 XP • مرة واحدة يومياً', action: FilledButton(onPressed: () async { final claimed = await controller.claimDaily(); if (context.mounted) { Navigator.pop(context); showToast(context, claimed ? 'تم استلام المكافأة' : 'استلمت مكافأة اليوم مسبقاً أو تعذر الاتصال'); } }, child: Text(L.t(controller.localeCode, 'claim')))),
         const SizedBox(height: 8),
-        PremiumListTile(icon: '📺', title: 'شاهد إعلاناً واحصل على مكافأة', subtitle: '50 توكن + 15 XP • المتبقي اليوم ${controller.rewardedAdsRemaining}/5', action: FilledButton(onPressed: controller.rewardedAdsRemaining > 0 ? () async { await watchRewardedAd(context, controller); if (context.mounted) Navigator.pop(context); } : null, child: const Text('مشاهدة'))),
+        PremiumListTile(icon: '📺', title: controller.localeCode == 'ar' ? 'شاهد إعلاناً وارفع المكافأة' : 'Watch an ad and upgrade the reward', subtitle: controller.localeCode == 'ar' ? 'مكافآت متدرجة • المتبقي اليوم ${controller.rewardedAdsRemaining}/8' : 'Progressive rewards • ${controller.rewardedAdsRemaining}/8 left today', action: FilledButton(onPressed: controller.rewardedAdsRemaining > 0 ? () async { await watchRewardedAd(context, controller); if (context.mounted) Navigator.pop(context); } : null, child: Text(controller.localeCode == 'ar' ? 'مشاهدة' : 'Watch'))),
         const SizedBox(height: 8),
         PremiumListTile(icon: '🔥', title: 'استمرارية الدخول', subtitle: '${controller.consecutiveLoginDays} أيام • كل 3 أيام = يوم باشا مجاني', action: FilledButton.tonal(onPressed: null, child: Text('${controller.consecutiveLoginDays}/3'))),
       ],
@@ -7895,7 +7928,7 @@ void showSettings(BuildContext context, AppController controller) {
           const Divider(),
           ListTile(leading: AccountAvatar(controller: controller, size: 42), title: const Text('الصورة الشخصية'), subtitle: const Text('معاينة وقص قبل الاعتماد'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
           ListTile(
-            leading: SizedBox(width: 52, height: 38, child: ClipRRect(borderRadius: BorderRadius.circular(10), child: ProfileCover(coverId: controller.selectedCover, colors: coverColorsForV151(controller, controller.selectedCover), child: const Center(child: Icon(Icons.person, size: 18))))),
+            leading: SizedBox(width: 52, height: 38, child: ClipRRect(borderRadius: BorderRadius.circular(10), child: ProfileCover(coverId: controller.selectedCover, colors: b304ProfileGradient(controller), child: const Center(child: Icon(Icons.person, size: 18))))),
             title: Text(L.t(controller.localeCode, 'covers')),
             subtitle: Text(storeProductById(controller.selectedCover)?.name(controller.localeCode) ?? controller.selectedCover),
             trailing: const Icon(Icons.storefront_outlined),
@@ -7918,7 +7951,7 @@ void showSettings(BuildContext context, AppController controller) {
             ),
           ),
           const Divider(),
-          ListTile(leading:const Icon(Icons.font_download_outlined),title:Text(L.t(controller.localeCode,'font')),subtitle:Text(controller.uiFontFamily),trailing:PopupMenuButton<String>(onSelected:(value){controller.changeFontFamily(value);setLocalState((){});},itemBuilder:(_)=>const [PopupMenuItem(value:'Roboto',child:Text('Roboto')),PopupMenuItem(value:'Arial',child:Text('Arial')),PopupMenuItem(value:'serif',child:Text('Serif')),PopupMenuItem(value:'monospace',child:Text('Monospace'))])),
+          ListTile(leading:const Icon(Icons.font_download_outlined),title:Text(L.t(controller.localeCode,'font')),subtitle:Text(controller.uiFontFamily),trailing:PopupMenuButton<String>(onSelected:(value){controller.changeFontFamily(value);setLocalState((){});},itemBuilder:(_)=>const [PopupMenuItem(value:'Roboto',child:Text('Roboto')),PopupMenuItem(value:'Arial',child:Text('Arial')),PopupMenuItem(value:'Tahoma',child:Text('Tahoma')),PopupMenuItem(value:'Verdana',child:Text('Verdana')),PopupMenuItem(value:'serif',child:Text('Serif')),PopupMenuItem(value:'monospace',child:Text('Monospace'))])),
           ListTile(leading:const Icon(Icons.format_size),title:Text(L.t(controller.localeCode,'fontSize')),subtitle:Text('${(controller.uiFontScale*100).round()}%'),trailing:Wrap(spacing:4,children:[IconButton.filledTonal(onPressed:(){controller.adjustFontScale(-.08);setLocalState((){});},icon:const Text('A−')),IconButton.filledTonal(onPressed:(){controller.adjustFontScale(.08);setLocalState((){});},icon:const Text('A+'))])),
           ListTile(leading:const Icon(Icons.health_and_safety_outlined),title:Text(L.t(controller.localeCode,'connectionCheck')),subtitle:const Text('الخادم والإنترنت والميكروفون'),trailing:const Icon(Icons.chevron_right),onTap:()=>showConnectionDiagnosticsDialog(context,controller)),
           ListTile(leading:const Icon(Icons.privacy_tip_outlined),title:Text(L.t(controller.localeCode,'privacyPolicy')),trailing:const Icon(Icons.chevron_right),onTap:()=>showPrivacyPolicyPage(context,controller)),
@@ -7933,7 +7966,7 @@ void showSettings(BuildContext context, AppController controller) {
             },
           ),
           const Divider(),
-          ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => v300SupportedLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(v300LocaleNames[code] ?? code.toUpperCase()))).toList())),
+          ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => b304ActiveLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(code == 'ar' ? 'العربية' : 'English'))).toList())),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: Text(L.t(controller.localeCode, 'theme')),

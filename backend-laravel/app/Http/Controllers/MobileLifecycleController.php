@@ -24,7 +24,8 @@ class MobileLifecycleController extends Controller
 
     public function reconnect(Request $request, Room $room, MatchLifecycleService $lifecycle)
     {
-        $player=$lifecycle->heartbeat($room,$request->user());
+        $lifecycle->sweep($room);
+        $player=$lifecycle->heartbeat($room->fresh(),$request->user());
         return response()->json(['ok'=>true,'message'=>'تمت استعادة نفس المقعد والجلسة.','seat'=>$player->seat,'lifecycle'=>$lifecycle->snapshot($room->fresh(),$request->user())]);
     }
 

@@ -9,10 +9,13 @@ class MatchLifecycleService
 {
     public const HEARTBEAT_STALE_SECONDS = 35;
     public const RECONNECT_GRACE_SECONDS = 90;
+    public const ABANDONED_SECONDS = 600;
 
     public function heartbeat(Room $room, User $user): RoomPlayer
     {
         $player = $room->players()->where('user_id', $user->id)->firstOrFail();
+        $state = (array)($room->state ?? []);
+        abort_if(in_array((int)$user->id, array_map('intval',(array)($state['expired_user_ids'] ?? [])), true), 410, 'This game seat expired after extended inactivity.');
         $wasDisconnected = !$player->connected;
         $player->forceFill([
             'connected' => true,
@@ -51,6 +54,17 @@ class MatchLifecycleService
                     $events[] = ['type'=>'afk','user_id'=>$player->user_id,'seat'=>$player->seat];
                     $this->event($room, $player->user, 'player.afk', 1, ['seat'=>$player->seat]);
                 }
+                if (!$player->connected && $player->disconnected_at && $player->disconnected_at->lt($now->copy()->subSeconds(self::ABANDONED_SECONDS))) {
+                    $state=(array)($room->state ?? []);
+                    $expired=array_values(array_unique(array_merge(array_map('intval',(array)($state['expired_user_ids'] ?? [])),[(int)$player->user_id])));
+                    $state['expired_user_ids']=$expired;
+                    $state['last_abandoned_at']=$now->toIso8601String();
+                    $room->state=$state;$room->save();
+                    if ($player->bot_difficulty === null) { $player->bot_difficulty='master'; $player->save(); }
+                    $events[]=['type'=>'abandoned','user_id'=>$player->user_id,'seat'=>$player->seat];
+                    $this->event($room,$player->user,'player.abandoned',2,['seat'=>$player->seat,'after_seconds'=>self::ABANDONED_SECONDS]);
+                    continue;
+                }
                 if (!$player->connected && $player->bot_difficulty === null && $player->disconnected_at && $player->disconnected_at->lt($now->copy()->subSeconds(self::RECONNECT_GRACE_SECONDS))) {
                     $state = $room->state ?: [];
                     $competitive = (bool)($state['competitive'] ?? false);
@@ -73,6 +87,7 @@ class MatchLifecycleService
             'room' => $room->code,
             'grace_seconds' => self::RECONNECT_GRACE_SECONDS,
             'heartbeat_stale_seconds' => self::HEARTBEAT_STALE_SECONDS,
+            'abandoned_seconds' => self::ABANDONED_SECONDS,
             'players' => $room->players->map(fn(RoomPlayer $p) => [
                 'user_id'=>$p->user_id,'seat'=>$p->seat,'is_bot'=>(bool)$p->is_bot,'connected'=>(bool)$p->connected,
                 'missed_turns'=>(int)$p->missed_turns,'last_heartbeat_at'=>$p->last_heartbeat_at?->toIso8601String(),

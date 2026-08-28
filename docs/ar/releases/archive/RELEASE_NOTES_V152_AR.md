@@ -18,7 +18,7 @@
 تبقى الحسابات السابقة فعالة، ومنها:
 
 ```text
-Adnan / Adnan123
+Adnan / PRIVATE_LOCAL_ADMIN_PASSWORD
 Hala / Hala12345
 Omar / Omar12345
 Sara / Sara12345

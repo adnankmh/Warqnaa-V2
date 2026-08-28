@@ -1,6 +1,0 @@
-WARQNAA R14.2 SECURE ACCOUNT & CI RELIABILITY — 1.0.2+262
-Static contract: tools/test_v262_r14_2_contract.py
-Regression range: R8 / R9 / R9.1 / R10 / R10.1 / R11 / R12 / R13 / R14 / R14.1 / R14.2
-Channels: backend / web / android / ios
-CI fixes: SQLite :memory: / optional GitHub Pages / R10 public source-build-deployed budgets.
-Runtime boundary: PHP, Composer, Flutter and Dart execution remains enforced by GitHub Actions when unavailable locally.

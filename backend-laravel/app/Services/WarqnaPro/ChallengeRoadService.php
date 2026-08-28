@@ -182,37 +182,24 @@ class ChallengeRoadService
 
     public function rewardForStage(int $stage,int $total): array
     {
-        if($stage >= $total) return ['type'=>'tokens_pasha','tokens'=>1000,'pasha_days'=>1,'icon'=>'🏆','label_ar'=>'1000 توكن + يوم باشا','label_en'=>'1,000 tokens + 1 Pasha day'];
-        return match($stage % 6){
-            1 => ['type'=>'tokens','tokens'=>min(1000,100+$stage*35),'icon'=>'🪙','label_ar'=>min(1000,100+$stage*35).' توكن','label_en'=>min(1000,100+$stage*35).' tokens'],
-            2 => ['type'=>'name_color','color'=>'#ef4444','hours'=>12,'icon'=>'🎨','label_ar'=>'لون لاعب أحمر 12 ساعة','label_en'=>'Red player color for 12 hours'],
-            3 => ['type'=>'xp_booster','store_key'=>'booster_green_v183','hours'=>6,'icon'=>'⚡','label_ar'=>'مسرع XP ×1.5 لمدة 6 ساعات','label_en'=>'1.5× XP booster for 6 hours'],
-            4 => ['type'=>'table','store_key'=>'table_v202_obsidian_vertical','hours'=>24,'icon'=>'🃏','label_ar'=>'طاولة أوبسيديان 24 ساعة','label_en'=>'Obsidian table for 24 hours'],
-            5 => ['type'=>'pasha','pasha_days'=>1,'icon'=>'👑','label_ar'=>'يوم باشا','label_en'=>'1 Pasha day'],
-            default => ['type'=>'chat_color','color'=>'#22d3ee','hours'=>12,'icon'=>'✍️','label_ar'=>'لون كتابة سماوي 12 ساعة','label_en'=>'Cyan writing color for 12 hours'],
+        if($stage >= $total) return ['type'=>'bundle','tokens'=>5000,'pasha_days'=>3,'store_key'=>'b304_table_phoenix','days'=>7,'icon'=>'🏆','label_ar'=>'5000 توكن + 3 أيام باشا + طاولة العنقاء 7 أيام','label_en'=>'5,000 tokens + 3 Pasha days + Phoenix table for 7 days'];
+        return match($stage % 5){
+            1 => ['type'=>'tokens','tokens'=>min(1800,200+$stage*80),'icon'=>'🪙','label_ar'=>min(1800,200+$stage*80).' توكن','label_en'=>min(1800,200+$stage*80).' tokens'],
+            2 => ['type'=>'temporary_item','store_key'=>'b304_profile_aurora_30d','days'=>7,'icon'=>'🎨','label_ar'=>'لون بروفايل الشفق 7 أيام','label_en'=>'Aurora profile color for 7 days'],
+            3 => ['type'=>'temporary_item','store_key'=>'booster_green_v183','days'=>7,'icon'=>'⚡','label_ar'=>'مسرع XP لمدة 7 أيام','label_en'=>'XP booster for 7 days'],
+            4 => ['type'=>'temporary_item','store_key'=>'b304_table_aurora','days'=>7,'icon'=>'🃏','label_ar'=>'طاولة الشفق 7 أيام','label_en'=>'Aurora table for 7 days'],
+            default => ['type'=>'pasha','pasha_days'=>1,'icon'=>'👑','label_ar'=>'يوم باشا','label_en'=>'1 Pasha day'],
         };
     }
 
     private function applyReward(User $user,array $reward): void
     {
         $type=(string)($reward['type'] ?? '');
-        if(in_array($type,['tokens','tokens_pasha'],true) && (int)($reward['tokens'] ?? 0)>0){
-            $this->wallet->credit($user,min(1000,(int)$reward['tokens']),'challenge_road_reward',['stage_road'=>true]);
-        }
-        if(in_array($type,['pasha','tokens_pasha'],true) && (int)($reward['pasha_days'] ?? 0)>0){
-            $user->profile?->increment('pasha_days',(int)$reward['pasha_days']);
-        }
-        if($type==='name_color' && $user->profile){
-            $user->profile->update(['name_color'=>$reward['color'],'name_color_expires_at'=>now()->addHours((int)$reward['hours'])]);
-        }
-        if($type==='chat_color' && $user->profile){
-            $user->profile->update(['chat_color'=>$reward['color'],'chat_color_expires_at'=>now()->addHours((int)$reward['hours'])]);
-        }
-        if(in_array($type,['xp_booster','table'],true)){
-            $item=StoreItem::where('key',$reward['store_key'] ?? '')->first();
-            if($item){
-                InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addHours((int)($reward['hours'] ?? 6))]);
-            }
+        if(in_array($type,['tokens','bundle'],true) && (int)($reward['tokens'] ?? 0)>0) $this->wallet->credit($user,(int)$reward['tokens'],'challenge_road_reward',['stage_road'=>true]);
+        if(in_array($type,['pasha','bundle'],true) && (int)($reward['pasha_days'] ?? 0)>0) $user->profile?->increment('pasha_days',(int)$reward['pasha_days']);
+        if(in_array($type,['temporary_item','bundle'],true) && !empty($reward['store_key'])){
+            $item=StoreItem::where('key',$reward['store_key'])->where('active',true)->first();
+            if($item) InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays((int)($reward['days'] ?? 7))]);
         }
     }
 

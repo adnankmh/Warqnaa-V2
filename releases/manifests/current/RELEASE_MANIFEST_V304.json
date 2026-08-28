@@ -1,0 +1,48 @@
+{
+  "version": "1.3.0",
+  "build": 304,
+  "full": "1.3.0+304",
+  "release": "v304",
+  "name": "Warqnaa VERTICAL LEGEND — Global Premium Gameplay, Fair Deal & LiveOps",
+  "baseline": "1.2.0+303",
+  "active_locales": [
+    "ar",
+    "en"
+  ],
+  "future_locale_registry": [
+    "de",
+    "tr",
+    "fr",
+    "es"
+  ],
+  "customer_games": [
+    "tarneeb",
+    "syrian_tarneeb",
+    "tarneeb_400",
+    "trix",
+    "trix_partner",
+    "trix_complex",
+    "hand",
+    "hand_partner",
+    "saudi_hand",
+    "banakil",
+    "baloot",
+    "basra"
+  ],
+  "removed_customer_games": [
+    "jackaroo",
+    "backgammon",
+    "domino",
+    "chess"
+  ],
+  "focus": [
+    "vertical premium gameplay and ten portrait tables",
+    "single portrait card back and 30-day profile colors",
+    "secure symmetric fair-deal certification",
+    "smarter server bots and visible trick collection",
+    "progressive rewarded ads and admin-managed offers/challenges",
+    "two-language audited product surface with future locale registry",
+    "private local administrator provisioning and repository privacy gate",
+    "ten-minute abandoned-match expiry and account-security hardening"
+  ]
+}

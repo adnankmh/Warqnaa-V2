@@ -3,7 +3,7 @@ part of 'main.dart';
 const String warqnaaR101Release = '0.5.1+221';
 
 /// R10.1 keeps unfinished server-dependent titles out of the customer lobby.
-List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly).toList(growable: false);
+List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly && !b304BannedCustomerGames.contains(game.id)).toList(growable: false);
 
 class R101ThemeSpec {
   const R101ThemeSpec({required this.code, required this.accent, required this.accent2, required this.background, required this.surface, required this.light});

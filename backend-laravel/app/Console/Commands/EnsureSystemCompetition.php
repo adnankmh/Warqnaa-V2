@@ -14,7 +14,7 @@ class EnsureSystemCompetition extends Command
         if(Tournament::whereIn('status',['open'])->where('key','like','system-auto-%')->exists()){
             $this->info('System competition already open.'); return self::SUCCESS;
         }
-        $admin=User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first() ?: User::where('is_admin',true)->orderBy('id')->first();
+        $admin=User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first() ?: User::where('is_admin',true)->orderBy('id')->first();
         $game=Game::where('active',true)->where('key','tarneeb')->first() ?: Game::where('active',true)->first();
         if(!$admin || !$game){ $this->warn('Admin or active game not available yet.'); return self::SUCCESS; }
         $key='system-auto-'.now()->format('Ymd-His');

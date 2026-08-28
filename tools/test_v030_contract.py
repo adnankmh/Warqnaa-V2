@@ -46,7 +46,7 @@ def main() -> None:
     elif theme_count != 9:
         fail('Historical pre-R9 releases require exactly nine built-in themes')
 
-    main=req('flutter_app/lib/main.dart',
+    main_requirements = [
         "final List<String> homeGameIds = <String>['tarneeb', 'hand', 'trix'];",
         'Future<String?> updateHomeGames',
         'if (raw.toSet().length > 4)',
@@ -57,10 +57,18 @@ def main() -> None:
         'final fee = (amount * .10).ceil();',
         'challengeRoadTotal = const <int>{10, 12, 15}.contains(totalStages)',
         'challengeRoadAttempts = 5',
-        "bool get isPrimaryAdmin => isAdmin && username.trim().toLowerCase() == 'adnan';",
         'Web/GitHub Pages preview: keep the temporary rewarded-ad feature testable',
         '_grantLocalLevelReward',
-    )
+    ]
+    main=req('flutter_app/lib/main.dart', *main_requirements)
+    if build >= 304:
+        if "String adminRole = 'player';" not in main or "bool get isPrimaryAdmin => isAdmin && adminRole == 'primary_admin';" not in main:
+            fail('B304 Flutter primary-admin role identity is missing')
+        user_model=req('backend-laravel/app/Models/User.php', "admin_role ?? null", "'primary_admin'", 'function isPrimaryAdmin')
+        if "admin_role" not in user_model:
+            fail('B304 primary-admin role protection is missing')
+    elif "bool get isPrimaryAdmin => isAdmin && username.trim().toLowerCase() == 'adnan';" not in main:
+        fail('legacy Flutter primary-admin identity contract is missing')
     create_room=main[main.index('void showCreateRoom'):main.index('class OpenRoomsSheet') if 'class OpenRoomsSheet' in main else len(main)]
     if "DropdownMenuItem(value: 'friends'" in create_room: fail('Friends-only option remains in create-room UI')
 
@@ -75,10 +83,12 @@ def main() -> None:
     if "where('connected', true)" in rooms[rooms.index('public function rooms'):rooms.index('public function join')]:
         fail('Open-room discovery still requires an open/connected game screen')
 
-    req('backend-laravel/app/Http/Controllers/MobileAdminController.php',
-        'guardPrimaryDesigner',
-        "strtolower((string) $request->user()?->username) === 'adnan'",
-    )
+    admin_controller=req('backend-laravel/app/Http/Controllers/MobileAdminController.php','guardPrimaryDesigner')
+    if build >= 304:
+        if "isPrimaryAdmin()" not in admin_controller:
+            fail('B304 designer guard must follow primary-admin role identity')
+    elif "strtolower((string) $request->user()?->username) === 'adnan'" not in admin_controller:
+        fail('legacy primary designer guard is missing')
     req('backend-laravel/app/Http/Controllers/ClubController.php','ClubActivityLog','manage_club','updateSettings')
     req('backend-laravel/database/migrations/2026_07_14_000300_create_club_activity_logs.php',"Schema::create('club_activity_logs'")
     req('backend-laravel/app/Services/Leveling/XpService.php','level_rewards','pasha_days','ticket_200','prize_box')
@@ -110,7 +120,7 @@ def main() -> None:
     if build>=210:
         req('docs/R9_1_DEMO_ACCOUNTS_AR_EN.md','Kareem123','Basel12345','Level 99','10 demo users')
     else:
-        req('docs/DEMO_ACCOUNTS_V0.3_AR.md','Adnan123','Kareem123','Yazan12345')
+        req('docs/DEMO_ACCOUNTS_V0.3_AR.md','LOCAL_ADMIN_PASSWORD_REQUIRED','Kareem123','Yazan12345')
 
     req('flutter_app/web/index.html','application/ld+json','VideoGame','og:title','twitter:card')
     req('flutter_app/web/robots.txt','Sitemap:')

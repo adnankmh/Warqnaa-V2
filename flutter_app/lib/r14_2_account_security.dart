@@ -5,11 +5,14 @@ const String warqnaaR143Release = '1.0.3+263';
 extension R143AccountSecurityController on AppController {
   Future<String?> updateAccountSecurityR143({
     required String currentPassword,
+    required String newUsername,
     required String newEmail,
     required String newPassword,
     required String passwordConfirmation,
   }) async {
+    final cleanUsername = newUsername.trim();
     final cleanEmail = newEmail.trim().toLowerCase();
+    if (!RegExp(r'^[A-Za-z0-9_-]{3,30}$').hasMatch(cleanUsername)) return localeCode == 'ar' ? 'اسم المستخدم يجب أن يكون 3–30 حرفًا/رقمًا بدون مسافات.' : 'Username must be 3–30 letters/numbers without spaces.';
     if (currentPassword.isEmpty) return 'أدخل كلمة المرور الحالية.';
     if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(cleanEmail)) {
       return 'أدخل بريدًا إلكترونيًا صحيحًا.';
@@ -31,10 +34,12 @@ extension R143AccountSecurityController on AppController {
       try {
         final response = await api.updateAccountSecurity(
           currentPassword: currentPassword,
+          username: cleanUsername,
           email: cleanEmail,
           newPassword: newPassword.isEmpty ? null : newPassword,
         );
         final user = response['user'];
+        if (user is Map && user['username'] != null) username = user['username'].toString();
         email = user is Map && user['email'] != null ? user['email'].toString() : cleanEmail;
         await _storeOfflineCredentials(prefs, username, email, effectivePassword, admin: isAdmin);
         await _save();
@@ -57,8 +62,12 @@ extension R143AccountSecurityController on AppController {
       return 'كلمة المرور الحالية غير صحيحة.';
     }
     final oldEmail = email;
+    final oldUsername = username;
+    username = cleanUsername;
+    displayName = displayName == oldUsername ? cleanUsername : displayName;
     email = cleanEmail;
     await _storeOfflineCredentials(prefs, username, email, effectivePassword, admin: false);
+    if (oldUsername.toLowerCase() != cleanUsername.toLowerCase()) { await prefs.remove(_offlineAliasKey(oldUsername)); }
     if (oldEmail.trim().isNotEmpty && oldEmail.toLowerCase() != cleanEmail) {
       await prefs.remove(_offlineAliasKey(oldEmail));
     }
@@ -77,6 +86,7 @@ class R143AccountSecurityPage extends StatefulWidget {
 }
 
 class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
+  late final TextEditingController usernameController;
   late final TextEditingController emailController;
   final currentPasswordController = TextEditingController();
   final newPasswordController = TextEditingController();
@@ -91,11 +101,13 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
   @override
   void initState() {
     super.initState();
+    usernameController = TextEditingController(text: widget.controller.username);
     emailController = TextEditingController(text: widget.controller.email);
   }
 
   @override
   void dispose() {
+    usernameController.dispose();
     emailController.dispose();
     currentPasswordController.dispose();
     newPasswordController.dispose();
@@ -111,6 +123,7 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
     });
     final result = await widget.controller.updateAccountSecurityR143(
       currentPassword: currentPasswordController.text,
+      newUsername: usernameController.text,
       newEmail: emailController.text,
       newPassword: newPasswordController.text,
       passwordConfirmation: confirmationController.text,
@@ -160,6 +173,15 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
               ]),
             ),
             const SizedBox(height: 18),
+            TextField(
+              controller: usernameController,
+              autofillHints: const [AutofillHints.username],
+              decoration: InputDecoration(
+                labelText: ar ? 'اسم المستخدم' : 'Username',
+                prefixIcon: const Icon(Icons.person_outline_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,

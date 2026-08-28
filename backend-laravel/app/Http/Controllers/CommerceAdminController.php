@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 
 class CommerceAdminController
 {
-    private function guard(): void { abort_unless(auth()->user()?->is_admin,403); }
+    private function guard(): void { abort_unless(auth()->user()?->hasAdminPermission('commerce'),403); }
 
     public function saveSettings(Request $request)
     {
@@ -31,7 +31,7 @@ class CommerceAdminController
         $this->guard();
         $data=$request->validate([
             'key'=>'required|string|max:80|regex:/^[a-z0-9_.:-]+$/i',
-            'cadence'=>['required',Rule::in(['daily','weekly','monthly','annual'])],
+            'cadence'=>['required',Rule::in(['daily','weekly','monthly','annual','custom'])],
             'title_ar'=>'required|string|max:120','title_en'=>'required|string|max:120',
             'description_ar'=>'nullable|string|max:300','description_en'=>'nullable|string|max:300',
             'discount_percent'=>'required|integer|min:0|max:90','starts_at'=>'nullable|date','ends_at'=>'nullable|date|after_or_equal:starts_at',

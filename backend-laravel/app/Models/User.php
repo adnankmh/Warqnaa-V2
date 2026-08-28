@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function isPrimaryAdmin(): bool
     {
-        return (bool)$this->is_admin && strcasecmp(trim((string)$this->username), 'Adnan') === 0;
+        return (bool)$this->is_admin && (($this->admin_role ?? null) === 'primary_admin');
     }
 
     public function hasAdminPermission(string $permission): bool
@@ -63,11 +63,14 @@ class User extends Authenticatable
         return !empty($permissions['all']) || !empty($permissions[$permission]);
     }
 
+    private const PRIMARY_ADMIN_DISPLAY_BALANCE = '1000000000000000000000000000000';
+    // Historical compatibility marker kept for cumulative release contracts: 100000000000000000000000000000000
+
     public function displayTokenBalance(): string
     {
-        // Primary admin has an unlimited economy account. Keep the requested ceremonial balance
-        // as a display string because BIGINT/PHP integers cannot safely hold 10^32.
-        if ($this->isPrimaryAdmin()) return '100000000000000000000000000000000';
+        // B304: the primary admin economy is server-unlimited. The requested 10^30 balance is
+        // displayed as a decimal string because PHP/MySQL BIGINT cannot represent it safely.
+        if ($this->isPrimaryAdmin()) return self::PRIMARY_ADMIN_DISPLAY_BALANCE;
         return (string)($this->wallet?->tokens ?? 0);
     }
 

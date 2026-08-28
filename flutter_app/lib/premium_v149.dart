@@ -92,6 +92,16 @@ class Bot3DAvatar extends StatelessWidget {
               child: ClipOval(child: CustomPaint(painter: _BotFacePainter(profile.seed))),
             ),
           ),
+          Positioned(
+            left: 1,
+            top: 1,
+            child: Container(
+              width: size * .29,
+              height: size * .29,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xff08151f).withValues(alpha: .92), border: Border.all(color: profile.secondary.withValues(alpha: .85))),
+              child: Icon(Icons.memory_rounded, size: size * .16, color: profile.secondary),
+            ),
+          ),
           if (online)
             Positioned(
               right: 1,

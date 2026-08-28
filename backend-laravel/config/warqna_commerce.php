@@ -11,7 +11,7 @@ return [
         'rewarded' => true,
         'interstitial' => true,
         'during_match' => false,
-        'rewarded_daily_limit' => 5,
+        'rewarded_daily_limit' => 8,
         'interstitial_min_minutes' => 12,
     ],
     // Product identifiers are deliberately configuration-only. Store console
@@ -22,5 +22,5 @@ return [
         'royal_tokens' => ['product_id'=>'warqnaa.tokens.royal','usd_minor'=>999,'tokens'=>18000,'badge'=>'ROYAL','icon'=>'👑'],
         'elite_tokens' => ['product_id'=>'warqnaa.tokens.elite','usd_minor'=>1999,'tokens'=>42000,'badge'=>'ELITE','icon'=>'💎'],
     ],
-    'offer_cadences' => ['daily','weekly','monthly','annual'],
+    'offer_cadences' => ['daily','weekly','monthly','annual','custom'],
 ];

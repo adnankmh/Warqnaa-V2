@@ -17,7 +17,7 @@ class MobileAdminController extends Controller
     private function guardPrimaryDesigner(Request $request): void
     {
         $this->guard($request);
-        abort_unless(strtolower((string) $request->user()?->username) === 'adnan', 403, 'المصمم الشامل متاح للمدير الرئيسي Adnan فقط.');
+        abort_unless((bool) $request->user()?->isPrimaryAdmin(), 403, 'المصمم الشامل متاح للمدير الرئيسي فقط.');
     }
 
     public function dashboard(Request $request)

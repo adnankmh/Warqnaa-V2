@@ -1,3 +1,20 @@
+# ابدأ من هنا — Warqnaa V1.3.0 Build 304 — VERTICAL LEGEND
+
+> **هذا هو الإصدار الحالي.** أي أرقام R14.3/B263 أو B303 أدناه محفوظة فقط كتوثيق تاريخي لعقود التوافق.
+
+## التشغيل الأسرع
+
+- Windows: شغّل `START_WARQNA_WINDOWS.bat`.
+- الفحص: `CHECK_WARQNA_WINDOWS.bat`.
+- GitHub بأقل تدخل: `scripts/windows/current/RUN_GITHUB_READY_B304.bat`.
+- بيانات Adnan/Abd المتفق عليها موجودة فقط في الحزمة الخاصة `Warqnaa_B304_PRIVATE_LOCAL_ADMIN_SETUP_DO_NOT_UPLOAD.zip` وليست داخل GitHub source.
+
+التفاصيل الكاملة: `docs/ar/releases/current/START_HERE_V304_AR.md`
+
+---
+
+## أرشيف الإصدارات السابقة
+
 # ابدأ من هنا — Warqnaa R14.3 Build 263
 
 الإصدار الحالي: **1.0.3+263**  

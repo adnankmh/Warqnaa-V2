@@ -151,6 +151,6 @@
 
 ## بيانات الإدارة الافتراضية للتجربة المحلية
 - Username: Adnan
-- Password: Adnan123
+- Password: PRIVATE_LOCAL_ADMIN_PASSWORD
 
 مهم: غيّرها قبل أي استخدام حقيقي أو نشر على سيرفر.

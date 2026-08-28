@@ -21,7 +21,7 @@ http://127.0.0.1:8006
 ## حساب المدير
 
 ```text
-Adnan / Adnan123
+Adnan / PRIVATE_LOCAL_ADMIN_PASSWORD
 ```
 
 الرصيد بعد Seeder:

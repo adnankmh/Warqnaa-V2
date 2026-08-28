@@ -15,8 +15,8 @@ class ApiException implements Exception {
 }
 
 const bool warqnaProductionMode = bool.fromEnvironment('WARQNA_PRODUCTION_MODE', defaultValue: false);
-const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.2.0');
-const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 303);
+const String warqnaAppVersion = String.fromEnvironment('WARQNA_APP_VERSION', defaultValue: '1.3.0');
+const int warqnaAppBuild = int.fromEnvironment('WARQNA_APP_BUILD', defaultValue: 304);
 
 class WarqnaApiClient {
   WarqnaApiClient({String? baseUrl})
@@ -86,10 +86,12 @@ class WarqnaApiClient {
       post('/email/verification-notification', const {});
   Future<Map<String, dynamic>> updateAccountSecurity({
     required String currentPassword,
+    required String username,
     required String email,
     String? newPassword,
   }) => patch('/account/security', {
         'current_password': currentPassword,
+        'username': username,
         'email': email,
         if (newPassword != null && newPassword.isNotEmpty) 'password': newPassword,
         if (newPassword != null && newPassword.isNotEmpty) 'password_confirmation': newPassword,

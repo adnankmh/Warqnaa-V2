@@ -142,7 +142,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
          @elseif($cat==='emoji_pack')
           <div class="emoji-store-icon product-emoji-v127">{{ $payload['emojis'] ?? $previewIcon }}</div>
          @elseif($cat==='xp_booster')
-          <div class="booster-lux-r91" style="--boost-color:{{$color}}"><div class="booster-lux-r91__shield"><span>⚡</span><b>WARQNAA</b><i>🚀</i></div><strong>×{{ $payload['multiplier'] ?? '1.5' }} XP</strong></div>
+          <div class="booster-lux-r91" style="--boost-color:{{$color}}"><div class="booster-lux-r91__shield"><span>⚡</span><b>XP</b><i>🚀</i></div><strong>×{{ $payload['multiplier'] ?? '1.5' }} XP</strong></div>
          @elseif($cat==='name_color')
           <div class="name-color-live-preview-v136" style="--sample-color:{{$color}}">
            <img loading="lazy" decoding="async" src="{{ auth()->user()?->profile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">

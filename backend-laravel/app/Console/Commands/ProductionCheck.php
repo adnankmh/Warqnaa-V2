@@ -21,7 +21,7 @@ class ProductionCheck extends Command
             ['Core tables exist', $this->tablesReady()],
             ['Storage is writable', is_writable(storage_path()) && is_writable(base_path('bootstrap/cache'))],
             ['CORS is restricted', !app()->environment('production') || !in_array('*', (array) config('cors.allowed_origins'), true)],
-            ['Admin password changed', !app()->environment('production') || !in_array((string) env('ADMIN_PASSWORD'), ['', 'Adnan123', 'password'], true)],
+            ['Admin password changed', !app()->environment('production') || !in_array((string) env('ADMIN_PASSWORD'), ['',  'password'], true)],
             ['Local demo disabled', !app()->environment('production') || !config('warqna.allowed_local_demo')],
             ['TURN configured for voice', count((array) config('voice.turn_urls', [])) > 0 || !app()->environment('production')],
             ['Queue is not sync', !app()->environment('production') || config('queue.default') !== 'sync'],

@@ -265,7 +265,7 @@ class _BoosterPreviewV210State extends State<BoosterPreviewV183> with SingleTick
                       top: size * .13,
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.bolt_rounded, size: size * .09, color: Colors.white),
-                        Text('WARQNAA BOOST', style: TextStyle(fontSize: widget.compact ? 8 : 12, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Colors.white)),
+                        Text('XP BOOST', style: TextStyle(fontSize: widget.compact ? 8 : 12, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Colors.white)),
                       ]),
                     ),
                   ]),

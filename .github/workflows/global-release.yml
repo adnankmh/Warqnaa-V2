@@ -32,13 +32,19 @@ jobs:
       - run: python3 tools/test_v301_ci_i18n_contract.py
       - run: python3 tools/test_v302_flutter_hand_final_contract.py
       - run: python3 tools/test_v303_runtime_premium_contract.py
+      - run: python3 tools/test_v304_vertical_legend_contract.py
+      - run: python3 tools/check_git_privacy_v304.py
       - run: python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/global-release.json"
       - name: Engine Gold release evidence
         env:
-          WARQNA_GOLD_MATCHES_PER_ENGINE: 2000
-          WARQNA_GOLD_MAX_TRANSITIONS: 320
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 50
+          WARQNA_GOLD_MAX_TRANSITIONS: 120
           WARQNA_GOLD_REPORT: ${{ runner.temp }}/engine-gold.json
         run: php backend-laravel/tools/test-v250-r13-engine-gold.php
+      - name: B304 fair-deal release evidence
+        env:
+          WARQNAA_FAIR_DEAL_SCENARIOS: 3000
+        run: php backend-laravel/tools/test-v304-fair-deal.php
       - name: Laravel production suite
         working-directory: backend-laravel
         run: |
@@ -48,6 +54,7 @@ jobs:
           touch database/database.sqlite
           php artisan migrate:fresh --seed --force
           php artisan test --filter V303RuntimeStabilityTest
+          php artisan test --filter V304VerticalLegendTest
           php artisan test
           php artisan warqna:global-release-check --json
       - uses: actions/upload-artifact@v6

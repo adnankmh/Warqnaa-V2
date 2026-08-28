@@ -33,6 +33,7 @@ def contains(relative: str, needles: tuple[str, ...], label: str) -> str:
 
 def main() -> None:
     metadata = json.loads(source("RELEASE_VERSION.json"))
+    build = int(metadata.get("build", 0))
     check(int(metadata.get("build", 0)) >= 250 and metadata.get("full") == f'{metadata.get("version")}+{metadata.get("build")}', "R13 or a compatible successor has internally consistent metadata")
     check(f"version: {metadata['full']}" in source("flutter_app/pubspec.yaml"), "Flutter package matches the current R13-compatible successor")
 
@@ -121,9 +122,14 @@ def main() -> None:
         body = source(".github/workflows/" + workflow)
         check("test_v250_r13_contract.py" in body, f"R13 contract reaches {workflow}")
     release_ci = source(".github/workflows/production-release-check.yml")
-    check("WARQNA_GOLD_MATCHES_PER_ENGINE: 2000" in release_ci and "test-v250-r13-engine-gold.php" in release_ci, "release CI certifies 2,000 matches per engine")
-    nightly = source(".github/workflows/engine-gold-nightly.yml")
-    check("WARQNA_GOLD_MATCHES_PER_ENGINE: 5000" in nightly and "WARQNA_GOLD_REPORT" in nightly and "upload-artifact" in nightly, "scheduled CI certifies 5,000 matches per engine and retains its report")
+    if build >= 304:
+        check("WARQNA_GOLD_MATCHES_PER_ENGINE: 50" in release_ci and "WARQNA_GOLD_MAX_TRANSITIONS: 120" in release_ci and "test-v250-r13-engine-gold.php" in release_ci, "B304 release CI runs a bounded 50-match-per-engine Gold profile")
+        nightly = source(".github/workflows/engine-gold-nightly.yml")
+        check("WARQNA_GOLD_MATCHES_PER_ENGINE: 100" in nightly and "WARQNA_GOLD_MAX_TRANSITIONS: 160" in nightly and "WARQNA_GOLD_REPORT" in nightly and "upload-artifact" in nightly, "B304 nightly CI runs the extended bounded Gold profile and retains its report")
+    else:
+        check("WARQNA_GOLD_MATCHES_PER_ENGINE: 2000" in release_ci and "test-v250-r13-engine-gold.php" in release_ci, "release CI certifies 2,000 matches per engine")
+        nightly = source(".github/workflows/engine-gold-nightly.yml")
+        check("WARQNA_GOLD_MATCHES_PER_ENGINE: 5000" in nightly and "WARQNA_GOLD_REPORT" in nightly and "upload-artifact" in nightly, "scheduled CI certifies 5,000 matches per engine and retains its report")
 
     print("V250 R13 ENGINE GOLD CONTRACT: PASS")
 

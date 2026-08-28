@@ -38,11 +38,18 @@ final class AccountSecurityController extends Controller
         $user = $request->user();
         $data = $request->validate([
             'current_password' => ['required', 'string', 'max:120'],
+            'username' => ['nullable','string','min:3','max:30','alpha_dash',Rule::unique('users','username')->ignore($user->id)],
             'email' => ['required', 'email:rfc', 'max:190', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'confirmed', 'different:current_password', Password::min(10)->mixedCase()->numbers()],
         ]);
 
         abort_unless(Hash::check($data['current_password'], $user->password), 422, 'كلمة المرور الحالية غير صحيحة.');
+
+        $newUsername = trim((string)($data['username'] ?? $user->username));
+        if ($newUsername !== '' && $newUsername !== $user->username) {
+            $user->username = $newUsername;
+            if ($user->profile && trim((string)$user->profile->display_name) === '') $user->profile->update(['display_name'=>$newUsername]);
+        }
 
         $newEmail = mb_strtolower(trim($data['email']));
         $emailChanged = strcasecmp((string)$user->email, $newEmail) !== 0;

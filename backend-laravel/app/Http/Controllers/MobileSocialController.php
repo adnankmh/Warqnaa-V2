@@ -225,7 +225,7 @@ class MobileSocialController extends Controller
             DB::transaction(function () use ($wallet, $sender, $receiver, $data, $fee, $feePercent) {
                 $wallet->debit($sender, (int) $data['amount'] + $fee, 'transfer_sent', ['to' => $receiver->id, 'fee_percent' => $feePercent, 'fee' => $fee]);
                 $wallet->credit($receiver, (int) $data['amount'], 'transfer_received', ['from' => $sender->id]);
-                $admin = User::where('username', 'Adnan')->where('is_admin', true)->first() ?: User::where('is_admin', true)->first();
+                $admin = User::where('is_admin', true)->where('admin_role', 'primary_admin')->first() ?: User::where('username', 'Adnan')->where('is_admin', true)->first() ?: User::where('is_admin', true)->first();
                 if ($admin && $fee > 0) {
                     $wallet->credit($admin, $fee, 'transfer_fee', ['from' => $sender->id, 'to' => $receiver->id, 'fee_percent' => $feePercent]);
                 }

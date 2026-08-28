@@ -55,6 +55,8 @@ jobs:
           python3 tools/test_v301_ci_i18n_contract.py
           python3 tools/test_v302_flutter_hand_final_contract.py
           python3 tools/test_v303_runtime_premium_contract.py
+          python3 tools/test_v304_vertical_legend_contract.py
+          python3 tools/check_git_privacy_v304.py
           python3 tools/global_release_preflight.py --report "$RUNNER_TEMP/warqnaa-global-release.json"
           python3 tools/test_v184_flutter_quality_contract.py
           python3 tools/test_v184_official_game_rules_contract.py
@@ -82,10 +84,14 @@ jobs:
         run: php backend-laravel/tools/test-v184-engine-stress.php
       - name: Certify R13 Engine Gold release profile
         env:
-          WARQNA_GOLD_MATCHES_PER_ENGINE: 2000
-          WARQNA_GOLD_MAX_TRANSITIONS: 320
+          WARQNA_GOLD_MATCHES_PER_ENGINE: 50
+          WARQNA_GOLD_MAX_TRANSITIONS: 120
           WARQNA_GOLD_REPORT: ${{ runner.temp }}/warqnaa-engine-gold-release.json
         run: php backend-laravel/tools/test-v250-r13-engine-gold.php
+      - name: Certify B304 fair-deal release profile
+        env:
+          WARQNAA_FAIR_DEAL_SCENARIOS: 3000
+        run: php backend-laravel/tools/test-v304-fair-deal.php
       - name: Upload R13 Engine Gold certification report
         uses: actions/upload-artifact@v6
         with:

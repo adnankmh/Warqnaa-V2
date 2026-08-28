@@ -38,7 +38,7 @@ class TournamentSettlementService
                 $t->update(['status'=>'finished','bracket'=>$bracket]);
                 return ['ok'=>true,'prize'=>0,'winners'=>$eligible];
             }
-            $admin=User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first() ?: User::where('is_admin',true)->orderBy('id')->first();
+            $admin=User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first() ?: User::where('is_admin',true)->orderBy('id')->first();
             if(!$admin) throw new RuntimeException('Primary admin wallet is unavailable for tournament settlement.');
             $share=intdiv($prize,count($eligible));
             $remainder=$prize-($share*count($eligible));

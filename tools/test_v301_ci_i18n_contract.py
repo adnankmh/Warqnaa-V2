@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCALES = ('ar','en','de','tr','fr','es')
+LEGACY_LOCALES = ('ar','en','de','tr','fr','es')
 
 def read(rel: str) -> str:
     p = ROOT / rel
@@ -24,7 +24,9 @@ def check(value: bool, label: str) -> None:
     print('[PASS] '+label)
 
 meta=json.loads(read('RELEASE_VERSION.json'))
-check(int(meta.get('build',0)) >= 301,'current release preserves V301 or newer')
+build=int(meta.get('build',0))
+check(build >= 301,'current release preserves V301 or newer')
+LOCALES = ('ar','en') if build >= 304 else LEGACY_LOCALES
 check('version:' in read('flutter_app/pubspec.yaml'),'Flutter package version remains declared')
 
 main=read('flutter_app/lib/main.dart')
@@ -40,11 +42,19 @@ admin=read('backend-laravel/app/Http/Controllers/AdminController.php')
 for code in LOCALES:
     check(f"'{code}'" in langs, f'Laravel language config includes {code}')
     check(f'data-lang-pick="{code}"' in layout, f'Web language picker includes {code}')
-check("'languages' => ['ar', 'en', 'de', 'tr', 'fr', 'es']" in mobile,'mobile bootstrap exposes exactly the six product locales')
-check("'locale' => 'nullable|in:ar,en,de,tr,fr,es'" in mobile,'mobile profile validator accepts six locales')
+if build >= 304:
+    check("'languages' => ['ar', 'en']" in mobile and "'future_languages' => ['de', 'tr', 'fr', 'es']" in mobile,'B304 mobile bootstrap exposes Arabic/English and future locale metadata')
+    check("'locale' => 'nullable|in:ar,en'" in mobile,'B304 mobile profile validator accepts active locales only')
+else:
+    check("'languages' => ['ar', 'en', 'de', 'tr', 'fr', 'es']" in mobile,'mobile bootstrap exposes exactly the six product locales')
+    check("'locale' => 'nullable|in:ar,en,de,tr,fr,es'" in mobile,'mobile profile validator accepts six locales')
 check("$profile->locale = $data['locale'];" in mobile,'mobile profile locale is persisted')
-check("'lang'=>'nullable|string|in:ar,en,de,tr,fr,es'" in page,'web quick preference accepts six locales')
-check("'default_locale'=>'nullable|in:ar,en,de,tr,fr,es'" in admin,'admin default locale accepts six locales')
+if build >= 304:
+    check("'lang'=>'nullable|string|in:ar,en'" in page,'B304 web quick preference accepts active locales only')
+    check("'default_locale'=>'nullable|in:ar,en'" in admin,'B304 admin default locale accepts active locales only')
+else:
+    check("'lang'=>'nullable|string|in:ar,en,de,tr,fr,es'" in page,'web quick preference accepts six locales')
+    check("'default_locale'=>'nullable|in:ar,en,de,tr,fr,es'" in admin,'admin default locale accepts six locales')
 
 profile=read('backend-laravel/app/Models/Profile.php')
 user=read('backend-laravel/app/Models/User.php')
@@ -55,7 +65,7 @@ check((ROOT/'backend-laravel/database/migrations/2026_08_27_000301_ci_i18n_stabi
 catalog=read('backend-laravel/app/Services/Games/GameCatalog.php')
 translations=catalog[catalog.index('public static function translations'):]
 for code in LOCALES:
-    check(f"'{code}'=>" in translations, f'game-rule response contains {code}')
+    check(f"'{code}'=>" in translations, f'game-rule response contains active locale {code}')
 
 r9=read('tools/test_v209_r9_contract.py')
 check("Locale('de')\" not in main" not in r9 and "data-lang-pick=\"de\"' not in layout" not in r9,'R9 regression contract no longer bans successor locales')
@@ -67,4 +77,4 @@ for wf in ['backend-ci.yml','production-release-check.yml','flutter-android.yml'
 check('run: python3 ../tools/test_v263_r14_3_contract.py\n      - name: Verify V300' in read('.github/workflows/backend-ci.yml'),'backend CI V300 command is a separate YAML step')
 check('- run: python3 tools/test_v263_r14_3_contract.py\n      - run: python3 tools/test_v300_world_experience_contract.py' in read('.github/workflows/global-release.yml'),'global release V300 command is a separate YAML step')
 
-print('V301 CI + SIX-LANGUAGE STABILITY CONTRACT: PASS')
+print('V301 CI + LOCALE SUCCESSOR STABILITY CONTRACT: PASS')

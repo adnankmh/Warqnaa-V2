@@ -2,7 +2,7 @@
 
 | المستخدم | كلمة المرور | الصورة الافتراضية |
 |---|---|---|
-| Adnan | Adnan123 | 🦁 |
+| Adnan | PRIVATE_LOCAL_ADMIN_PASSWORD | 🦁 |
 | Kareem | Kareem123 | 🦅 |
 | Rami | Rami12345 | 🐺 |
 | Lina | Lina12345 | 🌹 |

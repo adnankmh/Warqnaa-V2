@@ -1,7 +1,7 @@
 <?php
 namespace App\Services\Leveling;
 
-use App\Models\{CompetitionTicket, User};
+use App\Models\{CompetitionTicket, InventoryItem, StoreItem, User};
 
 class XpService
 {
@@ -57,7 +57,8 @@ class XpService
                     $ticket = CompetitionTicket::firstOrCreate(['user_id'=>$user->id,'denomination'=>200],['quantity'=>0,'total_used'=>0]);
                     $ticket->increment('quantity',$ticket200);
                 }
-                $levelRewards[] = ['level'=>$i,'tokens'=>$tokensForLevel,'pasha_days'=>$pashaDays,'ticket_200'=>$ticket200,'prize_box'=>$i % 3 === 0];
+                $temporaryRewards = $this->grantTwoTemporaryRewards($user, $i);
+                $levelRewards[] = ['level'=>$i,'tokens'=>$tokensForLevel,'pasha_days'=>$pashaDays,'ticket_200'=>$ticket200,'prize_box'=>$i % 3 === 0,'temporary_rewards'=>$temporaryRewards];
             }
         }
         $profile->level = $newLevel;
@@ -70,4 +71,21 @@ class XpService
         }
         return ['old_level'=>$oldLevel,'new_level'=>$newLevel,'level_bonus'=>$bonus,'level_rewards'=>$levelRewards,'earned_xp'=>$earnedXp ?? $xp];
     }
+
+    /** Every level-up grants two distinct seven-day store rewards. */
+    private function grantTwoTemporaryRewards(User $user, int $level): array
+    {
+        $keys=['b304_profile_aurora_30d','b304_profile_royal_30d','b304_table_aurora','b304_table_emerald','booster_green_v183','booster_blue_v183'];
+        $offset=$level % count($keys);
+        $picked=[$keys[$offset],$keys[($offset+3)%count($keys)]];
+        $result=[];
+        foreach(array_unique($picked) as $key){
+            $item=StoreItem::where('key',$key)->where('active',true)->first();
+            if(!$item) continue;
+            $inventory=InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays(7)]);
+            $result[]=['store_key'=>$key,'days'=>7,'expires_at'=>$inventory->expires_at?->toIso8601String()];
+        }
+        return $result;
+    }
+
 }

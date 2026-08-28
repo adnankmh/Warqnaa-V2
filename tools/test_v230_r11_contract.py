@@ -35,7 +35,8 @@ def contains_all(relative: str, needles: tuple[str, ...], label: str) -> str:
 
 def main() -> None:
     meta = json.loads(source("RELEASE_VERSION.json"))
-    check(isinstance(meta.get("build"), int) and meta["build"] >= 230, "release includes R11 Build 230 or a later additive successor")
+    build = int(meta.get("build") or 0)
+    check(build >= 230, "release includes R11 Build 230 or a later additive successor")
     check(meta.get("full") == f'{meta.get("version")}+{meta.get("build")}', "successor release metadata remains internally consistent")
     pubspec = source("flutter_app/pubspec.yaml")
     packaged = re.search(r"^version:\s*([^+\s]+)\+(\d+)\s*$", pubspec, re.M)
@@ -155,11 +156,19 @@ def main() -> None:
     css = source("backend-laravel/public/assets/css/r11-social-world.css")
     check(".r11-world" in css and "@media" in css and "prefers-reduced-motion" in css, "R11 web styling is responsive and motion-aware")
 
-    flutter_main = contains_all(
-        "flutter_app/lib/main.dart",
-        ("part 'r11_social_world.dart';", "R11ClubsWorldPage", "R11SocialWorldPage", "R11AdminSocialWorldPanel", "allowSpectators"),
-        "Flutter navigation, room creation and admin surface wire R11",
-    )
+    if build >= 304:
+        flutter_main = contains_all(
+            "flutter_app/lib/main.dart",
+            ("part 'r11_social_world.dart';", "R11ClubsWorldPage", "R11AdminSocialWorldPanel", "allowSpectators"),
+            "Flutter preserves R11 clubs/admin/privacy while B304 moves Social World off the home navigation",
+        )
+        check("class R11SocialWorldPage" in source("flutter_app/lib/r11_social_world.dart"), "R11 Social World remains available as a non-home legacy surface")
+    else:
+        flutter_main = contains_all(
+            "flutter_app/lib/main.dart",
+            ("part 'r11_social_world.dart';", "R11ClubsWorldPage", "R11SocialWorldPage", "R11AdminSocialWorldPanel", "allowSpectators"),
+            "Flutter navigation, room creation and admin surface wire R11",
+        )
     tab_lengths = [int(value) for value in re.findall(r"TabController\(length:\s*(\d+)", flutter_main)]
     check(tab_lengths and max(tab_lengths) >= 7, "Flutter admin tabs retain Social World in successor releases")
     flutter_api = contains_all(

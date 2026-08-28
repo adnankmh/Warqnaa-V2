@@ -105,6 +105,10 @@ jobs:
         run: python3 ../tools/test_v302_flutter_hand_final_contract.py
       - name: Verify V303 runtime social and premium UI stability
         run: python3 ../tools/test_v303_runtime_premium_contract.py
+      - name: Verify B304 VERTICAL LEGEND contract
+        run: python3 ../tools/test_v304_vertical_legend_contract.py
+      - name: Enforce B304 repository privacy gate
+        run: python3 ../tools/check_git_privacy_v304.py
       - name: Verify R14 cross-channel source readiness
         run: python3 ../tools/global_release_preflight.py
       - name: Run R8 deep Tarneeb Hand Banakil audit
@@ -123,10 +127,16 @@ jobs:
           WARQNA_GOLD_MATCHES_PER_ENGINE: 25
           WARQNA_GOLD_MAX_TRANSITIONS: 160
         run: php tools/test-v250-r13-engine-gold.php
+      - name: Certify B304 fair-deal diversity
+        env:
+          WARQNAA_FAIR_DEAL_SCENARIOS: 3000
+        run: php tools/test-v304-fair-deal.php
       - name: Run R11 privacy, spectator, replay and economy tests
         run: php artisan test --filter V230SocialWorldTest
       - name: Run B303 bearer-actor and permission refresh regression tests
         run: php artisan test --filter V303RuntimeStabilityTest
+      - name: Run B304 Vertical Legend runtime regression tests
+        run: php artisan test --filter V304VerticalLegendTest
       - name: Verify R11 Social World retention command
         run: php artisan warqna:cleanup-social-world --dry-run
       - name: Run R12 matchmaking, MMR, bracket and reward tests
