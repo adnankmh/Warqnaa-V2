@@ -1,0 +1,48 @@
+{
+  "version": "1.3.1",
+  "build": 305,
+  "full": "1.3.1+305",
+  "release": "v305",
+  "name": "Warqnaa SINGLE TABLE LEGEND — Premium Emerald Portrait Experience",
+  "baseline": "1.3.0+304",
+  "active_locales": [
+    "ar",
+    "en"
+  ],
+  "future_locale_registry": [
+    "de",
+    "tr",
+    "fr",
+    "es"
+  ],
+  "customer_games": [
+    "tarneeb",
+    "syrian_tarneeb",
+    "tarneeb_400",
+    "trix",
+    "trix_partner",
+    "trix_complex",
+    "hand",
+    "hand_partner",
+    "saudi_hand",
+    "banakil",
+    "baloot",
+    "basra"
+  ],
+  "removed_customer_games": [
+    "jackaroo",
+    "backgammon",
+    "domino",
+    "chess"
+  ],
+  "focus": [
+    "one free premium portrait table",
+    "one free portrait card back",
+    "dark emerald felt with wood/gold edging",
+    "legacy table/card-back deactivation and stale-selection normalization",
+    "secure fair-deal certification",
+    "Arabic/English audited product surface",
+    "private administrator provisioning and privacy gate",
+    "challenge and level rewards cannot reactivate removed tables"
+  ]
+}

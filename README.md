@@ -1,6 +1,6 @@
-# Warqnaa V1.3.0+304 — VERTICAL LEGEND
+# Warqnaa V1.3.1+305 — VERTICAL LEGEND
 
-> **الإصدار الحالي والمرجعي الوحيد: 1.3.0+304 (Build 304).** الأقسام التي تذكر B303/R14/R13 وما قبلها أدناه محفوظة كتوثيق تاريخي وعقود Regression، وليست رقم الإصدار الحالي.
+> **الإصدار الحالي والمرجعي الوحيد: 1.3.1+305 (Build 305).** الأقسام التي تذكر B303/R14/R13 وما قبلها أدناه محفوظة كتوثيق تاريخي وعقود Regression، وليست رقم الإصدار الحالي.
 
 ## B304 — Global Premium Gameplay & LiveOps
 
@@ -13,7 +13,7 @@
 - إعداد المدير والنائب عبر حزمة خاصة منفصلة **DO NOT UPLOAD**؛ Full Repository لا يحتوي البريد الشخصي أو كلمات المرور.
 - قبل GitHub استخدم `scripts/windows/current/RUN_GITHUB_READY_B304.bat`.
 
-ابدأ من: `docs/ar/releases/current/START_HERE_V304_AR.md`
+ابدأ من: `docs/ar/releases/current/START_HERE_V305_AR.md`
 
 ---
 

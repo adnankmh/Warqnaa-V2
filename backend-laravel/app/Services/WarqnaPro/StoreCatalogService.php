@@ -40,6 +40,7 @@ class StoreCatalogService
         $this->normalizeBilingualNames();
         $this->deactivateExactDuplicates();
         $this->syncB304VerticalLegend();
+        $this->syncV305SingleTable();
         $this->grantPrimaryAdminAllCollectibles();
 
     }
@@ -177,6 +178,25 @@ class StoreCatalogService
         ] as [$key,$ar,$en,$price,$c1,$c2]) $this->upsert([
             'key'=>$key,'ar'=>$ar,'en'=>$en,'category'=>'profile_color','price'=>$price,'duration_days'=>30,
             'payload'=>['b304'=>true,'gradient'=>[$c1,$c2],'duration_days'=>30],
+        ]);
+    }
+
+
+    /** V305: exactly one free table and one free card back are customer-active. */
+    private function syncV305SingleTable(): void
+    {
+        DB::table('store_items')->where('category','table')->update(['active'=>false,'updated_at'=>now()]);
+        DB::table('store_items')->where('category','card_back')->update(['active'=>false,'updated_at'=>now()]);
+        DB::table('store_items')->whereIn('category',['badge','effect'])->update(['active'=>false,'updated_at'=>now()]);
+        $this->upsert([
+            'key'=>'v305_table_emerald_royal','ar'=>'طاولة ورقنا الملكية','en'=>'Warqnaa Royal Table',
+            'category'=>'table','price'=>0,
+            'payload'=>['table'=>'v305_table_emerald_royal','preferred_orientation'=>'portrait','v305'=>true,'free'=>true,'gradient'=>['#073b2b','#b8893e'],'edge'=>'wood_gold'],
+        ]);
+        $this->upsert([
+            'key'=>'v305_cardback_emerald_royal','ar'=>'ظهر ورقنا الملكي','en'=>'Warqnaa Royal Card Back',
+            'category'=>'card_back','price'=>0,
+            'payload'=>['card_back'=>'v305_cardback_emerald_royal','preferred_orientation'=>'portrait','v305'=>true,'free'=>true,'gradient'=>['#063326','#d4af67']],
         ]);
     }
 

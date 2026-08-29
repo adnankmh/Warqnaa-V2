@@ -168,6 +168,7 @@ jobs:
           python3 ../tools/test_v302_flutter_hand_final_contract.py
           python3 ../tools/test_v303_runtime_premium_contract.py
           python3 ../tools/test_v304_vertical_legend_contract.py
+          python3 ../tools/test_v305_single_table_contract.py
           python3 ../tools/check_git_privacy_v304.py
           python3 ../tools/global_release_preflight.py
           python3 ../tools/test_v184_flutter_quality_contract.py

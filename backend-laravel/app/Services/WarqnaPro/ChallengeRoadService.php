@@ -182,12 +182,12 @@ class ChallengeRoadService
 
     public function rewardForStage(int $stage,int $total): array
     {
-        if($stage >= $total) return ['type'=>'bundle','tokens'=>5000,'pasha_days'=>3,'store_key'=>'b304_table_phoenix','days'=>7,'icon'=>'🏆','label_ar'=>'5000 توكن + 3 أيام باشا + طاولة العنقاء 7 أيام','label_en'=>'5,000 tokens + 3 Pasha days + Phoenix table for 7 days'];
+        if($stage >= $total) return ['type'=>'bundle','tokens'=>1000,'pasha_days'=>3,'store_key'=>'b304_profile_legend_30d','days'=>7,'icon'=>'🏆','label_ar'=>'1000 توكن + 3 أيام باشا + لون بروفايل أسطوري 7 أيام','label_en'=>'1,000 tokens + 3 Pasha days + legendary profile color for 7 days'];
         return match($stage % 5){
             1 => ['type'=>'tokens','tokens'=>min(1800,200+$stage*80),'icon'=>'🪙','label_ar'=>min(1800,200+$stage*80).' توكن','label_en'=>min(1800,200+$stage*80).' tokens'],
             2 => ['type'=>'temporary_item','store_key'=>'b304_profile_aurora_30d','days'=>7,'icon'=>'🎨','label_ar'=>'لون بروفايل الشفق 7 أيام','label_en'=>'Aurora profile color for 7 days'],
             3 => ['type'=>'temporary_item','store_key'=>'booster_green_v183','days'=>7,'icon'=>'⚡','label_ar'=>'مسرع XP لمدة 7 أيام','label_en'=>'XP booster for 7 days'],
-            4 => ['type'=>'temporary_item','store_key'=>'b304_table_aurora','days'=>7,'icon'=>'🃏','label_ar'=>'طاولة الشفق 7 أيام','label_en'=>'Aurora table for 7 days'],
+            4 => ['type'=>'temporary_item','store_key'=>'b304_profile_aurora_30d','days'=>7,'icon'=>'🌈','label_ar'=>'لون بروفايل الشفق 7 أيام','label_en'=>'Aurora profile color for 7 days'],
             default => ['type'=>'pasha','pasha_days'=>1,'icon'=>'👑','label_ar'=>'يوم باشا','label_en'=>'1 Pasha day'],
         };
     }

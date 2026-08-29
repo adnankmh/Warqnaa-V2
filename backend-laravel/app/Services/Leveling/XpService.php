@@ -75,7 +75,7 @@ class XpService
     /** Every level-up grants two distinct seven-day store rewards. */
     private function grantTwoTemporaryRewards(User $user, int $level): array
     {
-        $keys=['b304_profile_aurora_30d','b304_profile_royal_30d','b304_table_aurora','b304_table_emerald','booster_green_v183','booster_blue_v183'];
+        $keys=['b304_profile_aurora_30d','b304_profile_royal_30d','b304_profile_emerald_30d','b304_profile_crimson_30d','booster_green_v183','booster_blue_v183'];
         $offset=$level % count($keys);
         $picked=[$keys[$offset],$keys[($offset+3)%count($keys)]];
         $result=[];

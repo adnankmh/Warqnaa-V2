@@ -48,6 +48,7 @@ part 'r14_1_legendary.dart';
 part 'r14_2_account_security.dart';
 part 'v300_world_experience.dart';
 part 'v304_vertical_legend.dart';
+part 'v305_single_table.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -165,8 +166,8 @@ class AppController extends ChangeNotifier {
   String? lastStoreError;
   bool soundEnabled = true;
   bool landscapeMode = false;
-  String selectedTable = 'b304_table_aurora';
-  String selectedCardBack = b304CardBackId;
+  String selectedTable = v305PremiumTableId;
+  String selectedCardBack = v305CardBackId;
   String selectedNameColor = '#facc15';
   String selectedChatColor = '#ffffff';
   DateTime? nameColorExpiresAt;
@@ -324,8 +325,8 @@ class AppController extends ChangeNotifier {
       roundPoints = 0;
       tournamentPoints = 0;
       clubPoints = 0;
-      selectedTable = 'b304_table_aurora';
-      selectedCardBack = b304CardBackId;
+      selectedTable = v305PremiumTableId;
+      selectedCardBack = v305CardBackId;
       selectedNameColor = '#facc15';
       selectedChatColor = '#ffffff';
       selectedBadge = 'badge_pro';
@@ -381,8 +382,10 @@ class AppController extends ChangeNotifier {
     vipDays = prefs.getInt(_accountKey('vipDays')) ?? defaultVipDays ?? 0;
     avatarEmoji = prefs.getString(_accountKey('avatarEmoji')) ?? defaultAvatar ?? demoAvatarFor(username);
     avatarData = prefs.getString(_accountKey('avatarData'));
-    selectedTable = prefs.getString(_accountKey('selectedTable')) ?? 'b304_table_aurora';
-    selectedCardBack = prefs.getString(_accountKey('selectedCardBack')) ?? b304CardBackId;
+    selectedTable = prefs.getString(_accountKey('selectedTable')) ?? v305PremiumTableId;
+    selectedCardBack = prefs.getString(_accountKey('selectedCardBack')) ?? v305CardBackId;
+    if (!v305CustomerTableIds.contains(selectedTable)) selectedTable = v305PremiumTableId;
+    if (selectedCardBack != v305CardBackId) selectedCardBack = v305CardBackId;
     selectedNameColor = prefs.getString(_accountKey('selectedNameColor')) ?? '#facc15';
     selectedChatColor = prefs.getString(_accountKey('selectedChatColor')) ?? '#ffffff';
     nameColorExpiresAt = DateTime.tryParse(prefs.getString(_accountKey('nameColorExpiresAt')) ?? '');
@@ -1197,7 +1200,7 @@ class AppController extends ChangeNotifier {
       awardLocalPrizeBoxV02('level_$reachedLevel');
       rewards.add('صندوق مستوى');
     }
-    final temporaryChoices = <String>['b304_profile_aurora_30d','b304_profile_royal_30d','b304_table_aurora','b304_table_emerald','booster_green_v183','booster_blue_v183'];
+    final temporaryChoices = <String>['b304_profile_aurora_30d','b304_profile_royal_30d','b304_profile_emerald_30d','b304_profile_crimson_30d','booster_green_v183','booster_blue_v183'];
     final first = temporaryChoices[reachedLevel % temporaryChoices.length];
     final second = temporaryChoices[(reachedLevel + 3) % temporaryChoices.length];
     final expiry = DateTime.now().add(const Duration(days: 7));
@@ -1246,7 +1249,7 @@ class AppController extends ChangeNotifier {
       boosterExpiresAtV173 = null;
     }
     if (temporaryTableExpiresAtV173 != null && now.isAfter(temporaryTableExpiresAtV173!)) {
-      selectedTable = 'b304_table_aurora';
+      selectedTable = v305PremiumTableId;
       temporaryTableExpiresAtV173 = null;
     }
     if (profileColorExpiresAtB304 != null && !profileColorExpiresAtB304!.isAfter(now)) { selectedProfileColorB304='b304_profile_aurora_30d'; profileColorExpiresAtB304=null; }
@@ -1545,8 +1548,8 @@ class AppController extends ChangeNotifier {
   bool isStoreProductVisible(StoreProduct product) {
     if (hiddenStoreProducts.contains(product.id)) return false;
     if (const {'badges','effects'}.contains(product.category)) return false;
-    if (product.category == 'tables') return b304VerticalTableIds.contains(product.id);
-    if (product.category == 'cards') return product.id == b304CardBackId;
+    if (product.category == 'tables') return v305CustomerTableIds.contains(product.id);
+    if (product.category == 'cards') return product.id == v305CardBackId;
     return true;
   }
 
@@ -2906,7 +2909,8 @@ List<StoreProduct> buildTimedColorProducts() {
 
 
 final List<StoreProduct> products = <StoreProduct>[
-  ...b304VerticalStoreProducts,
+  ...v305PremiumStoreProducts,
+  // B304 table/card products are intentionally excluded from the active V305 catalog.
   ...v300WorldStoreProducts,
   ...buildV201R4StoreProducts(),
   StoreProduct(id: 'daily_pack_name_gold_24h_v176', category: 'names', icon: '🎨', nameAr: 'صندوق الجوائز: لون لاعب ذهبي', nameEn: 'Prize Box: Golden Player Color', descriptionAr: 'لون لاعب ذهبي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary golden player color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#facc15', previewColor1: Color(0xfffacc15), previewColor2: Color(0xff422006), collection: 'daily_pack_v176'),
@@ -5185,7 +5189,7 @@ class _LuxuryTable extends StatelessWidget {
   final String phase;
   final String skinId;
   final AppController? controller;
-  const _LuxuryTable({required this.trump, required this.phase, this.skinId = 'table_premium_01', this.controller});
+  const _LuxuryTable({required this.trump, required this.phase, this.skinId = v305PremiumTableId, this.controller});
 
   @override
   Widget build(BuildContext context) {

@@ -346,8 +346,8 @@ class MobileApiController extends Controller
             4=>['tokens'=>150,'xp'=>60],
             5=>['tokens'=>200,'xp'=>90,'store_key'=>'b304_profile_aurora_30d','duration_days'=>2],
             6=>['tokens'=>250,'xp'=>120,'ticket'=>100],
-            7=>['tokens'=>350,'xp'=>160,'store_key'=>'b304_table_aurora','duration_days'=>2],
-            8=>['tokens'=>500,'xp'=>250,'store_key'=>'b304_table_phoenix','duration_days'=>7],
+            7=>['tokens'=>350,'xp'=>160,'store_key'=>'b304_profile_emerald_30d','duration_days'=>2],
+            8=>['tokens'=>500,'xp'=>250,'store_key'=>'b304_profile_legend_30d','duration_days'=>7],
         ];
         $claimNumber = min(8, $dailyCount + 1);
         $reward = $ladder[$claimNumber];

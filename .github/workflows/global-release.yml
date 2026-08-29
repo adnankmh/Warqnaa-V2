@@ -55,6 +55,7 @@ jobs:
           php artisan migrate:fresh --seed --force
           php artisan test --filter V303RuntimeStabilityTest
           php artisan test --filter V304VerticalLegendTest
+          php artisan test --filter V305SingleTableTest
           php artisan test
           php artisan warqna:global-release-check --json
       - uses: actions/upload-artifact@v6

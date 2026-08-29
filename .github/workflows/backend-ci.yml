@@ -137,6 +137,7 @@ jobs:
         run: php artisan test --filter V303RuntimeStabilityTest
       - name: Run B304 Vertical Legend runtime regression tests
         run: php artisan test --filter V304VerticalLegendTest
+          php artisan test --filter V305SingleTableTest
       - name: Verify R11 Social World retention command
         run: php artisan warqna:cleanup-social-world --dry-run
       - name: Run R12 matchmaking, MMR, bracket and reward tests

@@ -1,0 +1,33 @@
+Warqnaa V1.3.1+305 — SINGLE TABLE LEGEND
+========================================
+
+USER-FACING FINAL DELTA
+- One and only one customer gameplay table: v305_table_emerald_royal.
+- Free (price 0), portrait-first, deep emerald felt with wood/gold edge palette.
+- One and only one customer card back: v305_cardback_emerald_royal, free.
+- Legacy tables/card backs are server-deactivated and client-hidden.
+- Stale user selections normalize to the V305 defaults.
+- Challenge/level/ad reward paths no longer reference removed legacy tables.
+
+VERIFICATION EXECUTED
+- Historical Python regression chain through V305: PASS (after resolving release-header compatibility).
+- V305 single-table contract: PASS.
+- PHP syntax lint across Laravel source: PASS.
+- Fair-deal certification: PASS — 3000 secure scenarios, 3000 unique assignments, no duplicates, 13 cards/seat.
+- Official/deep game-rules audit: PASS.
+- Engine stress: PASS — 360 randomized engine scenarios.
+- Engine Gold smoke: PASS — 100 bounded matches across 20 engines, 9354 validated legal transitions.
+- Git privacy gate: PASS.
+- Global release preflight: PASS.
+- Static release validation: PASS.
+- Release version contract: PASS — 1.3.1+305.
+
+ENVIRONMENT BOUNDARY
+- PHP is available locally.
+- Composer/vendor is not installed in the packaging environment.
+- Flutter/Dart SDK is not installed in the packaging environment.
+- Therefore php artisan test, flutter analyze, flutter test, and Flutter web/APK/AAB builds remain mandatory GitHub Actions gates and are not falsely reported as locally executed.
+
+SECURITY
+- Privileged passwords/private admin email are not packaged as tracked source secrets.
+- Use local ignored environment provisioning for real administrator credentials.

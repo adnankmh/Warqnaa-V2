@@ -1,0 +1,16 @@
+Warqnaa V1.3.1+305 — SINGLE TABLE LEGEND
+============================================
+
+Primary user-facing delta
+- Exactly one free gameplay table: v305_table_emerald_royal.
+- Portrait-first layout, deep emerald felt, refined wood/gold edge palette.
+- Exactly one free card back: v305_cardback_emerald_royal.
+- All legacy tables/card backs are deactivated server-side and hidden client-side.
+- Stale user selections are normalized to the V305 table/back.
+- Challenge/level/ad rewards no longer reference removed tables.
+- Badges/effects remain deactivated and hidden.
+- Arabic/English remain the only active locales; future locale metadata is preserved.
+- Security model keeps privileged passwords out of tracked source.
+
+Verification
+See V305_FINAL_VERIFICATION_REPORT.txt generated after the full local regression run.

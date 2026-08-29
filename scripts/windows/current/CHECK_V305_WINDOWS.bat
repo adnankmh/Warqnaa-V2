@@ -1,0 +1,69 @@
+@echo off
+setlocal EnableExtensions
+cd /d "%~dp0\..\..\.."
+title Warqnaa V1.3.1 Build 305 Verification
+echo ==================================================
+echo   WARQNAA V1.3.1 BUILD 305 - RELEASE CHECK
+echo ==================================================
+where python >nul 2>nul || (echo ERROR: Python not found.& exit /b 1)
+python tools\verify_release_versions.py || goto :fail
+python tools\test_v208_r8_contract.py || goto :fail
+python tools\test_v209_r9_contract.py || goto :fail
+python tools\test_v210_r9_1_contract.py || goto :fail
+python tools\test_v220_r10_contract.py || goto :fail
+python tools\test_v221_r101_contract.py || goto :fail
+python tools\test_v230_r11_contract.py || goto :fail
+python tools\test_v240_r12_contract.py || goto :fail
+python tools\test_v240_competitive_engines.py || goto :fail
+python tools\test_v240_php_structure.py || goto :fail
+python tools\test_v250_r13_contract.py || goto :fail
+python tools\test_v260_r14_contract.py || goto :fail
+python tools\test_v263_r14_3_contract.py || goto :fail
+python tools\test_v300_world_experience_contract.py || goto :fail
+python tools\test_v301_ci_i18n_contract.py || goto :fail
+python tools\test_v302_flutter_hand_final_contract.py || goto :fail
+python tools\test_v303_runtime_premium_contract.py || goto :fail
+python tools\test_v305_vertical_legend_contract.py || goto :fail
+python tools\check_git_privacy_v304.py || goto :fail
+python tools\global_release_preflight.py || goto :fail
+python tools\test_v030_contract.py || goto :fail
+python tools\validate_v030_static.py || goto :fail
+python tools\validate_release.py || goto :fail
+set "WARQNA_PHP="
+where php >nul 2>nul && set "WARQNA_PHP=php"
+if not defined WARQNA_PHP if exist "C:\xampp\php\php.exe" set "WARQNA_PHP=C:\xampp\php\php.exe"
+if defined WARQNA_PHP (
+  "%WARQNA_PHP%" backend-laravel\tools\test-v208-r8-rules.php || goto :fail
+  "%WARQNA_PHP%" backend-laravel\tools\test-v184-official-rules-audit.php || goto :fail
+  "%WARQNA_PHP%" backend-laravel\tools\test-v184-engine-stress.php || goto :fail
+  set "WARQNA_FAIR_DEAL_SCENARIOS=3000"
+  "%WARQNA_PHP%" backend-laravel\tools\test-v304-fair-deal.php || goto :fail
+  set "WARQNA_GOLD_MATCHES_PER_ENGINE=25"
+  set "WARQNA_GOLD_MAX_TRANSITIONS=160"
+  "%WARQNA_PHP%" backend-laravel\tools\test-v250-r13-engine-gold.php || goto :fail
+  if exist backend-laravel\vendor\autoload.php (
+    pushd backend-laravel
+    "%WARQNA_PHP%" artisan migrate --force || (popd & goto :fail)
+    "%WARQNA_PHP%" artisan test --filter V230SocialWorldTest || (popd & goto :fail)
+    "%WARQNA_PHP%" artisan test --filter V303RuntimeStabilityTest || (popd & goto :fail)
+    if exist tests\Feature\V305VerticalLegendTest.php "%WARQNA_PHP%" artisan test --filter V305VerticalLegendTest || (popd & goto :fail)
+    "%WARQNA_PHP%" artisan test || (popd & goto :fail)
+    popd
+  )
+) else echo WARNING: PHP not found; PHP runtime gates will run in GitHub Actions.
+where flutter >nul 2>nul
+if not errorlevel 1 (
+  pushd flutter_app
+  call flutter pub get || (popd & goto :fail)
+  call ..\tools\flutter_analyze_ci.sh || (popd & goto :fail)
+  call flutter test || (popd & goto :fail)
+  call flutter build web --release || (popd & goto :fail)
+  popd
+) else echo WARNING: Flutter not found; Flutter runtime gates will run in GitHub Actions.
+echo.
+echo WARQNAA V1.3.1 BUILD 305 CHECK: PASS
+exit /b 0
+:fail
+echo.
+echo WARQNAA V1.3.1 BUILD 305 CHECK: FAIL
+exit /b 1
