@@ -27,11 +27,13 @@ class V142MobileRealEnginesSocialEconomyTest extends TestCase
         $this->assertTrue($games->contains(fn ($game) => $game['key'] === 'trix_complex'));
     }
 
-    public function test_admin_seed_contract_uses_requested_credentials_and_balance(): void
+    public function test_admin_seed_contract_preserves_durable_primary_role_and_balance(): void
     {
         $this->seed();
-        $admin = User::where('username', 'Adnan')->firstOrFail();
+        // B304+: username/email are editable account attributes; admin_role is the durable identity.
+        $admin = User::where('admin_role', 'primary_admin')->firstOrFail();
         $this->assertTrue($admin->is_admin);
+        $this->assertTrue($admin->isPrimaryAdmin());
         $this->assertSame('9000000000000000000', (string) $admin->wallet->tokens);
     }
 
