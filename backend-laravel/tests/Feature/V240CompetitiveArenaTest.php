@@ -391,7 +391,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     private function player(string $username,bool $admin=false): User
     {
-        $role=$admin ? (Str::lower($username)==='adnan' ? 'primary_admin' : 'delegated_admin') : null;
+        $role=$admin ? (Str::lower($username)==='adnan' ? 'primary_admin' : 'delegated_admin') : 'player';
         $user=User::factory()->create(['username'=>$username,'is_admin'=>$admin,'admin_role'=>$role]);
         $user->profile()->create(['display_name'=>$username,'country_code'=>'PS','country_name'=>'فلسطين','level'=>20,'xp'=>0]);
         Wallet::create(['user_id'=>$user->id,'tokens'=>0,'gems'=>0]);
