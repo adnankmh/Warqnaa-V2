@@ -6,6 +6,7 @@ use App\Models\{CompetitiveMatch, CompetitiveRating, CompetitiveSeason, Game, Ra
 use App\Services\Competitive\{CompetitiveRatingService,CompetitiveSeasonService,TournamentBracketService};
 use App\Services\Games\GameCatalog;
 use App\Services\Platform\AdminAuditService;
+use App\Support\AuthenticatedActor;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -157,8 +158,9 @@ class AdminCompetitiveController extends Controller
 
     private function guard(Request $request): void
     {
-        abort_unless((bool)$request->user()?->is_admin,403,'هذه الصفحة للإدارة فقط.');
-        abort_unless($request->user()->hasAdminPermission('competitive'),403,'تحتاج صلاحية إدارة Competitive Arena.');
+        $actor = AuthenticatedActor::resolve($request);
+        abort_unless((bool)$actor->is_admin,403,'هذه الصفحة للإدارة فقط.');
+        abort_unless($actor->hasAdminPermission('competitive'),403,'تحتاج صلاحية إدارة Competitive Arena.');
     }
 
     /** @return array<int,int> */

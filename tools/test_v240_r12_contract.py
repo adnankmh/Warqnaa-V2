@@ -91,7 +91,12 @@ def main() -> None:
     check("serverConnected" in flutter and "_offlineCompetitive" in flutter, "Flutter provides a safe offline preview without faking Ranked mutations")
     check("'grandmaster'" in flutter and "'max_players':32" in flutter, "Flutter offline preview mirrors the complete tier and valid bracket-capacity model")
 
+    admin_competitive = source("backend-laravel/app/Http/Controllers/AdminCompetitiveController.php")
+    check("AuthenticatedActor::resolve($request)" in admin_competitive, "Admin Competitive refreshes bearer-token actor state before permission checks")
+
     feature = source("backend-laravel/tests/Feature/V240CompetitiveArenaTest.php")
+    check("$this->game('basra',2,false)" in feature and "$this->game('backgammon',2,false)" not in feature, "R12 runtime fixtures use a current customer-visible two-seat game")
+    check("'primary_admin'" in feature and "Str::lower($username)==='adnan'" in feature, "R12 prize tests mirror the primary-admin unlimited wallet role")
     for test in ("test_ranked_matchmaker_creates_server_authoritative_bot_free_room", "test_ranked_matchmaker_expands_a_two_sided_mmr_window_without_forcing_an_unfair_match", "test_incompatible_oldest_queue_entry_does_not_block_a_fair_pair_behind_it", "test_competitive_room_rejects_every_non_matched_player", "test_rating_result_is_idempotent_and_writes_both_scopes", "test_severe_anti_cheat_event_holds_rating_until_admin_approval", "test_two_round_bracket_advances_and_pays_only_after_final", "test_mobile_registration_supports_an_admin_created_custom_championship_key", "test_three_player_two_stage_bracket_uses_nine_entrants_and_finishes_cleanly", "test_solo_four_seat_final_crowns_and_pays_exactly_one_champion", "test_voided_tournament_match_is_replaced_without_reusing_its_room", "test_drawn_tournament_match_awards_draw_mmr_then_issues_a_tiebreak_rematch", "test_duplicate_final_advancement_recovers_a_deferred_settlement", "test_finalized_season_reward_is_atomic_and_claimable_once", "test_admin_competitive_requires_explicit_permission", "test_admin_can_create_an_immediately_active_season_and_finalize_the_previous_one"):
         check(test in feature, f"Laravel suite includes {test}")
     check((ROOT / "tools/test_v240_competitive_engines.py").is_file(), "R12 competitive engine gate exists")

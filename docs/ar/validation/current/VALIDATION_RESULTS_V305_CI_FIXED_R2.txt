@@ -1,0 +1,20 @@
+Warqnaa 1.3.1+305 — CI FIXED R2 / V240 COMPETITIVE ARENA
+=========================================================
+SOURCE-SIDE VERIFICATION
+[PASS] V240 R12 Competitive Arena contract
+[PASS] V240 competitive engine integration gate
+[PASS] V240 PHP fallback structure gate
+[PASS] V303 runtime premium contract
+[PASS] V304 Vertical Legend contract
+[PASS] V305 Single Table contract
+[PASS] B304 Git privacy gate
+[PASS] PHP syntax 405/405
+[PASS] tools/validate_release.py end-to-end
+
+FIXES
+- Current Ranked R12 PHPUnit fixture now uses customer-visible Basra instead of hidden Backgammon.
+- Adnan tournament payout fixture now mirrors production primary_admin unlimited-wallet behavior.
+- Admin Competitive authorization now refreshes bearer-token actor state via AuthenticatedActor before permission checks.
+
+BOUNDARY
+Composer/vendor is unavailable in the packaging environment. php artisan test remains mandatory in GitHub Actions and is not claimed as locally executed.

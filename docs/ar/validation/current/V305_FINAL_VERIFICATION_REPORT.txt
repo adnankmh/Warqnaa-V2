@@ -39,3 +39,20 @@ CI HOTFIX R1 (2026-08-29)
 - Re-ran tools/test_v305_single_table_contract.py: PASS.
 - Re-ran tools/validate_release.py end-to-end: PASS, including YAML structural audit of 17 workflows/files.
 - Scanned GitHub workflows for the same malformed adjacent artisan-test command pattern: 0 additional occurrences.
+
+CI HOTFIX R2 — V240 COMPETITIVE ARENA (2026-08-29)
+- Fixed V240CompetitiveArenaTest fixtures so current Ranked coverage uses Basra, a supported two-player customer-visible game, instead of the intentionally hidden Backgammon product.
+- Preserved hidden Backgammon engine coverage through the inherited Engine Gold/regression gates; this change does not re-expose Backgammon to customers.
+- Fixed R12 tournament payout test fixtures so the Adnan fixture carries admin_role=primary_admin, matching the production unlimited-wallet contract.
+- Fixed AdminCompetitiveController permission refresh by resolving a fresh AuthenticatedActor on every sensitive request, matching the B303 Social World stale-token fix.
+- Added R12 source contract guards for the current visible two-seat fixture, primary-admin payout role, and fresh bearer-token actor resolution.
+- Re-ran V240 R12 contract: PASS.
+- Re-ran V240 competitive engine gate: PASS.
+- Re-ran V240 PHP structure gate: PASS.
+- Re-ran V303 runtime premium contract: PASS.
+- Re-ran V304 Vertical Legend contract: PASS.
+- Re-ran V305 Single Table contract: PASS.
+- Re-ran B304 Git privacy gate: PASS.
+- PHP syntax lint: 405/405 files PASS.
+- Re-ran tools/validate_release.py end-to-end: PASS.
+- Local packaging environment still does not include Composer/vendor, so PHPUnit runtime execution remains a GitHub Actions gate and is not falsely reported as locally executed.

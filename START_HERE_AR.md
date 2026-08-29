@@ -1,4 +1,4 @@
-# ابدأ من هنا — Warqnaa V1.3.0 Build 305 — VERTICAL LEGEND
+# ابدأ من هنا — Warqnaa V1.3.1 Build 305 — SINGLE TABLE LEGEND
 
 > **هذا هو الإصدار الحالي.** أي أرقام R14.3/B263 أو B303 أدناه محفوظة فقط كتوثيق تاريخي لعقود التوافق.
 

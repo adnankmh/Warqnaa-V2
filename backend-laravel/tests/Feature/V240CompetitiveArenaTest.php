@@ -35,7 +35,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_ranked_matchmaker_creates_server_authoritative_bot_free_room(): void
     {
-        $game=$this->game('backgammon',2,false);
+        $game=$this->game('basra',2,false);
         $a=$this->player('r12_alpha'); $b=$this->player('r12_beta');
         $service=app(CompetitiveMatchmakingService::class);
 
@@ -57,7 +57,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_ranked_matchmaker_expands_a_two_sided_mmr_window_without_forcing_an_unfair_match(): void
     {
-        $game=$this->game('backgammon',2,false); $a=$this->player('r12_window_a'); $b=$this->player('r12_window_b');
+        $game=$this->game('basra',2,false); $a=$this->player('r12_window_a'); $b=$this->player('r12_window_b');
         $season=app(CompetitiveSeasonService::class)->activeSeason();
         app(CompetitiveSeasonService::class)->ratingFor($a,$season,$game->id,$game->key)->update(['rating'=>1000]);
         app(CompetitiveSeasonService::class)->ratingFor($b,$season,$game->id,$game->key)->update(['rating'=>1450]);
@@ -78,7 +78,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_incompatible_oldest_queue_entry_does_not_block_a_fair_pair_behind_it(): void
     {
-        $game=$this->game('backgammon',2,false); $oldest=$this->player('r12_hol_oldest'); $a=$this->player('r12_hol_a'); $b=$this->player('r12_hol_b');
+        $game=$this->game('basra',2,false); $oldest=$this->player('r12_hol_oldest'); $a=$this->player('r12_hol_a'); $b=$this->player('r12_hol_b');
         $season=app(CompetitiveSeasonService::class)->activeSeason();
         app(CompetitiveSeasonService::class)->ratingFor($oldest,$season,$game->id,$game->key)->update(['rating'=>1000]);
         app(CompetitiveSeasonService::class)->ratingFor($a,$season,$game->id,$game->key)->update(['rating'=>1500]);
@@ -144,7 +144,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_two_round_bracket_advances_and_pays_only_after_final(): void
     {
-        $admin=$this->player('Adnan',true); $game=$this->game('backgammon',2,false);
+        $admin=$this->player('Adnan',true); $game=$this->game('basra',2,false);
         $season=app(CompetitiveSeasonService::class)->activeSeason();
         $players=collect(range(1,4))->map(fn($i)=>$this->player('r12_cup_'.$i));
         $tournament=Tournament::create([
@@ -181,7 +181,7 @@ class V240CompetitiveArenaTest extends TestCase
     public function test_mobile_registration_supports_an_admin_created_custom_championship_key(): void
     {
         $admin=$this->player('r12_custom_admin',true); $player=$this->player('r12_custom_player');
-        $game=$this->game('backgammon',2,false); $season=app(CompetitiveSeasonService::class)->activeSeason();
+        $game=$this->game('basra',2,false); $season=app(CompetitiveSeasonService::class)->activeSeason();
         $tournament=Tournament::create([
             'creator_id'=>$admin->id,'season_id'=>$season->id,'game_id'=>$game->id,'key'=>'custom_world_final',
             'name'=>['ar'=>'نهائي عالمي','en'=>'World Final'],'description'=>['ar'=>'مخصص','en'=>'Custom'],
@@ -250,7 +250,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_voided_tournament_match_is_replaced_without_reusing_its_room(): void
     {
-        $admin=$this->player('r12_integrity_admin',true); $game=$this->game('backgammon',2,false);
+        $admin=$this->player('r12_integrity_admin',true); $game=$this->game('basra',2,false);
         $season=app(CompetitiveSeasonService::class)->activeSeason(); $a=$this->player('r12_rematch_a'); $b=$this->player('r12_rematch_b');
         $tournament=Tournament::create([
             'creator_id'=>$admin->id,'season_id'=>$season->id,'game_id'=>$game->id,'key'=>'r12_integrity_rematch',
@@ -277,7 +277,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_drawn_tournament_match_awards_draw_mmr_then_issues_a_tiebreak_rematch(): void
     {
-        $admin=$this->player('r12_draw_admin',true); $game=$this->game('backgammon',2,false);
+        $admin=$this->player('r12_draw_admin',true); $game=$this->game('basra',2,false);
         $season=app(CompetitiveSeasonService::class)->activeSeason(); $a=$this->player('r12_draw_a'); $b=$this->player('r12_draw_b');
         $tournament=Tournament::create([
             'creator_id'=>$admin->id,'season_id'=>$season->id,'game_id'=>$game->id,'key'=>'r12_draw_rematch',
@@ -303,7 +303,7 @@ class V240CompetitiveArenaTest extends TestCase
 
     public function test_duplicate_final_advancement_recovers_a_deferred_settlement(): void
     {
-        $admin=$this->player('Adnan',true); $game=$this->game('backgammon',2,false);
+        $admin=$this->player('Adnan',true); $game=$this->game('basra',2,false);
         $season=app(CompetitiveSeasonService::class)->activeSeason(); $a=$this->player('r12_recover_a'); $b=$this->player('r12_recover_b');
         $tournament=Tournament::create([
             'creator_id'=>$admin->id,'season_id'=>$season->id,'game_id'=>$game->id,'key'=>'r12_recover_final',
@@ -369,7 +369,7 @@ class V240CompetitiveArenaTest extends TestCase
     /** @return array{0:CompetitiveMatch,1:Room,2:User,3:User} */
     private function rankedMatch(): array
     {
-        $game=$this->game('backgammon',2,false); $a=$this->player('r12_a_'.Str::lower(Str::random(4))); $b=$this->player('r12_b_'.Str::lower(Str::random(4)));
+        $game=$this->game('basra',2,false); $a=$this->player('r12_a_'.Str::lower(Str::random(4))); $b=$this->player('r12_b_'.Str::lower(Str::random(4)));
         $service=app(CompetitiveMatchmakingService::class); $service->join($a,$game->key,2,'levant'); $service->join($b,$game->key,2,'levant');
         $match=CompetitiveMatch::with('room')->latest()->firstOrFail(); return [$match,$match->room,$a,$b];
     }
@@ -391,7 +391,8 @@ class V240CompetitiveArenaTest extends TestCase
 
     private function player(string $username,bool $admin=false): User
     {
-        $user=User::factory()->create(['username'=>$username,'is_admin'=>$admin]);
+        $role=$admin ? (Str::lower($username)==='adnan' ? 'primary_admin' : 'delegated_admin') : null;
+        $user=User::factory()->create(['username'=>$username,'is_admin'=>$admin,'admin_role'=>$role]);
         $user->profile()->create(['display_name'=>$username,'country_code'=>'PS','country_name'=>'فلسطين','level'=>20,'xp'=>0]);
         Wallet::create(['user_id'=>$user->id,'tokens'=>0,'gems'=>0]);
         return $user->fresh(['profile','wallet']);
