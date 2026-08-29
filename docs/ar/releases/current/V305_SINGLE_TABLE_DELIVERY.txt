@@ -13,4 +13,8 @@ Primary user-facing delta
 - Security model keeps privileged passwords out of tracked source.
 
 Verification
-See V305_FINAL_VERIFICATION_REPORT.txt generated after the full local regression run.
+See docs/ar/validation/current/V305_FINAL_VERIFICATION_REPORT.txt generated after the full local regression run.
+
+CI Hotfix R1
+- backend-ci.yml runs V304VerticalLegendTest and V305SingleTableTest as separate commands.
+- Final verification report lives under docs/ar/validation/current to preserve strict clean-root policy.

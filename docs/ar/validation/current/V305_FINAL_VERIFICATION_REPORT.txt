@@ -31,3 +31,11 @@ ENVIRONMENT BOUNDARY
 SECURITY
 - Privileged passwords/private admin email are not packaged as tracked source secrets.
 - Use local ignored environment provisioning for real administrator credentials.
+
+CI HOTFIX R1 (2026-08-29)
+- Fixed backend-ci.yml so V304VerticalLegendTest and V305SingleTableTest execute as two independent shell commands under a YAML block scalar.
+- Removed V305_FINAL_VERIFICATION_REPORT.txt from repository root and placed it under docs/ar/validation/current/ so strict clean-root policy remains meaningful.
+- Re-ran tools/test_clean_root_policy.py: PASS.
+- Re-ran tools/test_v305_single_table_contract.py: PASS.
+- Re-ran tools/validate_release.py end-to-end: PASS, including YAML structural audit of 17 workflows/files.
+- Scanned GitHub workflows for the same malformed adjacent artisan-test command pattern: 0 additional occurrences.

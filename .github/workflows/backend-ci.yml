@@ -135,8 +135,9 @@ jobs:
         run: php artisan test --filter V230SocialWorldTest
       - name: Run B303 bearer-actor and permission refresh regression tests
         run: php artisan test --filter V303RuntimeStabilityTest
-      - name: Run B304 Vertical Legend runtime regression tests
-        run: php artisan test --filter V304VerticalLegendTest
+      - name: Run B304/V305 table runtime regression tests
+        run: |
+          php artisan test --filter V304VerticalLegendTest
           php artisan test --filter V305SingleTableTest
       - name: Verify R11 Social World retention command
         run: php artisan warqna:cleanup-social-world --dry-run
