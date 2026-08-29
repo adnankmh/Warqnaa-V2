@@ -12,6 +12,7 @@ use App\Services\Platform\ProductionConfigService;
 use App\Services\Progression\ProgressionService;
 use App\Services\Notifications\FirebasePushService;
 use App\Services\Social\MatchReplayService;
+use App\Support\AuthenticatedActor;
 
 class MobileGameController extends Controller
 {
@@ -110,7 +111,11 @@ class MobileGameController extends Controller
             abort_unless($room->password && Hash::check((string) ($data['password'] ?? ''), $room->password), 403, 'كلمة سر الغرفة غير صحيحة.');
         }
 
-        $user = $request->user();
+        // API requests may carry both a web-session identity and a Sanctum
+        // bearer token (for example after a browser request in the same test/client).
+        // The explicit bearer token is authoritative for mobile API actions.
+        $user = AuthenticatedActor::resolve($request);
+        $user->loadMissing('profile');
         abort_if((int)($user->profile?->level ?? 1) < (int)($room->min_level ?? 1), 403, 'مستواك أقل من الحد المطلوب لدخول هذه الغرفة.');
         $state = $room->state ?: [];
         if(!empty($state['competitive'])){
