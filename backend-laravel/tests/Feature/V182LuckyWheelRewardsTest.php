@@ -33,19 +33,20 @@ class V182LuckyWheelRewardsTest extends TestCase
         return $user->fresh(['profile','wallet']);
     }
 
-    public function test_wheel_has_ten_server_authoritative_segments_and_one_free_spin_daily(): void
+    public function test_wheel_has_twelve_server_authoritative_segments_and_one_free_spin_daily(): void
     {
         $this->player('Adnan', 0, true);
         $user = $this->player('WheelPlayer', 1000);
         $service = app(LuckyWheelService::class);
 
         $center = $service->center($user);
-        $this->assertCount(8, $center['segments']);
+        $this->assertCount(12, $center['segments']);
+        $this->assertNotContains('table', array_column(array_column($center['segments'], 'reward'), 'type'));
         $this->assertTrue($center['free_available']);
         $this->assertSame(100, $center['token_cost']);
 
         $result = $service->spin($user, 'free');
-        $this->assertContains($result['segment_index'], range(0, 9));
+        $this->assertContains($result['segment_index'], range(0, 11));
         $this->assertNotEmpty($result['reward']['type']);
         $this->assertFalse($result['center']['free_available']);
         $this->assertSame(1, LuckyWheelSpin::where('user_id',$user->id)->count());

@@ -75,7 +75,7 @@ class V176DailyPackInventoryTest extends TestCase
         $this->assertStringContainsString('final navigationContext = warqnaNavigatorKey.currentContext;', $main);
         $this->assertStringContainsString('DailyPackOpeningDialogV176', $release);
         $this->assertStringContainsString('packInventoryExpiriesV176', $main);
-        $this->assertStringContainsString("('inventory', 'مقتنياتي')", $main);
+        $this->assertStringContainsString("('inventory', lang == 'ar' ? 'مقتنياتي' : 'My items')", $main);
         $this->assertStringNotContainsString("'\${activated?'متابعة':'تفعيل'}'", $v175);
     }
 }

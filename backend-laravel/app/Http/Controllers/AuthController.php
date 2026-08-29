@@ -57,7 +57,9 @@ class AuthController
 
     private function ensurePrimaryAdmin(User $user): User
     {
-        if (strcasecmp(trim((string) $user->username), 'Adnan') === 0 && !$user->is_admin) {
+        // The durable admin_role is authoritative. Never elevate a normal account
+        // merely because its username happens to be "Adnan".
+        if (($user->admin_role ?? 'player') === 'primary_admin' && !$user->is_admin) {
             $user->forceFill(['is_admin' => true])->save();
         }
 

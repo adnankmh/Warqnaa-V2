@@ -12,12 +12,13 @@ class V021PlayerProfileAdminStoreCardBackTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_adnan_is_promoted_to_primary_admin_on_mobile_login(): void
+    public function test_primary_admin_role_is_preserved_on_mobile_login(): void
     {
         $user = User::factory()->create([
             'username' => 'Adnan',
             'password' => Hash::make('TestAdminPassword123!'),
-            'is_admin' => false,
+            'is_admin' => true,
+            'admin_role' => 'primary_admin',
         ]);
 
         Profile::create(['user_id' => $user->id, 'display_name' => 'Adnan', 'country_code' => 'PS', 'country_name' => 'Palestine']);
@@ -28,8 +29,10 @@ class V021PlayerProfileAdminStoreCardBackTest extends TestCase
             'password' => 'TestAdminPassword123!',
         ]);
 
-        $response->assertOk()->assertJsonPath('user.is_admin', true);
-        $this->assertTrue($user->fresh()->is_admin);
+        $response->assertOk()
+            ->assertJsonPath('user.is_admin', true)
+            ->assertJsonPath('user.admin_role', 'primary_admin');
+        $this->assertTrue($user->fresh()->isPrimaryAdmin());
     }
 
     public function test_v021_adds_twelve_table_inspired_card_backs_without_changing_legacy_count(): void

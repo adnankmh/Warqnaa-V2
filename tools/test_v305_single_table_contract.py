@@ -23,4 +23,12 @@ challenge=text('backend-laravel/app/Services/WarqnaPro/ChallengeRoadService.php'
 ok('b304_table_phoenix' not in challenge and 'b304_table_aurora' not in challenge,'challenge road cannot reactivate removed tables')
 xp=text('backend-laravel/app/Services/Leveling/XpService.php')
 ok('b304_table_aurora' not in xp and 'b304_table_emerald' not in xp,'level-up rewards cannot reactivate removed tables')
+reward_services = {
+    'lucky wheel': text('backend-laravel/app/Services/WarqnaPro/LuckyWheelService.php'),
+    'prize boxes': text('backend-laravel/app/Services/WarqnaPro/PrizeBoxService.php'),
+    'daily packs': text('backend-laravel/app/Services/WarqnaPro/DailyPackService.php'),
+}
+for label, source in reward_services.items():
+    ok("'type'=>'table'" not in source and 'table_v173_royal_01' not in source and 'table_v173_showcase_01' not in source, f'{label} cannot award removed legacy tables')
+
 print('V305 SINGLE TABLE CONTRACT: PASS')

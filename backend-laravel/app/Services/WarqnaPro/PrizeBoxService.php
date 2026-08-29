@@ -218,7 +218,7 @@ class PrizeBoxService
             ['weight'=>14,'type'=>'player_color','value'=>'#facc15','duration_hours'=>24,'rarity'=>'rare','icon'=>'🎨','label_ar'=>'لون لاعب ذهبي لمدة يوم','label_en'=>'Gold player color for 24 hours','store_item_key'=>'daily_pack_name_gold_24h_v176'],
             ['weight'=>11,'type'=>'profile_cover','value'=>'cover_v02_royal','duration_hours'=>72,'rarity'=>'epic','icon'=>'🖼️','label_ar'=>'غلاف شخصي لمدة 3 أيام','label_en'=>'Royal profile cover for 3 days','store_item_key'=>'daily_prize_cover_v02'],
             ['weight'=>13,'type'=>'xp_booster','value'=>'1.5','duration_hours'=>6,'rarity'=>'epic','icon'=>'⚡','label_ar'=>'مسرّع خبرة ×1.5 لمدة 6 ساعات','label_en'=>'XP ×1.5 for 6 hours','store_item_key'=>'daily_pack_xp_15x_6h_v176'],
-            ['weight'=>10,'type'=>'table','value'=>'table_v173_royal_01','duration_hours'=>24,'rarity'=>'epic','icon'=>'🃏','label_ar'=>'طاولة الزمرد الملكي لمدة 24 ساعة','label_en'=>'Royal Emerald table for 24 hours','store_item_key'=>'table_v173_royal_01'],
+            ['weight'=>10,'type'=>'player_color','value'=>'#10b981','duration_hours'=>72,'rarity'=>'epic','icon'=>'🎨','label_ar'=>'لون لاعب زمردي لمدة 3 أيام','label_en'=>'Emerald player color for 3 days','store_item_key'=>'prize_box_name_emerald_r305'],
             ['weight'=>20,'type'=>'tokens','value'=>'random_50_1000','duration_hours'=>0,'rarity'=>'common','icon'=>'🪙','label_ar'=>'توكنز عشوائية','label_en'=>'Random tokens'],
             ['weight'=>5,'type'=>'ticket','value'=>'500','duration_hours'=>0,'rarity'=>'legendary','icon'=>'🎟️','label_ar'=>'تذكرة مسابقة 500','label_en'=>'Competition ticket 500'],
         ];
@@ -231,8 +231,8 @@ class PrizeBoxService
         $allowed = match ($boxKey) {
             'crimson_lion','obsidian' => ['tokens','writing_color','player_color'],
             'emerald_eagle','bronze_dragon' => ['tokens','writing_color','player_color','ticket','profile_cover','xp_booster'],
-            'royal_amethyst' => ['ticket','profile_cover','pasha_day','tokens','writing_color','player_color','xp_booster','table'],
-            'diamond_phoenix' => ['ticket','profile_cover','pasha_day','tokens','xp_booster','table'],
+            'royal_amethyst' => ['ticket','profile_cover','pasha_day','tokens','writing_color','player_color','xp_booster'],
+            'diamond_phoenix' => ['ticket','profile_cover','pasha_day','tokens','xp_booster','player_color'],
             default => array_values(array_unique(array_column($items,'type'))),
         };
         $items = array_values(array_filter($items, fn(array $item)=>in_array($item['type'],$allowed,true)));
