@@ -75,6 +75,7 @@ class XpService
     /** Every level-up grants two distinct seven-day store rewards. */
     private function grantTwoTemporaryRewards(User $user, int $level): array
     {
+        $profile=$user->profile;
         $keys=['b304_profile_aurora_30d','b304_profile_royal_30d','b304_profile_emerald_30d','b304_profile_crimson_30d','booster_green_v183','booster_blue_v183'];
         $offset=$level % count($keys);
         $picked=[$keys[$offset],$keys[($offset+3)%count($keys)]];
@@ -83,6 +84,16 @@ class XpService
             $item=StoreItem::where('key',$key)->where('active',true)->first();
             if(!$item) continue;
             $inventory=InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays(7)]);
+            $payload=(array)($item->payload ?? []);
+            if($profile && $item->category==='profile_color'){
+                $gradient=(array)($payload['gradient'] ?? []);
+                if(count($gradient)>=2) $profile->active_profile_color=implode('|',array_slice($gradient,0,2));
+                $profile->profile_color_expires_at=now()->addDays(7);
+            } elseif($profile && $item->category==='xp_booster'){
+                $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25);
+                $profile->xp_boost_expires_at=now()->addHours(24);
+            }
+            if($profile) $profile->save();
             $result[]=['store_key'=>$key,'days'=>7,'expires_at'=>$inventory->expires_at?->toIso8601String()];
         }
         return $result;

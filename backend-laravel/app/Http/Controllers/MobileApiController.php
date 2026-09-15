@@ -495,6 +495,11 @@ class MobileApiController extends Controller
                     $profile->chat_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
                 }
                 break;
+            case 'profile_color':
+                $gradient = (array) ($payload['gradient'] ?? []);
+                $profile->active_profile_color = count($gradient) >= 2 ? implode('|', array_slice($gradient, 0, 2)) : (string) ($payload['color'] ?? $item->key);
+                $profile->profile_color_expires_at = now()->addDays((int) ($item->duration_days ?: ($payload['duration_days'] ?? 30)));
+                break;
             case 'badge':
                 $profile->badge = $payload['badge'] ?? $item->key;
                 break;

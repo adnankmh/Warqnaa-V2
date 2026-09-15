@@ -125,6 +125,8 @@ class User extends Authenticatable
             'active_table_skin'=>$p?->active_table_skin,
             'active_card_back'=>$p?->active_card_back,
             'active_cover'=>$p?->active_profile_cover,
+            'active_profile_color'=>($p?->profile_color_expires_at && $p->profile_color_expires_at->isPast()) ? null : $p?->active_profile_color,
+            'profile_color_expires_at'=>$p?->profile_color_expires_at?->toIso8601String(),
             'bot_difficulty'=>$p?->bot_difficulty ?? 'pro',
             'ui_preferences'=>$p?->ui_preferences,
         ];

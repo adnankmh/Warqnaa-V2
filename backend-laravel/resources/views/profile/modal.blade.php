@@ -3,8 +3,14 @@ $profile=$user->profile; $wallet=$user->wallet; $mine=$user->id===auth()->id();
 $xp=(int)($profile?->xp ?? 0); $level=(int)($profile?->level ?? 1); $next=app(\App\Services\Leveling\XpService::class)->requiredXp($level); $need=max(0,$next-$xp); $percent=$next?min(100,round(($xp/$next)*100)):0;
 $code=safe_country_code($profile?->country_code ?? 'PS');
 $relation=$relation ?? null;
+$profileGradient=[];
+if($profile?->active_profile_color && !($profile?->profile_color_expires_at && $profile->profile_color_expires_at->isPast())){
+ $candidate=array_values(array_filter(explode('|',(string)$profile->active_profile_color),fn($c)=>preg_match('/^#[0-9a-fA-F]{6}$/',$c)));
+ if(count($candidate)>=2) $profileGradient=array_slice($candidate,0,2);
+}
+$profileGradientStyle=count($profileGradient)>=2 ? '--profile-bg1:'.$profileGradient[0].';--profile-bg2:'.$profileGradient[1].';' : '';
 @endphp
-<div class="profile-modal-card compact-profile-card {{$mine ? 'profile-self-card' : 'profile-other-card'}}">
+<div class="profile-modal-card compact-profile-card {{$mine ? 'profile-self-card' : 'profile-other-card'}} {{count($profileGradient)>=2 ? 'has-profile-gradient' : ''}}" style="{{$profileGradientStyle}}">
  <button type="button" class="modal-x" onclick="document.getElementById('profileModal').classList.add('hidden')">×</button>
  <div class="profile-head">
   <img loading="lazy" decoding="async" class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">

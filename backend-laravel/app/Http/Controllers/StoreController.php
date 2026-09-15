@@ -128,7 +128,7 @@ class StoreController
         $item=$inventory->storeItem;
         DB::transaction(function() use($inventory,$item){
             // العناصر الشكلية: عنصر واحد مفعل من نفس القسم في نفس الوقت.
-            if(in_array($item->category,['name_color','text_color','badge','table','pasha_style','xp_booster','card_back','name_frame','effect','emoji_pack','profile_cover'],true)) {
+            if(in_array($item->category,['name_color','text_color','profile_color','badge','table','pasha_style','xp_booster','card_back','name_frame','effect','emoji_pack','profile_cover'],true)) {
                 InventoryItem::where('user_id',auth()->id())->whereHas('storeItem',fn($q)=>$q->where('category',$item->category))->update(['active'=>false]);
             }
             $payload=$item->payload ?: [];
@@ -139,6 +139,7 @@ class StoreController
             if($profile){
                 if($item->category==='name_color' && isset($payload['color'])) { $profile->name_color=$payload['color']; $profile->active_name_frame=$payload['frame'] ?? $payload['glow'] ?? ('glow-'.str_replace('#','',$payload['color'])); }
                 if($item->category==='text_color' && isset($payload['color'])) { $profile->chat_color=$payload['color']; $profile->text_color=$payload['color']; }
+                if($item->category==='profile_color') { $gradient=(array)($payload['gradient'] ?? []); $profile->active_profile_color=count($gradient)>=2 ? implode('|',array_slice($gradient,0,2)) : ($payload['color'] ?? $item->key); $profile->profile_color_expires_at=now()->addDays((int)($item->duration_days ?: ($payload['duration_days'] ?? 30))); }
                 if($item->category==='badge') $profile->badge=$payload['badge'] ?? $item->key;
                 if($item->category==='table') $profile->active_table_skin=$payload['table'] ?? $item->key;
                 if($item->category==='pasha_style') {

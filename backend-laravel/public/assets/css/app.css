@@ -2210,3 +2210,15 @@ body.is-room-page .game-table.premium-table,body.is-room-page .game-table.respon
 @media (orientation: landscape){
   body.is-room-page .game-table.premium-table,body.is-room-page .game-table.responsive-table{aspect-ratio:16 / 9!important;width:min(100%,1220px)!important;max-width:1220px!important;border-radius:40px!important} 
 }
+
+/* B305 R8 final integration: real temporary profile gradients. */
+.profile-modal-card.has-profile-gradient,.profile-edit-card.has-profile-gradient{
+  background:linear-gradient(145deg,var(--profile-bg1,#0f172a),var(--profile-bg2,#1e293b))!important;
+  border-color:color-mix(in srgb,var(--profile-bg2,#facc15),#fff 30%)!important;
+  box-shadow:0 28px 70px rgba(0,0,0,.42),0 0 42px color-mix(in srgb,var(--profile-bg2,#facc15),transparent 62%)!important;
+}
+.profile-modal-card.has-profile-gradient .profile-mini-grid>div,.profile-modal-card.has-profile-gradient .profile-self-details>div,
+.profile-edit-card.has-profile-gradient .profile-progress-v161{background:rgba(2,6,23,.35)!important;backdrop-filter:blur(10px)}
+.round-summary-toast{position:fixed;left:50%;top:86px;transform:translateX(-50%);z-index:12050;padding:9px 16px;border-radius:16px;background:rgba(2,6,23,.94);border:1px solid rgba(250,204,21,.42);color:#fff;font-weight:900;box-shadow:0 14px 42px rgba(0,0,0,.38);animation:roundSummaryIn .18s ease-out}
+@keyframes roundSummaryIn{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+.profile-gradient-preview{width:72px;height:54px;border-radius:18px;display:grid;place-items:center;margin:6px auto 10px;background:linear-gradient(135deg,var(--p1,#0f172a),var(--p2,#facc15));box-shadow:0 10px 30px color-mix(in srgb,var(--p2,#facc15),transparent 55%);font-size:26px}

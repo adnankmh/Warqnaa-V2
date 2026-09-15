@@ -62,3 +62,14 @@ Privacy Gate مدمج داخل CI.
 - Static validate_release: PASS.
 - Release version consistency: PASS.
 - Flutter SDK وComposer غير متوفرين في بيئة التغليف؛ لذلك `flutter analyze/test/build` وLaravel `artisan test` تبقى mandatory داخل GitHub Actions.
+
+## R8 Final Integrated — مراجعة التعليمات(2) وخصوصًا الصفحات الخمس الأخيرة
+- تم تثبيت قرار الأحدث: طاولة مستخدم واحدة مجانية + ظهر ورق واحد مجاني؛ لا تعيد المكافآت أي طاولة قديمة.
+- Challenge Road: 5 محاولات و10/12/15 مرحلة، ومكافأة التوكنز لا تتجاوز 1000 في أي مرحلة.
+- Profile Color: أصبح Runtime فعليًا في Laravel Web وMobile API، بمدة انتهاء حقيقية، ويظهر كتدرج داخل البروفايل؛ المكافآت المؤقتة من Challenge/Level-up تطبقه مباشرة.
+- Level-up: المكافأتان المؤقتتان لمدة 7 أيام أصبحتا تطبقان الـProfile Color/XP Booster مباشرة عند المنح.
+- Basra: تم توحيد Room creation مع الكتالوج لتكون لاعبين فقط دون override تاريخي 4 مقاعد.
+- Bot roster: أسماء عربية احترافية مطلوبة مع مقابل لاتيني تلقائي خارج اللغة العربية، مع أصول 3D الحالية.
+- Auto next round: يحمل Snapshot للطلب/الطرنيب/آخر كرت لكل لاعب/نقاط الجولة السابقة أثناء الانتقال السلس للجولة التالية.
+- Fair Deal: بقي symmetric/server-authoritative بلا استهداف مستخدم، وتم إعادة اعتماد 3000 سيناريو في R8.
+- لا يتم تضمين كلمة مرور المدير أو أسراره في المصدر؛ تبقى Environment/local ignored حفاظًا على الأمان.

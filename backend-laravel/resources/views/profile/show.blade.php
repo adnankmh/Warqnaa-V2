@@ -1,8 +1,16 @@
 @extends('layouts.app')
 @section('content')
-@php $profile=$user->profile; $mine=$user->id===auth()->id(); $countries=config('countries'); $games=\App\Models\Game::where('active',true)->orderBy('id')->get(); $code=safe_country_code($profile?->country_code ?? 'PS'); @endphp
+@php
+$profile=$user->profile; $mine=$user->id===auth()->id(); $countries=config('countries'); $games=\App\Models\Game::where('active',true)->orderBy('id')->get(); $code=safe_country_code($profile?->country_code ?? 'PS');
+$profileGradient=[];
+if($profile?->active_profile_color && !($profile?->profile_color_expires_at && $profile->profile_color_expires_at->isPast())){
+ $candidate=array_values(array_filter(explode('|',(string)$profile->active_profile_color),fn($c)=>preg_match('/^#[0-9a-fA-F]{6}$/',$c)));
+ if(count($candidate)>=2) $profileGradient=array_slice($candidate,0,2);
+}
+$profileGradientStyle=count($profileGradient)>=2 ? '--profile-bg1:'.$profileGradient[0].';--profile-bg2:'.$profileGradient[1].';' : '';
+@endphp
 <section class="profile-edit-page luxury-form-page">
- <div class="profile-edit-card">
+ <div class="profile-edit-card {{count($profileGradient)>=2 ? 'has-profile-gradient' : ''}}" style="{{$profileGradientStyle}}">
   <h1>تعديل البروفايل</h1>
   <div class="profile-edit-preview">
    <img loading="lazy" decoding="async" class="avatar-lg" src="{{$profile?->avatar ?: '/assets/avatars/default.svg'}}" alt="avatar">

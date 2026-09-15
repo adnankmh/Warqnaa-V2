@@ -1,0 +1,43 @@
+Warqnaa 1.3.1+305 — B305 R8 FINAL INTEGRATED
+Date: 2026-09-15
+
+SOURCE / CONTRACT GATES
+PASS  validate_release.py full preflight
+PASS  V305 R8 final integration contract
+PASS  V305 single-table contract
+PASS  V304 vertical legend contract
+PASS  V303 runtime premium contract
+PASS  V301 locale successor contract
+PASS  V260 R14 global release contract
+PASS  V240 R12 competitive arena source contracts
+PASS  V175 XP/challenges/designer contract
+PASS  V176 daily pack/inventory contract
+PASS  V184 official rules contract
+PASS  V184 Flutter quality source contract
+PASS  V0.2 prize boxes contract
+PASS  PHP syntax: 406 files / 0 failures
+PASS  GitHub Actions YAML parse: 9 workflows
+PASS  app.js Node syntax check
+
+ENGINE / FAIRNESS GATES
+PASS  B304 Fair Deal: 3000 scenarios / 3000 unique assignments / no duplicate cards / 13 cards per seat
+PASS  Official game-rules executable audit
+PASS  Engine stress: 360 randomized scenarios
+PASS  R8 playthrough stress: 3879 validated transitions across 18 engines
+PASS  Engine Gold smoke: 100 matches across 20 engines / 12208 validated legal transitions
+
+R8 FIXES FROM التعليمات(2)
+PASS  Challenge Road token rewards capped at 1000
+PASS  Challenge Road retains 5 attempts and 10/12/15 stages
+PASS  Basra room creation fixed to exactly two seats
+PASS  Arabic/Latin named bot roster wired to locale
+PASS  Previous round bid/cards/points snapshot survives auto-advance
+PASS  Expiring Profile Color runtime implemented for Web/Mobile
+PASS  Challenge temporary profile/booster reward activates immediately
+PASS  Level-up temporary profile/booster rewards activate immediately
+PASS  One V305 customer table/card-back remains authoritative
+
+ENVIRONMENT BOUNDARY
+Composer/vendor and Flutter/Dart SDK are not installed in this packaging environment.
+A direct Composer download was attempted but network download was unavailable.
+Therefore php artisan test and Flutter analyze/test/build remain mandatory GitHub Actions gates; no local PASS is claimed for commands that were not executed here.

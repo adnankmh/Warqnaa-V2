@@ -289,18 +289,16 @@ class RoomController
 
  private function botCatalog(): array
  {
-  return [
-   ['name'=>'معتصم 3D','avatar'=>'/assets/bots/3d/bot-01.svg'],
-   ['name'=>'يمان 3D','avatar'=>'/assets/bots/3d/bot-02.svg'],
-   ['name'=>'عدنان 3D','avatar'=>'/assets/bots/3d/bot-03.svg'],
-   ['name'=>'عاصم 3D','avatar'=>'/assets/bots/3d/bot-04.svg'],
-   ['name'=>'كنان 3D','avatar'=>'/assets/bots/3d/bot-05.svg'],
-   ['name'=>'جميل 3D','avatar'=>'/assets/bots/3d/bot-06.svg'],
-   ['name'=>'همام 3D','avatar'=>'/assets/bots/3d/bot-07.svg'],
-   ['name'=>'معاذ 3D','avatar'=>'/assets/bots/3d/bot-08.svg'],
-   ['name'=>'مصطفى 3D','avatar'=>'/assets/bots/3d/bot-09.svg'],
-   ['name'=>'مهند 3D','avatar'=>'/assets/bots/3d/bot-10.svg'],
-  ];
+  // R8: professional named bots. Arabic names are used only in Arabic UI; every
+  // other locale receives a stable Latin display name. 3D seat avatars rotate
+  // through the curated asset set without exposing generic BOT 1/BOT 2 labels.
+  $ar=['عدنان','بيان','كنان','جميل','رعد','عاصم','معتصم','حسام','جنان','حور','جنات','آلاء','أفنان','شهد','حلا','شذى','قمر'];
+  $en=['Adnan','Bayan','Kinan','Jameel','Raad','Asem','Motasem','Hossam','Jinan','Hoor','Jannat','Alaa','Afnan','Shahd','Hala','Shatha','Qamar'];
+  $names=app()->getLocale()==='ar' ? $ar : $en;
+  return array_map(function($name,$i){
+   $asset=(($i % 10)+1);
+   return ['name'=>$name,'avatar'=>'/assets/bots/3d/bot-'.str_pad((string)$asset,2,'0',STR_PAD_LEFT).'.svg'];
+  },$names,array_keys($names));
  }
 
  private function pickBotIdentity(Room $room, ?int $seed=null): array
@@ -325,7 +323,8 @@ class RoomController
  private function allowedSeatCounts(Game $game): array
  {
   return match($game->key){
-   'tarneeb','tarneeb_400','tarneeb_41','tarneeb_61','syrian_tarneeb','trix','trix_partner','trix_complex','trix_kingdoms','baloot','hokm','kout4','basra','spades','ludo','jackaroo' => [4],
+   'tarneeb','tarneeb_400','tarneeb_41','tarneeb_61','syrian_tarneeb','trix','trix_partner','trix_complex','trix_kingdoms','baloot','hokm','kout4','spades','ludo','jackaroo' => [4],
+   'basra' => [2],
    'kout6' => [6],
    'pinochle','banakil' => [2,4],
    'hand','hand_partner','saudi_hand','hand_saudi','rummy','konkan','domino' => [2,3,4],
@@ -778,6 +777,23 @@ class RoomController
     $options['round']=((int)($state['round'] ?? 1))+1;
    }
    $new=$engine->initialState($players,$options);
+   // Preserve a compact read-only snapshot of the completed round so the UI can
+   // keep showing who bid, each player's last card and the points just earned
+   // while the next round starts automatically. The active trick/turn still come
+   // from the fresh engine state.
+   $new['last_round_summary']=[
+    'round'=>(int)($state['round'] ?? 1),
+    'bid'=>$state['bid'] ?? null,
+    'trump'=>$state['trump'] ?? null,
+    'last_trick'=>$state['last_trick'] ?? [],
+    'last_played_by_player'=>$state['last_played_by_player'] ?? [],
+    'last_round_score_delta'=>$state['last_round_score_delta'] ?? [],
+    'player_round_score_delta'=>$state['player_round_score_delta'] ?? [],
+    'seat_tricks'=>$state['seat_tricks'] ?? [],
+   ];
+   foreach(['last_played_by_player','last_round_score_delta','player_round_score_delta'] as $carryKey){
+    if(isset($state[$carryKey])) $new[$carryKey]=$state[$carryKey];
+   }
    if(isset($state['score'])) $new['score']=$state['score'];
    if(isset($state['scores'])) $new['scores']=$state['scores'];
    $new['round']=((int)($state['round'] ?? 1))+1;

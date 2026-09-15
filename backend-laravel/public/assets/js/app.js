@@ -31,8 +31,8 @@
 
   document.addEventListener('submit',function(e){let f=e.target;if(!f.matches('form[data-confirm],form[data-ajax-start],form[data-ajax-soft],form[data-ajax-profile-action],form[action*="/store/"],form[action*="/inventory/"],form[action*="/wallet/transfer"],form[action*="/friends/"]'))return;e.preventDefault();let run=async()=>{try{if(f.dataset.ajaxStart){await startGameAjax(f);return}let j=await postForm(f);showNotice(j.message||'تم تنفيذ العملية.');if(j.profile){document.querySelectorAll('[data-my-country-name]').forEach(el=>el.textContent=j.profile.country_name||'');document.querySelectorAll('[data-my-flag]').forEach(el=>{if(j.profile.flag_url)el.src=j.profile.flag_url});document.body.dataset.countryName=j.profile.country_name||'';document.body.dataset.countryCode=j.profile.country_code||'';}if(j.ok!==false&&f.matches('form[action*="/store/"],form[action*="/inventory/"]')) { markStoreForm(f,j); if(j.item) addInventoryCard(j.item,j.inventory_id); if(j.activated) applyActivatedCosmetic(j); }if(f.dataset.ajaxProfileAction){let b=f.querySelector('button'); if(b){b.textContent='تم إرسال الطلب'; b.disabled=true;}}}catch(err){showNotice('لا يمكن تنفيذ هذه الخطوة الآن. إن ظهرت المشكلة مرة أخرى راجع الإدارة أو جرّب تحديث الصفحة.')}};let msg=f.dataset.confirm;if(msg)showConfirm(msg,run);else run();});
   function markStoreForm(f,j){let b=f.querySelector('button.primary,button:not([type="button"])'); if(b){b.textContent=j.activated?'مفعل':'تم الشراء';b.disabled=!!j.activated} WarqnaSound.shop(); let invTab=document.querySelector('[data-store-tab="inventory"]'); if(invTab && j.item){ localStorage.storeTab='inventory'; }}
-  function addInventoryCard(item,inventoryId){let grid=document.querySelector('#inventory .store-grid'); if(!grid)return; let empty=grid.querySelector('.mini-card'); if(empty&&empty.textContent.includes('لا توجد')) empty.remove(); let payload=item.payload||{}; let icon='🎁'; if(item.category==='table')icon='<span class="table-preview '+escapeHtml(payload.table||'')+'"></span>'; else if(item.category==='card_back')icon='<span class="card-back-preview '+escapeHtml(payload.card_back||'')+'">🂠</span>'; else if(item.category==='name_color')icon='<span class="color-orbit-preview" style="--orbit:'+escapeHtml(payload.color||'#facc15')+'">Aa</span>'; else if(item.category==='emoji_pack')icon='<span class="emoji-store-icon">'+escapeHtml(payload.emojis||'😄')+'</span>'; let form=document.createElement('form'); form.className='store-card deluxe inventory-card'; form.method='post'; form.action='/inventory/'+inventoryId+'/activate'; form.setAttribute('data-ajax-soft','1'); form.innerHTML='<input type="hidden" name="_token" value="'+window.CSRF+'"><h3>'+escapeHtml(item.name)+'</h3><p>غير مفعل</p>'+icon+'<button>تفعيل</button>'; grid.prepend(form); }
-  function applyActivatedCosmetic(j){let p=j.payload||{}; if(j.category==='name_color'&&p.color){document.body.style.setProperty('--my-name-color',p.color); document.querySelectorAll('.user-chip,.profile-modal-card .name-orbit').forEach(el=>el.style.setProperty('--player-color',p.color));} if(j.category==='text_color'&&p.color){document.body.style.setProperty('--my-text-color',p.color);} if(j.category==='table'&&p.table){document.querySelectorAll('.game-table').forEach(t=>{[...t.classList].filter(c=>c.startsWith('table-')).forEach(c=>t.classList.remove(c)); t.classList.add(p.table);});} if(j.category==='card_back'&&p.card_back){window.MY_CARD_BACK=p.card_back; if(window.LAST_STATE)renderState(window.LAST_STATE);} }
+  function addInventoryCard(item,inventoryId){let grid=document.querySelector('#inventory .store-grid'); if(!grid)return; let empty=grid.querySelector('.mini-card'); if(empty&&empty.textContent.includes('لا توجد')) empty.remove(); let payload=item.payload||{}; let icon='🎁'; if(item.category==='table')icon='<span class="table-preview '+escapeHtml(payload.table||'')+'"></span>'; else if(item.category==='card_back')icon='<span class="card-back-preview '+escapeHtml(payload.card_back||'')+'">🂠</span>'; else if(item.category==='name_color')icon='<span class="color-orbit-preview" style="--orbit:'+escapeHtml(payload.color||'#facc15')+'">Aa</span>'; else if(item.category==='profile_color'&&Array.isArray(payload.gradient)&&payload.gradient.length>=2)icon='<span class="profile-gradient-preview" style="--p1:'+escapeHtml(payload.gradient[0])+';--p2:'+escapeHtml(payload.gradient[1])+'">👤</span>'; else if(item.category==='emoji_pack')icon='<span class="emoji-store-icon">'+escapeHtml(payload.emojis||'😄')+'</span>'; let form=document.createElement('form'); form.className='store-card deluxe inventory-card'; form.method='post'; form.action='/inventory/'+inventoryId+'/activate'; form.setAttribute('data-ajax-soft','1'); form.innerHTML='<input type="hidden" name="_token" value="'+window.CSRF+'"><h3>'+escapeHtml(item.name)+'</h3><p>غير مفعل</p>'+icon+'<button>تفعيل</button>'; grid.prepend(form); }
+  function applyActivatedCosmetic(j){let p=j.payload||{}; if(j.category==='name_color'&&p.color){document.body.style.setProperty('--my-name-color',p.color); document.querySelectorAll('.user-chip,.profile-modal-card .name-orbit').forEach(el=>el.style.setProperty('--player-color',p.color));} if(j.category==='text_color'&&p.color){document.body.style.setProperty('--my-text-color',p.color);} if(j.category==='profile_color'&&Array.isArray(p.gradient)&&p.gradient.length>=2){document.querySelectorAll('.profile-modal-card,.profile-edit-card').forEach(el=>{el.classList.add('has-profile-gradient');el.style.setProperty('--profile-bg1',p.gradient[0]);el.style.setProperty('--profile-bg2',p.gradient[1]);});} if(j.category==='table'&&p.table){document.querySelectorAll('.game-table').forEach(t=>{[...t.classList].filter(c=>c.startsWith('table-')).forEach(c=>t.classList.remove(c)); t.classList.add(p.table);});} if(j.category==='card_back'&&p.card_back){window.MY_CARD_BACK=p.card_back; if(window.LAST_STATE)renderState(window.LAST_STATE);} }
 
   // Store tabs and previews
   window.previewStoreItem=function(btn){let card=btn?.closest?.('.store-card')||btn;if(!card)return;let form=card.closest('form')||card;let title=card.querySelector('h3')?.textContent||'العنصر';let price=card.querySelector('.price')?.textContent||'';let icon=card.querySelector('.shop-icon')?.innerHTML||'';let action=form?.action||'';let token=window.CSRF||'';showRichNotice(`<div class="store-preview-pop"><div class="profile-preview-card"><div class="shop-icon big">${icon}</div><img src="/assets/avatars/default.svg" alt="avatar"><div class="preview-name" style="color:var(--my-name-color)">معاينة مباشرة على البروفايل</div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(price)}</p><small>بعد الشراء سيظهر العنصر في مشترياتي ويمكن تفعيله فوراً.</small>${action?`<form method="post" action="${escapeHtml(action)}" data-confirm="تأكيد شراء ${escapeHtml(title)}؟" class="preview-buy-form"><input type="hidden" name="_token" value="${escapeHtml(token)}"><button class="primary">شراء الآن</button></form>`:''}</div></div>`);WarqnaSound.ui();};
@@ -3808,4 +3808,35 @@
     return 'message';
   };
   window.sendEmojiChat=function(e){ try{window.WarqnaSound?.play?.(soundFor(e));}catch(_e){} return oldSend?oldSend(e):undefined; };
+})();
+
+// B305 R8 final integration: activate profile gradients immediately and show the completed-round summary.
+(function(){
+  const oldApply=window.applyActivatedCosmetic;
+  if(typeof oldApply==='function'){
+    window.applyActivatedCosmetic=function(j){
+      oldApply(j);
+      if(j?.category==='profile_color'){
+        const g=Array.isArray(j?.payload?.gradient)?j.payload.gradient:[];
+        if(g.length>=2){
+          document.querySelectorAll('.profile-modal-card,.profile-edit-card').forEach(el=>{
+            el.classList.add('has-profile-gradient');el.style.setProperty('--profile-bg1',g[0]);el.style.setProperty('--profile-bg2',g[1]);
+          });
+        }
+      }
+    };
+  }
+  const previousRender=window.renderState;
+  window.renderState=function(st){
+    previousRender&&previousRender(st);
+    const summary=st?.last_round_summary;
+    if(!summary)return;
+    const key=String(summary.round||0)+':'+JSON.stringify(summary.last_round_score_delta||{});
+    if(window.__warqnaRoundSummaryKey===key)return;
+    window.__warqnaRoundSummaryKey=key;
+    const a=Number(summary.last_round_score_delta?.teamA||0),b=Number(summary.last_round_score_delta?.teamB||0);
+    const box=document.createElement('div');box.className='round-summary-toast';
+    box.textContent=`الجولة ${summary.round||''}: ${a>=0?'+':''}${a} / ${b>=0?'+':''}${b}`;
+    document.body.appendChild(box);setTimeout(()=>box.remove(),2200);
+  };
 })();

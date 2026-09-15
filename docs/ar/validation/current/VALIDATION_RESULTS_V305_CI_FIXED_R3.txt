@@ -1,0 +1,21 @@
+Warqnaa 1.3.1+305 — CI FIXED R3
+Date: 2026-08-29
+
+Fix:
+- V240CompetitiveArenaTest player() fixture no longer writes NULL into users.admin_role.
+- Non-admin fixtures use admin_role='player', matching migration 2026_08_16_000201 default and NOT NULL schema.
+- Primary Adnan admin remains primary_admin; other test admins remain delegated_admin.
+- V240 static contract now guards the non-null player-role fixture.
+
+Verification in packaging environment:
+- V240 R12 Competitive Arena contract: PASS
+- V240 Competitive Engine gate: PASS
+- V240 PHP Structure gate: PASS
+- V303 runtime premium contract: PASS
+- V304 Vertical Legend contract: PASS
+- V305 Single Table contract: PASS
+- PHP syntax: 405/405 PASS
+- validate_release.py: PASS
+
+Environment boundary:
+Composer/vendor are not installed in this packaging environment, so php artisan test itself remains to GitHub Actions.

@@ -184,7 +184,7 @@ class ChallengeRoadService
     {
         if($stage >= $total) return ['type'=>'bundle','tokens'=>1000,'pasha_days'=>3,'store_key'=>'b304_profile_legend_30d','days'=>7,'icon'=>'🏆','label_ar'=>'1000 توكن + 3 أيام باشا + لون بروفايل أسطوري 7 أيام','label_en'=>'1,000 tokens + 3 Pasha days + legendary profile color for 7 days'];
         return match($stage % 5){
-            1 => ['type'=>'tokens','tokens'=>min(1800,200+$stage*80),'icon'=>'🪙','label_ar'=>min(1800,200+$stage*80).' توكن','label_en'=>min(1800,200+$stage*80).' tokens'],
+            1 => ['type'=>'tokens','tokens'=>min(1000,200+$stage*80),'icon'=>'🪙','label_ar'=>min(1000,200+$stage*80).' توكن','label_en'=>min(1000,200+$stage*80).' tokens'],
             2 => ['type'=>'temporary_item','store_key'=>'b304_profile_aurora_30d','days'=>7,'icon'=>'🎨','label_ar'=>'لون بروفايل الشفق 7 أيام','label_en'=>'Aurora profile color for 7 days'],
             3 => ['type'=>'temporary_item','store_key'=>'booster_green_v183','days'=>7,'icon'=>'⚡','label_ar'=>'مسرع XP لمدة 7 أيام','label_en'=>'XP booster for 7 days'],
             4 => ['type'=>'temporary_item','store_key'=>'b304_profile_aurora_30d','days'=>7,'icon'=>'🌈','label_ar'=>'لون بروفايل الشفق 7 أيام','label_en'=>'Aurora profile color for 7 days'],
@@ -199,8 +199,31 @@ class ChallengeRoadService
         if(in_array($type,['pasha','bundle'],true) && (int)($reward['pasha_days'] ?? 0)>0) $user->profile?->increment('pasha_days',(int)$reward['pasha_days']);
         if(in_array($type,['temporary_item','bundle'],true) && !empty($reward['store_key'])){
             $item=StoreItem::where('key',$reward['store_key'])->where('active',true)->first();
-            if($item) InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays((int)($reward['days'] ?? 7))]);
+            if($item){
+                $days=max(1,(int)($reward['days'] ?? 7));
+                InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays($days)]);
+                $this->activateTemporaryReward($user,$item,$days);
+            }
         }
+    }
+
+    private function activateTemporaryReward(User $user, StoreItem $item, int $days): void
+    {
+        $profile=$user->profile; if(!$profile) return;
+        $payload=(array)($item->payload ?? []);
+        if($item->category==='profile_color'){
+            $gradient=(array)($payload['gradient'] ?? []);
+            if(count($gradient)>=2) $profile->active_profile_color=implode('|',array_slice($gradient,0,2));
+            $profile->profile_color_expires_at=now()->addDays($days);
+        } elseif($item->category==='xp_booster'){
+            $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25);
+            $profile->xp_boost_expires_at=now()->addHours(min(24,$days*24));
+        } elseif($item->category==='name_color' && isset($payload['color'])){
+            $profile->name_color=(string)$payload['color']; $profile->name_color_expires_at=now()->addDays($days);
+        } elseif($item->category==='text_color' && isset($payload['color'])){
+            $profile->chat_color=(string)$payload['color']; $profile->text_color=(string)$payload['color']; $profile->chat_color_expires_at=now()->addDays($days);
+        }
+        $profile->save();
     }
 
     private function definition(): ChallengeDefinition
