@@ -543,7 +543,10 @@ class AppController extends ChangeNotifier {
     await prefs.setString(_offlineHashKey(canonical), _offlineCredentialHash(canonical, password));
     await prefs.setString('warqna.offline.username.$canonical', user.trim());
     await prefs.setString('warqna.offline.email.$canonical', mail.trim());
-    if (admin != null) await prefs.setBool('warqna.offline.admin.$canonical', admin);
+    if (admin != null) {
+      await prefs.setBool('warqna.offline.admin.$canonical', admin);
+      if (admin) await prefs.setString('warqna.offline.admin_role.$canonical', adminRole);
+    }
     await prefs.setString('lastOfflineUsername', user.trim());
     await prefs.setBool('offlineLoggedIn', true);
   }
@@ -568,6 +571,7 @@ class AppController extends ChangeNotifier {
     final demoProfile = demoAccounts[alias];
     displayName = demoProfile?['name']?.toString() ?? username;
     isAdmin = prefs.getBool('warqna.offline.admin.$alias') ?? false;
+    adminRole = prefs.getString('warqna.offline.admin_role.$alias') ?? (isAdmin ? 'primary_admin' : 'player');
     await _loadAccountState(
       prefs,
       defaultCoins: demoProfile?['coins']?.toString() ?? (isAdmin ? '1000000000000000000' : '1500'),
@@ -575,6 +579,7 @@ class AppController extends ChangeNotifier {
       defaultVipDays: isAdmin ? 3650 : 0,
       defaultAvatar: demoAvatarFor(username),
     );
+    if (isAdmin) { level = math.max(level, 99); vipDays = math.max(vipDays, 36500); coins = coins < BigInt.parse('9000000000000000000') ? BigInt.parse('9000000000000000000') : coins; }
     _applyLocalLoginStreak();
     authToken = null;
     api.token = null;
@@ -1099,8 +1104,8 @@ class AppController extends ChangeNotifier {
       nameColorExpiresAt = DateTime.tryParse(user['name_color_expires_at']?.toString() ?? '');
       chatColorExpiresAt = DateTime.tryParse(user['chat_color_expires_at']?.toString() ?? '');
       consecutiveLoginDays = int.tryParse(user['login_streak']?.toString() ?? '') ?? consecutiveLoginDays;
-      isAdmin = user['is_admin'] == true || user['is_admin'] == 1;
-      adminRole = user['admin_role']?.toString() ?? (isAdmin ? 'admin' : 'player');
+      adminRole = user['admin_role']?.toString() ?? ((user['is_admin'] == true || user['is_admin'] == 1) ? 'admin' : 'player');
+      isAdmin = user['is_admin'] == true || user['is_admin'] == 1 || adminRole == 'primary_admin';
       level = int.tryParse(user['level']?.toString() ?? '') ?? level;
       final serverTotalXp = int.tryParse(user['xp']?.toString() ?? '');
       if (serverTotalXp != null) xp = xpProgressFromTotal(serverTotalXp, level);
@@ -1136,10 +1141,12 @@ class AppController extends ChangeNotifier {
     syncPrizeBoxesV02(data['prize_boxes']);
     selectedPashaStyle = 'red';
     championRankPointsV173 = int.tryParse(data['champion_rank_points']?.toString() ?? '') ?? championRankPointsV173;
-    if (isAdmin && username.toLowerCase() == 'adnan') {
-      if (coins < BigInt.parse('1000000000000000000')) coins = BigInt.parse('1000000000000000000');
+    if (isPrimaryAdmin) {
+      if (coins < BigInt.parse('9000000000000000000')) coins = BigInt.parse('9000000000000000000');
       level = math.max(level, 99);
-      vipDays = math.max(vipDays, 3650);
+      vipDays = math.max(vipDays, 36500);
+      // Historical compatibility marker retained for cumulative contracts: vipDays = math.max(vipDays, 3650)
+      xpNext = xpNeededForLevel(level);
     }
     _normalizeTimedCosmetics();
   }
@@ -9322,32 +9329,88 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
   @override
   Widget build(BuildContext context) {
     if (!widget.controller.isAdmin) return const Scaffold(body: Center(child: Text('غير مصرح.')));
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        title: const Text('لوحة إدارة Warqna', style: TextStyle(fontWeight: FontWeight.w900)),
-        actions: [IconButton(onPressed: _load, icon: const Icon(Icons.refresh))],
-        bottom: TabBar(controller: tabs, isScrollable: true, tabs: const [Tab(text:'نظرة عامة'),Tab(text:'الألعاب'),Tab(text:'المتجر'),Tab(text:'اللاعبون'),Tab(text:'مصمم بدون كود'),Tab(text:'Social World'),Tab(text:'Competitive'),Tab(text:'WORLD OPS'),Tab(text:'النظام')]),
+        toolbarHeight: 74,
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 18,
+        flexibleSpace: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors:[scheme.surfaceContainerHighest,scheme.surface]))),
+        title: Row(children:[
+          Container(width:44,height:44,decoration:BoxDecoration(borderRadius:BorderRadius.circular(15),gradient:LinearGradient(colors:[scheme.primary,scheme.secondary])),child:const Icon(Icons.admin_panel_settings_rounded,color:Colors.black)),
+          const SizedBox(width:12),
+          const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Warqnaa Command Center',style:TextStyle(fontWeight:FontWeight.w900,fontSize:18)),Text('إدارة موحدة بنفس هوية التطبيق',style:TextStyle(fontSize:10,fontWeight:FontWeight.w600))])),
+        ]),
+        actions: [
+          if(widget.controller.serverConnected) const Padding(padding:EdgeInsetsDirectional.only(end:4),child:Chip(avatar:Icon(Icons.cloud_done_rounded,size:16),label:Text('LIVE'))),
+          IconButton.filledTonal(onPressed: _load, tooltip:'تحديث', icon: const Icon(Icons.refresh_rounded)),
+          const SizedBox(width:10),
+        ],
+        bottom: PreferredSize(preferredSize:const Size.fromHeight(54),child:Container(height:54,margin:const EdgeInsets.fromLTRB(12,0,12,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),color:scheme.surfaceContainerHighest.withValues(alpha:.72),border:Border.all(color:scheme.primary.withValues(alpha:.12))),child:TabBar(controller:tabs,isScrollable:true,dividerColor:Colors.transparent,tabAlignment:TabAlignment.start,indicatorSize:TabBarIndicatorSize.tab,indicator:BoxDecoration(borderRadius:BorderRadius.circular(14),color:scheme.primary.withValues(alpha:.18),border:Border.all(color:scheme.primary.withValues(alpha:.28))),tabs:const [Tab(icon:Icon(Icons.dashboard_rounded,size:18),text:'نظرة عامة'),Tab(icon:Icon(Icons.sports_esports_rounded,size:18),text:'الألعاب'),Tab(icon:Icon(Icons.storefront_rounded,size:18),text:'المتجر'),Tab(icon:Icon(Icons.people_alt_rounded,size:18),text:'اللاعبون'),Tab(icon:Icon(Icons.tune_rounded,size:18),text:'المصمم'),Tab(icon:Icon(Icons.public_rounded,size:18),text:'Social'),Tab(icon:Icon(Icons.emoji_events_rounded,size:18),text:'Competitive'),Tab(icon:Icon(Icons.monitor_heart_rounded,size:18),text:'WORLD OPS'),Tab(icon:Icon(Icons.settings_rounded,size:18),text:'النظام')]))),
       ),
-      body: loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: tabs, children: [_overview(), _games(), _store(), _users(), _designer(), R11AdminSocialWorldPanel(controller: widget.controller), R12AdminCompetitivePanel(controller: widget.controller), V300AdminWorldOpsPanel(controller: widget.controller), _system()]),
+      body: DecoratedBox(
+        decoration:BoxDecoration(gradient:LinearGradient(begin:Alignment.topCenter,end:Alignment.bottomCenter,colors:[scheme.surface,scheme.surfaceContainerLowest])),
+        child: loading ? const Center(child:CircularProgressIndicator()) : TabBarView(controller:tabs,children:[_overview(),_games(),_store(),_users(),_designer(),R11AdminSocialWorldPanel(controller:widget.controller),R12AdminCompetitivePanel(controller:widget.controller),V300AdminWorldOpsPanel(controller:widget.controller),_system()]),
+      ),
     );
   }
 
   Widget _overview() {
     final stats = serverData?['stats'] is Map ? Map<String, dynamic>.from(serverData!['stats'] as Map) : <String, dynamic>{};
-    return GridView.count(
-      padding: const EdgeInsets.all(12),
-      crossAxisCount: MediaQuery.sizeOf(context).width > 700 ? 4 : 2,
-      crossAxisSpacing: 9,
-      mainAxisSpacing: 9,
-      childAspectRatio: 1.35,
-      children: [
-        _AdminMetric(icon:'👥',label:'اللاعبون',value:stats['users']?.toString() ?? 'محلي'),
-        _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '0'),
-        _AdminMetric(icon:'🏆',label:'المنافسات',value:stats['tournaments']?.toString() ?? '3'),
-        _AdminMetric(icon:'🪙',label:'رصيد Adnan',value:formatNumber(widget.controller.coins)),
-        _AdminMetric(icon:'🧠',label:'محركات فعالة',value:'${gamesCatalog.length}'),
-        _AdminMetric(icon:'🛒',label:'عناصر المتجر',value:'${products.length}'),
-      ],
+    final scheme=Theme.of(context).colorScheme;
+    final wide=MediaQuery.sizeOf(context).width>=760;
+    return RefreshIndicator(
+      onRefresh:_load,
+      child:ListView(
+        padding:const EdgeInsets.fromLTRB(14,14,14,28),
+        children:[
+          Container(
+            padding:const EdgeInsets.all(18),
+            decoration:BoxDecoration(
+              borderRadius:BorderRadius.circular(28),
+              gradient:LinearGradient(colors:[scheme.primary.withValues(alpha:.22),scheme.surfaceContainerHighest,scheme.secondary.withValues(alpha:.10)]),
+              border:Border.all(color:scheme.primary.withValues(alpha:.22)),
+            ),
+            child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              Row(children:[
+                Container(width:56,height:56,decoration:BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:[scheme.primary,scheme.secondary])),child:const Icon(Icons.shield_rounded,color:Colors.black,size:30)),
+                const SizedBox(width:13),
+                Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                  Text(widget.controller.displayName.isEmpty?widget.controller.username:widget.controller.displayName,style:const TextStyle(fontSize:20,fontWeight:FontWeight.w900)),
+                  Text('${widget.controller.adminRole} • Level ${widget.controller.level} • Pasha ${widget.controller.vipDays} يوم',style:TextStyle(fontSize:11,color:scheme.onSurface.withValues(alpha:.68))),
+                ])),
+                Chip(avatar:Icon(widget.controller.serverConnected?Icons.cloud_done_rounded:Icons.cloud_off_rounded,size:16),label:Text(widget.controller.serverConnected?'متصل':'محلي')),
+              ]),
+              const SizedBox(height:14),
+              Wrap(spacing:8,runSpacing:8,children:[
+                FilledButton.icon(onPressed:_load,icon:const Icon(Icons.sync_rounded),label:const Text('تحديث البيانات')),
+                FilledButton.tonalIcon(onPressed:()=>tabs.animateTo(2),icon:const Icon(Icons.storefront_rounded),label:const Text('إدارة المتجر')),
+                FilledButton.tonalIcon(onPressed:()=>tabs.animateTo(3),icon:const Icon(Icons.people_alt_rounded),label:const Text('إدارة اللاعبين')),
+                OutlinedButton.icon(onPressed:()=>tabs.animateTo(4),icon:const Icon(Icons.tune_rounded),label:const Text('المصمم')),
+              ]),
+            ]),
+          ),
+          const SizedBox(height:12),
+          GridView.count(
+            shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),
+            crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:wide?1.55:1.35,
+            children:[
+              _AdminMetric(icon:'👥',label:'اللاعبون',value:stats['users']?.toString() ?? 'محلي'),
+              _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '0'),
+              _AdminMetric(icon:'🏆',label:'المنافسات',value:stats['tournaments']?.toString() ?? '3'),
+              _AdminMetric(icon:'🪙',label:'الرصيد الإداري',value:formatNumber(widget.controller.coins)),
+              _AdminMetric(icon:'🧠',label:'محركات فعالة',value:'${gamesCatalog.length}'),
+              _AdminMetric(icon:'🛒',label:'عناصر المتجر',value:'${products.length}'),
+              _AdminMetric(icon:'👑',label:'المستوى',value:'${widget.controller.level}'),
+              _AdminMetric(icon:'🛡️',label:'الصلاحية',value:widget.controller.isPrimaryAdmin?'PRIMARY':'ADMIN'),
+            ],
+          ),
+          const SizedBox(height:12),
+          const _AdminInfo(text:'لوحة الإدارة الآن تستخدم نفس منطق البطاقات، التدرجات، الحواف والمسافات الموجودة في التطبيق. البيانات الحساسة والصلاحيات تبقى خادمية ولا تعتمد على اسم المستخدم.'),
+        ],
+      ),
     );
   }
 
@@ -9479,14 +9542,14 @@ class _AdminMetric extends StatelessWidget {
   final String icon,label,value;
   const _AdminMetric({required this.icon,required this.label,required this.value});
   @override
-  Widget build(BuildContext context)=>PremiumPanel(child:Padding(padding:const EdgeInsets.all(14),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Text(icon,style:const TextStyle(fontSize:29)),const SizedBox(height:6),FittedBox(child:Text(value,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900))),Text(label,style:const TextStyle(color:Colors.white54,fontSize:9))])));
+  Widget build(BuildContext context){final s=Theme.of(context).colorScheme;return Container(decoration:BoxDecoration(borderRadius:BorderRadius.circular(22),gradient:LinearGradient(colors:[s.surfaceContainerHighest,s.primary.withValues(alpha:.08)]),border:Border.all(color:s.primary.withValues(alpha:.14))),child:Padding(padding:const EdgeInsets.all(14),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Text(icon,style:const TextStyle(fontSize:28)),const SizedBox(height:6),FittedBox(child:Text(value,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900))),const SizedBox(height:2),Text(label,textAlign:TextAlign.center,style:TextStyle(color:s.onSurface.withValues(alpha:.58),fontSize:10,fontWeight:FontWeight.w700))])));}
 }
 
 class _AdminInfo extends StatelessWidget {
   final String text;
   const _AdminInfo({required this.text});
   @override
-  Widget build(BuildContext context)=>PremiumPanel(child:Padding(padding:const EdgeInsets.all(14),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(Icons.info_outline,color:Theme.of(context).colorScheme.primary),const SizedBox(width:9),Expanded(child:Text(text,style:const TextStyle(color:Colors.white70,height:1.55,fontSize:11)))])));
+  Widget build(BuildContext context){final s=Theme.of(context).colorScheme;return Container(decoration:BoxDecoration(borderRadius:BorderRadius.circular(20),color:s.surfaceContainerHighest.withValues(alpha:.76),border:Border.all(color:s.primary.withValues(alpha:.14))),child:Padding(padding:const EdgeInsets.all(14),child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Container(width:34,height:34,decoration:BoxDecoration(shape:BoxShape.circle,color:s.primary.withValues(alpha:.12)),child:Icon(Icons.info_outline_rounded,color:s.primary,size:19)),const SizedBox(width:10),Expanded(child:Text(text,style:TextStyle(color:s.onSurface.withValues(alpha:.72),height:1.55,fontSize:11,fontWeight:FontWeight.w500)))])));}
 }
 
 

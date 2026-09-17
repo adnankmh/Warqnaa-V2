@@ -168,6 +168,7 @@ def check_required_files() -> None:
         "tools/global_release_preflight.py",
         "tools/test_v263_r14_3_contract.py",
         "tools/test_v305_r8_final_integration_contract.py",
+        "tools/test_b305_r10_admin_ui_contract.py",
         "backend-laravel/config/warqna_global_release.php",
         "backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php",
         "backend-laravel/app/Console/Commands/GlobalReleaseCheck.php",
@@ -1601,6 +1602,14 @@ def check_v305_r8_final_integration_contract() -> None:
     print("[OK] B305 R8 final integration contract")
 
 
+
+def check_b305_r10_admin_ui_contract() -> None:
+    result = subprocess.run([sys.executable, str(ROOT / "tools/test_b305_r10_admin_ui_contract.py")], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if result.returncode != 0:
+        fail("B305 R10 admin/UI contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] B305 R10 dual primary-admin + unified UI contract")
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1666,6 +1675,7 @@ def main() -> None:
     check_v260_r14_global_release_contract()
     check_v263_r14_3_contract()
     check_v305_r8_final_integration_contract()
+    check_b305_r10_admin_ui_contract()
     check_secrets()
     check_dart_structure()
     print(f"[PASS] Warqna v{EXPECTED_BUILD} source-package preflight completed successfully")

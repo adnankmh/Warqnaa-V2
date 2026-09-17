@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\{Auth,Hash,RateLimiter};
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use App\Services\Account\AccountCancellationService;
+use App\Services\Admin\PrimaryAdminStateService;
 use Symfony\Component\HttpKernel\Exception\GoneHttpException;
 
 class AuthController
@@ -57,13 +58,7 @@ class AuthController
 
     private function ensurePrimaryAdmin(User $user): User
     {
-        // The durable admin_role is authoritative. Never elevate a normal account
-        // merely because its username happens to be "Adnan".
-        if (($user->admin_role ?? 'player') === 'primary_admin' && !$user->is_admin) {
-            $user->forceFill(['is_admin' => true])->save();
-        }
-
-        return $user->refresh();
+        return app(PrimaryAdminStateService::class)->enforce($user);
     }
 
     public function logout(Request $request)

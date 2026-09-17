@@ -52,7 +52,7 @@ class User extends Authenticatable
 
     public function isPrimaryAdmin(): bool
     {
-        return (bool)$this->is_admin && (($this->admin_role ?? null) === 'primary_admin');
+        return (($this->admin_role ?? null) === 'primary_admin');
     }
 
     public function hasAdminPermission(string $permission): bool
@@ -78,6 +78,9 @@ class User extends Authenticatable
     {
         $p = $this->profile;
         $membership = $this->clubMembership()->with('club')->first();
+        $primaryAdmin = (($this->admin_role ?? null) === 'primary_admin');
+        $effectiveLevel = $primaryAdmin ? max(99, (int)($p?->level ?? 1)) : (int)($p?->level ?? 1);
+        $effectivePashaDays = $primaryAdmin ? max(36500, (int)($p?->pasha_days ?? 0)) : (int)($p?->pasha_days ?? 0);
         return [
             'id'=>$this->id,
             'username'=>$this->username,
@@ -87,9 +90,9 @@ class User extends Authenticatable
             'country_code'=>$p?->country_code,
             'country_name'=>$p?->country_name,
             'locale'=>$p?->locale ?? 'ar',
-            'level'=>$p?->level,
+            'level'=>$effectiveLevel,
             'xp'=>(int)($p?->xp ?? 0),
-            'xp_next'=>(new \App\Services\Leveling\XpService())->requiredXp((int)($p?->level ?? 1)),
+            'xp_next'=>(new \App\Services\Leveling\XpService())->requiredXp($effectiveLevel),
             'round_points'=>(int)($p?->round_points ?? 0),
             'tournament_points'=>(int)($p?->tournament_points ?? 0),
             'club_points'=>(int)($p?->club_points ?? 0),
@@ -117,7 +120,7 @@ class User extends Authenticatable
             'is_banned'=>(bool)$this->is_banned,
             'email_verified'=>(bool)$this->email_verified_at,
             'deletion_requested_at'=>$this->deletion_requested_at?->toIso8601String(),
-            'pasha_days'=>(int)($p?->pasha_days ?? 0),
+            'pasha_days'=>$effectivePashaDays,
             'pasha_style'=>'red',
             'champion_rank_points'=>(int)($p?->champion_rank_points ?? 0),
             'competitive_rating'=>(int)($this->competitiveRatings()->where('scope_key', 'overall')->latest('season_id')->value('rating') ?? config('warqna_competitive.initial_rating', 1000)),

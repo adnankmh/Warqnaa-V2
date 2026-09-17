@@ -6,6 +6,7 @@ use App\Models\{AdminDesignerEntity,ChallengeDefinition,Club,CompetitionTicket,D
 use App\Services\Wallet\WalletService;
 use App\Services\Platform\ProductionConfigService;
 use App\Services\Account\AccountCancellationService;
+use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\WarqnaPro\StoreCatalogService;
 use App\Services\Games\GameCatalog;
 use App\Services\WarqnaPro\AssetDeliveryService;
@@ -558,20 +559,10 @@ class MobileApiController extends Controller
         return $user->publicProfile() + ['email' => (string)$user->email];
     }
 
-    /** Keep the durable primary-admin role authoritative even after username/email changes. */
+    /** Keep the durable primary-admin role authoritative on every self endpoint. */
     private function ensurePrimaryAdmin(User $user): User
     {
-        if ($user->isPrimaryAdmin()) {
-            if (!$user->is_admin) $user->forceFill(['is_admin' => true])->save();
-            $profile = $user->profile()->firstOrCreate([], [
-                'display_name'=>$user->username,'country_code'=>'PS','country_name'=>country_name('PS'),
-            ]);
-            if ((int)$profile->level < 99 || $profile->pasha_style !== 'red') {
-                $profile->forceFill(['level'=>99,'pasha_style'=>'red'])->save();
-            }
-        }
-
-        return $user->refresh();
+        return app(PrimaryAdminStateService::class)->enforce($user);
     }
 
 }

@@ -76,6 +76,17 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
   @if(auth()->user()?->hasAdminPermission('competitive'))<a class="btn primary" href="{{route('admin.competitive')}}">♛ Competitive R12</a>@endif
  </div>
 </section>
+@php
+ $adminUser=auth()->user();
+ $adminProfile=$adminUser?->profile;
+ $adminEffectiveLevel=(($adminUser?->admin_role ?? null)==='primary_admin')?max(99,(int)($adminProfile?->level ?? 1)):(int)($adminProfile?->level ?? 1);
+ $adminEffectivePasha=(($adminUser?->admin_role ?? null)==='primary_admin')?max(36500,(int)($adminProfile?->pasha_days ?? 0)):(int)($adminProfile?->pasha_days ?? 0);
+@endphp
+<div class="b306-admin-identity">
+ <div class="b306-admin-avatar">♛</div>
+ <div><b>{{$adminProfile?->display_name ?: $adminUser?->username}}</b><small>{{$adminUser?->admin_role ?? 'admin'}} • لوحة إدارة موحدة مع التطبيق</small></div>
+ <div class="b306-admin-badges"><span>LEVEL {{$adminEffectiveLevel}}</span><span>PASHA {{number_format($adminEffectivePasha)}} DAYS</span><span>{{strtoupper(app()->getLocale())}}</span></div>
+</div>
 <div class="stats r9-command-stats"><div><small>الغرف</small><b>{{$rooms}}</b></div><div><small>الأندية</small><b>{{$clubs}}</b></div><div><small>المنافسات</small><b>{{$tournaments}}</b></div><div><small>المقتنيات</small><b>{{$storeItems->count()}}</b></div></div>
 <div class="admin-tabs jumbo-tabs">
  @if(auth()->user()?->hasAdminPermission('site_settings'))<button data-admin-tab="control">تحكم الموقع</button>@endif @if(auth()->user()?->hasAdminPermission('site_design'))<button data-admin-tab="designer">مصمم شامل</button>@endif @if(auth()->user()?->hasAdminPermission('game_rules'))<button data-admin-tab="games-admin">الألعاب والقوانين</button>@endif @if(auth()->user()?->hasAdminPermission('social_world'))<button data-admin-tab="social-world">✦ Social World</button>@endif @if(auth()->user()?->hasAdminPermission('competitive'))<a class="btn" href="{{route('admin.competitive')}}">♛ Competitive R12</a>@endif<button data-admin-tab="pro-health">صحة النظام والخطة</button><button data-admin-tab="monitor">مراقبة مباشرة</button><button data-admin-tab="economy">المواسم والاقتصاد</button><button data-admin-tab="commerce">💳 التجارة والإعلانات</button><button data-admin-tab="v118">منصة V118</button><button data-admin-tab="builder">مصمم الموقع الشامل</button><button data-admin-tab="store">إدارة المتجر</button><button data-admin-tab="players">كل اللاعبين</button><button data-admin-tab="rooms">الغرف المفتوحة</button><button data-admin-tab="clubs">النوادي</button><button data-admin-tab="tournaments">المسابقات</button><button data-admin-tab="security">الحماية</button><button data-admin-tab="support">رسائل الدعم</button>

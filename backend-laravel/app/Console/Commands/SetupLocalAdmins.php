@@ -1,23 +1,18 @@
 <?php
 namespace App\Console\Commands;
 
-use App\Models\{CompetitionTicket,Profile,StoreItem,User,Wallet};
+use App\Models\{CompetitionTicket,InventoryItem,Profile,StoreItem,User,Wallet};
+use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\WarqnaPro\StoreCatalogService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\{Hash,Schema};
+use Illuminate\Support\Facades\{DB,Hash,Schema};
 
 class SetupLocalAdmins extends Command
 {
     protected $signature='warqnaa:local-admin-setup {--force : Apply outside local/testing}';
-    protected $description='Provision two private administrator accounts from untracked environment values.';
+    protected $description='Provision two private primary administrators from untracked environment values.';
 
-    private const TOKEN_RESERVE=9000000000000000000;
-    private const LEVEL=99;
-    private const XP_LEVEL_99=193947651;
-    private const PASHA_DAYS=36500;
-    private const GEMS=100000000;
-
-    public function handle(): int
+    public function handle(PrimaryAdminStateService $state): int
     {
         if(!$this->option('force') && !app()->environment(['local','testing'])){
             $this->error('Use --force only in a controlled environment.');
@@ -43,11 +38,17 @@ class SetupLocalAdmins extends Command
                 return self::FAILURE;
             }
         }
+        if(strcasecmp($accounts[0]['username'],$accounts[1]['username'])===0 || strcasecmp($accounts[0]['email'],$accounts[1]['email'])===0){
+            $this->error('Primary and deputy identities must be different.');
+            return self::FAILURE;
+        }
 
         $admins=[];
-        foreach($accounts as $a){
-            $admins[]=$this->upsert($a['username'],$a['email'],$a['password']);
-        }
+        DB::transaction(function() use($accounts,&$admins,$state){
+            foreach($accounts as $a){
+                $admins[]=$this->upsert($a['username'],$a['email'],$a['password'],$state);
+            }
+        });
 
         try{
             $catalog=app(StoreCatalogService::class);
@@ -75,23 +76,46 @@ class SetupLocalAdmins extends Command
         }
 
         foreach($admins as $admin){
-            $admin->refresh()->load(['profile','wallet']);
-            $this->line($admin->username.' level='.(int)$admin->profile?->level.' xp='.(int)$admin->profile?->xp.' role='.$admin->admin_role);
+            $admin=$state->enforce($admin);
+            $inventory=Schema::hasTable('inventory_items') ? InventoryItem::where('user_id',$admin->id)->count() : 0;
+            $tickets=Schema::hasTable('competition_tickets') ? CompetitionTicket::where('user_id',$admin->id)->sum('quantity') : 0;
+            $this->line(sprintf(
+                'ADMIN_OK username=%s id=%d role=%s level=%d xp=%d pasha=%d tokens=%s gems=%s inventory=%d tickets=%d',
+                $admin->username,$admin->id,$admin->admin_role,(int)$admin->profile?->level,(int)$admin->profile?->xp,
+                (int)$admin->profile?->pasha_days,(string)$admin->wallet?->tokens,(string)$admin->wallet?->gems,$inventory,$tickets
+            ));
+            if((int)$admin->profile?->level !== 99 || ($admin->admin_role ?? null)!=='primary_admin'){
+                $this->error('Administrator verification failed.');
+                return self::FAILURE;
+            }
         }
 
+        $this->info('DUAL_PRIMARY_ADMIN_SETUP_OK');
         return self::SUCCESS;
     }
 
-    private function upsert(string $username,string $email,string $password): User
+    private function upsert(string $username,string $email,string $password,PrimaryAdminStateService $state): User
     {
-        $byEmail=User::query()->whereRaw('LOWER(email)=?',[strtolower($email)])->first();
         $byUsername=User::query()->whereRaw('LOWER(username)=?',[strtolower($username)])->first();
+        $byEmail=User::query()->whereRaw('LOWER(email)=?',[strtolower($email)])->first();
+        $user=$byUsername ?: $byEmail ?: new User(['username'=>$username]);
 
+        // A previous broken setup may have split the desired username and email
+        // across two rows. Preserve both rows but free the conflicting identity
+        // so the intended username account becomes the administrator account.
         if($byEmail && $byUsername && (int)$byEmail->id!==(int)$byUsername->id){
-            throw new \RuntimeException('Username and email belong to different users.');
+            $byEmail->forceFill(['email'=>'archived-'.$byEmail->id.'-'.time().'@warqna.local'])->save();
+            $user=$byUsername;
+        }
+        $nameOwner=User::query()->whereRaw('LOWER(username)=?',[strtolower($username)])->where('id','!=',$user->id ?? 0)->first();
+        if($nameOwner){
+            $nameOwner->forceFill(['username'=>'archived_user_'.$nameOwner->id.'_'.time()])->save();
+        }
+        $mailOwner=User::query()->whereRaw('LOWER(email)=?',[strtolower($email)])->where('id','!=',$user->id ?? 0)->first();
+        if($mailOwner){
+            $mailOwner->forceFill(['email'=>'archived-'.$mailOwner->id.'-'.time().'@warqna.local'])->save();
         }
 
-        $user=$byEmail ?: $byUsername ?: new User(['username'=>$username]);
         $user->forceFill([
             'username'=>$username,
             'email'=>$email,
@@ -102,31 +126,21 @@ class SetupLocalAdmins extends Command
             'admin_permissions'=>[
                 'all'=>true,'users'=>true,'store'=>true,'rooms'=>true,'clubs'=>true,
                 'tournaments'=>true,'economy'=>true,'security'=>true,'social_world'=>true,
+                'competitive'=>true,'site_settings'=>true,'site_design'=>true,'game_rules'=>true,
                 'designer'=>true,'moderation'=>true,'analytics'=>true,'settings'=>true,
                 'releases'=>true,'support'=>true
             ],
         ])->save();
 
         Profile::updateOrCreate(['user_id'=>$user->id],[
-            'display_name'=>$username,
-            'avatar'=>'🦁',
-            'country_code'=>'PS',
-            'country_name'=>'Palestine',
-            'level'=>self::LEVEL,
-            'xp'=>self::XP_LEVEL_99,
-            'games_played'=>20000,
-            'wins'=>15000,
-            'name_color'=>'#facc15',
-            'chat_color'=>'#facc15',
-            'pasha_days'=>self::PASHA_DAYS,
-            'badge'=>'king',
+            'display_name'=>$username,'avatar'=>'🦁','country_code'=>'PS','country_name'=>'Palestine',
+            'level'=>PrimaryAdminStateService::LEVEL,'xp'=>PrimaryAdminStateService::XP_FLOOR,
+            'games_played'=>20000,'wins'=>15000,'name_color'=>'#facc15','chat_color'=>'#facc15',
+            'pasha_days'=>PrimaryAdminStateService::PASHA_DAYS,'pasha_style'=>'red','badge'=>'king'
         ]);
-
         Wallet::updateOrCreate(['user_id'=>$user->id],[
-            'tokens'=>self::TOKEN_RESERVE,
-            'gems'=>self::GEMS,
+            'tokens'=>PrimaryAdminStateService::TOKEN_RESERVE,'gems'=>PrimaryAdminStateService::GEMS
         ]);
-
-        return $user->fresh();
+        return $state->enforce($user);
     }
 }

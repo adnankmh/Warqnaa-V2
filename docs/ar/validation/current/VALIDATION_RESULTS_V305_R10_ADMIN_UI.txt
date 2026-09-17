@@ -1,0 +1,9 @@
+Warqnaa B305 R10 Admin + UI hardening
+
+- Dual primary-admin provisioning is environment-driven; no private credentials in tracked source.
+- Primary-admin state is enforced at web login and every mobile self/bootstrap endpoint.
+- API effective level never falls below 99 and Pasha never below 36500 for primary_admin.
+- Flutter applies primary_admin role before local cached progression and forces Level 99 / 36500 Pasha / 9e18 reserve.
+- Store sync grants every active collectible to every primary_admin account.
+- Web global shell and admin command center aligned visually with Flutter surface/gradient/card language.
+- Flutter admin dashboard redesigned with app-style command center, pill tabs, status chips and responsive metrics.

@@ -50,10 +50,10 @@ class StoreCatalogService
     public function grantPrimaryAdminAllCollectibles(): void
     {
         if(!Schema::hasTable('users') || !Schema::hasTable('store_items') || !Schema::hasTable('inventory_items')) return;
-        $admin=\App\Models\User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
-        if(!$admin) return;
+        $admins=\App\Models\User::where('admin_role','primary_admin')->get();
+        if($admins->isEmpty()) return;
         $items=\App\Models\StoreItem::where('active',true)->whereNotIn('category',['pasha','competition_ticket'])->get();
-        foreach($items as $item) $this->grantPrimaryAdminItem((int)$item->id, $admin);
+        foreach($admins as $admin) foreach($items as $item) $this->grantPrimaryAdminItem((int)$item->id, $admin);
     }
 
     public function grantPrimaryAdminItem(int $storeItemId, ?\App\Models\User $admin=null): void
