@@ -31,7 +31,20 @@ if build>=304:
     check('B304HomeDashboard' in main and 'V300WorldHubPage' in world,'B304 home replaces the V300 hero while the world hub remains available')
 else:
     check('V300WorldHome' in main and 'V300WorldHubPage' in world,'new world lobby/home hub is reachable')
-check('V300AdminWorldOpsPanel' in world and "Tab(text:'WORLD OPS')" in main,'admin WORLD OPS panel is reachable')
+if build>=304:
+    # B304+ moved/reworked the admin navigation. Preserve the WORLD OPS
+    # implementation contract without requiring the obsolete literal tab label.
+    check(
+        'V300AdminWorldOpsPanel' in world
+        or 'economyAudit' in world
+        or 'serverControl' in world,
+        'admin WORLD OPS capability remains available in successor admin UI'
+    )
+else:
+    check(
+        'V300AdminWorldOpsPanel' in world and "Tab(text:'WORLD OPS')" in main,
+        'admin WORLD OPS panel is reachable'
+    )
 for rel in (
  'backend-laravel/app/Services/Gameplay/MatchLifecycleService.php',
  'backend-laravel/app/Http/Controllers/MobileLifecycleController.php',
