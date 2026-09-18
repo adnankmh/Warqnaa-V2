@@ -104,12 +104,19 @@ class B307BottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final items = <(IconData, String)>[
-      (Icons.storefront_outlined, ar ? 'المتجر' : 'Store'),
-      (Icons.style_outlined, ar ? 'الألعاب' : 'Games'),
-      (Icons.home_rounded, ar ? 'الرئيسية' : 'Home'),
-      (Icons.groups_2_outlined, ar ? 'الأصدقاء' : 'Social'),
-      (Icons.emoji_events_outlined, ar ? 'البطولات' : 'Events'),
+    final icons = <IconData>[
+      Icons.storefront_outlined,
+      Icons.style_outlined,
+      Icons.home_rounded,
+      Icons.groups_2_outlined,
+      Icons.emoji_events_outlined,
+    ];
+    final labels = <String>[
+      ar ? 'المتجر' : 'Store',
+      ar ? 'الألعاب' : 'Games',
+      ar ? 'الرئيسية' : 'Home',
+      ar ? 'الأصدقاء' : 'Social',
+      ar ? 'البطولات' : 'Events',
     ];
     return SafeArea(
       top: false,
@@ -123,7 +130,7 @@ class B307BottomNavigation extends StatelessWidget {
           boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x5a000000), blurRadius: 20, offset: Offset(0, -4))],
         ),
         child: Row(
-          children: List<Widget>.generate(items.length, (i) {
+          children: List<Widget>.generate(icons.length, (i) {
             final selected = i == selectedIndex;
             return Expanded(
               child: InkWell(
@@ -138,9 +145,9 @@ class B307BottomNavigation extends StatelessWidget {
                     border: selected ? Border.all(color: const Color(0xffd9ad3c).withValues(alpha: .25)) : null,
                   ),
                   child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    Icon(items[i].$1, size: 21, color: selected ? const Color(0xffe2b844) : Colors.white54),
+                    Icon(icons[i], size: 21, color: selected ? const Color(0xffe2b844) : Colors.white54),
                     const SizedBox(height: 2),
-                    Text(items[i].$2, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : Colors.white54)),
+                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : Colors.white54)),
                   ]),
                 ),
               ),
@@ -370,13 +377,20 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
             ),
             const SizedBox(height: 10),
             SizedBox(height: 39, child: ListView(scrollDirection: Axis.horizontal, children: <Widget>[
-              for (final entry in <(String, String)>[
-                ('all', ar ? 'الكل' : 'All'),
-                ('featured', ar ? 'مميزة' : 'Featured'),
-                ('weekly', ar ? 'الأسبوع' : 'Weekly'),
-                ('tokens', ar ? 'توكنز' : 'Tokens'),
+              for (final entry in <Map<String, String>>[
+                <String, String>{'key':'all', 'label': ar ? 'الكل' : 'All'},
+                <String, String>{'key':'featured', 'label': ar ? 'مميزة' : 'Featured'},
+                <String, String>{'key':'weekly', 'label': ar ? 'الأسبوع' : 'Weekly'},
+                <String, String>{'key':'tokens', 'label': ar ? 'توكنز' : 'Tokens'},
               ])
-                Padding(padding: const EdgeInsetsDirectional.only(end: 6), child: ChoiceChip(label: Text(entry.$2), selected: category == entry.$1, onSelected: (_) => setState(() => category = entry.$1))),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 6),
+                  child: ChoiceChip(
+                    label: Text(entry['label']!),
+                    selected: category == entry['key'],
+                    onSelected: (_) => setState(() => category = entry['key']!),
+                  ),
+                ),
             ])),
             const SizedBox(height: 10),
             if (snapshot.hasError || packages.isEmpty)
