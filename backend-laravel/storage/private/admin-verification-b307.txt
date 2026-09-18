@@ -1,0 +1,3 @@
+ADMIN_OK username=Adnan id=1 role=primary_admin level=99 xp=193947651 pasha=36500 tokens=9000000000000000000 gems=100000000 inventory=300 tickets=13999986
+ADMIN_OK username=Adnan1 id=2 role=primary_admin level=99 xp=193947651 pasha=36500 tokens=9000000000000000000 gems=100000000 inventory=300 tickets=13999986
+DUAL_PRIMARY_ADMIN_SETUP_OK

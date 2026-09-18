@@ -49,7 +49,6 @@ part 'r14_2_account_security.dart';
 part 'v300_world_experience.dart';
 part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
-part 'b307_visual_revolution.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -621,12 +620,13 @@ class AppController extends ChangeNotifier {
   }
 
   Future<String?> _loginOrCreateLocalFallback(String loginId, String password) async {
-    // B307 security/runtime fix: a failed ONLINE login must never silently
-    // manufacture a fresh local account. This was the reason privileged users
-    // could appear as empty Level-1 players when the API URL/server was wrong.
     final existing = await _loginLocal(loginId, password);
     if (existing == null) return null;
-    return 'تعذر الاتصال بالخادم. لم يتم إنشاء حساب محلي جديد. تأكد من عنوان API أو استخدم وضع Offline فقط لحساب محفوظ مسبقًا.';
+    final cleanLogin = loginId.trim();
+    final safeUser = cleanLogin.contains('@') ? cleanLogin.split('@').first : cleanLogin;
+    final user = safeUser.replaceAll(RegExp(r'[^A-Za-z0-9_؀-ۿ.-]'), '_');
+    final mail = cleanLogin.contains('@') ? cleanLogin : '${user.isEmpty ? 'player' : user}@warqna.local';
+    return _registerLocal(user.isEmpty ? 'Player' : user, mail, password);
   }
 
   Future<void> load() async {
@@ -1740,13 +1740,11 @@ class AppController extends ChangeNotifier {
 
   Future<void> _applyPreferredOrientationV174() async {
     try {
-      // Portrait-first by design, but allow the real device rotation to switch
-      // the table to landscape. The table widgets read the current viewport.
-      await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      await SystemChrome.setPreferredOrientations(
+        landscapeMode
+            ? <DeviceOrientation>[DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]
+            : <DeviceOrientation>[DeviceOrientation.portraitUp],
+      );
     } catch (_) {}
   }
 
@@ -3545,10 +3543,16 @@ class _HomeShellState extends State<HomeShell> {
       }
       return Scaffold(
         body: SafeArea(bottom: false, child: mainContent),
-        bottomNavigationBar: B307BottomNavigation(
-          controller: widget.controller,
+        bottomNavigationBar: NavigationBar(
           selectedIndex: index,
-          onSelected: (value) => setState(() => index = value),
+          onDestinationSelected: (value) => setState(() => index = value),
+          destinations: [
+            NavigationDestination(icon: const Icon(Icons.redeem), label: L.t(widget.controller.localeCode, 'store')),
+            NavigationDestination(icon: const Icon(Icons.style), label: L.t(widget.controller.localeCode, 'games')),
+            NavigationDestination(icon: const Icon(Icons.home_rounded), label: L.t(widget.controller.localeCode, 'home')),
+            NavigationDestination(icon: const Icon(Icons.shield), label: L.t(widget.controller.localeCode, 'clubs')),
+            NavigationDestination(icon: const Icon(Icons.emoji_events_rounded), label: widget.controller.localeCode == 'ar' ? 'المسابقات' : 'Competitions'),
+          ],
         ),
       );
     });
@@ -3559,7 +3563,7 @@ class PremiumTopBar extends StatelessWidget {
   final AppController controller;
   const PremiumTopBar({super.key, required this.controller});
   @override
-  Widget build(BuildContext context) => B307TopBar(controller: controller);
+  Widget build(BuildContext context) => buildV170TopBar(context, controller);
 }
 
 class HomePage extends StatelessWidget {
@@ -3569,7 +3573,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => B307HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => B304HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
@@ -3769,8 +3773,6 @@ class _StorePageState extends State<StorePage> {
           ],
         ),
         const SizedBox(height: 10),
-        B307RealMoneyStoreBanner(controller: widget.controller),
-        const SizedBox(height: 8),
         R101CommerceShowcase(controller: widget.controller),
         const SizedBox(height: 10),
         PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[

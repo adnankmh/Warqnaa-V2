@@ -16,7 +16,7 @@ class R101ThemeSpec {
 }
 
 const Map<String, R101ThemeSpec> r101Themes = <String, R101ThemeSpec>{
-  'dark': R101ThemeSpec(code:'dark',accent:Color(0xffd8ad3f),accent2:Color(0xff35794b),background:Color(0xff111111),surface:Color(0xff1d1d1d),light:false),
+  'dark': R101ThemeSpec(code:'dark',accent:Color(0xffe9c46a),accent2:Color(0xff2a9d8f),background:Color(0xff07111d),surface:Color(0xff111e2e),light:false),
   'light': R101ThemeSpec(code:'light',accent:Color(0xff8b5e34),accent2:Color(0xff0f766e),background:Color(0xfff3eee5),surface:Color(0xfffffbf4),light:true),
   'green': R101ThemeSpec(code:'green',accent:Color(0xff34d399),accent2:Color(0xffd4af37),background:Color(0xff03261c),surface:Color(0xff084936),light:false),
   'gold': R101ThemeSpec(code:'gold',accent:Color(0xfff5c75b),accent2:Color(0xffc08457),background:Color(0xff211709),surface:Color(0xff3a2a12),light:false),
@@ -75,14 +75,14 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
       backgroundColor: spec.accent,
       foregroundColor: spec.light ? Colors.white : const Color(0xff111111),
       textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       minimumSize: const Size(44, 46),
     )),
     outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
       foregroundColor: scheme.onSurface,
       side: BorderSide(color: spec.accent.withValues(alpha: .36)),
       textStyle: const TextStyle(fontWeight: FontWeight.w800),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       minimumSize: const Size(44, 46),
     )),
     textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
@@ -104,7 +104,7 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
     snackBarTheme: base.snackBarTheme.copyWith(
       backgroundColor: Color.lerp(spec.surface, spec.background, .18),
       contentTextStyle: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w700),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       behavior: SnackBarBehavior.floating,
     ),
     dividerColor: spec.accent.withValues(alpha: .16),

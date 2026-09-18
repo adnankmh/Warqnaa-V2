@@ -25,14 +25,6 @@ class StoreController
         ]);
     }
 
-
-    public function offers(CommerceCatalogService $commerce)
-    {
-        return view('store.offers', [
-            'commerceCatalog'=>$commerce->catalog(),
-        ]);
-    }
-
     public function buy(StoreItem $item, WalletService $wallet)
     {
         if (class_exists('\\App\\Models\\SiteSetting') && !\App\Models\SiteSetting::getValue('store_enabled', true)) {
