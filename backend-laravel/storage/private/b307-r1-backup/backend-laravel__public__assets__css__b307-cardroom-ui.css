@@ -1,0 +1,81 @@
+/* Warqnaa B307 visual revolution.
+   Original dark social card-room design informed by modern MENA card-game UX.
+   No third-party logos, assets, or proprietary brand elements are copied. */
+:root{
+  --b307-bg:#121212;--b307-bg2:#0b0b0b;--b307-panel:#1b1b1b;--b307-panel2:#232323;
+  --b307-line:rgba(255,255,255,.07);--b307-gold:#d8ad3f;--b307-green:#2f7445;
+  --b307-red:#6d2942;--b307-text:#f4f4f4;--b307-muted:#969696;--b307-radius:14px;
+  --b307-shadow:0 14px 38px rgba(0,0,0,.28)
+}
+html,body{background:var(--b307-bg2)!important}
+body.warqna-b304{color:var(--b307-text)!important;background:linear-gradient(180deg,#161616 0,#0d0d0d 48%,#090909 100%)!important;background-attachment:fixed!important}
+body.warqna-b304 .page{width:min(1180px,calc(100% - 18px))!important;margin:10px auto 90px!important;padding:0!important}
+
+/* Compact social-game chrome */
+body.warqna-b304 .topbar{position:sticky!important;top:4px!important;z-index:900;width:min(1200px,calc(100% - 10px));margin:5px auto 0!important;min-height:52px!important;padding:6px 8px!important;border-radius:15px!important;border:1px solid var(--b307-line)!important;background:rgba(20,20,20,.96)!important;backdrop-filter:blur(14px);box-shadow:0 10px 28px rgba(0,0,0,.28)!important;gap:4px!important;overflow-x:auto;scrollbar-width:none}
+body.warqna-b304 .topbar::-webkit-scrollbar{display:none}
+body.warqna-b304 .topbar .brand{padding:9px 12px!important;border-radius:11px!important;background:linear-gradient(135deg,#e0b848,#8f6d18)!important;color:#17120a!important;font-size:14px!important;font-weight:950!important;box-shadow:none!important}
+body.warqna-b304 .topbar>a:not(.brand),body.warqna-b304 .topbar>button{min-height:36px!important;padding:7px 9px!important;border-radius:10px!important;background:#212121!important;color:#e8e8e8!important;border:1px solid rgba(255,255,255,.045)!important;font-size:12px!important}
+body.warqna-b304 .topbar>a:not(.brand):hover,body.warqna-b304 .topbar>button:hover{background:#2a2a2a!important;border-color:rgba(216,173,63,.22)!important;transform:none!important}
+body.warqna-b304 .userbar{width:min(1200px,calc(100% - 10px));margin:4px auto!important;padding:6px 8px!important;top:62px!important;gap:5px!important;border:1px solid var(--b307-line)!important;border-radius:14px!important;background:rgba(23,23,23,.96)!important;box-shadow:0 10px 25px rgba(0,0,0,.18)!important;overflow-x:auto;scrollbar-width:none}
+body.warqna-b304 .userbar::-webkit-scrollbar{display:none}
+body.warqna-b304 .user-chip,body.warqna-b304 .pasha,body.warqna-b304 .tokens,body.warqna-b304 .site-clock{min-height:34px!important;border-radius:9px!important;background:#242424!important;border:1px solid rgba(255,255,255,.05)!important;padding:6px 8px!important}
+body.warqna-b304 .tokens{color:#f0c64d!important}
+
+/* Universal page/cards */
+body.warqna-b304 :is(.pro-card,.mini-card,.builder-card,.profile-card,.settings-card,.store-card,.game-card,.room-card,.club-card,.tournament-card,.admin-section,.leaders,.create-room,.rooms-list,.premium-panel,.r9-panel){background:var(--b307-panel)!important;border:1px solid var(--b307-line)!important;border-radius:var(--b307-radius)!important;box-shadow:var(--b307-shadow)!important;backdrop-filter:none!important}
+body.warqna-b304 :is(.game-card,.store-card,.room-card,.club-card,.tournament-card):hover{transform:translateY(-2px)!important;border-color:rgba(216,173,63,.22)!important;box-shadow:0 16px 36px rgba(0,0,0,.32)!important}
+body.warqna-b304 h1,body.warqna-b304 h2,body.warqna-b304 h3{letter-spacing:0!important}
+body.warqna-b304 .muted{color:var(--b307-muted)!important}
+body.warqna-b304 :is(button,.btn){min-height:40px!important;border-radius:10px!important;font-weight:850!important;box-shadow:none!important}
+body.warqna-b304 :is(button.primary,.btn.primary,.primary){background:linear-gradient(180deg,#3b8652,#2f6c43)!important;color:#fff!important;border:1px solid rgba(255,255,255,.07)!important}
+body.warqna-b304 :is(input,select,textarea){min-height:42px!important;border-radius:10px!important;background:#141414!important;border:1px solid rgba(255,255,255,.09)!important;color:#f5f5f5!important;margin-block:5px!important}
+body.warqna-b304 :is(input,select,textarea):focus{border-color:rgba(216,173,63,.48)!important;box-shadow:0 0 0 2px rgba(216,173,63,.08)!important}
+
+/* Home / cards / list rhythm close to the reference screenshots */
+body.warqna-b304 .game-grid,body.warqna-b304 .store-grid,body.warqna-b304 .club-grid,body.warqna-b304 .tournament-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))!important;gap:9px!important}
+body.warqna-b304 .game-card,body.warqna-b304 .store-card{padding:12px!important}
+body.warqna-b304 .game-icon{font-size:36px!important}
+body.warqna-b304 .progress{height:9px!important;background:#272727!important}.progress span{background:#3d8b55!important}
+
+/* Admin becomes a compact dark command center like the app. */
+body.warqna-b304 .r9-admin-command{padding:16px!important;border-radius:16px!important;background:linear-gradient(135deg,#64263e,#302027 48%,#1b1b1b)!important;border:1px solid rgba(216,173,63,.13)!important;box-shadow:var(--b307-shadow)!important}
+body.warqna-b304 .r9-admin-command:before{display:none!important}
+body.warqna-b304 .r9-admin-command h1{font-size:clamp(22px,2.5vw,32px)!important}
+body.warqna-b304 .r9-command-stats{gap:7px!important}.r9-command-stats>div{padding:11px!important;border-radius:11px!important;background:#202020!important;border:1px solid var(--b307-line)!important}
+body.warqna-b304 .admin-tabs.jumbo-tabs{top:108px!important;padding:5px!important;gap:4px!important;border-radius:12px!important;background:rgba(20,20,20,.98)!important;border:1px solid var(--b307-line)!important}
+body.warqna-b304 .admin-tabs.jumbo-tabs>*{min-height:36px!important;padding:7px 10px!important;border-radius:8px!important}
+body.warqna-b304 .admin-tabs.jumbo-tabs>*.active{background:#652740!important;color:#fff1c0!important;border-color:rgba(216,173,63,.14)!important}
+
+/* Portrait-first card table: landscape only when the viewport rotates. */
+body.is-room-page .room-shell{grid-template-columns:minmax(170px,220px) minmax(0,1fr)!important;gap:10px!important;align-items:start}
+body.is-room-page .table-wrap{display:flex!important;justify-content:center!important;align-items:flex-start!important;min-width:0!important}
+body.is-room-page .game-table{width:min(92vw,680px)!important;height:auto!important;min-height:0!important;aspect-ratio:0.72!important;border-radius:38px!important;border-width:13px!important;background-color:#0c4d38!important;box-shadow:inset 0 0 55px rgba(0,0,0,.42),0 18px 45px rgba(0,0,0,.4)!important}
+body.is-room-page .seat-profile{min-width:105px!important;border-width:1px!important;border-radius:10px!important}.seat-profile img{width:46px!important;height:46px!important}.seat-profile span{font-size:13px!important}
+body.is-room-page .hand-row{bottom:14px!important;gap:2px!important}.hand-row .card{width:52px!important;height:76px!important;border-radius:7px!important;font-size:1rem!important}.hand-row .card em{font-size:1.5rem!important}
+body.is-room-page .bid-panel{bottom:108px!important}.bid-panel button{width:42px!important;height:42px!important}
+@media (orientation:landscape) and (min-width:760px){
+  body.is-room-page .room-shell{grid-template-columns:190px minmax(0,1fr)!important}
+  body.is-room-page .game-table{width:min(78vw,1050px)!important;aspect-ratio:1.55!important;border-radius:38px!important}
+  body.is-room-page .hand-row .card{width:58px!important;height:84px!important}
+}
+
+/* B307 real-money web shop */
+.b307-shop{max-width:1120px;margin:0 auto 70px}.b307-shop-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px;border-radius:18px;background:linear-gradient(135deg,#712a45,#3a252e 46%,#1c1c1c);border:1px solid rgba(216,173,63,.14);box-shadow:var(--b307-shadow)}
+.b307-shop-hero h1{margin:0 0 6px;font-size:clamp(24px,4vw,40px)}.b307-shop-hero p{margin:0;color:#d0c4c8;line-height:1.7}.b307-shop-mark{width:78px;height:78px;border-radius:16px;display:grid;place-items:center;background:#1118;border:1px solid rgba(255,255,255,.08);font-size:38px}
+.b307-shop-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.b307-shop-tabs{display:flex;gap:6px;overflow:auto;margin:10px 0;padding-bottom:2px}.b307-shop-tab{min-width:max-content!important;background:#242424!important;border:1px solid var(--b307-line)!important}.b307-shop-tab.active{background:#682941!important;color:#fff3bf!important;border-color:rgba(216,173,63,.16)!important}
+.b307-offer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}.b307-offer-card{padding:13px;border-radius:14px;background:#1d1d1d;border:1px solid var(--b307-line);box-shadow:0 10px 26px rgba(0,0,0,.20);position:relative;overflow:hidden}.b307-offer-card:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#6f2a43,#d8ad3f)}.b307-offer-badge{display:inline-flex;padding:4px 7px;border-radius:999px;background:#6f2a43;font-size:10px;font-weight:900}.b307-offer-icon{font-size:42px;text-align:center;margin:16px 0 8px}.b307-offer-card h3{margin:4px 0;text-align:center}.b307-offer-price{font-size:18px;font-weight:950;color:#efc44e;text-align:center;margin:8px 0}.b307-offer-card button{width:100%;background:#347b49!important;color:#fff!important}.b307-checkout-panel{margin-top:12px;padding:15px;border-radius:14px;background:#1b1b1b;border:1px solid var(--b307-line)}.b307-checkout-note{font-size:11px;color:#999;line-height:1.6}
+
+/* Mobile web bottom-nav feel and reduced chrome */
+@media(max-width:780px){
+ body.warqna-b304 .page{width:calc(100% - 10px)!important;margin-top:6px!important}
+ body.warqna-b304 .topbar{top:3px!important;border-radius:12px!important;min-height:48px!important}
+ body.warqna-b304 .userbar{top:56px!important;border-radius:11px!important}
+ body.warqna-b304 .topbar>a:not(.brand),body.warqna-b304 .topbar>button{font-size:10px!important;padding:6px 8px!important}
+ body.warqna-b304 .game-grid,body.warqna-b304 .store-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.is-room-page .room-shell{display:block!important;width:100%!important;min-height:0!important}.room-info{margin-bottom:8px!important}
+ body.is-room-page .game-table{width:min(96vw,560px)!important;aspect-ratio:.70!important;border-width:10px!important;border-radius:30px!important}
+ .b307-shop-hero{grid-template-columns:1fr}.b307-shop-mark{display:none}.b307-shop-toolbar{grid-template-columns:1fr}.b307-offer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.b307-offer-card{padding:10px}
+}
+@media(max-width:440px){.b307-offer-grid{grid-template-columns:1fr 1fr}.b307-shop-hero{padding:15px}.b307-offer-card h3{font-size:13px}.b307-offer-price{font-size:15px}}
+@media(prefers-reduced-motion:reduce){body.warqna-b304 *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
