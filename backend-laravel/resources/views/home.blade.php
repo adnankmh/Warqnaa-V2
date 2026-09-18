@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Warqnaa | VERTICAL LEGEND')
+@section('title','Warqnaa | العب وتواصل بطريقتك')
 @section('content')
 @php
   $ar=app()->getLocale()==='ar';
@@ -11,7 +11,7 @@
 @endphp
 <div class="b304-home">
  <section class="b304-head">
-   <div><span class="b304-kicker">VERTICAL LEGEND • B304</span><h1>{{ $ar?'اختر لعبتك وابدأ.':'Choose your game. Play.' }}</h1><p>{{ $ar?'ألعاب ورق اجتماعية سريعة وواضحة، منافسات حقيقية، اقتصاد خادمي آمن وتجربة مصممة للهاتف والويب.':'Fast, clear social card games, real competitions, a secure server economy, and a premium mobile/web experience.' }}</p></div>
+   <div><span class="b304-kicker">WARQNAA WORLD • R6.1</span><h1>{{ $ar?'العب. تواصل. اصنع مجلسك.':'Play. Connect. Make it yours.' }}</h1><p>{{ $ar?'ألعاب ورق اجتماعية، ملف شخصي حي، مجتمع متكامل، وكتالوج طاولات وظهور ورق متطابقة للهاتف والويب.':'Social card games, a living profile, a connected community, and matching table/card-back collections for mobile and web.' }}</p></div>
    <div class="b304-statbar"><span><b>{{ $rooms }}</b>{{ $ar?'غرفة نشطة':'live rooms' }}</span><span><b>{{ $events }}</b>{{ $ar?'منافسة':'competitions' }}</span><span><b>{{ count($keys) }}</b>{{ $ar?'محرك فعّال':'active engines' }}</span></div>
  </section>
  <section class="b304-actions">
@@ -32,7 +32,7 @@
  </section>
  <section class="b304-feature-grid">
   <article><i>🛡️</i><b>{{ $ar?'لعب خادمي آمن':'Server-authoritative play' }}</b><p>{{ $ar?'الحركات والنتائج والمحفظة تُعتمد من الخادم.':'Moves, results and wallet changes are verified server-side.' }}</p></article>
-  <article><i>🎨</i><b>{{ $ar?'تخصيص واضح':'Premium customization' }}</b><p>{{ $ar?'10 طاولات رأسية، ظهر ورق واحد، ألوان بروفايل وثيمات عالية التباين.':'10 portrait tables, one card back, profile colors and high-contrast themes.' }}</p></article>
+  <article><i>🎨</i><b>{{ $ar?'تخصيص احترافي':'Premium customization' }}</b><p>{{ $ar?'50 طاولة عالية الدقة، ظهر مطابق لكل طاولة، وألوان وثيمات قابلة للتفعيل فورًا.':'50 high-definition tables, one matching back for each table, and instantly activatable colors and themes.' }}</p></article>
   <article><i>🎁</i><b>{{ $ar?'جوائز حقيقية':'Real rewards' }}</b><p>{{ $ar?'صناديق ودولاب وإعلانات مكافِئة ومسار تحديات متدرج.':'Prize boxes, wheel, rewarded ads and a staged challenge road.' }}</p></article>
   <article><i>🏆</i><b>{{ $ar?'منافسات أولاً':'Competition first' }}</b><p>{{ $ar?'بطولات وتذاكر وترتيب وتحديات بدون ازدحام الصفحة الرئيسية.':'Tournaments, tickets, rankings and challenges without a crowded home screen.' }}</p></article>
  </section>

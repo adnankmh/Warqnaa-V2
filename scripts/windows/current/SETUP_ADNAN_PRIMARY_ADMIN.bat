@@ -6,7 +6,7 @@ echo WARQNAA - SETUP ADNAN PRIMARY ADMIN
 echo ============================================
 php artisan optimize:clear
 if errorlevel 1 goto fail
-php artisan warqnaa:setup-adnan-admin --force
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$mail=Read-Host 'Admin email'; $secure=Read-Host 'Admin password (hidden)' -AsSecureString; $ptr=[Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure); try { $plain=[Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr); $env:WARQNAA_ADNAN_ADMIN_EMAIL=$mail; $env:WARQNAA_ADNAN_ADMIN_PASSWORD=$plain; php artisan warqnaa:setup-adnan-admin --force; exit $LASTEXITCODE } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr); Remove-Item Env:WARQNAA_ADNAN_ADMIN_PASSWORD -ErrorAction SilentlyContinue }"
 if errorlevel 1 goto fail
 echo.
 echo SUCCESS - Adnan primary admin is ready.

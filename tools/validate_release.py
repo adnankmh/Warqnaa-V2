@@ -169,6 +169,9 @@ def check_required_files() -> None:
         "tools/test_v263_r14_3_contract.py",
         "tools/test_v305_r8_final_integration_contract.py",
         "tools/test_b305_r10_admin_ui_contract.py",
+        "tools/test_r61_world_class_contract.py",
+        "flutter_app/lib/r6_1_world_class.dart",
+        "backend-laravel/public/assets/css/r6-1-world-class.css",
         "backend-laravel/config/warqna_global_release.php",
         "backend-laravel/app/Services/Platform/GlobalReleaseReadinessService.php",
         "backend-laravel/app/Console/Commands/GlobalReleaseCheck.php",
@@ -1610,6 +1613,20 @@ def check_b305_r10_admin_ui_contract() -> None:
     print(result.stdout.strip())
     print("[OK] B305 R10 dual primary-admin + unified UI contract")
 
+def check_r61_world_class_contract() -> None:
+    result = subprocess.run([sys.executable, str(ROOT / "tools/test_r61_world_class_contract.py")], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if result.returncode != 0:
+        fail("R6.1 world-class contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R6.1 Home/Profile/Social/Navigation + curated cosmetics contract")
+
+def check_r64_world_championship_contract() -> None:
+    result = subprocess.run([sys.executable, str(ROOT / "tools/test_r64_world_championship_contract.py")], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if result.returncode != 0:
+        fail("R6.4 world championship contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R6.2 + R6.3 + R6.4 merged world championship contract")
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1676,6 +1693,8 @@ def main() -> None:
     check_v263_r14_3_contract()
     check_v305_r8_final_integration_contract()
     check_b305_r10_admin_ui_contract()
+    check_r61_world_class_contract()
+    check_r64_world_championship_contract()
     check_secrets()
     check_dart_structure()
     print(f"[PASS] Warqna v{EXPECTED_BUILD} source-package preflight completed successfully")

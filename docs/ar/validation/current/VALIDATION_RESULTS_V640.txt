@@ -1,0 +1,11 @@
+Warqnaa 1.7.0+640 — R6.4 WORLD CHAMPIONSHIP
+
+PASS  Release metadata and runtime versions: 1.7.0+640
+PASS  R6.2 + R6.3 + R6.4 merged integration contract
+PASS  R6.1 Home/Profile/Social/Navigation and curated cosmetics baseline
+PASS  Rooms, parties, spectators, replays and competitive API contracts
+PASS  Store ownership and server-side activation continuity
+PASS  Git privacy and secret scan
+PASS  Dart delimiter/local-reference structure
+
+PHPUnit and Flutter analyzer/build remain mandatory gates on a machine with PHP/Composer and Flutter SDK.

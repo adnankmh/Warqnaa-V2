@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'release' => '1.3.1+305',
+    'release' => '1.7.0+640',
     'contract' => 'r14_3_ci_engine_security_v1',
     'locales' => ['ar', 'en'],
     'future_locales' => ['de', 'tr', 'fr', 'es'],

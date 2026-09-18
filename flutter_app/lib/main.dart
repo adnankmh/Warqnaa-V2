@@ -51,6 +51,8 @@ part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
 part 'r5_world_class.dart';
+part 'r6_1_world_class.dart';
+part 'r6_4_world_championship.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -386,8 +388,8 @@ class AppController extends ChangeNotifier {
     avatarData = prefs.getString(_accountKey('avatarData'));
     selectedTable = prefs.getString(_accountKey('selectedTable')) ?? v305PremiumTableId;
     selectedCardBack = prefs.getString(_accountKey('selectedCardBack')) ?? v305CardBackId;
-    if (!v305CustomerTableIds.contains(selectedTable)) selectedTable = v305PremiumTableId;
-    if (selectedCardBack != v305CardBackId) selectedCardBack = v305CardBackId;
+    if (!isR61SelectableTableId(selectedTable)) selectedTable = v305PremiumTableId;
+    if (!isR61SelectableCardBackId(selectedCardBack)) selectedCardBack = v305CardBackId;
     selectedNameColor = prefs.getString(_accountKey('selectedNameColor')) ?? '#facc15';
     selectedChatColor = prefs.getString(_accountKey('selectedChatColor')) ?? '#ffffff';
     nameColorExpiresAt = DateTime.tryParse(prefs.getString(_accountKey('nameColorExpiresAt')) ?? '');
@@ -1556,8 +1558,8 @@ class AppController extends ChangeNotifier {
   bool isStoreProductVisible(StoreProduct product) {
     if (hiddenStoreProducts.contains(product.id)) return false;
     if (const {'badges','effects'}.contains(product.category)) return false;
-    if (product.category == 'tables') return v305CustomerTableIds.contains(product.id);
-    if (product.category == 'cards') return product.id == v305CardBackId;
+    if (product.category == 'tables') return isR61CuratedTable(product);
+    if (product.category == 'cards') return isR61CuratedCardBack(product);
     return true;
   }
 
@@ -2920,7 +2922,11 @@ List<StoreProduct> buildTimedColorProducts() {
 
 final List<StoreProduct> products = <StoreProduct>[
   ...v305PremiumStoreProducts,
-  // B304 table/card products are intentionally excluded from the active V305 catalog.
+  ...buildV173StoreProducts().where((product) => product.category == 'tables'),
+  ...buildR61PairedCardBacks(buildV173StoreProducts().where((product) => product.category == 'tables')),
+  // R6.1 intentionally exposes the curated image-backed V173 table collection
+  // and a matching card back for every table. Older generated table families
+  // remain hidden to keep the customer catalog coherent.
   ...v300WorldStoreProducts,
   ...buildV201R4StoreProducts(),
   StoreProduct(id: 'daily_pack_name_gold_24h_v176', category: 'names', icon: '🎨', nameAr: 'صندوق الجوائز: لون لاعب ذهبي', nameEn: 'Prize Box: Golden Player Color', descriptionAr: 'لون لاعب ذهبي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary golden player color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#facc15', previewColor1: Color(0xfffacc15), previewColor2: Color(0xff422006), collection: 'daily_pack_v176'),
@@ -3495,6 +3501,8 @@ class _GlowOrb extends StatelessWidget {
 }
 
 class HomeShell extends StatefulWidget {
+  // R6.1 social successor composes R11ClubsWorldPage and R11SocialWorldPage
+  // inside R61SocialHubPage while preserving their privacy/runtime contracts.
   final AppController controller;
 
   const HomeShell({super.key, required this.controller});
@@ -3510,9 +3518,9 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final pages = [
       StorePage(controller: widget.controller),
-      GamesPage(controller: widget.controller),
+      R64PlayHubPage(controller: widget.controller),
       HomePage(controller: widget.controller, onTab: (v) => setState(() => index = v)),
-      R11ClubsWorldPage(controller: widget.controller),
+      R61SocialHubPage(controller: widget.controller),
       R12CompetitiveArenaPage(controller: widget.controller),
     ];
     return LayoutBuilder(builder: (context, constraints) {
@@ -3538,7 +3546,7 @@ class _HomeShellState extends State<HomeShell> {
         return Scaffold(
           body: SafeArea(
             child: Row(children: [
-              DesktopShellNavigationV183(controller: widget.controller, selectedIndex: index, onSelected: (value) => setState(() => index = value)),
+              R61DesktopNavigation(controller: widget.controller, selectedIndex: index, onSelected: (value) => setState(() => index = value)),
               Expanded(child: mainContent),
             ]),
           ),
@@ -3546,7 +3554,7 @@ class _HomeShellState extends State<HomeShell> {
       }
       return Scaffold(
         body: SafeArea(bottom: false, child: mainContent),
-        bottomNavigationBar: R5BottomNavigation(
+        bottomNavigationBar: R61BottomNavigation(
           controller: widget.controller,
           selectedIndex: index,
           onSelected: (value) => setState(() => index = value),
@@ -3560,7 +3568,7 @@ class PremiumTopBar extends StatelessWidget {
   final AppController controller;
   const PremiumTopBar({super.key, required this.controller});
   @override
-  Widget build(BuildContext context) => R5TopBar(controller: controller);
+  Widget build(BuildContext context) => R61TopBar(controller: controller);
 }
 
 class HomePage extends StatelessWidget {
@@ -3570,7 +3578,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => R5HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => R61HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {

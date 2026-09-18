@@ -31,13 +31,15 @@
     <link rel="stylesheet" href="/assets/css/r12-competitive-arena.css?v=240">
     <link rel="stylesheet" href="/assets/css/b303-global-premium.css?v=303">
     <link rel="stylesheet" href="/assets/css/b304-vertical-legend.css?v=304">
-    <script>window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
+    <script>window.WARQNAA_R64={version:'1.7.0',build:640,playRoomsEconomyCommunity:true};</script>
+    <script>window.WARQNAA_R61={version:'1.4.0',build:610,homeProfileSocialNavigation:true,pairedTableCardBacks:true}; window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 <link rel="stylesheet" href="{{ asset('assets/css/b306-app-parity.css') }}?v=306-parity">
 <link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=307">
     <link rel="stylesheet" href="{{ asset('assets/css/r5-world-class.css') }}?v=r5">
+    <link rel="stylesheet" href="{{ asset('assets/css/r6-1-world-class.css') }}?v=640">
 </head>
 @php
     $currentUser = auth()->user();
@@ -62,7 +64,7 @@
     $activeRoom = $currentUser ? \App\Models\Room::with('game')->whereHas('players', fn($q)=>$q->where('user_id',$currentUser->id)->where('is_bot',false))->whereIn('status',['waiting','bidding','playing'])->latest()->first() : null;
 @endphp
 @php $globalAnnouncement = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('global_announcement','') : ''; $customCss = class_exists('\App\Models\SiteSetting') ? \App\Models\SiteSetting::getValue('custom_css','') : ''; @endphp
-<body class="warqna-pro-social warqna-r9 warqna-b303 warqna-b304 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
+<body class="warqna-pro-social warqna-r9 warqna-b303 warqna-b304 warqna-r61 theme-{{ $siteTheme }} {{ request()->routeIs('store') ? 'is-store-page' : '' }} {{ request()->routeIs('room.show') ? 'is-room-page' : '' }}" data-sound="{{ $soundEnabled }}" data-user="{{ $currentUser?->username ?? '' }}" data-theme="{{ $siteTheme }}" data-country-code="{{ $currentProfile?->country_code ?? 'PS' }}" data-country-name="{{ country_name($currentProfile?->country_code ?? 'PS') }}" style="--my-name-color:{{ $nameColor }};--my-text-color:{{ $textColor }}">
     @if($globalAnnouncement)<div class="global-announcement">{{ $globalAnnouncement }}</div>@endif
     @if($customCss)<style id="adminCustomCss">{!! $customCss !!}</style>@endif
     @php

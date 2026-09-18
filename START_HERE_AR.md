@@ -1,15 +1,15 @@
-# ابدأ من هنا — Warqnaa V1.3.1 Build 305 — SINGLE TABLE LEGEND
+# ابدأ من هنا — Warqnaa R6.4 Build 640 — WORLD CHAMPIONSHIP
 
-> **هذا هو الإصدار الحالي.** أي أرقام R14.3/B263 أو B303 أدناه محفوظة فقط كتوثيق تاريخي لعقود التوافق.
+> **هذا هو الإصدار الحالي.** يدمج R6.2 + R6.3 + R6.4 فوق baseline ‏R6.1 Build 610. الأرقام الأقدم أدناه محفوظة كتوثيق تاريخي لعقود التوافق.
 
 ## التشغيل الأسرع
 
 - Windows: شغّل `START_WARQNA_WINDOWS.bat`.
 - الفحص: `CHECK_WARQNA_WINDOWS.bat`.
-- GitHub بأقل تدخل: `scripts/windows/current/RUN_GITHUB_READY_B304.bat`.
-- بيانات Adnan/Abd المتفق عليها موجودة فقط في الحزمة الخاصة `Warqnaa_B304_PRIVATE_LOCAL_ADMIN_SETUP_DO_NOT_UPLOAD.zip` وليست داخل GitHub source.
+- مركز اللعب الجديد يجمع الغرف والمجموعات والمشاهدة وRanked مع المتجر والمجتمع الحاليين.
+- بيانات المدير لا تُحفظ داخل GitHub source؛ يجهزها المثبت الخاص محليًا فقط.
 
-التفاصيل الكاملة: `docs/ar/releases/current/START_HERE_V305_AR.md`
+التفاصيل الكاملة: `docs/ar/releases/current/START_HERE_V640_AR.md`
 
 ---
 

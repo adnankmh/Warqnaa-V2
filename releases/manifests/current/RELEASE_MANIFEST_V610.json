@@ -1,0 +1,17 @@
+{
+  "version": "1.4.0",
+  "build": 610,
+  "full": "1.4.0+610",
+  "release": "v610",
+  "name": "Warqnaa WORLD CLASS — Home, Profile, Social & Navigation",
+  "baseline": "1.3.1+305",
+  "focus": [
+    "responsive home and global navigation",
+    "full profile and connected social hub",
+    "50 curated image-backed tables",
+    "50 automatically paired card backs",
+    "12 preserved V021 art card backs",
+    "safe environment-driven primary administrator setup",
+    "Arabic and English mobile/web parity"
+  ]
+}

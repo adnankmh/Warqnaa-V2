@@ -1,0 +1,12 @@
+Warqnaa 1.4.0+610 — R6.1 WORLD CLASS
+
+PASS  Release metadata and runtime versions: 1.4.0+610
+PASS  R6.1 Home/Profile/Social/Navigation source contract
+PASS  Curated catalog: 50 V173 tables + 50 paired backs + 12 V021 backs + free starter pair
+PASS  Web responsive/accessibility design contract
+PASS  Historical R8-R14.3/B305 regression chain
+PASS  Git privacy and secret scan
+PASS  Dart delimiter/local-reference structure
+PASS  Full Python source-package preflight
+
+Environment note: PHP/Composer and Flutter SDK were unavailable in the packaging environment, so Laravel PHPUnit and Flutter analyzer/build remain mandatory CI gates.

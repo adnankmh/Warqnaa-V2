@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\{DB,Hash,Schema};
 
 class SetupLocalAdmins extends Command
 {
-    protected $signature='warqnaa:local-admin-setup {--force : Apply outside local/testing}';
-    protected $description='Provision two private primary administrators from untracked environment values.';
+    protected $signature='warqnaa:local-admin-setup {--single : Provision only the primary account} {--force : Apply outside local/testing}';
+    protected $description='Provision private primary administrators from untracked environment values.';
 
     public function handle(PrimaryAdminStateService $state): int
     {
@@ -31,6 +31,7 @@ class SetupLocalAdmins extends Command
                 'password'=>(string)env('WARQNAA_LOCAL_DEPUTY_PASSWORD',''),
             ],
         ];
+        if($this->option('single')) $accounts=array_slice($accounts,0,1);
 
         foreach($accounts as $a){
             if($a['username']==='' || $a['email']==='' || strlen($a['password'])<8){
@@ -38,7 +39,7 @@ class SetupLocalAdmins extends Command
                 return self::FAILURE;
             }
         }
-        if(strcasecmp($accounts[0]['username'],$accounts[1]['username'])===0 || strcasecmp($accounts[0]['email'],$accounts[1]['email'])===0){
+        if(count($accounts)>1 && (strcasecmp($accounts[0]['username'],$accounts[1]['username'])===0 || strcasecmp($accounts[0]['email'],$accounts[1]['email'])===0)){
             $this->error('Primary and deputy identities must be different.');
             return self::FAILURE;
         }
@@ -90,7 +91,7 @@ class SetupLocalAdmins extends Command
             }
         }
 
-        $this->info('DUAL_PRIMARY_ADMIN_SETUP_OK');
+        $this->info(count($accounts)>1 ? 'DUAL_PRIMARY_ADMIN_SETUP_OK' : 'PRIMARY_ADMIN_SETUP_OK');
         return self::SUCCESS;
     }
 

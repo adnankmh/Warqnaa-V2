@@ -40,7 +40,7 @@ class StoreCatalogService
         $this->normalizeBilingualNames();
         $this->deactivateExactDuplicates();
         $this->syncB304VerticalLegend();
-        $this->syncV305SingleTable();
+        $this->syncR61CuratedTablesAndCardBacks();
         $this->grantPrimaryAdminAllCollectibles();
 
     }
@@ -182,8 +182,12 @@ class StoreCatalogService
     }
 
 
-    /** V305: exactly one free table and one free card back are customer-active. */
-    private function syncV305SingleTable(): void
+    /**
+     * R6.1: keep the V305 starter pair free, then expose only the curated
+     * image-backed V173 tables, one matching card back per table, and the
+     * existing V021 art card backs. Historical table families remain inactive.
+     */
+    private function syncR61CuratedTablesAndCardBacks(): void
     {
         DB::table('store_items')->where('category','table')->update(['active'=>false,'updated_at'=>now()]);
         DB::table('store_items')->where('category','card_back')->update(['active'=>false,'updated_at'=>now()]);
@@ -198,6 +202,40 @@ class StoreCatalogService
             'category'=>'card_back','price'=>0,
             'payload'=>['card_back'=>'v305_cardback_emerald_royal','preferred_orientation'=>'portrait','v305'=>true,'free'=>true,'gradient'=>['#063326','#d4af67']],
         ]);
+        foreach($this->v173TableSkins() as $table) $this->upsert($table);
+        foreach($this->r61PairedCardBacks() as $cardBack) $this->upsert($cardBack);
+        foreach($this->v021TableCardBacks() as $cardBack) $this->upsert($cardBack);
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    private function r61PairedCardBacks(): array
+    {
+        $items=[];
+        foreach($this->v173TableSkins() as $table){
+            $payload=(array)($table['payload'] ?? []);
+            $tableKey=(string)$table['key'];
+            $ar=preg_replace('/^طاولة\s+/u','',(string)($table['ar'] ?? $tableKey));
+            $en=preg_replace('/\s+Table$/u','',(string)($table['en'] ?? $tableKey));
+            $items[]=[
+                'key'=>'r61_cardback_'.$tableKey,
+                'ar'=>'ظهر '.($ar ?: $tableKey),
+                'en'=>($en ?: $tableKey).' Card Back',
+                'category'=>'card_back',
+                'price'=>max(6000,(int)round(((int)($table['price'] ?? 12000))*.65)),
+                'payload'=>[
+                    'card_back'=>'r61_cardback_'.$tableKey,
+                    'paired_table'=>$tableKey,
+                    'image'=>$payload['image'] ?? null,
+                    'asset'=>$payload['asset'] ?? null,
+                    'image_asset'=>$payload['asset'] ?? null,
+                    'collection'=>'r61_paired_cardbacks',
+                    'tier'=>$payload['tier'] ?? 'pro',
+                    'preview_icon'=>'🂠',
+                    'preferred_orientation'=>'portrait',
+                ],
+            ];
+        }
+        return $items;
     }
 
     /** @return array<int,array<string,mixed>> */
