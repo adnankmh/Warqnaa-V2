@@ -50,6 +50,7 @@ part 'v300_world_experience.dart';
 part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
+part 'r5_world_class.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -3545,7 +3546,7 @@ class _HomeShellState extends State<HomeShell> {
       }
       return Scaffold(
         body: SafeArea(bottom: false, child: mainContent),
-        bottomNavigationBar: B307BottomNavigation(
+        bottomNavigationBar: R5BottomNavigation(
           controller: widget.controller,
           selectedIndex: index,
           onSelected: (value) => setState(() => index = value),
@@ -3559,7 +3560,7 @@ class PremiumTopBar extends StatelessWidget {
   final AppController controller;
   const PremiumTopBar({super.key, required this.controller});
   @override
-  Widget build(BuildContext context) => B307TopBar(controller: controller);
+  Widget build(BuildContext context) => R5TopBar(controller: controller);
 }
 
 class HomePage extends StatelessWidget {
@@ -3569,7 +3570,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => B307HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => R5HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {

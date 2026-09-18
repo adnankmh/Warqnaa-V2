@@ -1,0 +1,42 @@
+/* WARQNAA R5 — original premium visual layer */
+:root{
+  --r5-bg:#111;
+  --r5-surface:#1b1b1b;
+  --r5-surface-2:#222;
+  --r5-gold:#d8ad3f;
+  --r5-green:#35794b;
+  --r5-wine:#6d2945;
+  --r5-radius:18px;
+}
+html,body{background:
+  radial-gradient(circle at 80% -10%,rgba(109,41,69,.20),transparent 34rem),
+  radial-gradient(circle at 0% 60%,rgba(53,121,75,.12),transparent 30rem),
+  var(--r5-bg)!important}
+.card,.panel,.box,.modal-content,.dropdown-menu{
+  border-radius:var(--r5-radius)!important;
+  border-color:rgba(255,255,255,.07)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.22);
+}
+.btn-primary,.warqna-primary{
+  border-radius:13px!important;
+  background:linear-gradient(135deg,#d8ad3f,#a77920)!important;
+  border-color:rgba(255,255,255,.08)!important;
+  color:#17120a!important;
+  font-weight:800!important;
+}
+input,select,textarea,.form-control,.form-select{
+  border-radius:12px!important;
+}
+@media (max-width: 768px){
+  .game-table,.table-stage,.warqna-table{
+    max-width:min(94vw,520px)!important;
+    aspect-ratio:9/16!important;
+    margin-inline:auto!important;
+  }
+}
+@media (orientation:landscape) and (max-height:700px){
+  .game-table,.table-stage,.warqna-table{
+    aspect-ratio:16/9!important;
+    max-width:92vw!important;
+  }
+}

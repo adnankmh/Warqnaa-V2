@@ -37,6 +37,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 <link rel="stylesheet" href="{{ asset('assets/css/b306-app-parity.css') }}?v=306-parity">
 <link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=307">
+    <link rel="stylesheet" href="{{ asset('assets/css/r5-world-class.css') }}?v=r5">
 </head>
 @php
     $currentUser = auth()->user();

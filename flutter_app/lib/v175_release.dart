@@ -163,11 +163,13 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       if (roadRaw is Map) {
         widget.controller.syncChallengeRoadV210(Map<String,dynamic>.from(roadRaw));
       }
-      if (mounted) setState(() {
-        challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed;
-        loading = false;
-        error = null;
-      });
+      if (mounted) {
+        setState(() {
+          challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed;
+          loading = false;
+          error = null;
+        });
+      }
     } on ApiException catch (e) {
       if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=e.message; });
     } catch (_) {
@@ -246,6 +248,7 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       }
       if (!mounted) return;
       final navigationContext = Navigator.of(context, rootNavigator: true).context;
+      if (!navigationContext.mounted) return;
       showToast(context, bi('تم اختيار $opponentName للمرحلة التالية.','Matched with $opponentName for the next stage.'));
       Navigator.pop(context);
       await openGameRoom(navigationContext, widget.controller, game, options: RoomLaunchOptions(
