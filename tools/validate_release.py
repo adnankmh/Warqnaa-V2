@@ -1627,6 +1627,22 @@ def check_r64_world_championship_contract() -> None:
     print(result.stdout.strip())
     print("[OK] R6.2 + R6.3 + R6.4 merged world championship contract")
 
+def check_successor_compatibility_contracts() -> None:
+    # Keep local preflight aligned with the historical gates run by all CI jobs.
+    for script in (
+        'test_home_successor_contract.py',
+        'test_v300_world_experience_contract.py',
+        'test_v301_ci_i18n_contract.py',
+        'test_v302_flutter_hand_final_contract.py',
+        'test_v303_runtime_premium_contract.py',
+        'test_v304_vertical_legend_contract.py',
+        'test_v305_single_table_contract.py',
+    ):
+        result = subprocess.run([sys.executable, str(ROOT / 'tools' / script)], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if result.returncode != 0:
+            fail(script + ' failed: ' + result.stdout.strip())
+        print(result.stdout.strip())
+
 def check_dart_structure() -> None:
     # The legacy all-file regular expression could backtrack for minutes on the
     # large generated Flutter source. Reuse the deterministic V0.3 lexer-based
@@ -1695,6 +1711,7 @@ def main() -> None:
     check_b305_r10_admin_ui_contract()
     check_r61_world_class_contract()
     check_r64_world_championship_contract()
+    check_successor_compatibility_contracts()
     check_secrets()
     check_dart_structure()
     print(f"[PASS] Warqna v{EXPECTED_BUILD} source-package preflight completed successfully")

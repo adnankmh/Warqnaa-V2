@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -34,7 +36,13 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          PUBLISH_PAGES: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
         run: |
+          if [ "$PUBLISH_PAGES" != "true" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Branch validation builds an artifact without publishing GitHub Pages."
+            exit 0
+          fi
           set +e
           HTTP_CODE=$(curl -sS -o "$RUNNER_TEMP/pages.json" -w "%{http_code}" \
             -H "Accept: application/vnd.github+json" \
@@ -125,6 +133,10 @@ jobs:
       - name: Run engine and widget tests
         working-directory: flutter_app
         run: flutter test
+
+      - name: Verify responsive navigation and table layouts in Chrome
+        working-directory: flutter_app
+        run: flutter test --platform chrome test/r65_responsive_test.dart
 
       - name: Build Flutter Web
         working-directory: flutter_app

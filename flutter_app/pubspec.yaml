@@ -1,7 +1,7 @@
 name: warqna_mobile
 publish_to: none
 description: Warqnaa premium social card games app for Android, iOS and Web.
-version: 1.7.0+640
+version: 1.8.0+650
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
@@ -41,7 +41,17 @@ flutter:
     - assets/images/brand/warqna_logo.png
     - assets/images/pasha.png
     - assets/images/boosters/v183/
+    # Flutter directory declarations are not recursive; include each leaf.
     - assets/optimized/r10/
+    - assets/optimized/r10/cardbacks/v021/
+    - assets/optimized/r10/games/
+    - assets/optimized/r10/pasha/v173/
+    - assets/optimized/r10/tables/reference/
+    - assets/optimized/r10/tables/v173/royal/
+    - assets/optimized/r10/tables/v173/showcase/
+    - assets/optimized/r10/v02/rewards/
+    - assets/optimized/r10/v02/tickets/
     - assets/optimized/r101/
+    - assets/optimized/r101/games/
     - assets/sounds/r10/
     - assets/lottie/world/

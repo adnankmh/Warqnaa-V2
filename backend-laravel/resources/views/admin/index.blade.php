@@ -1,5 +1,8 @@
 @extends('layouts.app')
 @section('content')
+@if(auth()->user()?->hasAdminPermission('security'))
+<a class="btn" href="{{ route('admin.operations') }}">{{ app()->getLocale() === 'ar' ? 'مركز التشغيل والجاهزية' : 'Operations & readiness' }}</a>
+@endif
 @php
 $val = fn($key,$default=null)=> optional($siteSettings[$key] ?? null)->value ?? $default;
 $bool = fn($key,$default=true)=> filter_var(optional($siteSettings[$key] ?? null)->value ?? ($default?'1':'0'), FILTER_VALIDATE_BOOLEAN);

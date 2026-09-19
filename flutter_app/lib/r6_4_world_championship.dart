@@ -32,36 +32,7 @@ class _R64PlayHubPageState extends State<R64PlayHubPage> {
   }
 
   Future<void> _createParty() async {
-    if (!widget.controller.serverConnected) {
-      showToast(context, ar ? 'إنشاء المجموعة يحتاج اتصال الخادم.' : 'Creating a party requires the server.');
-      return;
-    }
-    setState(() => busy = true);
-    try {
-      final game = widget.controller.homeGames.firstOrNull ?? customerGamesR101.first;
-      final response = await widget.controller.api.createPartyV300(gameKey: game.id);
-      final party = response['party'] is Map ? Map<String, dynamic>.from(response['party'] as Map) : <String, dynamic>{};
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          icon: const Icon(Icons.groups_2_rounded, color: Color(0xffffcf58), size: 42),
-          title: Text(ar ? 'مجموعتك جاهزة' : 'Your party is ready'),
-          content: SelectableText(
-            '${ar ? 'رمز الدعوة' : 'Invite code'}\n${party['code'] ?? '—'}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-          ),
-          actions: <Widget>[
-            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(ar ? 'تم' : 'Done')),
-          ],
-        ),
-      );
-    } catch (error) {
-      if (mounted) showToast(context, friendlyErrorMessage(error, widget.controller.localeCode));
-    } finally {
-      if (mounted) setState(() => busy = false);
-    }
+    await Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => R65PartyPage(controller: widget.controller)));
   }
 
   void _open(Widget page) => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => page));
@@ -128,7 +99,7 @@ class _R64PlayCommandBar extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(ar ? 'مركز اللعب العالمي' : 'World play center', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text('R6.4 • ROOMS • PARTY • LIVE • RANKED', style: TextStyle(color: Colors.white.withValues(alpha: .52), fontSize: 8, letterSpacing: 1.1)),
+              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: TextStyle(color: Colors.white.withValues(alpha: .52), fontSize: 8, letterSpacing: 1.1)),
             ]),
           ),
           _R64NetworkBadge(online: controller.serverConnected, ar: ar),
@@ -188,6 +159,8 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
   List<Map<String, dynamic>> rooms = <Map<String, dynamic>>[];
   bool loading = true;
   String? error;
+  int _requestGeneration = 0;
+  bool _joining = false;
 
   bool get ar => widget.controller.localeCode == 'ar';
   GameInfo get game => gamesCatalog.where((item) => item.id == gameId).firstOrNull ?? customerGamesR101.first;
@@ -200,36 +173,47 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
   }
 
   Future<void> _load() async {
-    setState(() { loading = true; error = null; });
+    if (!mounted) return;
+    final generation = ++_requestGeneration;
+    final requestedGame = gameId;
+    setState(() { loading = true; error = null; rooms = <Map<String, dynamic>>[]; });
     if (!widget.controller.serverConnected) {
       setState(() { loading = false; error = ar ? 'شغّل خادم Laravel لعرض الغرف العامة.' : 'Start the Laravel server to browse public rooms.'; });
       return;
     }
     try {
-      final response = await widget.controller.api.availableRooms(gameId);
+      final response = await widget.controller.api.availableRooms(requestedGame);
+      if (!mounted || generation != _requestGeneration) return;
       final raw = response['rooms'];
       rooms = raw is List ? raw.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList(growable: false) : <Map<String, dynamic>>[];
     } catch (exception) {
+      if (!mounted || generation != _requestGeneration) return;
       error = friendlyErrorMessage(exception, widget.controller.localeCode);
     }
-    if (mounted) setState(() => loading = false);
+    if (mounted && generation == _requestGeneration) setState(() => loading = false);
   }
 
   Future<void> _join(Map<String, dynamic> room) async {
     final code = room['code']?.toString() ?? '';
-    if (code.isEmpty) return;
+    if (code.isEmpty || _joining) return;
+    final selectedGame = gamesCatalog.where((item) => item.id == (room['game'] ?? gameId)).firstOrNull ?? game;
+    setState(() => _joining = true);
     try {
-      await widget.controller.api.joinGame(code);
-      if (!mounted) return;
-      await openGameRoom(context, widget.controller, game, options: RoomLaunchOptions(
+      // The room page owns admission. Do not send a duplicate join here.
+      await openGameRoom(context, widget.controller, selectedGame, options: RoomLaunchOptions(
         roomCode: code,
-        roomName: room['name']?.toString(),
+        roomName: room['name']?.toString() ?? 'Warqnaa',
+        playerCount: int.tryParse('${room['max_players']}') ?? 4,
+        turnSeconds: int.tryParse('${room['turn_seconds']}') ?? 10,
+        singleRound: room['single_round'] == true,
         voiceEnabled: room['voice_enabled'] == true,
         visibility: room['visibility']?.toString() ?? 'public',
       ));
       await _load();
     } catch (exception) {
       if (mounted) showToast(context, friendlyErrorMessage(exception, widget.controller.localeCode));
+    } finally {
+      if (mounted) setState(() => _joining = false);
     }
   }
 
@@ -289,7 +273,7 @@ class _R64RoomCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final players = room['players_count'] ?? room['players'] ?? 0;
-    final capacity = room['player_count'] ?? room['capacity'] ?? 4;
+    final capacity = room['max_players'] ?? room['player_count'] ?? room['capacity'] ?? 4;
     return Card(
       margin: const EdgeInsets.only(bottom: 9),
       child: ListTile(

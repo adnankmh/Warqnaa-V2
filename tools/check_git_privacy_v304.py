@@ -21,7 +21,7 @@ ALLOW_NAMES={'.env.example','.env.production.example','.env.testing.example'}
 def candidates():
     if (ROOT/'.git').exists():
         try:
-            raw=subprocess.check_output(['git','-C',str(ROOT),'ls-files','-z'])
+            raw=subprocess.check_output(['git','-C',str(ROOT),'ls-files','--cached','--others','--exclude-standard','-z'])
             for item in raw.decode('utf-8','ignore').split('\0'):
                 if item:
                     p=ROOT/item

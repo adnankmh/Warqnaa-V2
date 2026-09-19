@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import json,re,sys
+from home_successor_contract import r61_home_is_wired
 ROOT=Path(__file__).resolve().parents[1]
 def text(rel): return (ROOT/rel).read_text(encoding='utf-8',errors='ignore')
 def ok(cond,msg):
@@ -17,7 +18,10 @@ ok(all(g in v304 for g in ("'jackaroo'", "'backgammon'", "'domino'", "'chess'"))
 ok(v304.count("StoreProduct(id:'b304_table_")==10,'exactly ten B304 vertical table products exist')
 ok("const String b304CardBackId = 'b304_cardback_vertical'" in v304,'one B304 card-back identity is canonical')
 ok(v304.count("category:'profile_colors'")>=6 and 'durationDays:30' in v304,'real 30-day profile colors are available')
-ok('return const B304HomeDashboard' not in main and 'B304HomeDashboard' in main,'compact B304 home is active')
+if int(meta.get('build',0)) >= 610:
+    ok(r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart')), 'responsive R6.1 successor home is active with playable game navigation')
+else:
+    ok('return const B304HomeDashboard' not in main and 'B304HomeDashboard' in main,'compact B304 home is active')
 ok('R12CompetitiveArenaPage' in v304 and 'R11SocialWorldPage' not in v304,'B304 home prioritizes Competitions instead of Social World')
 ok("if (p.category == 'badges' || p.category == 'effects')" in main or ("'badges'" not in re.search(r'List<String> get storeCategories.*?;',main,re.S).group(0) if re.search(r'List<String> get storeCategories.*?;',main,re.S) else True),'badges/effects are not customer store categories')
 ok('WARQNAA BOOST' not in (main+text('flutter_app/lib/v183_overhaul.dart')+text('backend-laravel/resources/views/store/index.blade.php')).upper(),'legacy booster branding is removed from active UI source')

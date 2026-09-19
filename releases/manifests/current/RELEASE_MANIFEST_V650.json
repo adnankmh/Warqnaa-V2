@@ -1,0 +1,16 @@
+{
+  "version": "1.8.0",
+  "build": 650,
+  "full": "1.8.0+650",
+  "release": "v650",
+  "display_release": "R6.5",
+  "name": "Warqnaa — Operations & Release Preparation",
+  "baseline": "1.7.0+640",
+  "scope": [
+    "R6.5 operations console",
+    "R7 deployment preparation (not production certification)",
+    "room browser correctness",
+    "party lifecycle and privacy",
+    "staged installer and rollback"
+  ]
+}

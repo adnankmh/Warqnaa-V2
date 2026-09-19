@@ -57,3 +57,9 @@ vendor/
 node_modules/
 build/
 .dart_tool/
+
+# R6.5 local installer state
+install-settings.local.json
+runtime.local.json
+INSTALLATION_*.json
+INSTALLATION_*.txt

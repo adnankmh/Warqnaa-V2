@@ -82,8 +82,8 @@ class DesktopShellNavigationV183 extends StatelessWidget {
       (Icons.redeem_rounded, L.t(controller.localeCode, 'store')),
       (Icons.style_rounded, L.t(controller.localeCode, 'games')),
       (Icons.home_rounded, L.t(controller.localeCode, 'home')),
-      (Icons.shield_rounded, L.t(controller.localeCode, 'clubs')),
-      (Icons.public_rounded, L.t(controller.localeCode, 'social_world')),
+      (Icons.groups_rounded, controller.localeCode == 'ar' ? 'المجتمع' : 'Social'),
+      (Icons.emoji_events_rounded, controller.localeCode == 'ar' ? 'المنافسات' : 'Events'),
     ];
     return Container(
       width: 224,

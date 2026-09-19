@@ -190,6 +190,7 @@ Route::prefix('mobile/v1')->group(function () {
         Route::delete('/competitive/tournaments/{tournament}/leave', [MobileCompetitiveController::class, 'leaveTournament'])->middleware('throttle:warqna-sensitive');
         Route::post('/competitive/rewards/{claim}/claim', [MobileCompetitiveController::class, 'claimReward'])->middleware('throttle:warqna-sensitive');
 
+        Route::get('/admin/operations', [\App\Http\Controllers\AdminOperationsController::class, 'index']);
         Route::get('/admin/dashboard', [MobileAdminController::class, 'dashboard']);
         Route::patch('/admin/games/{game}', [MobileAdminController::class, 'updateGame']);
         Route::patch('/admin/store/{item}', [MobileAdminController::class, 'updateStore']);

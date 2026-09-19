@@ -53,6 +53,7 @@ part 'b307_visual_revolution.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
+part 'r6_5_operations.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -9351,6 +9352,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
           const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Warqnaa Command Center',style:TextStyle(fontWeight:FontWeight.w900,fontSize:18)),Text('إدارة موحدة بنفس هوية التطبيق',style:TextStyle(fontSize:10,fontWeight:FontWeight.w600))])),
         ]),
         actions: [
+          IconButton(tooltip: widget.controller.localeCode == 'ar' ? 'مركز التشغيل' : 'Operations', onPressed: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => R65OperationsPage(controller: widget.controller))), icon: const Icon(Icons.monitor_heart_outlined)),
           if(widget.controller.serverConnected) const Padding(padding:EdgeInsetsDirectional.only(end:4),child:Chip(avatar:Icon(Icons.cloud_done_rounded,size:16),label:Text('LIVE'))),
           IconButton.filledTonal(onPressed: _load, tooltip:'تحديث', icon: const Icon(Icons.refresh_rounded)),
           const SizedBox(width:10),
