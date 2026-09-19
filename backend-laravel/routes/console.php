@@ -20,3 +20,12 @@ Schedule::command('warqna:competitive-tick')
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
+
+// Record an actual scheduler execution; opening the dashboard never fakes this.
+Schedule::call(function () {
+    \Illuminate\Support\Facades\Cache::put(
+        \App\Services\Platform\OperationsStatusService::HEARTBEAT_KEY,
+        time(),
+        600
+    );
+})->name('warqnaa-operations-heartbeat')->everyMinute();

@@ -8,4 +8,4 @@ python3 tools/test_v305_single_table_contract.py
 python3 tools/check_git_privacy_v304.py
 python3 tools/validate_v030_static.py
 python3 tools/validate_release.py
-echo "WARQNAA R6.4 BUILD 640 CHECK: PASS"
+echo "WARQNAA R6.5 BUILD 650 CHECK: PASS"

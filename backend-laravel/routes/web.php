@@ -111,6 +111,7 @@ Route::middleware('auth')->group(function(){
  Route::get('/tournaments',[TournamentController::class,'index'])->name('tournaments'); Route::post('/tournaments',[TournamentController::class,'store'])->name('tournaments.store'); Route::post('/tournaments/{tournament}/join',[TournamentController::class,'join'])->name('tournaments.join'); Route::post('/tournaments/{tournament}/leave',[TournamentController::class,'leave'])->name('tournaments.leave'); Route::post('/tournaments/{tournament}/launch',[TournamentController::class,'launch'])->name('tournaments.launch'); Route::get('/tournaments/{tournament}/replay',[TournamentController::class,'replay'])->name('tournaments.replay');
  Route::prefix('admin')->middleware('admin')->group(function(){
     Route::get('/',[AdminController::class,'index'])->name('admin');
+    Route::get('/operations', [\App\Http\Controllers\AdminOperationsController::class, 'index'])->name('admin.operations');
     Route::post('/users/{user}',[AdminController::class,'userAction'])->name('admin.users.action');
     Route::post('/site',[AdminController::class,'saveSite'])->name('admin.site.save');
     Route::post('/design',[AdminController::class,'saveDesign'])->name('admin.design.save');

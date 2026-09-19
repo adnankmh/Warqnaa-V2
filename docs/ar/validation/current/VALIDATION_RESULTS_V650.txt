@@ -1,0 +1,27 @@
+Warqnaa R6.5 1.8.0+650
+Runtime test status is recorded explicitly; source checks do not certify runtime.
+PHPUnit: NOT RUN here (PHP/Composer unavailable).
+Flutter analyze/test/build: NOT RUN here (Flutter SDK unavailable).
+Windows installer execution: NOT RUN here (Windows/PowerShell unavailable).
+Behavioral tests supplied in backend-laravel/tests/Feature/V650OperationsAndPartyTest.php and flutter_app/test/r65_operations_test.dart.
+Windows CI supplied in .github/workflows/windows-installer.yml.
+Installer requires runtime gates before promoting the staged installation.
+Source validation results appended after execution.
+
+PASS: original Python source preflight (B300-B305 CI gates were not all included in that preflight).
+PASS: version consistency 1.8.0+650.
+PASS: privacy scan including untracked new deliverable files.
+PASS: Tree-sitter syntax parsing of 16 PHP/Dart/PowerShell files (not runtime validation).
+
+Resume checkpoint, 2026-09-18:
+- Preserved local R6.5 implementation from 66a608a and reconciled published R6.4 history from origin/main 9e3354e.
+- Inspected GitHub runs 35385386283 (Web), 35385386199 (release), and 35385386177 (backend).
+- All three stopped at the obsolete B300 home-widget assertion; Docker definition/build passed in the backend run.
+- Executed 39 Python contracts referenced by workflows: 36 passed initially; B300, B303 and B304 failed on obsolete home wiring/copy assertions.
+- Verified current R6.1 home and Web game routes and R6.4 play/party/spectator/ranked navigation in source before updating successor compatibility checks.
+- PASS: three corrected contracts, plus mutation checks rejecting disconnected home, game, party, spectator and Web routes.
+- PASS: tools/validate_release.py now includes B300-B305 successor compatibility and mutation gates.
+- PASS: repository Privacy Gate and git diff --check.
+- Runtime/analyzer/visual status above remains NOT RUN; PHP, Composer, Flutter and PowerShell are unavailable locally.
+- Remote verification BLOCKED: Git transport has no authentication; GitHub connector create-reference API returned 403 Resource not accessible by integration.
+- No remote branch or commit was updated; CI has not run the local corrections. Write-capable repository/workflow authorization is needed to continue.

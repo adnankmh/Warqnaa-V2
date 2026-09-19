@@ -3,6 +3,7 @@
 from __future__ import annotations
 import json,re
 from pathlib import Path
+from home_successor_contract import r61_home_is_wired, r64_hub_is_wired
 ROOT=Path(__file__).resolve().parents[1]
 
 def text(rel:str)->str:
@@ -30,8 +31,13 @@ check("category:'frames'" in world and "case 'frames':" in main,'profile frames 
 if build>=304:
     # B304 introduced the successor home; later visual releases such as B307
     # may replace that concrete widget while preserving the same product role.
-    successor_home_ok = any(name in main for name in ('B304HomeDashboard','B307HomeDashboard','R5HomeDashboard'))
-    check(successor_home_ok and 'V300WorldHubPage' in world,'B304+ successor home replaces the V300 hero while the world hub remains available')
+    if build >= 640:
+        successor_home_ok = r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart'))
+        hub_ok = r64_hub_is_wired(main, text('flutter_app/lib/r6_4_world_championship.dart'))
+    else:
+        successor_home_ok = any(name in main for name in ('B304HomeDashboard','B307HomeDashboard','R5HomeDashboard'))
+        hub_ok = 'V300WorldHubPage' in world
+    check(successor_home_ok and hub_ok and 'V300WorldHubPage' in world,'successor home preserves the world hub through reachable play, party, spectator and ranked navigation')
 else:
     check('V300WorldHome' in main and 'V300WorldHubPage' in world,'new world lobby/home hub is reachable')
 if build>=304:

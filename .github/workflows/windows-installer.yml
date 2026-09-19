@@ -1,0 +1,41 @@
+name: Windows installer validation
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['scripts/windows/current/**', 'tools/windows/**', '.github/workflows/windows-installer.yml']
+  push:
+    branches: [main, master]
+    paths: ['scripts/windows/current/**', 'tools/windows/**', '.github/workflows/windows-installer.yml']
+permissions:
+  contents: read
+jobs:
+  installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Parse all current PowerShell scripts
+        shell: pwsh
+        run: |
+          Get-ChildItem scripts/windows/current/*.ps1 | ForEach-Object {
+            $tokens=$null; $errors=$null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors) | Out-Null
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Verify package validation and checksum rejection without touching D drive
+        shell: pwsh
+        run: |
+          $testRoot=Join-Path $env:RUNNER_TEMP 'installer-test'
+          New-Item -ItemType Directory $testRoot -Force | Out-Null
+          Copy-Item scripts/windows/current/Install-Warqnaa.ps1 $testRoot
+          $fixture=Join-Path $testRoot 'fixture/Warqnaa-V2-R6.5'
+          New-Item -ItemType Directory $fixture -Force | Out-Null
+          Copy-Item RELEASE_VERSION.json $fixture
+          $archive=Join-Path $testRoot 'source.zip'
+          Compress-Archive (Join-Path $testRoot 'fixture/*') $archive
+          @{file='source.zip';sha256=(Get-FileHash $archive).Hash} | ConvertTo-Json | Set-Content (Join-Path $testRoot 'release-package.json')
+          & powershell.exe -NoProfile -File (Join-Path $testRoot 'Install-Warqnaa.ps1') -ValidateOnly
+          if ($LASTEXITCODE -ne 0) { throw 'Valid archive rejected' }
+          Add-Content $archive 'corruption'
+          & powershell.exe -NoProfile -File (Join-Path $testRoot 'Install-Warqnaa.ps1') -ValidateOnly
+          if ($LASTEXITCODE -eq 0) { throw 'Corrupt archive accepted' }
+          exit 0
