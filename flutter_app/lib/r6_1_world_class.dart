@@ -133,11 +133,15 @@ class R61TopBar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 5),
-                Text(
-                  controller.serverConnected
-                      ? (ar ? 'متصل وآمن' : 'Online & secure')
-                      : (ar ? 'الوضع المحلي' : 'Local mode'),
-                  style: const TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.w800),
+                Flexible(
+                  child: Text(
+                    controller.serverConnected
+                        ? (ar ? 'متصل وآمن' : 'Online & secure')
+                        : (ar ? 'الوضع المحلي' : 'Local mode'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.w800),
+                  ),
                 ),
               ]),
             ],

@@ -173,7 +173,7 @@ class _R65PartyPageState extends State<R65PartyPage> {
               final id = int.tryParse(friendId.text.trim());
               if (id == null || id < 1) { setState(() => error = ar ? 'أدخل رقم لاعب صحيحًا.' : 'Enter a valid player ID.'); return; }
               await _run(() => widget.controller.api.invitePartyV300(_r12Int(party['id']), id), refresh: true);
-              if (mounted && error == null) showToast(context, ar ? 'تم إرسال الدعوة' : 'Invitation sent');
+              if (context.mounted && error == null) showToast(context, ar ? 'تم إرسال الدعوة' : 'Invitation sent');
             }, icon: const Icon(Icons.person_add_alt), label: Text(ar ? 'دعوة صديق' : 'Invite friend')),
           ],
           const SizedBox(height: 20),

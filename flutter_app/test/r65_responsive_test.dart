@@ -14,6 +14,14 @@ Widget app(Widget child, String locale) => MaterialApp(
   home: child,
 );
 
+void reportLayoutErrors() {
+  final previous = FlutterError.onError;
+  FlutterError.onError = (details) {
+    debugPrint(details.toString());
+    previous?.call(details);
+  };
+}
+
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -23,6 +31,7 @@ void main() {
   for (final locale in ['ar', 'en']) {
     for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
       testWidgets('home navigation $locale ${size.width}x${size.height}', (tester) async {
+        reportLayoutErrors();
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -51,6 +60,7 @@ void main() {
       });
 
       testWidgets('local table orientation $locale ${size.width}x${size.height}', (tester) async {
+        reportLayoutErrors();
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);

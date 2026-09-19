@@ -19,13 +19,15 @@ def declared_flutter_asset_bytes()->int:
         if active:
             if line.startswith('    - '): assets.append(line.split('- ',1)[1].strip())
             elif line and not line.startswith('    ') and not line.lstrip().startswith('#'): break
-    total=0
+    bundled_files=set()
     for rel in assets:
         p=ROOT/'flutter_app'/rel
-        if p.is_file(): total+=p.stat().st_size
-        elif p.is_dir(): total+=sum(x.stat().st_size for x in p.rglob('*') if x.is_file())
+        if p.is_file(): bundled_files.add(p)
+        elif p.is_dir(): bundled_files.update(x for x in p.glob('*') if x.is_file())
         else: fail(f'declared Flutter asset missing: {rel}')
-    return total
+    optimized={p for p in (ROOT/'flutter_app/assets/optimized').rglob('*') if p.is_file()}
+    ok(optimized <= bundled_files, 'every optimized fallback is explicitly included in the Flutter bundle')
+    return sum(p.stat().st_size for p in bundled_files)
 
 def main():
     meta=json.loads(text('RELEASE_VERSION.json'))
