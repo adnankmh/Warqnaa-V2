@@ -1,5 +1,6 @@
 Warqnaa R6.5 1.8.0+650
 Runtime test status is recorded explicitly; source checks do not certify runtime.
+The opening status below describes the initial local checkpoint; later CI evidence follows.
 PHPUnit: NOT RUN here (PHP/Composer unavailable).
 Flutter analyze/test/build: NOT RUN here (Flutter SDK unavailable).
 Windows installer execution: NOT RUN here (Windows/PowerShell unavailable).
@@ -25,3 +26,20 @@ Resume checkpoint, 2026-09-18:
 - Runtime/analyzer/visual status above remains NOT RUN; PHP, Composer, Flutter and PowerShell are unavailable locally.
 - Remote verification BLOCKED: Git transport has no authentication; GitHub connector create-reference API returned 403 Resource not accessible by integration.
 - No remote branch or commit was updated; CI has not run the local corrections. Write-capable repository/workflow authorization is needed to continue.
+
+Connected GitHub checkpoint, 2026-09-19:
+- Published the reconciled source as c143145dc86618c56e2450e56e47366ed9122736 on codex/r6-5-operations; PR #1. Source tree matched the local preserved checkpoint.
+- PASS: all four workflows for c143145 (Web 35426327845, backend 35426327828, production 35426327843, Windows 35426328119).
+- PASS: Laravel full suite: 144 tests, 1333 assertions; focused social, bearer, B304/B305 and competitive gates also passed.
+- PASS: Flutter dependency resolution, 20 engine/widget tests and release Web build. Analyzer had one informational async-context diagnostic, corrected in the subsequent source update.
+- PASS: Docker build, engine/fair-deal contracts, Privacy Gate, release preflight and Windows PowerShell parsing / valid archive / corrupted checksum scenarios.
+- Added 12 Arabic/English navigation and table-orientation tests at 320x640, 844x390 and 1280x800; also run the responsive suite in Chrome.
+- The added tests exposed missing nested optimized assets and narrow-screen overflow. Fixed bundle declarations and added actual nonrecursive asset-coverage validation; continued CI validation rather than accepting the earlier green result as sufficient.
+- Desktop Social/Events destinations now match the pages selected by HomeShell.
+- Local PHP/Flutter/Windows toolchains remain unavailable; the runtime results above were executed by GitHub-hosted runners.
+- NOT VERIFIED: full Windows install/upgrade, signed Android/iOS builds, production payments, multi-device live play, and manual visual inspection of a running production environment.
+
+Responsive follow-up a9e4c8760dd9b8f677fa62c24468f21cad51efb8:
+- PASS: Web workflow 35444073165: flutter pub get; analyzer reports No issues found; 32 VM tests; 12 Chrome responsive tests; release Web build.
+- PASS: local full tools/validate_release.py including optimized-asset bundle coverage and size (13.41 MiB, below the existing 15 MiB limit).
+- Retrieved the compiled Web artifact and verified its SHA-256 and ZIP integrity. The cloud browser rejected local preview access with ERR_BLOCKED_BY_CLIENT; no manual visual review is claimed.
