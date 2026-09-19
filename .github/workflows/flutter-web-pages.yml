@@ -134,6 +134,10 @@ jobs:
         working-directory: flutter_app
         run: flutter test
 
+      - name: Verify responsive navigation and table layouts in Chrome
+        working-directory: flutter_app
+        run: flutter test --platform chrome test/r65_responsive_test.dart
+
       - name: Build Flutter Web
         working-directory: flutter_app
         env:
