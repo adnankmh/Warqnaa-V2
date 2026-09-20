@@ -1,0 +1,16 @@
+{
+  "version": "1.9.0",
+  "build": 700,
+  "full": "1.9.0+700",
+  "release": "v700",
+  "display_release": "R7",
+  "name": "Warqnaa — Runtime Verification & Delivery",
+  "baseline": "1.8.0+650",
+  "baseline_commit": "82bd3ba18b673fa48f51266833c49fa5cf8755ae",
+  "scope": [
+    "isolated live HTTP verification",
+    "Flutter authoritative identity and rendered UI review",
+    "bootstrap room privacy",
+    "version-aware installer and source delivery"
+  ]
+}

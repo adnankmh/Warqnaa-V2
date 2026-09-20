@@ -1,0 +1,58 @@
+name: R7 isolated runtime and visual review
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+permissions:
+  contents: read
+concurrency:
+  group: r7-runtime-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_sqlite, sqlite3, bcmath
+          coverage: none
+          tools: composer:v2
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: stable
+          cache: true
+      - name: Install locked backend dependencies
+        working-directory: backend-laravel
+        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Prepare Laravel writable directories
+        run: mkdir -p backend-laravel/storage/framework/{views,cache/data,sessions} backend-laravel/bootstrap/cache
+      - name: Resolve Flutter dependencies
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Exercise live HTTP journeys and render Flutter review screens
+        run: python3 tools/r7_runtime_smoke.py --flutter-review --report-dir "$RUNNER_TEMP/r7-review"
+      - name: Upload sanitized results and synthetic-account screenshots
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: warqnaa-r7-runtime-review
+          path: ${{ runner.temp }}/r7-review
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Package committed source and staged installer
+        run: python3 tools/package_release.py --output-dir "$RUNNER_TEMP/r7-delivery"
+      - name: Upload full source delivery
+        uses: actions/upload-artifact@v6
+        with:
+          name: warqnaa-r7-full-source
+          path: ${{ runner.temp }}/r7-delivery
+          if-no-files-found: error
+          retention-days: 14

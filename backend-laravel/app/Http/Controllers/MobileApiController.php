@@ -88,7 +88,18 @@ class MobileApiController extends Controller
             'wallet' => $this->walletPayload($user),
             'games' => Game::where('active', true)->whereIn('key', GameCatalog::customerKeys())->orderBy('id')->get(),
             'store' => StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get(),
-            'rooms' => Room::query()->with('game')->latest()->limit(30)->get(),
+            // Bootstrap is a lobby summary, never a game-state transport. The
+            // session endpoint supplies the server-filtered hand for each seat.
+            'rooms' => Room::query()->with('game')
+                ->where(function ($query) use ($user) {
+                    $query->where('visibility', 'public')
+                        ->orWhere('owner_id', $user->id)
+                        ->orWhereHas('players', fn ($players) => $players->where('user_id', $user->id));
+                })
+                ->latest()->limit(30)->get([
+                    'id', 'code', 'game_id', 'owner_id', 'visibility', 'status',
+                    'min_level', 'max_players', 'target_score', 'created_at', 'updated_at',
+                ]),
             'tournaments' => Tournament::query()->with('game')->latest()->limit(20)->get(),
             'clubs' => Club::query()->latest()->limit(20)->get(),
             'competition_tickets' => CompetitionTicket::where('user_id', $user->id)->pluck('quantity', 'denomination')->map(fn($value)=>(int)$value)->all(),
