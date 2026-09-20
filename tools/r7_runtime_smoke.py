@@ -115,8 +115,11 @@ def exercise(base, metadata, accounts):
     seat = next(p['seat'] for p in peer_room['players'] if p['user_id'] == accounts['peer']['id'])
     require('hands' not in peer_room['state'] and 'hand' in peer_room['state'], 'Private game hands leaked')
     peer.api(f'/games/session/{code}/disconnect', {'reason': 'r7-test'})
-    require(peer.api(f'/games/session/{code}/reconnect', {})['seat'] == seat, 'Reconnect changed the player seat')
-    require(peer.api(f'/games/session/{code}')['room']['code'] == code, 'Room state unavailable after reconnect')
+    # Lifecycle preserves the database's string seat; game payloads use integers.
+    require(int(peer.api(f'/games/session/{code}/reconnect', {})['seat']) == seat, 'Reconnect changed the player seat')
+    resumed = peer.api(f'/games/session/{code}')['room']
+    require(resumed['code'] == code, 'Room state unavailable after reconnect')
+    require(next(p['seat'] for p in resumed['players'] if p['user_id'] == accounts['peer']['id']) == seat, 'Restored room changed seat ownership')
     peer.api(f'/games/session/{code}/leave', {})
     player.api(f'/games/session/{code}/leave', {})
     checks.append('two_account_room_private_state_reconnect')
