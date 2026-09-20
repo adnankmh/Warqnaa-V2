@@ -101,7 +101,8 @@ def exercise(base, metadata, accounts):
 
     friendship = player.api(f"/social/friends/{accounts['peer']['id']}/request", {}, status=201)['friendship']
     peer.api(f"/social/friendships/{friendship['id']}/respond", {'status': 'accepted'})
-    require(len(player.api('/social')['friends']) == 1, 'Friend acceptance not persisted')
+    accepted = player.api('/social')['accepted']
+    require(len(accepted) == 1 and accepted[0]['user']['id'] == accounts['peer']['id'], 'Friend acceptance not persisted')
     public_profile = player.api(f"/social/users/{accounts['peer']['id']}/profile")
     require('email' not in public_profile['user'], 'Public social profile exposed email')
     checks.append('two_account_social_privacy')
@@ -110,7 +111,7 @@ def exercise(base, metadata, accounts):
     code = room['code']
     summary = next(r for r in peer.api('/bootstrap')['rooms'] if r['code'] == code)
     require('state' not in summary and 'password' not in summary, 'Bootstrap exposed private room data')
-    peer_room = peer.api(f'/games/session/{code}/join', {})['room']
+    peer_room = peer.api(f'/games/session/{code}/join', {}, status=201)['room']
     seat = next(p['seat'] for p in peer_room['players'] if p['user_id'] == accounts['peer']['id'])
     require('hands' not in peer_room['state'] and 'hand' in peer_room['state'], 'Private game hands leaked')
     peer.api(f'/games/session/{code}/disconnect', {'reason': 'r7-test'})
