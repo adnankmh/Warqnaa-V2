@@ -52,7 +52,7 @@ class Client:
             response = error
         with response:
             raw = response.read().decode('utf-8')
-            require(response.status == status, f'{request.method} {path}: expected HTTP {status}, received {response.status}')
+            require(response.status == status, f'{request.get_method()} {path}: expected HTTP {status}, received {response.status}')
         return json.loads(raw) if json_api else raw
 
     def api(self, path, data=None, **kwargs):
