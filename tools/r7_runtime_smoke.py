@@ -179,6 +179,9 @@ def main():
                 if args.flutter_review:
                     defines = {'R7_RUNTIME_URL': base + '/api/mobile/v1', 'R7_REVIEW_DIR': str(report_dir / 'screenshots'), 'R7_REVIEW_FONT': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'}
                     defines['R7_MATERIAL_FONT'] = str(Path(env['FLUTTER_ROOT']) / 'bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf')
+                    emoji_font = Path('/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf')
+                    if emoji_font.is_file():
+                        defines['R7_EMOJI_FONT'] = str(emoji_font)
                     for kind, account in accounts.items():
                         for key, value in account.items():
                             defines[f'R7_{kind.upper()}_{key.upper()}'] = str(value)

@@ -36,6 +36,25 @@ Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
   });
 }
 
+ButtonStyle reviewButtonStyle(ButtonStyle? style) => (style ?? const ButtonStyle()).copyWith(
+  textStyle: WidgetStateProperty.resolveWith((states) =>
+    (style?.textStyle?.resolve(states) ?? const TextStyle()).copyWith(
+      fontFamily: 'R7Review', fontFamilyFallback: const ['R7Emoji'],
+    )),
+);
+
+ThemeData reviewTheme(AppController controller) {
+  final theme = r101Theme(controller.themeCode, controller.uiAccentHex);
+  return theme.copyWith(
+    textTheme: theme.textTheme.apply(fontFamily: 'R7Review', fontFamilyFallback: const ['R7Emoji']),
+    primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'R7Review', fontFamilyFallback: const ['R7Emoji']),
+    filledButtonTheme: FilledButtonThemeData(style: reviewButtonStyle(theme.filledButtonTheme.style)),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: reviewButtonStyle(theme.outlinedButtonTheme.style)),
+    textButtonTheme: TextButtonThemeData(style: reviewButtonStyle(theme.textButtonTheme.style)),
+    chipTheme: theme.chipTheme.copyWith(labelStyle: theme.chipTheme.labelStyle?.copyWith(fontFamily: 'R7Review')),
+  );
+}
+
 Widget reviewApp(Widget child, AppController controller, GlobalKey key) => RepaintBoundary(
   key: key,
   child: MaterialApp(
@@ -45,9 +64,7 @@ Widget reviewApp(Widget child, AppController controller, GlobalKey key) => Repai
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
     // A real Arabic-capable review font replaces Flutter test's Ahem blocks.
     // These renders are review evidence, not platform-specific pixel goldens.
-    theme: r101Theme(controller.themeCode, controller.uiAccentHex).copyWith(
-      textTheme: r101Theme(controller.themeCode, controller.uiAccentHex).textTheme.apply(fontFamily: 'R7Review'),
-    ),
+    theme: reviewTheme(controller),
     home: child,
   ),
 );
@@ -57,9 +74,8 @@ void main() {
   setUpAll(() async {
     if (runtimeUrl.isEmpty) return;
     final fontBytes = await File(const String.fromEnvironment('R7_REVIEW_FONT')).readAsBytes();
-    // Explicit component styles and default typography retain these family
-    // names even when textTheme is copied. Replace test-only Ahem blocks too.
-    for (final family in ['R7Review', 'Roboto', 'Ahem']) {
+    // Component defaults such as app bars may retain the Roboto family.
+    for (final family in ['R7Review', 'Roboto']) {
       final font = FontLoader(family)..addFont(Future.value(ByteData.sublistView(fontBytes)));
       await font.load();
     }
@@ -67,6 +83,13 @@ void main() {
       File(const String.fromEnvironment('R7_MATERIAL_FONT')).readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
     );
     await icons.load();
+    const emojiPath = String.fromEnvironment('R7_EMOJI_FONT');
+    if (emojiPath.isNotEmpty) {
+      final emoji = FontLoader('R7Emoji')..addFont(
+        File(emojiPath).readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
+      );
+      await emoji.load();
+    }
   });
 
   for (final locale in ['ar', 'en']) {
