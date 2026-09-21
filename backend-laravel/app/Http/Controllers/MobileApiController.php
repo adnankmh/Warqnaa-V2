@@ -10,6 +10,7 @@ use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\WarqnaPro\StoreCatalogService;
 use App\Services\Games\GameCatalog;
 use App\Services\WarqnaPro\AssetDeliveryService;
+use App\Support\AuthenticatedActor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth,DB,Hash};
 
@@ -79,7 +80,7 @@ class MobileApiController extends Controller
     public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery)
     {
         $catalog->sync();
-        $user = $this->ensurePrimaryAdmin($request->user());
+        $user = $this->ensurePrimaryAdmin(AuthenticatedActor::resolve($request));
         $user->update(['last_seen_at'=>now()]);
         $user->load('profile', 'wallet');
         return response()->json([

@@ -27,8 +27,11 @@ class V700BootstrapPrivacyTest extends TestCase
                 RoomPlayer::create(['room_id'=>$room->id, 'user_id'=>$member->id, 'seat'=>'1', 'is_bot'=>false, 'connected'=>true]);
             }
         }
-        foreach ([[$visitor, ['R7PUBLIC']], [$owner, ['R7PUBLIC','R7PRIVATE','R7FRIENDS']], [$member, ['R7PUBLIC','R7PRIVATE']]] as [$user, $expected]) {
+        // Return to the outsider after privileged views to catch stale actors
+        // in both directions, not just missing owner/member rooms.
+        foreach ([[$visitor, ['R7PUBLIC']], [$owner, ['R7PUBLIC','R7PRIVATE','R7FRIENDS']], [$member, ['R7PUBLIC','R7PRIVATE']], [$visitor, ['R7PUBLIC']]] as [$user, $expected]) {
             $response = $this->withToken($user->createToken('r7')->plainTextToken)->getJson('/api/mobile/v1/bootstrap')->assertOk();
+            $this->assertSame($user->id, $response->json('user.id'));
             $rooms = $response->json('rooms');
             $this->assertEqualsCanonicalizing($expected, array_column($rooms, 'code'));
             foreach ($rooms as $room) {
