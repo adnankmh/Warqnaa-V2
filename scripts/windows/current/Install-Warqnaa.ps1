@@ -90,8 +90,10 @@ function StopOwned([string]$Root) {
 }
 
 try {
-    Set-Content -LiteralPath $Log -Value 'Warqnaa R6.5 Build 650 staged installer' -Encoding UTF8
+    Set-Content -LiteralPath $Log -Value 'Warqnaa staged installer' -Encoding UTF8
     $package = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'release-package.json') -Raw | ConvertFrom-Json
+    $ArchiveRoot = if ($package.root) { [string]$package.root } else { 'Warqnaa-V2-R6.5' }
+    if ($ArchiveRoot -notmatch '^Warqnaa-V2-[A-Za-z0-9][A-Za-z0-9._-]*$') { throw 'Invalid archive root.' }
     if ($package.file -ne [IO.Path]::GetFileName($package.file)) { throw 'Invalid archive filename.' }
     $Archive = Join-Path $PSScriptRoot $package.file
     if ((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash -ne $package.sha256) { throw 'Archive checksum mismatch.' }
@@ -100,9 +102,13 @@ try {
     try {
         foreach ($entry in $zip.Entries) {
             $entryPath = $entry.FullName.Replace('\','/')
-            if ($entryPath -match '(^|[/\\])\.\.([/\\]|$)|^[\\/]|:' -or !$entryPath.StartsWith('Warqnaa-V2-R6.5/')) { throw 'Unsafe archive path.' }
+            if ($entryPath -match '(^|[/\\])\.\.([/\\]|$)|^[\\/]|:' -or !$entryPath.StartsWith($ArchiveRoot+'/')) { throw 'Unsafe archive path.' }
         }
-        if (!($zip.Entries | Where-Object { $_.FullName.Replace('\','/') -eq 'Warqnaa-V2-R6.5/RELEASE_VERSION.json' })) { throw 'Missing release metadata.' }
+        $metadataEntry = $zip.Entries | Where-Object { $_.FullName.Replace('\','/') -eq ($ArchiveRoot+'/RELEASE_VERSION.json') }
+        if (@($metadataEntry).Count -ne 1) { throw 'Missing or duplicated release metadata.' }
+        $reader = New-Object IO.StreamReader($metadataEntry.Open())
+        try { $Release = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+        if ($Release.version -notmatch '^\d+\.\d+\.\d+$' -or [int]$Release.build -lt 650 -or $Release.full -ne ($Release.version+'+'+$Release.build)) { throw 'Invalid release metadata.' }
     } finally { $zip.Dispose() }
     $Gates['Package integrity'] = 'PASS'
     if ($ValidateOnly) { Step 'Package validation passed; no installation performed.'; exit 0 }
@@ -121,6 +127,8 @@ try {
     $OldEnv = Join-Path $Target 'backend-laravel\.env'
     if (Test-Path $Target) {
         if (!(Test-Path (Join-Path $Target 'RELEASE_VERSION.json')) -or !(Test-Path $OldEnv)) { throw 'D:\warq is not a recognized installed release. It was left untouched.' }
+        $InstalledRelease = Get-Content -LiteralPath (Join-Path $Target 'RELEASE_VERSION.json') -Raw | ConvertFrom-Json
+        if ([int]$InstalledRelease.build -gt [int]$Release.build) { throw 'The installed release is newer than this package. Downgrade refused; existing files are untouched.' }
         if ((EnvValue $OldEnv 'DB_CONNECTION' 'sqlite') -ne 'sqlite' -or (EnvValue $OldEnv 'DB_URL' '') -notin @('','null') -or (EnvValue $OldEnv 'APP_ENV' 'local') -ne 'local') { throw 'Automatic upgrade supports local SQLite only. External or production databases require a separate backup/deployment procedure; nothing was changed.' }
     }
     $ToolsRoot = 'D:\warq-tools'
@@ -142,7 +150,7 @@ try {
     }
     Step 'Extracting into an isolated staging directory'
     Expand-Archive -LiteralPath $Archive -DestinationPath $Stage
-    $Source = Join-Path $Stage 'Warqnaa-V2-R6.5'
+    $Source = Join-Path $Stage $ArchiveRoot
     $Backend = Join-Path $Source 'backend-laravel'
     $FlutterApp = Join-Path $Source 'flutter_app'
     Run 'Source regression gates' $Python @('tools\validate_release.py') $Source
@@ -157,14 +165,14 @@ try {
     foreach ($key in $testEnv) { $savedEnv[$key] = [Environment]::GetEnvironmentVariable($key,'Process') }
     try {
         $env:APP_ENV='testing'; $env:DB_CONNECTION='sqlite'; $env:DB_DATABASE=':memory:'; $env:CACHE_STORE='array'; $env:SESSION_DRIVER='array'; $env:QUEUE_CONNECTION='sync'
-        Run 'Laravel focused runtime tests' $Php @('artisan','test','--filter=V650OperationsAndPartyTest|V305SingleTableTest|V230SocialWorldTest|V240CompetitiveArenaTest') $Backend
+        Run 'Laravel focused runtime tests' $Php @('artisan','test','--filter=V700BootstrapPrivacyTest|V650OperationsAndPartyTest|V305SingleTableTest|V230SocialWorldTest|V240CompetitiveArenaTest') $Backend
     } finally { foreach ($key in $testEnv) { [Environment]::SetEnvironmentVariable($key,$savedEnv[$key],'Process') } }
     $Port = FreePort 8007 8016
     $WebPort = FreePort 8088 8098
     Run 'Flutter packages' $Flutter @('pub','get') $FlutterApp
     Run 'Flutter analysis' $Flutter @('analyze','--no-fatal-infos') $FlutterApp
     Run 'Flutter tests' $Flutter @('test') $FlutterApp
-    Run 'Flutter web release' $Flutter @('build','web','--release',"--dart-define=WARQNA_API_URL=http://127.0.0.1:$Port/api/mobile/v1",'--dart-define=WARQNA_APP_VERSION=1.8.0','--dart-define=WARQNA_APP_BUILD=650') $FlutterApp
+    Run 'Flutter web release' $Flutter @('build','web','--release',"--dart-define=WARQNA_API_URL=http://127.0.0.1:$Port/api/mobile/v1","--dart-define=WARQNA_APP_VERSION=$($Release.version)","--dart-define=WARQNA_APP_BUILD=$($Release.build)") $FlutterApp
     # No existing files have been modified before this point.
     if (Test-Path $Target) {
         $legacy = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^php' -and $_.CommandLine -match 'artisan\s+(serve|schedule:work|queue:work)' })
@@ -187,8 +195,8 @@ try {
     SetEnv $EnvFile 'DB_CONNECTION' 'sqlite'
     SetEnv $EnvFile 'DB_DATABASE' 'database/database.sqlite'
     SetEnv $EnvFile 'DB_URL' 'null'
-    SetEnv $EnvFile 'WARQNA_VERSION' '1.8.0'
-    SetEnv $EnvFile 'WARQNA_BUILD' '650'
+    SetEnv $EnvFile 'WARQNA_VERSION' ([string]$Release.version)
+    SetEnv $EnvFile 'WARQNA_BUILD' ([string]$Release.build)
     SetEnv $EnvFile 'APP_URL' "http://127.0.0.1:$Port"
     SetEnv $EnvFile 'FRONTEND_URL' "http://127.0.0.1:$WebPort"
     SetEnv $EnvFile 'CORS_ALLOWED_ORIGINS' "http://127.0.0.1:$WebPort"
@@ -217,11 +225,11 @@ try {
         try { $response=Invoke-RestMethod "http://127.0.0.1:$Port/api/mobile/v1/health"; if ($response.ok) { break } } catch { }
         Start-Sleep -Seconds 1
     }
-    if (!$response -or !$response.ok -or [int]$response.build -ne 650) { throw 'Post-install API health check failed.' }
+    if (!$response -or !$response.ok -or [int]$response.build -ne [int]$Release.build) { throw 'Post-install API health check failed.' }
     $web = Invoke-WebRequest "http://127.0.0.1:$WebPort/" -UseBasicParsing
     if ($web.StatusCode -ne 200) { throw 'Flutter web server check failed.' }
     $Gates['API and web HTTP smoke'] = 'PASS'
-    [IO.File]::WriteAllText($Result, (@{status='PASSED';release='1.8.0+650';target=$Target;backup=$(if($OldMoved){$Backup}else{$null});gates=$Gates}|ConvertTo-Json -Depth 5),$Utf8)
+    [IO.File]::WriteAllText($Result, (@{status='PASSED';release=$Release.full;target=$Target;backup=$(if($OldMoved){$Backup}else{$null});gates=$Gates}|ConvertTo-Json -Depth 5),$Utf8)
     Start-Process "http://127.0.0.1:$Port"
     Start-Process "http://127.0.0.1:$WebPort"
     Step 'Installation passed. See INSTALLATION_RESULT.json. Backups are retained.'

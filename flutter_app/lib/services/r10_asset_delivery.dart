@@ -241,7 +241,10 @@ class _R10AssetImageState extends State<R10AssetImage> {
 
   void _deliveryChanged() {
     if (!mounted) return;
-    setState(() => _future = R10AssetDelivery.instance.verifiedRemoteBytes(widget.localAsset));
+    final future = R10AssetDelivery.instance.verifiedRemoteBytes(widget.localAsset);
+    setState(() {
+      _future = future;
+    });
   }
 
   @override

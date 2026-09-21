@@ -73,7 +73,14 @@ class PushNotifications {
   }
 
   static Future<String?> initialize() async {
-    await _ensureLocal();
+    // Native notification registration is optional and may be unavailable in
+    // a test runner or unsupported host. It must not break account bootstrap,
+    // nor prevent Firebase registration when that service is configured.
+    try {
+      await _ensureLocal();
+    } catch (error) {
+      debugPrint('Local notification initialization deferred: $error');
+    }
     if (!configured) return null;
     try {
       if (!_firebaseReady) {

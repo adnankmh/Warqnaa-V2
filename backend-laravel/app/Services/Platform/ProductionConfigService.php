@@ -13,8 +13,8 @@ class ProductionConfigService
         $release = $this->release($platform);
         return [
             'app' => config('app.name', 'Warqna'),
-            'version' => config('warqna.version', '1.8.0'),
-            'build' => (int) config('warqna.build', 650),
+            'version' => config('warqna.version', '1.9.0'),
+            'build' => (int) config('warqna.build', 700),
             'environment' => app()->environment(),
             'maintenance' => (bool) data_get($flags, 'maintenance_mode.enabled', false),
             'maintenance_message' => (string) data_get($flags, 'maintenance_mode.payload.message', ''),

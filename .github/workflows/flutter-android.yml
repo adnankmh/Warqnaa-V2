@@ -2,6 +2,9 @@ name: Build Android APK and AAB
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+    paths: ['flutter_app/**', 'RELEASE_VERSION.json', '.github/workflows/flutter-android.yml']
 
 permissions:
   contents: read

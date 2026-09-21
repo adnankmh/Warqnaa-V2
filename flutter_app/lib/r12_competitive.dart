@@ -49,12 +49,16 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   @override void dispose() { queueTimer?.cancel(); tabs.dispose(); super.dispose(); }
 
   Future<void> _load({bool quiet = false}) async {
+    if (!mounted) return;
     if (!quiet && mounted) setState(() { loading = true; error = null; });
     try {
       if (widget.controller.serverConnected) {
         final dashboard = await widget.controller.api.competitiveR12();
+        if (!mounted) return;
         final ladder = await widget.controller.api.competitiveLeaderboardR12(limit: 100);
+        if (!mounted) return;
         final matches = await widget.controller.api.competitiveHistoryR12();
+        if (!mounted) return;
         data = _r12Map(dashboard['competitive']);
         leaders = _r12List(_r12Map(ladder['leaderboard'])['rows']);
         history = _r12List(matches['matches']);
@@ -63,6 +67,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
       }
       _armQueuePolling();
     } catch (e) {
+      if (!mounted) return;
       error = e.toString();
       if (data.isEmpty) { data = _offlineCompetitive(); leaders = _offlineLeaders(); }
     }
@@ -71,7 +76,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   void _armQueuePolling() {
     queueTimer?.cancel();
-    if (!widget.controller.serverConnected || !['waiting','matching'].contains(queue['status'])) return;
+    if (!mounted || !widget.controller.serverConnected || !['waiting','matching'].contains(queue['status'])) return;
     queueTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
       try {
         final response = await widget.controller.api.rankedQueueR12(token: queue['token']?.toString());

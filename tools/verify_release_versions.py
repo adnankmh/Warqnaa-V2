@@ -52,6 +52,7 @@ def main() -> None:
     require("flutter_app/lib/services/api_client.dart", f"defaultValue: {build}")
     require("backend-laravel/config/warqna.php", f"env('WARQNA_VERSION', '{version}')")
     require("backend-laravel/config/warqna.php", f"env('WARQNA_BUILD', {build})")
+    require("backend-laravel/config/warqna_global_release.php", f"'release' => '{full}'")
     require("backend-laravel/.env.example", f"WARQNA_VERSION={version}")
     require("backend-laravel/.env.example", f"WARQNA_BUILD={build}")
     require("backend-laravel/.env.production.example", f"WARQNA_VERSION={version}")
