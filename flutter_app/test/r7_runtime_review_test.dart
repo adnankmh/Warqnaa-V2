@@ -14,6 +14,15 @@ const runtimeUrl = String.fromEnvironment('R7_RUNTIME_URL');
 const reviewDirectory = String.fromEnvironment('R7_REVIEW_DIR');
 
 Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
+  // Real asset decoding needs real async time, not a fake-clock pump.
+  final providers = tester.widgetList<Image>(find.byType(Image)).map((image) => image.image).toSet();
+  final imageErrors = <Object>[];
+  await tester.runAsync(() async {
+    await Future.wait(providers.map((provider) => precacheImage(
+      provider, key.currentContext!, onError: (error, stack) => imageErrors.add(error),
+    )));
+  });
+  expect(imageErrors, isEmpty, reason: 'Review screenshots must include their image assets');
   await tester.pump(const Duration(milliseconds: 400));
   expect(tester.takeException(), isNull);
   final boundary = key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -30,6 +39,7 @@ Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
 Widget reviewApp(Widget child, AppController controller, GlobalKey key) => RepaintBoundary(
   key: key,
   child: MaterialApp(
+    debugShowCheckedModeBanner: false,
     locale: Locale(controller.localeCode),
     supportedLocales: const [Locale('ar'), Locale('en')],
     localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -46,10 +56,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     if (runtimeUrl.isEmpty) return;
-    final font = FontLoader('R7Review')..addFont(
-      File(const String.fromEnvironment('R7_REVIEW_FONT')).readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
+    final fontBytes = await File(const String.fromEnvironment('R7_REVIEW_FONT')).readAsBytes();
+    // Explicit component styles and default typography retain these family
+    // names even when textTheme is copied. Replace test-only Ahem blocks too.
+    for (final family in ['R7Review', 'Roboto', 'Ahem']) {
+      final font = FontLoader(family)..addFont(Future.value(ByteData.sublistView(fontBytes)));
+      await font.load();
+    }
+    final icons = FontLoader('MaterialIcons')..addFont(
+      File(const String.fromEnvironment('R7_MATERIAL_FONT')).readAsBytes().then((bytes) => ByteData.sublistView(bytes)),
     );
-    await font.load();
+    await icons.load();
   });
 
   for (final locale in ['ar', 'en']) {
