@@ -15,7 +15,7 @@ class V700BootstrapPrivacyTest extends TestCase
         $owner = User::factory()->create();
         $visitor = User::factory()->create();
         $member = User::factory()->create();
-        $game = Game::create(['key'=>'tarneeb', 'name'=>['ar'=>'طرنيب','en'=>'Tarneeb'], 'active'=>true, 'min_players'=>4, 'max_players'=>4]);
+        $game = Game::firstOrCreate(['key'=>'tarneeb'], ['name'=>['ar'=>'طرنيب','en'=>'Tarneeb'], 'active'=>true, 'min_players'=>4, 'max_players'=>4]);
         foreach (['public', 'private', 'friends'] as $visibility) {
             $room = Room::create([
                 'code'=>'R7'.strtoupper($visibility), 'game_id'=>$game->id,
