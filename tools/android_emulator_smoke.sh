@@ -8,6 +8,8 @@ mkdir -p "$EVIDENCE_DIR"
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
   adb shell dumpsys activity activities > "$EVIDENCE_DIR/activity.txt" 2>&1 || true
+  adb shell dumpsys activity top > "$EVIDENCE_DIR/activity-top.txt" 2>&1 || true
+  adb shell dumpsys window windows > "$EVIDENCE_DIR/windows.txt" 2>&1 || true
   adb exec-out screencap -p > "$EVIDENCE_DIR/first-frame.png" 2>/dev/null || true
 }
 trap collect_evidence EXIT
@@ -37,11 +39,15 @@ adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
   | tee "$EVIDENCE_DIR/launch.txt"
 
 PID=''
-RESUMED=''
+FOREGROUND=''
 for _ in $(seq 1 30); do
   PID=$(adb shell pidof -s "$PACKAGE" 2>/dev/null | tr -d '\r' || true)
-  RESUMED=$(adb shell dumpsys activity activities 2>/dev/null | grep -m 1 'mResumedActivity' || true)
-  if [[ -n "$PID" && "$RESUMED" == *"$PACKAGE"* ]]; then
+  FOREGROUND=$({
+    adb shell dumpsys activity activities 2>/dev/null
+    adb shell dumpsys activity top 2>/dev/null
+    adb shell dumpsys window windows 2>/dev/null
+  } | grep -E 'mResumedActivity|topResumedActivity|ResumedActivity|mCurrentFocus|mFocusedApp|^[[:space:]]*ACTIVITY ' | grep -F "$PACKAGE" | head -n 1 || true)
+  if [[ -n "$PID" && -n "$FOREGROUND" ]]; then
     break
   fi
   sleep 1
@@ -51,7 +57,7 @@ if [[ -z "$PID" ]]; then
   echo "[FAIL] $PACKAGE did not remain running after launch." >&2
   exit 1
 fi
-if [[ "$RESUMED" != *"$PACKAGE"* ]]; then
+if [[ -z "$FOREGROUND" ]]; then
   echo "[FAIL] $PACKAGE did not reach a resumed foreground activity." >&2
   exit 1
 fi
