@@ -122,7 +122,16 @@ try {
     $Python = Exe @('python.exe','python3.exe') @()
     $Git = Exe @('git.exe') @('C:\Program Files\Git\cmd\git.exe')
     if (!$Php -or !$Python) { throw 'Install PHP 8.2+ (XAMPP) and Python 3.10+ with PATH enabled, then rerun. Existing installation untouched.' }
-    Run 'PHP and extensions' $Php @('-r','exit(PHP_VERSION_ID >= 80200 && extension_loaded("pdo_sqlite") && extension_loaded("sqlite3") && extension_loaded("mbstring") && extension_loaded("dom") && extension_loaded("openssl") ? 0 : 1);') $PSScriptRoot
+    Run 'PHP 8.2 or newer' $Php @('-r','exit(PHP_VERSION_ID >= 80200 ? 0 : 1);') $PSScriptRoot
+    Step 'PHP required extensions'
+    $modules = @(& $Php '-m')
+    if ($LASTEXITCODE -ne 0) { $Gates['PHP required extensions'] = 'FAILED'; throw 'Unable to inspect PHP extensions.' }
+    $missingModules = @('pdo_sqlite','sqlite3','mbstring','dom','openssl') | Where-Object { $modules -notcontains $_ }
+    if ($missingModules.Count -gt 0) {
+        $Gates['PHP required extensions'] = 'FAILED'
+        throw ('Missing required PHP extensions: '+($missingModules -join ', '))
+    }
+    $Gates['PHP required extensions'] = 'PASS'
     Run 'Python runtime' $Python @('-c','import sys;sys.exit(0 if sys.version_info >= (3,10) else 1)') $PSScriptRoot
     $OldEnv = Join-Path $Target 'backend-laravel\.env'
     if (Test-Path $Target) {
