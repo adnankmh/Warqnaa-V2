@@ -45,6 +45,7 @@ jobs:
       - name: Create clean iOS platform
         working-directory: flutter_app
         run: |
+          flutter config --no-enable-swift-package-manager
           rm -rf ios
           flutter create . --platforms=ios --project-name warqna_mobile --org com.warqna --no-pub
           if [ -f test/widget_test.dart ] && grep -q "MyApp" test/widget_test.dart; then rm test/widget_test.dart; fi
