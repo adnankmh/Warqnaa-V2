@@ -3731,6 +3731,7 @@ class _StorePageState extends State<StorePage> {
   @override
   Widget build(BuildContext context) {
     final lang = widget.controller.localeCode;
+    final ar=lang=='ar';
     widget.controller.purgeExpiredPackInventoryV176(DateTime.now());
     final visible = products.where((p) {
       if (p.category == 'pasha_style') return false;
@@ -3784,15 +3785,15 @@ class _StorePageState extends State<StorePage> {
         R101CommerceShowcase(controller: widget.controller),
         const SizedBox(height: 10),
         PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Row(children:[Expanded(child:Text('تقدم المستوى ${widget.controller.level}',style:const TextStyle(fontWeight:FontWeight.w900))),Text('${widget.controller.xp} / ${widget.controller.xpNext} XP',style:const TextStyle(color:Colors.amber,fontWeight:FontWeight.w900,fontSize:11))]),
+          Row(children:[Expanded(child:Text(ar?'تقدم المستوى ${widget.controller.level}':'Level progress ${widget.controller.level}',style:const TextStyle(fontWeight:FontWeight.w900))),Text('${widget.controller.xp} / ${widget.controller.xpNext} XP',style:const TextStyle(color:Colors.amber,fontWeight:FontWeight.w900,fontSize:11))]),
           const SizedBox(height:8),
           ClipRRect(borderRadius:BorderRadius.circular(20),child:LinearProgressIndicator(value:widget.controller.levelProgress,minHeight:12,backgroundColor:Colors.white10)),
           const SizedBox(height:6),
-          Text('تحتاج ${widget.controller.pointsToNextLevel} نقطة XP للمستوى التالي',style:const TextStyle(color:Colors.white60,fontSize:10)),
+          Text(ar?'تحتاج ${widget.controller.pointsToNextLevel} نقطة XP للمستوى التالي':'${widget.controller.pointsToNextLevel} XP needed for the next level',style:const TextStyle(color:Colors.white60,fontSize:10)),
           const SizedBox(height:10),
-          Row(children:[Expanded(child:ProfileMetric(value:'${widget.controller.roundPoints}',label:'نقاط الجولات')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.tournamentPoints}',label:'نقاط المسابقات')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.clubPoints}',label:'نقاط النادي'))]),
+          Row(children:[Expanded(child:ProfileMetric(value:'${widget.controller.roundPoints}',label:ar?'نقاط الجولات':'Round points')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.tournamentPoints}',label:ar?'نقاط المسابقات':'Tournament points')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.clubPoints}',label:ar?'نقاط النادي':'Club points'))]),
           const SizedBox(height:7),
-          Text('المضاعف الحالي ×${((widget.controller.vipDays>0?2.0:1.0)*math.max(1.0,widget.controller.activeXpMultiplier)).toStringAsFixed(2)} • المسابقات أعلى من اللعب العادي • المدعومة/الموسمية حتى ×3',style:const TextStyle(color:Colors.lightGreenAccent,fontSize:9,fontWeight:FontWeight.w800)),
+          Text(ar?'المضاعف الحالي ×${((widget.controller.vipDays>0?2.0:1.0)*math.max(1.0,widget.controller.activeXpMultiplier)).toStringAsFixed(2)} • المسابقات أعلى من اللعب العادي • المدعومة/الموسمية حتى ×3':'Current multiplier ×${((widget.controller.vipDays>0?2.0:1.0)*math.max(1.0,widget.controller.activeXpMultiplier)).toStringAsFixed(2)} • Competitions reward more • Seasonal up to ×3',style:const TextStyle(color:Colors.lightGreenAccent,fontSize:9,fontWeight:FontWeight.w800)),
         ]))),
         const SizedBox(height: 10),
         PremiumPanel(
@@ -3802,17 +3803,17 @@ class _StorePageState extends State<StorePage> {
               const Text('🛍️', style: TextStyle(fontSize: 36)),
               const SizedBox(width: 10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${products.length} عنصر فاخر', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                Text('طاولات ${products.where((p) => p.category == 'tables').length} • أظهر ورق ${products.where((p) => p.category == 'cards').length} • شراء بتأكيد ومعاينة مباشرة', style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4)),
+                Text(ar?'${products.length} عنصر فاخر':'${products.length} premium items', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                Text(ar?'طاولات ${products.where((p) => p.category == 'tables').length} • أظهر ورق ${products.where((p) => p.category == 'cards').length} • شراء بتأكيد ومعاينة مباشرة':'${products.where((p) => p.category == 'tables').length} tables • ${products.where((p) => p.category == 'cards').length} card backs • Confirmed purchase with live preview', style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4)),
               ])),
-              Chip(label: Text('${widget.controller.activeOwnedCountV176} مملوك')),
+              Chip(label: Text(ar?'${widget.controller.activeOwnedCountV176} مملوك':'${widget.controller.activeOwnedCountV176} owned')),
             ]),
           ),
         ),
         const SizedBox(height: 10),
         TextField(
           onChanged: (value) => setState(() => query = value),
-          decoration: const InputDecoration(prefixIcon: Icon(Icons.search_rounded), hintText: 'ابحث في الطاولات والثيمات والبطاقات والعناصر...'),
+          decoration: InputDecoration(prefixIcon:const Icon(Icons.search_rounded),hintText:ar?'ابحث في الطاولات والثيمات والبطاقات والعناصر...':'Search tables, themes, card backs and items...'),
         ),
         const SizedBox(height: 10),
         SizedBox(
@@ -3839,18 +3840,13 @@ class _StorePageState extends State<StorePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('مجموعات الطاولات', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                  Text(ar?'مجموعات الطاولات':'Table collections', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 7,
                     runSpacing: 7,
                     children: [
-                      for (final entry in const [
-                        ('all', 'الكل'),
-                        ('v173_royal', 'الملكية'),
-                        ('v173_showcase', 'الحيوانات والسيارات'),
-                        ('legacy', 'الكلاسيكية'),
-                      ])
+                      for(final entry in ar?const [('all','الكل'),('v173_royal','الملكية'),('v173_showcase','الحيوانات والسيارات'),('legacy','الكلاسيكية')]:const [('all','All'),('v173_royal','Royal'),('v173_showcase','Animals & cars'),('legacy','Classic')])
                         ChoiceChip(
                           label: Text(entry.$2, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
                           selected: tableCollection == entry.$1,
@@ -3869,11 +3865,11 @@ class _StorePageState extends State<StorePage> {
           runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            const Padding(
-              padding: EdgeInsetsDirectional.only(end: 2),
-              child: Text('التصنيف', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white60)),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 2),
+              child: Text(ar?'التصنيف':'Tier', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white60)),
             ),
-            for (final entry in const [('all', 'الكل'), ('beginner', 'مبتدئ'), ('expert', 'خبير'), ('pro', 'محترف'), ('legendary', 'أسطوري')])
+            for(final entry in ar?const [('all','الكل'),('beginner','مبتدئ'),('expert','خبير'),('pro','محترف'),('legendary','أسطوري')]:const [('all','All'),('beginner','Beginner'),('expert','Expert'),('pro','Pro'),('legendary','Legendary')])
               FilterChip(
                 label: Text(entry.$2, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
                 selected: tier == entry.$1,
@@ -3907,7 +3903,7 @@ class _StorePageState extends State<StorePage> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              'لا تُخصم التوكنز من اللعب أو الغرف. الخصم يتم داخل المتجر فقط وبعد رسالة تأكيد واضحة.',
+              ar?'لا تُخصم التوكنز من اللعب أو الغرف. الخصم يتم داخل المتجر فقط وبعد رسالة تأكيد واضحة.':'Tokens are never deducted for playing or joining rooms. Store purchases require a clear confirmation first.',
               style: TextStyle(color: Colors.white.withValues(alpha: .65), fontSize: 11, height: 1.6),
             ),
           ),
@@ -4415,18 +4411,19 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   bool botsActing = false;
   bool rewardGranted = false;
   bool autoNextRoundScheduled = false;
+  bool compactLandscapeChatOpen = false;
   final Set<int> awardedProgressRounds = <int>{};
   bool awayMode = false;
   int autoPlayedTurns = 0;
   final chatController = TextEditingController();
-  final List<String> roomMessages = [
-    'سامر: بالتوفيق للجميع 👋',
-    'ليلى: مباراة ممتعة!',
-  ];
+  late final List<String> roomMessages;
+  bool get _ar=>widget.controller.localeCode=='ar';
+  String _tr(String ar,String en)=>_ar?ar:en;
 
   @override
   void initState() {
     super.initState();
+    roomMessages=_ar?['سامر: بالتوفيق للجميع 👋','ليلى: مباراة ممتعة!']:['Samer: Good luck everyone 👋','Layla: Have a great game!'];
     awayMode = widget.controller.awayMode;
     _newGame();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
@@ -4649,12 +4646,12 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
 
   String _seatBid(int seat) {
     for (final bid in engine.bids.reversed) {
-      if (bid.seat == seat) return bid.amount?.toString() ?? 'سكون';
+      if (bid.seat == seat) return bid.amount?.toString() ?? _tr('سكون','Pass');
     }
     if (engine.phase == TarneebPhase.playing && engine.bidWinnerSeat == seat) {
       return '${engine.highestBid ?? ''} ${engine.trump == null ? '' : engine.suitName(engine.trump!)}';
     }
-    return engine.currentSeat == seat ? 'دوره' : '—';
+    return engine.currentSeat == seat ? _tr('دوره','Turn') : '—';
   }
 
   String _lastCardLabel(int seat) => engine.lastPlayedCardForSeat(seat)?.label ?? '—';
@@ -4669,7 +4666,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         : 'Player tricks: $tricks • Round points: $signed';
   }
 
-  Widget _tableStatusStrip(BuildContext context) {
+  Widget _tableStatusStrip(BuildContext context,{bool compact=false}) {
     final ar = widget.controller.localeCode == 'ar';
     final bidder = engine.bidWinnerSeat == null ? (ar ? 'لم يحسم بعد' : 'Not decided') : engine.playerNames[engine.bidWinnerSeat!];
     final request = engine.highestBid?.toString() ?? '—';
@@ -4682,26 +4679,21 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       {'title': ar ? 'آخر لَمّة' : 'Last trick', 'value': trickOwner},
       {'title': ar ? 'الجولة' : 'Round', 'value': widget.options.singleRound ? (ar ? 'واحدة' : 'Single') : '${engine.round}'},
     ];
+    final children=items.map((item)=>Container(
+      padding:EdgeInsets.symmetric(horizontal:compact?7:12,vertical:compact?4:8),
+      decoration:BoxDecoration(color:Colors.white.withValues(alpha:.06),borderRadius:BorderRadius.circular(compact?11:16),border:Border.all(color:Colors.white.withValues(alpha:.08))),
+      child:Column(mainAxisSize:MainAxisSize.min,children:[
+        Text(item['title']!,style:TextStyle(fontSize:compact?7:10,color:Colors.white.withValues(alpha:.72),fontWeight:FontWeight.w800)),
+        SizedBox(height:compact?1:3),
+        Text(item['value']!,textAlign:TextAlign.center,style:TextStyle(fontSize:compact?9:13,fontWeight:FontWeight.w900,color:Theme.of(context).colorScheme.primary)),
+      ]),
+    )).toList();
+    if(compact)return SingleChildScrollView(scrollDirection:Axis.horizontal,child:Row(mainAxisSize:MainAxisSize.min,children:[for(var i=0;i<children.length;i++)...[if(i>0)const SizedBox(width:5),children[i]]]));
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       alignment: WrapAlignment.center,
-      children: items.map((item) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .06),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: .08)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(item['title']!, style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: .72), fontWeight: FontWeight.w800)),
-            const SizedBox(height: 3),
-            Text(item['value']!, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary)),
-          ],
-        ),
-      )).toList(),
+      children:children,
     );
   }
 
@@ -4709,30 +4701,32 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   Widget build(BuildContext context) {
     final mediaLandscape = MediaQuery.orientationOf(context) == Orientation.landscape;
     final landscape = mediaLandscape || widget.controller.landscapeMode || isDesktopWebV183(MediaQuery.sizeOf(context).width);
+    final shortLandscape=landscape&&MediaQuery.sizeOf(context).height<430;
     final body = landscape
         ? Row(
             children: [
-              Expanded(flex: 7, child: _gameArea(context, landscape: true)),
-              AnimatedContainer(
+              Expanded(flex:7,child:_gameArea(context,landscape:true,shortLandscape:shortLandscape)),
+              if(!shortLandscape||compactLandscapeChatOpen) AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
-                width: chatOpen ? 290 * widget.controller.uiChatScale : 58,
-                child: chatOpen ? _chatPanel(context) : _collapsedChatButton(),
+                width:(shortLandscape?compactLandscapeChatOpen:chatOpen)?290*widget.controller.uiChatScale:58,
+                child:(shortLandscape?compactLandscapeChatOpen:chatOpen)?_chatPanel(context,compactLandscape:shortLandscape):_collapsedChatButton(),
               ),
             ],
           )
         : Column(
             children: [
-              Expanded(child: _gameArea(context, landscape: false)),
+              Expanded(child:_gameArea(context,landscape:false,shortLandscape:false)),
               if (chatOpen) SizedBox(height: 185 * widget.controller.uiChatScale, child: _chatPanel(context)) else _collapsedChatButton(),
             ],
           );
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight:shortLandscape?46:null,
         title: Column(
           children: [
-            const Text('طرنيب احترافي', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-            Text(widget.options.singleRound ? '13 ورقة • فريقان • جولة واحدة • لعب مجاني' : '13 ورقة • فريقان • الهدف 41 • لعب مجاني', style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.primary)),
+            Text(_tr('طرنيب احترافي','Professional Tarneeb'),style:TextStyle(fontSize:shortLandscape?13:16,fontWeight:FontWeight.w900)),
+            Text(widget.options.singleRound?_tr('13 ورقة • فريقان • جولة واحدة • لعب مجاني','13 cards • Two teams • Single round • Free play'):_tr('13 ورقة • فريقان • الهدف 41 • لعب مجاني','13 cards • Two teams • Target 41 • Free play'),style:TextStyle(fontSize:shortLandscape?7:9,color:Theme.of(context).colorScheme.primary)),
           ],
         ),
         centerTitle: true,
@@ -4754,7 +4748,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     );
   }
 
-  Widget _gameArea(BuildContext context, {required bool landscape}) {
+  Widget _gameArea(BuildContext context,{required bool landscape,required bool shortLandscape}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxHeight < 590;
@@ -4762,21 +4756,27 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(10, compact ? 2 : 7, 10, 4),
-              child: Column(
+              child:shortLandscape?Row(children:[
+                SizedBox(width:88,child:ScoreBox(label:_tr('نحن','We'),score:engine.scores[0])),
+                Padding(padding:const EdgeInsets.symmetric(horizontal:6),child:Column(mainAxisSize:MainAxisSize.min,children:[Text(_tr('جولة ${engine.round}','Round ${engine.round}'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:9)),Text(_tr('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات','${engine.roundTricks[0]} : ${engine.roundTricks[1]} tricks'),style:const TextStyle(color:Colors.white60,fontSize:7))])),
+                SizedBox(width:88,child:ScoreBox(label:_tr('هم','They'),score:engine.scores[1])),
+                const SizedBox(width:7),
+                Expanded(child:_tableStatusStrip(context,compact:true)),
+              ]):Column(
                 children: [
                   Row(
                     children: [
-                      Expanded(child: ScoreBox(label: 'نحن', score: engine.scores[0])),
+                      Expanded(child: ScoreBox(label:_tr('نحن','We'),score:engine.scores[0])),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Column(
                           children: [
-                            Text('جولة ${engine.round}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                            Text('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات', style: const TextStyle(color: Colors.white60, fontSize: 9)),
+                            Text(_tr('جولة ${engine.round}','Round ${engine.round}'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:11)),
+                            Text(_tr('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات','${engine.roundTricks[0]} : ${engine.roundTricks[1]} tricks'),style:const TextStyle(color:Colors.white60,fontSize:9)),
                           ],
                         ),
                       ),
-                      Expanded(child: ScoreBox(label: 'هم', score: engine.scores[1])),
+                      Expanded(child:ScoreBox(label:_tr('هم','They'),score:engine.scores[1])),
                     ],
                   ),
                   SizedBox(height: compact ? 4 : 7),
@@ -4789,10 +4789,10 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(
-                    top: compact ? 36 : 48,
-                    bottom: compact ? 74 : 96,
-                    left: landscape ? 86 : 28,
-                    right: landscape ? 86 : 28,
+                    top:shortLandscape?26:compact?36:48,
+                    bottom:shortLandscape?58:compact?74:96,
+                    left:shortLandscape?74:landscape?86:28,
+                    right:shortLandscape?74:landscape?86:28,
                     child: _LuxuryTable(
                       trump: engine.trump,
                       phase: engine.phase.name,
@@ -4800,16 +4800,16 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                       controller: widget.controller,
                     ),
                   ),
-                  Positioned(top: compact ? 38 : 51, left: 0, right: 0, child: Center(child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, controller: widget.controller))),
+                  Positioned(top:shortLandscape?27:compact?38:51,left:0,right:0,child:Center(child:OpponentCardStack(cardBackId:widget.controller.selectedCardBack,controller:widget.controller))),
                   Positioned(left: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
                   Positioned(right: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
                   Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: _seatBid(2), meta: _seatRoundGain(2), lastCardLabel: _lastCardLabel(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
                   Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: _seatBid(1), meta: _seatRoundGain(1), lastCardLabel: _lastCardLabel(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
                   Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: _seatBid(3), meta: _seatRoundGain(3), lastCardLabel: _lastCardLabel(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
-                  Positioned(bottom: compact ? 64 : 78, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[0], letter: widget.controller.displayName.isEmpty ? '?' : widget.controller.displayName.substring(0, 1), bid: _seatBid(0), meta: _seatRoundGain(0), lastCardLabel: _lastCardLabel(0), nameColor: colorFromHex(widget.controller.selectedNameColor), badge: storeProductById(widget.controller.selectedBadge)?.icon, avatarEmoji: widget.controller.avatarEmoji, onProfileTap: () => showProfile(context, widget.controller))),
+                  Positioned(bottom:shortLandscape?48:compact?64:78,left:0,right:0,child:PlayerSeat(name:engine.playerNames[0],letter:widget.controller.displayName.isEmpty?'?':widget.controller.displayName.substring(0,1),bid:_seatBid(0),meta:_seatRoundGain(0),lastCardLabel:_lastCardLabel(0),nameColor:colorFromHex(widget.controller.selectedNameColor),badge:storeProductById(widget.controller.selectedBadge)?.icon,avatarEmoji:widget.controller.avatarEmoji,onProfileTap:()=>showProfile(context,widget.controller))),
                   Positioned(
                     right: landscape ? 92 : 48,
-                    bottom: compact ? 92 : 112,
+                    bottom:shortLandscape?64:compact?92:112,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(color: Colors.black.withValues(alpha: .72), borderRadius: BorderRadius.circular(18), border: Border.all(color: seconds <= 5 ? Colors.redAccent : Theme.of(context).colorScheme.primary.withValues(alpha: .7))),
@@ -4817,10 +4817,10 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
                     ),
                   ),
                   Positioned.fill(
-                    top: compact ? 80 : 108,
-                    bottom: compact ? 145 : 170,
-                    left: landscape ? 160 : 68,
-                    right: landscape ? 160 : 68,
+                    top:shortLandscape?62:compact?80:108,
+                    bottom:shortLandscape?105:compact?145:170,
+                    left:shortLandscape?145:landscape?160:68,
+                    right:shortLandscape?145:landscape?160:68,
                     child: _trickCenter(context),
                   ),
                   if (floatingReaction != null)
@@ -4843,7 +4843,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
               ),
             ),
             _actionPanel(context, compact: compact),
-            _roomTools(context),
+            _roomTools(context,compactLandscape:shortLandscape),
           ],
         );
       },
@@ -4890,11 +4890,11 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   }
 
   String _phaseTitle() => switch (engine.phase) {
-        TarneebPhase.bidding => 'مرحلة الطلب: من 7 إلى 13',
-        TarneebPhase.chooseTrump => 'اختيار نوع الطرنيب',
-        TarneebPhase.playing => engine.currentSeat == 0 ? 'دورك — اتبع النوع إن كان موجوداً' : 'بانتظار ${engine.playerNames[engine.currentSeat]}',
-        TarneebPhase.roundEnd => 'انتهت الجولة',
-        TarneebPhase.gameOver => 'انتهت المباراة',
+        TarneebPhase.bidding => _tr('مرحلة الطلب: من 7 إلى 13','Bidding: 7 to 13'),
+        TarneebPhase.chooseTrump => _tr('اختيار نوع الطرنيب','Choose trump'),
+        TarneebPhase.playing => engine.currentSeat == 0 ? _tr('دورك — اتبع النوع إن كان موجوداً','Your turn — follow suit when possible') : _tr('بانتظار ${engine.playerNames[engine.currentSeat]}','Waiting for ${engine.playerNames[engine.currentSeat]}'),
+        TarneebPhase.roundEnd => _tr('انتهت الجولة','Round complete'),
+        TarneebPhase.gameOver => _tr('انتهت المباراة','Game over'),
       };
 
   Widget _handWidget(BuildContext context, {required double maxWidth, required bool compact}) {
@@ -4965,7 +4965,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
           height: 42,
           alignment: Alignment.center,
           decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(14)),
-          child: Text('الكمبيوتر يفكر… ${engine.playerNames[engine.currentSeat]}', style: const TextStyle(color: Colors.white60, fontWeight: FontWeight.w800)),
+          child:Text(_tr('الكمبيوتر يفكر… ${engine.playerNames[engine.currentSeat]}','Computer is thinking… ${engine.playerNames[engine.currentSeat]}'),style:const TextStyle(color:Colors.white60,fontWeight:FontWeight.w800)),
         ),
       );
     }
@@ -5012,7 +5012,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     );
   }
 
-  Widget _roomTools(BuildContext context) {
+  Widget _roomTools(BuildContext context,{bool compactLandscape=false}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
       child: Column(
@@ -5020,7 +5020,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              RoomTool(icon: chatOpen ? Icons.chat_bubble : Icons.chat_bubble_outline, onTap: () => setState(() => chatOpen = !chatOpen)),
+              RoomTool(icon:(compactLandscape?compactLandscapeChatOpen:chatOpen)?Icons.chat_bubble:Icons.chat_bubble_outline,onTap:()=>setState((){if(compactLandscape){compactLandscapeChatOpen=!compactLandscapeChatOpen;}else{chatOpen=!chatOpen;}})),
               RoomTool(icon: Icons.emoji_emotions_outlined, onTap: () => setState(() => reactionsOpen = !reactionsOpen)),
               RoomTool(icon: Icons.menu_book_outlined, onTap: () => showRules(context, widget.controller.localeCode, 'tarneeb')),
               RoomTool(icon: Icons.history_rounded, onTap: () => _showGameLog(context)),
@@ -5048,7 +5048,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     );
   }
 
-  Widget _chatPanel(BuildContext context) {
+  Widget _chatPanel(BuildContext context,{bool compactLandscape=false}) {
     return Container(
       margin: const EdgeInsets.all(7),
       decoration: BoxDecoration(
@@ -5061,9 +5061,9 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
           ListTile(
             dense: true,
             leading: const Icon(Icons.forum_rounded),
-            title: const Text('دردشة الغرفة', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-            subtitle: const Text('4 لاعبين متصلين', style: TextStyle(color: Colors.greenAccent, fontSize: 8)),
-            trailing: IconButton(onPressed: () => setState(() => chatOpen = false), icon: const Icon(Icons.close_rounded, size: 18)),
+            title:Text(_tr('دردشة الغرفة','Room chat'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:12)),
+            subtitle:Text(_tr('4 لاعبين متصلين','4 players online'),style:const TextStyle(color:Colors.greenAccent,fontSize:8)),
+            trailing:IconButton(onPressed:()=>setState((){if(compactLandscape){compactLandscapeChatOpen=false;}else{chatOpen=false;}}),icon:const Icon(Icons.close_rounded,size:18)),
           ),
           Expanded(
             child: ListView.builder(
@@ -5079,7 +5079,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
             padding: const EdgeInsets.all(7),
             child: Row(
               children: [
-                Expanded(child: TextField(controller: chatController, minLines: 1, maxLines: 2, decoration: const InputDecoration(hintText: 'اكتب رسالة...', isDense: true))),
+                Expanded(child:TextField(controller:chatController,minLines:1,maxLines:2,decoration:InputDecoration(hintText:_tr('اكتب رسالة...','Write a message...'),isDense:true))),
                 const SizedBox(width: 5),
                 IconButton.filled(
                   onPressed: () {
@@ -5257,7 +5257,9 @@ class _LuxuryTable extends StatelessWidget {
                 if (controller?.tableAmbientEffects ?? true) Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
                 if (assetImage == null && customBytes == null)
                   Center(
-                    child: Column(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: portrait ? 60 : 78, fontWeight: FontWeight.w900)),
@@ -5270,6 +5272,7 @@ class _LuxuryTable extends StatelessWidget {
                       ],
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -7216,6 +7219,7 @@ class PlayerSeat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ar=Directionality.of(context)==TextDirection.rtl;
     final content = [
       botProfile == null
           ? GlowAvatar(text: avatarEmoji ?? letter, size: 43, color: nameColor ?? Theme.of(context).colorScheme.primary)
@@ -7235,7 +7239,7 @@ class PlayerSeat extends StatelessWidget {
             if (lastCardLabel != null && lastCardLabel!.trim().isNotEmpty) ...[
               const SizedBox(height: 3),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('آخر ', style: TextStyle(fontSize: 7, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: .70))),
+                Text(ar?'آخر ':'Last ',style:TextStyle(fontSize:7,fontWeight:FontWeight.w800,color:Colors.white.withValues(alpha:.70))),
                 PlayingCard(label: lastCardLabel!, width: 20, height: 29),
               ]),
             ],
@@ -7248,7 +7252,7 @@ class PlayerSeat extends StatelessWidget {
         : Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: content);
     return Semantics(
       button: onProfileTap != null,
-      label: 'فتح بروفايل $name',
+      label: ar?'فتح بروفايل $name':'Open $name profile',
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onProfileTap,

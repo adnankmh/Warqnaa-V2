@@ -29,8 +29,14 @@ void main() {
   });
 
   for (final locale in ['ar', 'en']) {
-    for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
-      testWidgets('home navigation $locale ${size.width}x${size.height}', (tester) async {
+    for (final size in [
+      const Size(320, 640),
+      const Size(844, 390),
+      const Size(1280, 800),
+    ]) {
+      testWidgets('home navigation $locale ${size.width}x${size.height}', (
+        tester,
+      ) async {
         reportLayoutErrors();
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -41,15 +47,27 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         expect(tester.takeException(), isNull);
         expect(find.byType(R61HomeDashboard), findsOneWidget);
-        expect(Directionality.of(tester.element(find.byType(HomeShell))), locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+        expect(
+          Directionality.of(tester.element(find.byType(HomeShell))),
+          locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        );
 
-        final navigation = find.byType(kIsWeb && size.width >= 1024 ? R61DesktopNavigation : R61BottomNavigation);
+        final navigation = find.byType(
+          kIsWeb && size.width >= 1024
+              ? R61DesktopNavigation
+              : R61BottomNavigation,
+        );
         for (final destination in <(String, Type)>[
           (locale == 'ar' ? 'الألعاب' : 'Games', R64PlayHubPage),
           (locale == 'ar' ? 'المجتمع' : 'Social', R61SocialHubPage),
           (locale == 'ar' ? 'المنافسات' : 'Events', R12CompetitiveArenaPage),
         ]) {
-          await tester.tap(find.descendant(of: navigation, matching: find.text(destination.$1)));
+          await tester.tap(
+            find.descendant(
+              of: navigation,
+              matching: find.text(destination.$1),
+            ),
+          );
           await tester.pump(const Duration(milliseconds: 300));
           expect(find.byType(destination.$2), findsOneWidget);
           expect(tester.takeException(), isNull);
@@ -59,20 +77,65 @@ void main() {
         controller.dispose();
       });
 
-      testWidgets('local table orientation $locale ${size.width}x${size.height}', (tester) async {
+      testWidgets(
+        'local table orientation $locale ${size.width}x${size.height}',
+        (tester) async {
+          reportLayoutErrors();
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final controller = AppController()..localeCode = locale;
+          final game = gamesCatalog.firstWhere((game) => game.id == 'tarneeb');
+          await tester.pumpWidget(
+            app(TarneebRoomPage(controller: controller, game: game), locale),
+          );
+          await tester.pump(const Duration(milliseconds: 100));
+          expect(tester.takeException(), isNull);
+          expect(find.byType(TarneebRoomPage), findsOneWidget);
+          if (locale == 'en') {
+            expect(find.text('Professional Tarneeb'), findsOneWidget);
+            expect(find.text('طرنيب احترافي'), findsNothing);
+            expect(find.textContaining('الكمبيوتر يفكر'), findsNothing);
+          }
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump(const Duration(seconds: 5));
+          controller.dispose();
+        },
+      );
+
+      testWidgets('store localization $locale ${size.width}x${size.height}', (
+        tester,
+      ) async {
         reportLayoutErrors();
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
         final controller = AppController()..localeCode = locale;
-        final game = gamesCatalog.firstWhere((game) => game.id == 'tarneeb');
-        await tester.pumpWidget(app(TarneebRoomPage(controller: controller, game: game), locale));
+        await tester.pumpWidget(
+          app(Scaffold(body: StorePage(controller: controller)), locale),
+        );
         await tester.pump(const Duration(milliseconds: 100));
         expect(tester.takeException(), isNull);
-        expect(find.byType(TarneebRoomPage), findsOneWidget);
+        if (locale == 'en') {
+          final storeScroll = find.byType(Scrollable).first;
+          await tester.scrollUntilVisible(
+            find.textContaining('Level progress'),
+            250,
+            scrollable: storeScroll,
+          );
+          expect(find.textContaining('Level progress'), findsOneWidget);
+          expect(find.textContaining('تقدم المستوى'), findsNothing);
+          await tester.scrollUntilVisible(
+            find.textContaining('premium items'),
+            250,
+            scrollable: storeScroll,
+          );
+          expect(find.textContaining('premium items'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        }
         await tester.pumpWidget(const SizedBox.shrink());
-        await tester.pump(const Duration(seconds: 5));
         controller.dispose();
       });
     }
