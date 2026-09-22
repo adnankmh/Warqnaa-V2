@@ -49,17 +49,26 @@ jobs:
           flutter create . --platforms=ios --project-name warqna_mobile --org com.warqna --no-pub
           if [ -f test/widget_test.dart ] && grep -q "MyApp" test/widget_test.dart; then rm test/widget_test.dart; fi
 
-      - name: Configure microphone permission and WebRTC build settings
+      - name: Configure microphone permission
         working-directory: flutter_app
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :NSMicrophoneUsageDescription Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist
+
+      - name: Resolve Flutter packages
+        working-directory: flutter_app
+        run: flutter pub get
+
+      - name: Configure iOS deployment target and WebRTC build settings
+        working-directory: flutter_app
+        run: |
           python3 - <<'PYCODE'
           import re
           from pathlib import Path
+
           podfile = Path('ios/Podfile')
           if not podfile.exists():
-              print('No Podfile generated; Flutter will use the current iOS package integration.')
-              raise SystemExit(0)
+              raise SystemExit('Expected CocoaPods Podfile after flutter pub get')
+
           text = podfile.read_text(encoding='utf-8')
           text, platform_count = re.subn(
               r"^#?\s*platform :ios, '[^']+'",
@@ -82,17 +91,15 @@ jobs:
 
           project = Path('ios/Runner.xcodeproj/project.pbxproj')
           project_text = project.read_text(encoding='utf-8')
-          project_text = re.sub(
+          project_text, target_count = re.subn(
               r'IPHONEOS_DEPLOYMENT_TARGET = [^;]+;',
               'IPHONEOS_DEPLOYMENT_TARGET = 15.0;',
               project_text,
           )
+          if target_count == 0:
+              raise SystemExit('Expected an iOS deployment target in the Xcode project')
           project.write_text(project_text, encoding='utf-8')
           PYCODE
-
-      - name: Resolve Flutter packages
-        working-directory: flutter_app
-        run: flutter pub get
 
       - name: Configure AdMob iOS application ID
         working-directory: flutter_app
