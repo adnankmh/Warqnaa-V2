@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$ValidateOnly)
+param([switch]$ValidateOnly,[switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $Target = 'D:\warq'
@@ -230,8 +230,10 @@ try {
     if ($web.StatusCode -ne 200) { throw 'Flutter web server check failed.' }
     $Gates['API and web HTTP smoke'] = 'PASS'
     [IO.File]::WriteAllText($Result, (@{status='PASSED';release=$Release.full;target=$Target;backup=$(if($OldMoved){$Backup}else{$null});gates=$Gates}|ConvertTo-Json -Depth 5),$Utf8)
-    Start-Process "http://127.0.0.1:$Port"
-    Start-Process "http://127.0.0.1:$WebPort"
+    if (!$NoBrowser) {
+        Start-Process "http://127.0.0.1:$Port"
+        Start-Process "http://127.0.0.1:$WebPort"
+    }
     Step 'Installation passed. See INSTALLATION_RESULT.json. Backups are retained.'
     exit 0
 } catch {
