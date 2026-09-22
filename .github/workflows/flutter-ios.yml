@@ -2,6 +2,9 @@ name: Build iOS unsigned
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/flutter-ios.yml'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -21,6 +24,14 @@ jobs:
         id: release
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
+      - name: Install pinned Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install release validation dependencies
+        run: python3 -m pip install --disable-pip-version-check 'PyYAML==6.0.3'
+
       - name: Validate source package and reject merge markers
         run: python3 tools/validate_release.py
 
@@ -38,14 +49,35 @@ jobs:
           flutter create . --platforms=ios --project-name warqna_mobile --org com.warqna --no-pub
           if [ -f test/widget_test.dart ] && grep -q "MyApp" test/widget_test.dart; then rm test/widget_test.dart; fi
 
-      - name: Configure microphone permission and WebRTC build settings
+      - name: Configure microphone permission
         working-directory: flutter_app
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :NSMicrophoneUsageDescription Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist
+
+      - name: Resolve Flutter packages
+        working-directory: flutter_app
+        run: flutter pub get
+
+      - name: Configure iOS deployment target and WebRTC build settings
+        working-directory: flutter_app
+        run: |
           python3 - <<'PYCODE'
+          import re
           from pathlib import Path
+
           podfile = Path('ios/Podfile')
+          if not podfile.exists():
+              raise SystemExit('Expected CocoaPods Podfile after flutter pub get')
+
           text = podfile.read_text(encoding='utf-8')
+          text, platform_count = re.subn(
+              r"^#?\s*platform :ios, '[^']+'",
+              "platform :ios, '15.0'",
+              text,
+              flags=re.MULTILINE,
+          )
+          if platform_count == 0:
+              text = "platform :ios, '15.0'\n\n" + text
           marker = "post_install do |installer|"
           if marker in text and "ONLY_ACTIVE_ARCH" not in text:
               text = text.replace(
@@ -56,11 +88,18 @@ jobs:
                   "      end",
               )
           podfile.write_text(text, encoding='utf-8')
-          PYCODE
 
-      - name: Resolve Flutter packages
-        working-directory: flutter_app
-        run: flutter pub get
+          project = Path('ios/Runner.xcodeproj/project.pbxproj')
+          project_text = project.read_text(encoding='utf-8')
+          project_text, target_count = re.subn(
+              r'IPHONEOS_DEPLOYMENT_TARGET = [^;]+;',
+              'IPHONEOS_DEPLOYMENT_TARGET = 15.0;',
+              project_text,
+          )
+          if target_count == 0:
+              raise SystemExit('Expected an iOS deployment target in the Xcode project')
+          project.write_text(project_text, encoding='utf-8')
+          PYCODE
 
       - name: Configure AdMob iOS application ID
         working-directory: flutter_app
