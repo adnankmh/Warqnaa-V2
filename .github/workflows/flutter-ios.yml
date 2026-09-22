@@ -2,6 +2,9 @@ name: Build iOS unsigned
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/flutter-ios.yml'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
