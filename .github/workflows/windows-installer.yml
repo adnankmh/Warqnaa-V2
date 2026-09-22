@@ -77,6 +77,12 @@ jobs:
           if ($bundle.Count -ne 1) { throw 'Expected exactly one full delivery bundle' }
           $installRoot = Join-Path $env:RUNNER_TEMP 'windows-full-install'
           Expand-Archive -LiteralPath $bundle[0].FullName -DestinationPath $installRoot
+      - name: Verify installer prerequisites in Windows PowerShell
+        shell: pwsh
+        run: |
+          $probe = 'echo PHP_VERSION," ",PHP_BINARY,"\n"; foreach (["pdo_sqlite","sqlite3","mbstring","dom","openssl"] as $extension) { echo $extension,"=",extension_loaded($extension) ? "yes" : "no","\n"; }'
+          & powershell.exe -NoProfile -Command "php -r '$probe'"
+          if ($LASTEXITCODE -ne 0) { throw 'PHP prerequisite probe failed in Windows PowerShell' }
       - name: Perform full isolated Windows installation
         shell: pwsh
         run: |
@@ -86,7 +92,11 @@ jobs:
           $env:WARQNAA_ADNAN_ADMIN_PASSWORD = "Ci-$([guid]::NewGuid().ToString('N'))-Aa1!"
           try {
             & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $installRoot 'Install-Warqnaa.ps1') -NoBrowser
-            if ($LASTEXITCODE -ne 0) { throw 'Full isolated installation failed' }
+            if ($LASTEXITCODE -ne 0) {
+              $logPath = Join-Path $installRoot 'INSTALLATION_LOG.txt'
+              if (Test-Path -LiteralPath $logPath) { Get-Content -LiteralPath $logPath | Write-Host }
+              throw 'Full isolated installation failed'
+            }
           } finally {
             Remove-Item Env:WARQNAA_ADNAN_ADMIN_EMAIL -ErrorAction SilentlyContinue
             Remove-Item Env:WARQNAA_ADNAN_ADMIN_PASSWORD -ErrorAction SilentlyContinue
