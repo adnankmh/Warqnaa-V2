@@ -126,7 +126,7 @@ try {
     Step 'PHP required extensions'
     $modules = @(& $Php '-m')
     if ($LASTEXITCODE -ne 0) { $Gates['PHP required extensions'] = 'FAILED'; throw 'Unable to inspect PHP extensions.' }
-    $missingModules = @('pdo_sqlite','sqlite3','mbstring','dom','openssl') | Where-Object { $modules -notcontains $_ }
+    $missingModules = @('pdo_sqlite','sqlite3','mbstring','dom','fileinfo','openssl') | Where-Object { $modules -notcontains $_ }
     if ($missingModules.Count -gt 0) {
         $Gates['PHP required extensions'] = 'FAILED'
         throw ('Missing required PHP extensions: '+($missingModules -join ', '))
