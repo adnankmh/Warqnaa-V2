@@ -77,7 +77,8 @@ function FreePort([int]$First,[int]$Last) {
 function StopOwned([string]$Root) {
     $registry = Join-Path $Root 'runtime.local.json'
     if (!(Test-Path -LiteralPath $registry)) { return }
-    $records = @(Get-Content -LiteralPath $registry -Raw | ConvertFrom-Json)
+    $parsed = Get-Content -LiteralPath $registry -Raw | ConvertFrom-Json
+    $records = @($parsed | ForEach-Object { $_ })
     foreach ($record in $records) {
         $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$([int]$record.pid)" -ErrorAction SilentlyContinue
         if (!$proc) { continue }
@@ -85,8 +86,10 @@ function StopOwned([string]$Root) {
         if ($proc.ExecutablePath -ne $record.executable -or $proc.CreationDate.ToUniversalTime().ToString('o') -ne $record.created -or !$proc.CommandLine.Contains($record.marker)) {
             throw 'A saved process identity changed; close the old Warqnaa windows manually before retrying.'
         }
-        Stop-Process -Id $proc.ProcessId -ErrorAction Stop
+        & taskkill.exe /PID ([int]$proc.ProcessId) /T /F | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Could not stop registered service process $($proc.ProcessId)." }
     }
+    Remove-Item -LiteralPath $registry -Force
 }
 
 try {
