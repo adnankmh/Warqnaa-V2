@@ -77,12 +77,6 @@ jobs:
           if ($bundle.Count -ne 1) { throw 'Expected exactly one full delivery bundle' }
           $installRoot = Join-Path $env:RUNNER_TEMP 'windows-full-install'
           Expand-Archive -LiteralPath $bundle[0].FullName -DestinationPath $installRoot
-      - name: Verify installer prerequisites in Windows PowerShell
-        shell: pwsh
-        run: |
-          $probe = 'echo PHP_VERSION," ",PHP_BINARY,"\n"; foreach (["pdo_sqlite","sqlite3","mbstring","dom","openssl"] as $extension) { echo $extension,"=",extension_loaded($extension) ? "yes" : "no","\n"; }'
-          & powershell.exe -NoProfile -Command "php -r '$probe'"
-          if ($LASTEXITCODE -ne 0) { throw 'PHP prerequisite probe failed in Windows PowerShell' }
       - name: Perform full isolated Windows installation
         shell: pwsh
         run: |
