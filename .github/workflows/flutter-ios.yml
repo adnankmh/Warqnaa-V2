@@ -54,12 +54,21 @@ jobs:
         run: |
           /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist 2>/dev/null || /usr/libexec/PlistBuddy -c "Set :NSMicrophoneUsageDescription Warqna uses the microphone only when you enter a voice game." ios/Runner/Info.plist
           python3 - <<'PYCODE'
+          import re
           from pathlib import Path
           podfile = Path('ios/Podfile')
           if not podfile.exists():
               print('No Podfile generated; Flutter will use the current iOS package integration.')
               raise SystemExit(0)
           text = podfile.read_text(encoding='utf-8')
+          text, platform_count = re.subn(
+              r"^#?\s*platform :ios, '[^']+'",
+              "platform :ios, '15.0'",
+              text,
+              flags=re.MULTILINE,
+          )
+          if platform_count == 0:
+              text = "platform :ios, '15.0'\n\n" + text
           marker = "post_install do |installer|"
           if marker in text and "ONLY_ACTIVE_ARCH" not in text:
               text = text.replace(
@@ -70,6 +79,15 @@ jobs:
                   "      end",
               )
           podfile.write_text(text, encoding='utf-8')
+
+          project = Path('ios/Runner.xcodeproj/project.pbxproj')
+          project_text = project.read_text(encoding='utf-8')
+          project_text = re.sub(
+              r'IPHONEOS_DEPLOYMENT_TARGET = [^;]+;',
+              'IPHONEOS_DEPLOYMENT_TARGET = 15.0;',
+              project_text,
+          )
+          project.write_text(project_text, encoding='utf-8')
           PYCODE
 
       - name: Resolve Flutter packages
