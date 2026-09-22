@@ -2,7 +2,7 @@ Warqnaa R7 1.9.0+700
 Baseline: 82bd3ba18b673fa48f51266833c49fa5cf8755ae, validated R6.5 merge.
 Implementation checkpoint: runtime CI pending; do not treat these new tests as passed until executed.
 Local: version consistency and Privacy Gate passed; Python runtime/packaging scripts compile.
-Required CI: Backend, Production Release Gate, Flutter Web, Android, Windows installer, R7 isolated runtime and visual review.
+Required CI: Backend, Production Release Gate, Flutter Web, Android build plus emulator install/launch, Windows installer, R7 isolated runtime and visual review.
 R7 runtime uses disposable SQLite, random synthetic credentials and loopback HTTP only.
 Expected artifacts: sanitized runtime report, rendered Flutter screenshots, committed source installer ZIP with SHA-256.
-Remaining environment-dependent certification: physical devices, full Windows installation, production hosting and store signing/payment credentials.
+Remaining environment-dependent certification: physical Android/iOS devices, production hosting and store signing/payment credentials. Full isolated Windows installation is certified separately by its retained Actions evidence.
