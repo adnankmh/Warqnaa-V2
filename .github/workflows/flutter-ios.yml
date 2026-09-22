@@ -56,6 +56,9 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           podfile = Path('ios/Podfile')
+          if not podfile.exists():
+              print('No Podfile generated; Flutter will use the current iOS package integration.')
+              raise SystemExit(0)
           text = podfile.read_text(encoding='utf-8')
           marker = "post_install do |installer|"
           if marker in text and "ONLY_ACTIVE_ARCH" not in text:
