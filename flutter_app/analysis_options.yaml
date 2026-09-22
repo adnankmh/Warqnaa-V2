@@ -1,6 +1,8 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  exclude:
+    - build/**
   errors:
     # These diagnostics are handled explicitly in source and CI. Keep errors
     # and warnings visible; do not make style-only suggestions block releases.
