@@ -133,6 +133,7 @@ try {
     }
     $Gates['PHP required extensions'] = 'PASS'
     Run 'Python runtime' $Python @('-c','import sys;sys.exit(0 if sys.version_info >= (3,10) else 1)') $PSScriptRoot
+    Run 'Python validation dependencies' $Python @('-m','pip','install','--disable-pip-version-check','PyYAML==6.0.3') $PSScriptRoot
     $OldEnv = Join-Path $Target 'backend-laravel\.env'
     if (Test-Path $Target) {
         if (!(Test-Path (Join-Path $Target 'RELEASE_VERSION.json')) -or !(Test-Path $OldEnv)) { throw 'D:\warq is not a recognized installed release. It was left untouched.' }
