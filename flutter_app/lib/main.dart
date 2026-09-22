@@ -5257,7 +5257,9 @@ class _LuxuryTable extends StatelessWidget {
                 if (controller?.tableAmbientEffects ?? true) Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
                 if (assetImage == null && customBytes == null)
                   Center(
-                    child: Column(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: portrait ? 60 : 78, fontWeight: FontWeight.w900)),
@@ -5270,6 +5272,7 @@ class _LuxuryTable extends StatelessWidget {
                       ],
                     ),
                   ),
+                ),
               ],
             ),
           ),

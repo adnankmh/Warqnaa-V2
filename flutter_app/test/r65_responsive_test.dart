@@ -119,9 +119,21 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(tester.takeException(), isNull);
         if (locale == 'en') {
+          final storeScroll = find.byType(Scrollable).first;
+          await tester.scrollUntilVisible(
+            find.textContaining('Level progress'),
+            250,
+            scrollable: storeScroll,
+          );
           expect(find.textContaining('Level progress'), findsOneWidget);
           expect(find.textContaining('تقدم المستوى'), findsNothing);
+          await tester.scrollUntilVisible(
+            find.textContaining('premium items'),
+            250,
+            scrollable: storeScroll,
+          );
           expect(find.textContaining('premium items'), findsOneWidget);
+          expect(tester.takeException(), isNull);
         }
         await tester.pumpWidget(const SizedBox.shrink());
         controller.dispose();
