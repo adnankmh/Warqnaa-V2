@@ -24,6 +24,11 @@ jobs:
         id: release
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
+      - name: Install pinned Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
       - name: Install release validation dependencies
         run: python3 -m pip install --disable-pip-version-check 'PyYAML==6.0.3'
 
