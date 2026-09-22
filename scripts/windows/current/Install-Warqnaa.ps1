@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$ValidateOnly)
+param([switch]$ValidateOnly,[switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $Target = 'D:\warq'
@@ -77,7 +77,8 @@ function FreePort([int]$First,[int]$Last) {
 function StopOwned([string]$Root) {
     $registry = Join-Path $Root 'runtime.local.json'
     if (!(Test-Path -LiteralPath $registry)) { return }
-    $records = @(Get-Content -LiteralPath $registry -Raw | ConvertFrom-Json)
+    $parsed = Get-Content -LiteralPath $registry -Raw | ConvertFrom-Json
+    $records = @($parsed | ForEach-Object { $_ })
     foreach ($record in $records) {
         $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$([int]$record.pid)" -ErrorAction SilentlyContinue
         if (!$proc) { continue }
@@ -85,8 +86,10 @@ function StopOwned([string]$Root) {
         if ($proc.ExecutablePath -ne $record.executable -or $proc.CreationDate.ToUniversalTime().ToString('o') -ne $record.created -or !$proc.CommandLine.Contains($record.marker)) {
             throw 'A saved process identity changed; close the old Warqnaa windows manually before retrying.'
         }
-        Stop-Process -Id $proc.ProcessId -ErrorAction Stop
+        & taskkill.exe /PID ([int]$proc.ProcessId) /T /F | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Could not stop registered service process $($proc.ProcessId)." }
     }
+    Remove-Item -LiteralPath $registry -Force
 }
 
 try {
@@ -122,8 +125,18 @@ try {
     $Python = Exe @('python.exe','python3.exe') @()
     $Git = Exe @('git.exe') @('C:\Program Files\Git\cmd\git.exe')
     if (!$Php -or !$Python) { throw 'Install PHP 8.2+ (XAMPP) and Python 3.10+ with PATH enabled, then rerun. Existing installation untouched.' }
-    Run 'PHP and extensions' $Php @('-r','exit(PHP_VERSION_ID >= 80200 && extension_loaded("pdo_sqlite") && extension_loaded("sqlite3") && extension_loaded("mbstring") && extension_loaded("dom") && extension_loaded("openssl") ? 0 : 1);') $PSScriptRoot
+    Run 'PHP 8.2 or newer' $Php @('-r','exit(PHP_VERSION_ID >= 80200 ? 0 : 1);') $PSScriptRoot
+    Step 'PHP required extensions'
+    $modules = @(& $Php '-m')
+    if ($LASTEXITCODE -ne 0) { $Gates['PHP required extensions'] = 'FAILED'; throw 'Unable to inspect PHP extensions.' }
+    $missingModules = @('pdo_sqlite','sqlite3','mbstring','dom','fileinfo','openssl') | Where-Object { $modules -notcontains $_ }
+    if ($missingModules.Count -gt 0) {
+        $Gates['PHP required extensions'] = 'FAILED'
+        throw ('Missing required PHP extensions: '+($missingModules -join ', '))
+    }
+    $Gates['PHP required extensions'] = 'PASS'
     Run 'Python runtime' $Python @('-c','import sys;sys.exit(0 if sys.version_info >= (3,10) else 1)') $PSScriptRoot
+    Run 'Python validation dependencies' $Python @('-m','pip','install','--disable-pip-version-check','PyYAML==6.0.3') $PSScriptRoot
     $OldEnv = Join-Path $Target 'backend-laravel\.env'
     if (Test-Path $Target) {
         if (!(Test-Path (Join-Path $Target 'RELEASE_VERSION.json')) -or !(Test-Path $OldEnv)) { throw 'D:\warq is not a recognized installed release. It was left untouched.' }
@@ -230,8 +243,10 @@ try {
     if ($web.StatusCode -ne 200) { throw 'Flutter web server check failed.' }
     $Gates['API and web HTTP smoke'] = 'PASS'
     [IO.File]::WriteAllText($Result, (@{status='PASSED';release=$Release.full;target=$Target;backup=$(if($OldMoved){$Backup}else{$null});gates=$Gates}|ConvertTo-Json -Depth 5),$Utf8)
-    Start-Process "http://127.0.0.1:$Port"
-    Start-Process "http://127.0.0.1:$WebPort"
+    if (!$NoBrowser) {
+        Start-Process "http://127.0.0.1:$Port"
+        Start-Process "http://127.0.0.1:$WebPort"
+    }
     Step 'Installation passed. See INSTALLATION_RESULT.json. Backups are retained.'
     exit 0
 } catch {

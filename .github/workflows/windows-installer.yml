@@ -8,11 +8,33 @@ on:
     paths: ['scripts/windows/current/**', 'tools/windows/**', '.github/workflows/windows-installer.yml']
 permissions:
   contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   installer:
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
+      - name: Install pinned Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, openssl, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+      - name: Install pinned Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: stable
+          cache: true
       - name: Parse all current PowerShell scripts
         shell: pwsh
         run: |
@@ -45,3 +67,54 @@ jobs:
           & powershell.exe -NoProfile -File (Join-Path $testRoot 'Install-Warqnaa.ps1') -ValidateOnly
           if ($LASTEXITCODE -eq 0) { throw 'Corrupt archive accepted' }
           exit 0
+      - name: Build committed full delivery package
+        shell: pwsh
+        run: |
+          $delivery = Join-Path $env:RUNNER_TEMP 'windows-delivery'
+          python tools/package_release.py --output-dir $delivery
+          if ($LASTEXITCODE -ne 0) { throw 'Release packaging failed' }
+          $bundle = @(Get-ChildItem -LiteralPath $delivery -Filter 'Warqnaa-*-Full.zip')
+          if ($bundle.Count -ne 1) { throw 'Expected exactly one full delivery bundle' }
+          $installRoot = Join-Path $env:RUNNER_TEMP 'windows-full-install'
+          Expand-Archive -LiteralPath $bundle[0].FullName -DestinationPath $installRoot
+      - name: Perform full isolated Windows installation
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath 'D:\warq') { throw 'The isolated runner target is not clean' }
+          $installRoot = Join-Path $env:RUNNER_TEMP 'windows-full-install'
+          $env:WARQNAA_ADNAN_ADMIN_EMAIL = "ci-$([guid]::NewGuid().ToString('N'))@invalid.example"
+          $env:WARQNAA_ADNAN_ADMIN_PASSWORD = "Ci-$([guid]::NewGuid().ToString('N'))-Aa1!"
+          try {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $installRoot 'Install-Warqnaa.ps1') -NoBrowser
+            if ($LASTEXITCODE -ne 0) {
+              $logPath = Join-Path $installRoot 'INSTALLATION_LOG.txt'
+              if (Test-Path -LiteralPath $logPath) { Get-Content -LiteralPath $logPath | Write-Host }
+              throw 'Full isolated installation failed'
+            }
+          } finally {
+            Remove-Item Env:WARQNAA_ADNAN_ADMIN_EMAIL -ErrorAction SilentlyContinue
+            Remove-Item Env:WARQNAA_ADNAN_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+          }
+          $resultPath = Join-Path $installRoot 'INSTALLATION_RESULT.json'
+          $result = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+          if ($result.status -ne 'PASSED' -or $result.release -ne '1.9.0+700' -or $result.target -ne 'D:\warq') {
+            throw 'The installation evidence is incomplete or belongs to the wrong release'
+          }
+          Copy-Item -LiteralPath $resultPath -Destination (Join-Path $env:RUNNER_TEMP 'windows-install-evidence.json')
+      - name: Upload full-install evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: warqnaa-v700-windows-full-install-evidence
+          path: ${{ runner.temp }}/windows-install-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Clean isolated Windows target
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath 'D:\warq\scripts\windows\current\Stop-Warqnaa.ps1') {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'D:\warq\scripts\windows\current\Stop-Warqnaa.ps1'
+          }
+          Get-ChildItem -LiteralPath 'D:\' -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^warq(?:$|-stage-|-backup-|-failed-|-tools$)' } |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
