@@ -4631,6 +4631,8 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     return engine.currentSeat == seat ? _tr('دوره','Turn') : '—';
   }
 
+  String _lastCardLabel(int seat) => engine.lastPlayedCardForSeat(seat)?.label ?? '—';
+
   Widget _tableStatusStrip(BuildContext context,{bool compact=false}) {
     final ar = widget.controller.localeCode == 'ar';
     final bidder = engine.bidWinnerSeat == null ? (ar ? 'لم يحسم بعد' : 'Not decided') : engine.playerNames[engine.bidWinnerSeat!];
@@ -4642,6 +4644,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       {'title': ar ? 'صاحب الطلب' : 'Bidder', 'value': bidder},
       {'title': ar ? 'الطرنيب' : 'Trump', 'value': trump},
       {'title': ar ? 'آخر لَمّة' : 'Last trick', 'value': trickOwner},
+      {'title': ar ? 'آخر الأوراق' : 'Last cards', 'value': List.generate(4, _lastCardLabel).join(' · ')},
       {'title': ar ? 'الجولة' : 'Round', 'value': widget.options.singleRound ? (ar ? 'واحدة' : 'Single') : '${engine.round}'},
     ];
     final children=items.map((item)=>Container(

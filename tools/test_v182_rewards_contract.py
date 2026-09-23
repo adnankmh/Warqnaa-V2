@@ -2,6 +2,7 @@
 """Warqnaa V0.3.1 build 182 lucky-wheel, rewards, admin and gameplay regression contract."""
 from __future__ import annotations
 import json
+import re
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -31,9 +32,14 @@ def main()->None:
         'recordInactivityEjectionV182',
         'resetGameExitSessionV182',
         'انقطع الاتصال لثلاث لفات',
-        'engine.playerNames[1]',
-        "Positioned(right: 3",
     )
+    # Keep the right-side next-player rule when seats are rendered through a
+    # shared component rather than requiring one historical pixel offset.
+    legacy_seats = 'engine.playerNames[1]' in main_dart and 'Positioned(right: 3' in main_dart
+    shared_seats = ('name: engine.playerNames[seat]' in main_dart and
+        bool(re.search(r'Positioned\(right:\s*5,[^\n]*child:\s*_localSeat\(1,', main_dart)))
+    if not (legacy_seats or shared_seats):
+        fail('next player must remain on the right with the authoritative player name')
     # Historical V182 required an explicit light/dark brightness ternary in main.dart.
     # R9 moved theme construction into r9_design_system.dart. Accept either the
     # legacy implementation or the current centralized design-system equivalent.
