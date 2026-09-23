@@ -32,7 +32,7 @@ if build>=304:
     # B304 introduced the successor home; later visual releases such as B307
     # may replace that concrete widget while preserving the same product role.
     if build >= 640:
-        successor_home_ok = r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart'))
+        successor_home_ok = r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart'), text('flutter_app/lib/r8_play_experience.dart'))
         hub_ok = r64_hub_is_wired(main, text('flutter_app/lib/r6_4_world_championship.dart'))
     else:
         successor_home_ok = any(name in main for name in ('B304HomeDashboard','B307HomeDashboard','R5HomeDashboard'))

@@ -43,7 +43,7 @@ home=read('backend-laravel/resources/views/home.blade.php')
 check('.b303-hero' in css and '.b303-game-grid' in css and '.b303-feature-grid' in css,'B303 premium responsive design assets remain preserved')
 if build>=610:
     check(premium_web_home_is_wired(home, read('backend-laravel/resources/views/layouts/app.blade.php'), read('backend-laravel/public/assets/css/r6-1-world-class.css')), 'R6.1 successor preserves bilingual responsive Web home, game routes and competition access')
-    check(r61_home_is_wired(read('flutter_app/lib/main.dart'), read('flutter_app/lib/r6_1_world_class.dart')), 'R6.1 Flutter home is wired with responsive game navigation')
+    check(r61_home_is_wired(read('flutter_app/lib/main.dart'), read('flutter_app/lib/r6_1_world_class.dart'), read('flutter_app/lib/r8_play_experience.dart')), 'R6.1 Flutter home is wired with responsive game navigation')
 elif build>=304:
     b304css=read('backend-laravel/public/assets/css/b304-vertical-legend.css')
     check('VERTICAL LEGEND • B304' in home and '.b304-grid' in b304css and "$ar?'" in home,'B304 replaces the B303 hero with compact Arabic/English premium home')

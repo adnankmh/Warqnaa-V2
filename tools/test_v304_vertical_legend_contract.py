@@ -19,7 +19,7 @@ ok(v304.count("StoreProduct(id:'b304_table_")==10,'exactly ten B304 vertical tab
 ok("const String b304CardBackId = 'b304_cardback_vertical'" in v304,'one B304 card-back identity is canonical')
 ok(v304.count("category:'profile_colors'")>=6 and 'durationDays:30' in v304,'real 30-day profile colors are available')
 if int(meta.get('build',0)) >= 610:
-    ok(r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart')), 'responsive R6.1 successor home is active with playable game navigation')
+    ok(r61_home_is_wired(main, text('flutter_app/lib/r6_1_world_class.dart'), text('flutter_app/lib/r8_play_experience.dart')), 'responsive R6.1 successor home is active with playable game navigation')
 else:
     ok('return const B304HomeDashboard' not in main and 'B304HomeDashboard' in main,'compact B304 home is active')
 ok('R12CompetitiveArenaPage' in v304 and 'R11SocialWorldPage' not in v304,'B304 home prioritizes Competitions instead of Social World')
