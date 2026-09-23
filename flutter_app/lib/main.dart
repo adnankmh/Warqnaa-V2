@@ -4858,18 +4858,23 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       final minBid = (engine.highestBid ?? 6) + 1;
       return SizedBox(
         height: compact ? 63 : 70,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          children: [
-            for (var value = 7; value <= 13; value++)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 7),
-                child: TarneebBidButtonV170(label: '$value', subtitle: value >= minBid ? _tr('طلب', 'Bid') : _tr('غير متاح', 'Unavailable'), onPressed: value >= minBid ? () => _humanBid(value) : null),
-              ),
-            TarneebBidButtonV170(label: _tr('سكون', 'Pass'), subtitle: _tr('تمرير الدور', 'Skip bid'), onPressed: () => _humanBid(null)),
-          ],
-        ),
+        child: Row(children: [
+          Expanded(child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            children: [
+              for (var value = 7; value <= 13; value++)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 7),
+                  child: TarneebBidButtonV170(label: '$value', subtitle: value >= minBid ? _tr('طلب', 'Bid') : _tr('غير متاح', 'Unavailable'), onPressed: value >= minBid ? () => _humanBid(value) : null),
+                ),
+            ],
+          )),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 10, top: 5, bottom: 5),
+            child: TarneebBidButtonV170(label: _tr('سكون', 'Pass'), subtitle: _tr('تمرير الدور', 'Skip bid'), onPressed: () => _humanBid(null)),
+          ),
+        ]),
       );
     }
     if (engine.phase == TarneebPhase.chooseTrump) {
