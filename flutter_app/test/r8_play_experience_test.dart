@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -100,9 +101,14 @@ void main() {
         await tester.ensureVisible(tile);
         // The exposed rank corner remains tappable in the overlapped hand.
         await tester.tapAt(tester.getTopLeft(tile) + const Offset(8, 8));
-        await tester.pump(const Duration(milliseconds: 200));
+        // onTap waits for the double-tap recognizer to reject a second tap.
+        await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
+        expect(state.selectedCode, card.code, reason: 'The exposed card must be selected before playing');
+        final before = engine.humanHand.length;
         final play = find.text('Play selected card');
         await tester.ensureVisible(play); await tester.tap(play); await tester.pump();
+        expect(engine.humanHand.length, before - 1, reason: 'Every button press must play exactly one card');
+        expect(engine.humanHand.any((held) => held.code == card.code), isFalse);
         played++;
       }
       expect(tester.takeException(), isNull);
