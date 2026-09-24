@@ -5156,11 +5156,8 @@ class _LuxuryTable extends StatelessWidget {
                       children: [
                         Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: portrait ? 60 : 78, fontWeight: FontWeight.w900)),
                         SizedBox(height: portrait ? 8 : 4),
-                        Text(trump == null ? phase.toUpperCase() : 'TRUMP ${TarneebCard('A', trump!).symbol}', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, letterSpacing: portrait ? 2 : 3, fontSize: portrait ? 11 : 10)),
-                        if (portrait) Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text('PORTRAIT ELITE TABLE', style: TextStyle(color: Colors.white.withValues(alpha: .18), fontWeight: FontWeight.w800, fontSize: 9, letterSpacing: 2.4)),
-                        ),
+                        if (trump != null)
+                          Text(TarneebCard('A', trump!).symbol, textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, fontSize: portrait ? 26 : 22)),
                       ],
                     ),
                   ),
