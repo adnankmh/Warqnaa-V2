@@ -54,6 +54,7 @@ part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
 part 'r6_5_operations.dart';
+part 'r8_play_experience.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -1053,7 +1054,7 @@ class AppController extends ChangeNotifier {
   Future<void> loginAsGuest() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('lastGuestUsername') ?? 'Guest';
-    displayName = 'ضيف ورقنا';
+    displayName = localeCode == 'ar' ? 'ضيف ورقنا' : 'Warqnaa Guest';
     email = 'guest@warqna.local';
     isAdmin = false;
     await prefs.setString('lastGuestUsername', username);
@@ -3236,14 +3237,32 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submit({bool offline = false}) async {
+    if (busy) return;
     setState(() { busy = true; error = null; });
-    final result = registerMode
-        ? offline
-            ? await widget.controller.registerOffline(loginController.text, emailController.text, passwordController.text)
-            : await widget.controller.register(loginController.text, emailController.text, passwordController.text)
-        : await widget.controller.login(loginController.text, passwordController.text, offline: offline);
-    if (!mounted) return;
-    setState(() { busy = false; error = result; });
+    try {
+      final result = registerMode
+          ? offline
+              ? await widget.controller.registerOffline(loginController.text, emailController.text, passwordController.text)
+              : await widget.controller.register(loginController.text, emailController.text, passwordController.text)
+          : await widget.controller.login(loginController.text, passwordController.text, offline: offline);
+      if (mounted) setState(() => error = result);
+    } catch (e) {
+      if (mounted) setState(() => error = friendlyErrorMessage(e, widget.controller.localeCode));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> continueAsGuest() async {
+    if (busy) return;
+    setState(() { busy = true; error = null; });
+    try {
+      await widget.controller.loginAsGuest();
+    } catch (e) {
+      if (mounted) setState(() => error = friendlyErrorMessage(e, widget.controller.localeCode));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   Future<void> forgotPassword() async {
@@ -3308,12 +3327,12 @@ class _LoginScreenState extends State<LoginScreen> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
           children: [
-            const Text('حسابات التجربة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            Text(widget.controller.localeCode == 'ar' ? 'ملفات تدريب محلية' : 'Local practice profiles', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             ...accounts.map((account) => ListTile(
               leading: CircleAvatar(child: Text(account.$1.substring(0, 1))),
               title: Text(account.$1, style: const TextStyle(fontWeight: FontWeight.w900)),
-              subtitle: Text('${account.$2} • ${account.$3}'),
+              subtitle: Text(widget.controller.localeCode == 'ar' ? 'تدريب على هذا الجهاز' : 'Practice on this device'),
               trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
               onTap: () => Navigator.pop(sheetContext, account),
             )),
@@ -3321,7 +3340,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-    if (selected == null) return;
+    if (selected == null || !mounted) return;
     loginController.text = selected.$1;
     passwordController.text = selected.$2;
     setState(() { registerMode = false; error = null; });
@@ -3341,164 +3360,113 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final palette = AppPalette.fromCode(widget.controller.themeCode);
     final lang = widget.controller.localeCode;
+    final ar = lang == 'ar';
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(.8, -.9),
-                  radius: 1.4,
-                  colors: [palette.accent.withValues(alpha: .32), palette.bg, const Color(0xff030810)],
-                ),
-              ),
-            ),
-          ),
-          Positioned(top: -80, right: -70, child: _GlowOrb(color: palette.gold, size: 230)),
-          Positioned(bottom: -100, left: -90, child: _GlowOrb(color: palette.green, size: 260)),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Column(
-                    children: [
-                      Image.asset('assets/images/brand/warqna_logo.png', width: 260, height: 190, fit: BoxFit.contain),
-                      const SizedBox(height: 8),
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, const Color(0xff030810)])),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: AutofillGroup(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    Image.asset('assets/images/brand/warqna_logo.png', width: 88, height: 76, fit: BoxFit.contain),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(authTextV151(lang, 'tagline'), style: const TextStyle(color: Colors.white60, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 28),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: palette.panel.withValues(alpha: .94),
-                          borderRadius: BorderRadius.circular(27),
-                          border: Border.all(color: Colors.white.withValues(alpha: .09)),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .38), blurRadius: 35, offset: const Offset(0, 20))],
+                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                    ])),
+                  ]),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(color: palette.panel.withValues(alpha: .95), borderRadius: BorderRadius.circular(24), border: Border.all(color: palette.gold.withValues(alpha: .2))),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 5),
+                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      const SizedBox(height: 18),
+                      TextField(
+                        key: const ValueKey('r81-login-name'), controller: loginController, enabled: !busy,
+                        autofillHints: const [AutofillHints.username], textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(labelText: authTextV151(lang, registerMode ? 'username' : 'userOrEmail'), prefixIcon: const Icon(Icons.person_outline_rounded)),
+                      ),
+                      if (registerMode) ...[
+                        const SizedBox(height: 12),
+                        TextField(
+                          key: const ValueKey('r81-login-email'), controller: emailController, enabled: !busy,
+                          keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], textInputAction: TextInputAction.next,
+                          decoration: InputDecoration(labelText: authTextV151(lang, 'email'), prefixIcon: const Icon(Icons.alternate_email_rounded)),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(registerMode ? authTextV151(lang, 'newAccount') : authTextV151(lang, 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-                            const SizedBox(height: 5),
-                            Text(registerMode ? authTextV151(lang, 'registerSubtitle') : authTextV151(lang, 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                            const SizedBox(height: 18),
-                            TextField(
-                              controller: loginController,
-                              decoration: InputDecoration(
-                                labelText: registerMode ? authTextV151(lang, 'username') : authTextV151(lang, 'userOrEmail'),
-                                prefixIcon: const Icon(Icons.person_outline_rounded),
-                              ),
-                            ),
-                            if (registerMode) ...[
-                              const SizedBox(height: 11),
-                              TextField(
-                                controller: emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(labelText: authTextV151(lang, 'email'), prefixIcon: const Icon(Icons.alternate_email_rounded)),
-                              ),
-                            ],
-                            const SizedBox(height: 11),
-                            TextField(
-                              controller: passwordController,
-                              obscureText: obscure,
-                              onSubmitted: (_) => submit(),
-                              decoration: InputDecoration(
-                                labelText: authTextV151(lang, 'password'),
-                                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                                suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
-                              ),
-                            ),
-                            if (!registerMode) Align(
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: TextButton.icon(
-                                onPressed: busy ? null : forgotPassword,
-                                icon: const Icon(Icons.key_rounded, size: 17),
-                                label: Text(lang == 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'),
-                              ),
-                            ),
-                            if (error != null) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(13),
-                                decoration: BoxDecoration(color: Colors.red.withValues(alpha: .12), borderRadius: BorderRadius.circular(13), border: Border.all(color: Colors.red.withValues(alpha: .25))),
-                                child: Text(error!, style: const TextStyle(color: Color(0xffff9a9a), fontSize: 12, height: 1.5)),
-                              ),
-                            ],
-                            const SizedBox(height: 10),
-                            const Text('🌐 تسجيل ودخول مرن: أونلاين أو أوفلاين', textAlign: TextAlign.center, style: TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.w900, fontSize: 11)),
-                            const SizedBox(height: 12),
-                            FilledButton.icon(
-                              onPressed: busy ? null : () => submit(),
-                              icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(registerMode ? Icons.person_add_alt_1 : Icons.login_rounded),
-                              label: Text(registerMode ? authTextV151(lang, 'create') : authTextV151(lang, 'secure')),
-                              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                            ),
-                            const SizedBox(height: 8),
-                            OutlinedButton.icon(
-                              onPressed: busy ? null : () => submit(offline: true),
-                              icon: const Icon(Icons.cloud_off_rounded),
-                              label: Text(registerMode ? 'إنشاء حساب محلي أوفلاين' : 'دخول أوفلاين بالحساب المحفوظ'),
-                              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                            ),
-                            if (!registerMode) ...[
-                              const SizedBox(height: 10),
-                              OutlinedButton.icon(
-                                onPressed: busy || warqnaProductionMode ? null : chooseDemoAccount,
-                                icon: const Icon(Icons.groups_2_outlined),
-                                label: Text(authTextV151(lang, 'chooseDemo')),
-                                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                              ),
-                              const SizedBox(height: 7),
-                              Text(authTextV151(lang, 'fallback'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 9, height: 1.5)),
-                              Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [const Expanded(child: Divider()), Padding(padding: const EdgeInsets.symmetric(horizontal: 9), child: Text(authTextV151(lang, 'orVia'), style: const TextStyle(fontSize: 10, color: Colors.white54))), const Expanded(child: Divider())])),
-                              Row(children: [
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('google'), icon: const Text('G', style: TextStyle(fontWeight: FontWeight.w900)), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Google', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 10))))),
-                                const SizedBox(width: 6),
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('apple'), icon: const Icon(Icons.apple, size: 18), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Apple', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 10))))),
-                                const SizedBox(width: 6),
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('facebook'), icon: const Text('f', style: TextStyle(fontWeight: FontWeight.w900)), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Facebook', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 9))))),
-                              ]),
-                              const SizedBox(height: 7),
-                              FilledButton.tonalIcon(onPressed: busy ? null : widget.controller.loginAsGuest, icon: const Icon(Icons.person_outline_rounded), label: Text(authTextV151(lang, 'guest'))) ,
-                              const SizedBox(height: 5),
-                              Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: TextStyle(color: palette.gold.withValues(alpha: .9), fontSize: 9, height: 1.5)),
-                            ],
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: busy ? null : () => setState(() { registerMode = !registerMode; error = null; }),
-                              child: Text(registerMode ? authTextV151(lang, 'haveAccount') : authTextV151(lang, 'noAccount')),
-                            ),
-                          ],
+                      ],
+                      const SizedBox(height: 12),
+                      TextField(
+                        key: const ValueKey('r81-login-password'), controller: passwordController, enabled: !busy,
+                        obscureText: obscure, enableSuggestions: false, autocorrect: false,
+                        autofillHints: [registerMode ? AutofillHints.newPassword : AutofillHints.password],
+                        onSubmitted: busy ? null : (_) => submit(),
+                        decoration: InputDecoration(
+                          labelText: authTextV151(lang, 'password'), prefixIcon: const Icon(Icons.lock_outline_rounded),
+                          suffixIcon: IconButton(tooltip: ar ? (obscure ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور') : (obscure ? 'Show password' : 'Hide password'), onPressed: busy ? null : () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(warqnaProductionMode ? 'حسابات خادم حقيقية • جلسات آمنة • حماية واستعادة للحساب' : 'حساب محلي آمن للعب أوفلاين • مزامنة الخادم عند توفر الإنترنت', textAlign: TextAlign.center, style: TextStyle(color: Colors.white30, fontSize: 9)),
+                      if (!registerMode) Align(alignment: AlignmentDirectional.centerEnd, child: TextButton(onPressed: busy ? null : forgotPassword, child: Text(ar ? 'نسيت كلمة المرور؟' : 'Forgot password?'))),
+                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: const TextStyle(color: Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        key: const ValueKey('r81-login-submit'), onPressed: busy ? null : () => submit(),
+                        icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(registerMode ? Icons.person_add_alt_1 : Icons.login_rounded),
+                        label: Text(authTextV151(lang, registerMode ? 'create' : 'secure')), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                      ),
+                      TextButton(
+                        key: const ValueKey('r81-login-switch'),
+                        onPressed: busy ? null : () => setState(() { registerMode = !registerMode; error = null; }),
+                        child: Text(authTextV151(lang, registerMode ? 'haveAccount' : 'noAccount')),
+                      ),
+                      if (!registerMode) ...[
+                        const Divider(height: 22),
+                        OutlinedButton.icon(
+                          key: const ValueKey('r81-login-guest'), onPressed: busy ? null : continueAsGuest,
+                          icon: const Icon(Icons.style_outlined), label: Text(ar ? 'جرّب اللعب دون حساب' : 'Try without an account'),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                      ],
+                    ]),
+                  ),
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                    key: const PageStorageKey('r81-login-options'),
+                    title: Text(ar ? 'خيارات دخول أخرى' : 'More sign-in options', style: const TextStyle(fontSize: 13)),
+                    leading: const Icon(Icons.more_horiz_rounded), tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                    childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: busy ? null : () => submit(offline: true), icon: const Icon(Icons.cloud_off_rounded),
+                        label: Text(ar ? (registerMode ? 'إنشاء حساب على هذا الجهاز' : 'استخدام الحساب المحفوظ') : (registerMode ? 'Create an account on this device' : 'Use a saved account')),
+                      ),
+                      if (!registerMode && !warqnaProductionMode) TextButton.icon(onPressed: busy ? null : chooseDemoAccount, icon: const Icon(Icons.groups_2_outlined), label: Text(authTextV151(lang, 'chooseDemo'))),
+                      if (!registerMode) ...[
+                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 6, children: [
+                          for (final provider in ['google', 'apple', 'facebook'])
+                            OutlinedButton(onPressed: busy ? null : () => socialLogin(provider), child: Text(provider == 'google' ? 'Google' : provider == 'apple' ? 'Apple' : 'Facebook')),
+                        ]),
+                      ],
                     ],
                   ),
-                ),
+                ])),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class _GlowOrb extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _GlowOrb({required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .09), boxShadow: [BoxShadow(color: color.withValues(alpha: .16), blurRadius: 90, spreadRadius: 28)]),
-      );
 }
 
 class HomeShell extends StatefulWidget {
@@ -4238,33 +4206,9 @@ class GameCard extends StatelessWidget {
   final GameInfo game;
   final String lang;
   final VoidCallback onTap;
-
   const GameCard({super.key, required this.game, required this.lang, required this.onTap});
-
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(19),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(19),
-          gradient: LinearGradient(colors: [game.color, Theme.of(context).colorScheme.surface]),
-          border: Border.all(color: Colors.white.withValues(alpha: .09)),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.asset(gameArtAsset(game.id), fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 46))))),
-            DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), gradient: const LinearGradient(begin: Alignment.topCenter,end: Alignment.bottomCenter,colors:[Colors.transparent,Color(0x22000000),Color(0xee03070c)]))),
-            if (game.serverOnly) Positioned(top:6,right:6,child:Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xfff7d37a),Color(0xff9a5f0b)]),borderRadius:BorderRadius.circular(10),boxShadow:const [BoxShadow(color:Colors.black45,blurRadius:8)]),child:const Row(mainAxisSize:MainAxisSize.min,children:[Icon(Icons.cloud_rounded,size:12,color:Color(0xff261706)),SizedBox(width:3),Text('ONLINE',style:TextStyle(fontSize:8,color:Color(0xff261706),fontWeight:FontWeight.w900))]))),
-            Positioned(left:8,right:8,bottom:8,child:Column(mainAxisSize:MainAxisSize.min,children:[Text(L.t(lang,game.id),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:13,shadows:[Shadow(color:Colors.black,blurRadius:7)])),const SizedBox(height:3),Text('${formatNumber(game.players)} لاعب',style:const TextStyle(color:Colors.white70,fontSize:9,fontWeight:FontWeight.w700))])),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => R8GameTile(game: game, locale: lang, onTap: onTap);
 }
 
 class _CompactProductPreview extends StatelessWidget {
@@ -4407,7 +4351,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   String? selectedCode;
   bool reactionsOpen = false;
   ReactionItem? floatingReaction;
-  bool chatOpen = true;
+  bool chatOpen = false;
   bool botsActing = false;
   bool rewardGranted = false;
   bool autoNextRoundScheduled = false;
@@ -4423,7 +4367,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   @override
   void initState() {
     super.initState();
-    roomMessages=_ar?['سامر: بالتوفيق للجميع 👋','ليلى: مباراة ممتعة!']:['Samer: Good luck everyone 👋','Layla: Have a great game!'];
+    roomMessages = [_tr('طاولة تدريب مع الكمبيوتر', 'Practice table with computer players')];
     awayMode = widget.controller.awayMode;
     _newGame();
     timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
@@ -4656,16 +4600,6 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
 
   String _lastCardLabel(int seat) => engine.lastPlayedCardForSeat(seat)?.label ?? '—';
 
-  String _seatRoundGain(int seat) {
-    final tricks = engine.seatTricks[seat];
-    final team = engine.teamOf(seat);
-    final delta = engine.lastRoundScoreDelta[team];
-    final signed = delta == 0 ? '0' : (delta > 0 ? '+$delta' : '$delta');
-    return widget.controller.localeCode == 'ar'
-        ? 'لمات اللاعب: $tricks • نقاط الجولة: $signed'
-        : 'Player tricks: $tricks • Round points: $signed';
-  }
-
   Widget _tableStatusStrip(BuildContext context,{bool compact=false}) {
     final ar = widget.controller.localeCode == 'ar';
     final bidder = engine.bidWinnerSeat == null ? (ar ? 'لم يحسم بعد' : 'Not decided') : engine.playerNames[engine.bidWinnerSeat!];
@@ -4677,6 +4611,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       {'title': ar ? 'صاحب الطلب' : 'Bidder', 'value': bidder},
       {'title': ar ? 'الطرنيب' : 'Trump', 'value': trump},
       {'title': ar ? 'آخر لَمّة' : 'Last trick', 'value': trickOwner},
+      {'title': ar ? 'آخر الأوراق' : 'Last cards', 'value': List.generate(4, _lastCardLabel).join(' · ')},
       {'title': ar ? 'الجولة' : 'Round', 'value': widget.options.singleRound ? (ar ? 'واحدة' : 'Single') : '${engine.round}'},
     ];
     final children=items.map((item)=>Container(
@@ -4716,7 +4651,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         : Column(
             children: [
               Expanded(child:_gameArea(context,landscape:false,shortLandscape:false)),
-              if (chatOpen) SizedBox(height: 185 * widget.controller.uiChatScale, child: _chatPanel(context)) else _collapsedChatButton(),
+              if (chatOpen) SizedBox(height: 185 * widget.controller.uiChatScale, child: _chatPanel(context)) else const SizedBox.shrink(),
             ],
           );
 
@@ -4726,167 +4661,107 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         title: Column(
           children: [
             Text(_tr('طرنيب احترافي','Professional Tarneeb'),style:TextStyle(fontSize:shortLandscape?13:16,fontWeight:FontWeight.w900)),
-            Text(widget.options.singleRound?_tr('13 ورقة • فريقان • جولة واحدة • لعب مجاني','13 cards • Two teams • Single round • Free play'):_tr('13 ورقة • فريقان • الهدف 41 • لعب مجاني','13 cards • Two teams • Target 41 • Free play'),style:TextStyle(fontSize:shortLandscape?7:9,color:Theme.of(context).colorScheme.primary)),
+            Text(widget.options.singleRound?_tr('تدريب • جولة واحدة','Practice • Single round'):_tr('تدريب • الهدف 41','Practice • Target 41'),maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:shortLandscape?7:9,color:Theme.of(context).colorScheme.primary)),
           ],
         ),
         centerTitle: true,
         actions: [
-          if (widget.controller.vipDays > 0)
-            IconButton(
-              tooltip: awayMode ? 'العودة للعب' : 'وضع غائب',
-              onPressed: () => setState(() { awayMode = !awayMode; widget.controller.setAwayMode(awayMode); }),
-              icon: Icon(awayMode ? Icons.play_circle_fill_rounded : Icons.pause_circle_outline_rounded, color: awayMode ? Colors.amber : null),
-            ),
-          IconButton(onPressed: () => inviteFriendsToRoomV151(context, widget.controller, 'tarneeb'), tooltip: 'دعوة الأصدقاء', icon: const Icon(Icons.person_add_alt_1_rounded)),
-          IconButton(onPressed: () => confirmLeaveGameV151(context, widget.controller, 'tarneeb'), tooltip: 'الخروج', icon: const Icon(Icons.logout_rounded, color: Colors.redAccent)),
-          IconButton(onPressed: widget.controller.toggleOrientationMode, tooltip: 'طولي / عرضي', icon: Icon(widget.controller.landscapeMode ? Icons.stay_current_portrait : Icons.stay_current_landscape)),
-          IconButton(onPressed: () => showRules(context, widget.controller.localeCode, 'tarneeb'), icon: const Icon(Icons.menu_book_outlined)),
-          IconButton(onPressed: () => showSettings(context, widget.controller), icon: const Icon(Icons.settings_outlined)),
+          IconButton(onPressed: () => inviteFriendsToRoomV151(context, widget.controller, 'tarneeb'), tooltip: _tr('دعوة الأصدقاء', 'Invite friends'), icon: const Icon(Icons.person_add_alt_1_rounded)),
+          IconButton(onPressed: () => _showRoomMore(context), tooltip: _tr('خيارات الطاولة', 'Table options'), icon: const Icon(Icons.more_vert_rounded)),
         ],
       ),
       body: SafeArea(child: body),
     );
   }
 
-  Widget _gameArea(BuildContext context,{required bool landscape,required bool shortLandscape}) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxHeight < 590;
-        return Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(10, compact ? 2 : 7, 10, 4),
-              child:shortLandscape?Row(children:[
-                SizedBox(width:88,child:ScoreBox(label:_tr('نحن','We'),score:engine.scores[0])),
-                Padding(padding:const EdgeInsets.symmetric(horizontal:6),child:Column(mainAxisSize:MainAxisSize.min,children:[Text(_tr('جولة ${engine.round}','Round ${engine.round}'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:9)),Text(_tr('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات','${engine.roundTricks[0]} : ${engine.roundTricks[1]} tricks'),style:const TextStyle(color:Colors.white60,fontSize:7))])),
-                SizedBox(width:88,child:ScoreBox(label:_tr('هم','They'),score:engine.scores[1])),
-                const SizedBox(width:7),
-                Expanded(child:_tableStatusStrip(context,compact:true)),
-              ]):Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: ScoreBox(label:_tr('نحن','We'),score:engine.scores[0])),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Column(
-                          children: [
-                            Text(_tr('جولة ${engine.round}','Round ${engine.round}'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:11)),
-                            Text(_tr('${engine.roundTricks[0]} : ${engine.roundTricks[1]} لمّات','${engine.roundTricks[0]} : ${engine.roundTricks[1]} tricks'),style:const TextStyle(color:Colors.white60,fontSize:9)),
-                          ],
-                        ),
-                      ),
-                      Expanded(child:ScoreBox(label:_tr('هم','They'),score:engine.scores[1])),
-                    ],
-                  ),
-                  SizedBox(height: compact ? 4 : 7),
-                  _tableStatusStrip(context),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    top:shortLandscape?26:compact?36:48,
-                    bottom:shortLandscape?58:compact?74:96,
-                    left:shortLandscape?74:landscape?86:28,
-                    right:shortLandscape?74:landscape?86:28,
-                    child: _LuxuryTable(
-                      trump: engine.trump,
-                      phase: engine.phase.name,
-                      skinId: widget.controller.selectedTable,
-                      controller: widget.controller,
-                    ),
-                  ),
-                  Positioned(top:shortLandscape?27:compact?38:51,left:0,right:0,child:Center(child:OpponentCardStack(cardBackId:widget.controller.selectedCardBack,controller:widget.controller))),
-                  Positioned(left: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-                  Positioned(right: landscape ? 90 : 47, top: constraints.maxHeight * .41, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-                  Positioned(top: 0, left: 0, right: 0, child: PlayerSeat(name: engine.playerNames[2], letter: 'ل', botProfile: botProfiles[2], bid: _seatBid(2), meta: _seatRoundGain(2), lastCardLabel: _lastCardLabel(2), onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[2], widget.controller.localeCode)))),
-                  Positioned(right: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[1], letter: 'س', botProfile: botProfiles[1], bid: _seatBid(1), meta: _seatRoundGain(1), lastCardLabel: _lastCardLabel(1), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[1], widget.controller.localeCode)))),
-                  Positioned(left: 3, top: constraints.maxHeight * .34, child: PlayerSeat(name: engine.playerNames[3], letter: 'ج', botProfile: botProfiles[3], bid: _seatBid(3), meta: _seatRoundGain(3), lastCardLabel: _lastCardLabel(3), vertical: true, onProfileTap: () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(botProfiles[3], widget.controller.localeCode)))),
-                  Positioned(bottom:shortLandscape?48:compact?64:78,left:0,right:0,child:PlayerSeat(name:engine.playerNames[0],letter:widget.controller.displayName.isEmpty?'?':widget.controller.displayName.substring(0,1),bid:_seatBid(0),meta:_seatRoundGain(0),lastCardLabel:_lastCardLabel(0),nameColor:colorFromHex(widget.controller.selectedNameColor),badge:storeProductById(widget.controller.selectedBadge)?.icon,avatarEmoji:widget.controller.avatarEmoji,onProfileTap:()=>showProfile(context,widget.controller))),
-                  Positioned(
-                    right: landscape ? 92 : 48,
-                    bottom:shortLandscape?64:compact?92:112,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: .72), borderRadius: BorderRadius.circular(18), border: Border.all(color: seconds <= 5 ? Colors.redAccent : Theme.of(context).colorScheme.primary.withValues(alpha: .7))),
-                      child: Text('⏱ 00:${seconds.toString().padLeft(2, '0')}', style: TextStyle(color: seconds <= 5 ? Colors.redAccent : Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, fontSize: 11)),
-                    ),
-                  ),
-                  Positioned.fill(
-                    top:shortLandscape?62:compact?80:108,
-                    bottom:shortLandscape?105:compact?145:170,
-                    left:shortLandscape?145:landscape?160:68,
-                    right:shortLandscape?145:landscape?160:68,
-                    child: _trickCenter(context),
-                  ),
-                  if (floatingReaction != null)
-                    Positioned.fill(
-                      child: Center(
-                        child: FloatingReaction(
-                          key: ValueKey(floatingReaction!.id),
-                          reaction: floatingReaction!,
-                          onCompleted: () { if (mounted) setState(() => floatingReaction = null); },
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    bottom: 0,
-                    left: 4,
-                    right: 4,
-                    child: _handWidget(context, maxWidth: constraints.maxWidth, compact: compact),
-                  ),
-                ],
-              ),
-            ),
-            _actionPanel(context, compact: compact),
-            _roomTools(context,compactLandscape:shortLandscape),
-          ],
-        );
-      },
+  Widget _localSeat(int seat, {required bool compact}) {
+    final profile = seat == 0 ? null : botProfiles[{1: 3, 2: 2, 3: 1}[seat]!];
+    return R8TableSeat(
+      name: engine.playerNames[seat],
+      avatar: seat == 0 ? AccountAvatar(controller: widget.controller, size: 42) : Bot3DAvatar(profile: profile!, size: 42, showLevel: false),
+      detail: '${_seatBid(seat)} · ${engine.seatTricks[seat]} ${_tr('لمّات', 'tricks')}',
+      active: engine.currentSeat == seat && engine.phase != TarneebPhase.gameOver && engine.phase != TarneebPhase.roundEnd,
+      seconds: engine.currentSeat == 0 ? seconds : null,
+      turnSeconds: widget.options.turnSeconds,
+      compact: compact,
+      onTap: () => seat == 0 ? showProfile(context, widget.controller) : showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(profile!, widget.controller.localeCode)),
     );
+  }
+
+  Widget _myTableIdentity() => InkWell(
+    onTap: () => showProfile(context, widget.controller),
+    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+      AccountAvatar(controller: widget.controller, size: 27),
+      const SizedBox(width: 7),
+      Flexible(child: Text(engine.playerNames[0], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11))),
+      const SizedBox(width: 8),
+      if (engine.currentSeat == 0 && engine.phase != TarneebPhase.gameOver && engine.phase != TarneebPhase.roundEnd)
+        Text('${_tr('دورك', 'Your turn')} · ${seconds}s', style: TextStyle(color: seconds <= 3 ? Colors.redAccent : const Color(0xffffda88), fontSize: 11, fontWeight: FontWeight.w900)),
+    ])),
+  );
+
+  Widget _localBoard(BuildContext context, {required bool compact, required bool withHand}) => LayoutBuilder(builder: (context, board) {
+    final seatSide = compact ? 78.0 : 92.0;
+    final handHeight = withHand ? (compact ? 91.0 : 106.0) : 0.0;
+    return Stack(children: [
+      Positioned.fill(left: 20, right: 20, top: 25, bottom: math.max(15, handHeight - 12), child: _LuxuryTable(trump: engine.trump, phase: engine.phase.name, skinId: widget.controller.selectedTable, controller: widget.controller)),
+      Positioned(top: 2, left: 0, right: 0, child: Center(child: _localSeat(2, compact: compact))),
+      Positioned(right: 5, top: math.max(45, (board.maxHeight - handHeight) * .43), child: _localSeat(1, compact: compact)),
+      Positioned(left: 5, top: math.max(45, (board.maxHeight - handHeight) * .43), child: _localSeat(3, compact: compact)),
+      Positioned.fill(left: seatSide + 10, right: seatSide + 10, top: compact ? 62 : 82, bottom: handHeight + 44, child: _trickCenter(context)),
+      Positioned(bottom: handHeight + 3, left: 0, right: 0, child: _myTableIdentity()),
+      if (floatingReaction != null) Positioned.fill(child: Center(child: FloatingReaction(key: ValueKey(floatingReaction!.id), reaction: floatingReaction!, onCompleted: () { if (mounted) setState(() => floatingReaction = null); }))),
+      if (withHand) Positioned(bottom: 0, left: 0, right: 0, child: _handWidget(context, maxWidth: board.maxWidth, compact: compact)),
+    ]);
+  });
+
+  Widget _gameArea(BuildContext context, {required bool landscape, required bool shortLandscape}) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxHeight < 500;
+      final score = Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: Row(children: [
+        Expanded(child: ScoreBox(label: _tr('نحن', 'We'), score: engine.scores[0])),
+        Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Column(children: [
+          Text(_tr('جولة ${engine.round}', 'Round ${engine.round}'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+          Text('${engine.roundTricks[0]} : ${engine.roundTricks[1]}', style: const TextStyle(fontSize: 11, color: Color(0xffd9c28c))),
+        ])),
+        Expanded(child: ScoreBox(label: _tr('هم', 'They'), score: engine.scores[1])),
+      ]));
+      final status = Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3), child: _tableStatusStrip(context, compact: true));
+      if (shortLandscape && constraints.maxWidth >= 600) {
+        return Row(children: [
+          Expanded(child: _localBoard(context, compact: true, withHand: false)),
+          SizedBox(width: 300, child: SingleChildScrollView(child: Column(children: [
+            score, status,
+            _handWidget(context, maxWidth: 300, compact: true),
+            _actionPanel(context, compact: true),
+            _roomTools(context, compactLandscape: true),
+          ]))),
+        ]);
+      }
+      // Expanded chat, keyboard and accessibility text may leave a short area.
+      // Scroll that area rather than compressing cards or overflowing the board.
+      return SingleChildScrollView(child: SizedBox(height: math.max(constraints.maxHeight, 500.0), child: Column(children: [
+        score, status,
+        Expanded(child: _localBoard(context, compact: compact, withHand: true)),
+        _actionPanel(context, compact: compact),
+        _roomTools(context, compactLandscape: shortLandscape),
+      ])));
+    });
   }
 
   Widget _trickCenter(BuildContext context) {
     final visibleTrick = engine.trick.isNotEmpty ? engine.trick : engine.lastTrick;
     if (visibleTrick.isEmpty) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha: .25), borderRadius: BorderRadius.circular(14)),
-          child: Text(_phaseTitle(), style: const TextStyle(color: Colors.white54, fontWeight: FontWeight.w800)),
-        ),
-      );
+      return Center(child: Text(_phaseTitle(), maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xffe4d6b2), fontWeight: FontWeight.w800, fontSize: 12)));
     }
-    return LayoutBuilder(
-      builder: (context, constraints) => Stack(
-        clipBehavior: Clip.none,
-        children: visibleTrick.map((play) {
-          final child = Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PlayingCard(label: play.card.label, width: 46, height: 68),
-              const SizedBox(height: 2),
-              Container(
-                constraints: const BoxConstraints(maxWidth: 74),
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(8)),
-                child: Text(engine.playerNames[play.seat], maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 7, color: Colors.white, fontWeight: FontWeight.w900)),
-              ),
-            ],
-          );
-          return switch (play.seat) {
-            0 => Positioned(bottom: 0, left: 0, right: 0, child: Center(child: child)),
-            1 => Positioned(right: 0, top: math.max(0.0, constraints.maxHeight * .36), child: child),
-            2 => Positioned(top: 0, left: 0, right: 0, child: Center(child: child)),
-            _ => Positioned(left: 0, top: math.max(0.0, constraints.maxHeight * .36), child: child),
-          };
-        }).toList(),
-      ),
-    );
+    return FittedBox(fit: BoxFit.contain, child: SizedBox(width: 146, height: 158, child: Stack(children: [
+      for (final play in visibleTrick)
+        Positioned(
+          left: switch (play.seat) { 1 => 96.0, 3 => 0.0, _ => 48.0 },
+          top: switch (play.seat) { 0 => 88.0, 2 => 0.0, _ => 44.0 },
+          child: Semantics(label: '${engine.playerNames[play.seat]} ${play.card.label}', child: PlayingCard(key: ValueKey('${engine.round}-${play.seat}-${play.card.code}'), label: play.card.label, width: 48, height: 70)),
+        ),
+    ])));
   }
 
   String _phaseTitle() => switch (engine.phase) {
@@ -4899,44 +4774,21 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
 
   Widget _handWidget(BuildContext context, {required double maxWidth, required bool compact}) {
     final hand = engine.humanHand;
-    if (hand.isEmpty) return const SizedBox(height: 8);
-    final legal = engine.phase == TarneebPhase.playing && engine.currentSeat == 0
-        ? engine.legalCards(0).map((card) => card.code).toSet()
-        : hand.map((card) => card.code).toSet();
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final available = math.min(maxWidth, constraints.maxWidth);
-        final cardWidth = visibleCardWidthV021(available, hand.length, preferred: compact ? 48 : 56, gap: 2);
-        final cardHeight = cardWidth * 1.52;
-        return SizedBox(
-          height: cardHeight + 22,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var index = 0; index < hand.length; index++)
-                  Padding(
-                    padding: EdgeInsets.only(right: index == hand.length - 1 ? 0 : 2),
-                    child: Transform.translate(
-                      offset: Offset(0, selectedCode == hand[index].code ? -7 : 0),
-                      child: GestureDetector(
-                        onTap: legal.contains(hand[index].code) && engine.phase == TarneebPhase.playing && engine.currentSeat == 0
-                            ? () => setState(() => selectedCode = selectedCode == hand[index].code ? null : hand[index].code)
-                            : null,
-                        onDoubleTap: legal.contains(hand[index].code) ? () => _playLocalCard(hand[index].code) : null,
-                        onVerticalDragEnd: legal.contains(hand[index].code)
-                            ? (details) { if ((details.primaryVelocity ?? 0) < -180) _playLocalCard(hand[index].code); }
-                            : null,
-                        child: Opacity(
-                          opacity: engine.phase == TarneebPhase.playing && engine.currentSeat == 0 && !legal.contains(hand[index].code) ? .42 : 1,
-                          child: PlayingCard(label: hand[index].label, width: cardWidth, height: cardHeight, selected: selectedCode == hand[index].code),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+    final myTurn = engine.phase == TarneebPhase.playing && engine.currentSeat == 0 && !botsActing;
+    final legal = myTurn ? engine.legalCards(0).map((card) => card.code).toSet() : <String>{};
+    final selectedIndex = hand.indexWhere((card) => card.code == selectedCode);
+    return R8CardHand(
+      count: hand.length, compact: compact, selectedIndex: selectedIndex < 0 ? null : selectedIndex,
+      cardBuilder: (index, width, height) {
+        final card = hand[index];
+        final enabled = legal.contains(card.code);
+        return Semantics(
+          label: card.label, button: true, enabled: enabled, selected: selectedCode == card.code,
+          child: GestureDetector(
+            onTap: enabled ? () => setState(() => selectedCode = selectedCode == card.code ? null : card.code) : null,
+            onDoubleTap: enabled ? () => _playLocalCard(card.code) : null,
+            onVerticalDragEnd: enabled ? (details) { if ((details.primaryVelocity ?? 0) < -180) _playLocalCard(card.code); } : null,
+            child: Opacity(opacity: myTurn && !enabled ? .42 : 1, child: PlayingCard(label: card.label, width: width, height: height, selected: selectedCode == card.code)),
           ),
         );
       },
@@ -4949,13 +4801,13 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     if (engine.phase == TarneebPhase.roundEnd) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(10, 3, 10, 5),
-        child: FilledButton.icon(onPressed: null, icon: const Icon(Icons.autorenew_rounded), label: const Text('الجولة التالية تبدأ تلقائياً خلال لحظات…'), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44))),
+        child: FilledButton.icon(onPressed: null, icon: const Icon(Icons.autorenew_rounded), label: Text(_tr('الجولة التالية تبدأ خلال لحظات…', 'Next round starts shortly…')), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44))),
       );
     }
     if (engine.phase == TarneebPhase.gameOver) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(10, 3, 10, 5),
-        child: FilledButton.icon(onPressed: () => setState(_newGame), icon: const Icon(Icons.emoji_events_rounded), label: Text('فاز فريق ${engine.teamName(engine.winnerTeam ?? 0)} — مباراة جديدة'), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44))),
+        child: FilledButton.icon(onPressed: () => setState(_newGame), icon: const Icon(Icons.emoji_events_rounded), label: Text(_tr('فاز فريق ${engine.teamName(engine.winnerTeam ?? 0)} — مباراة جديدة', '${engine.winnerTeam == 0 ? 'You win' : 'Other team wins'} — Play again')), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44))),
       );
     }
     if (engine.currentSeat != 0 || botsActing) {
@@ -4973,22 +4825,27 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       final minBid = (engine.highestBid ?? 6) + 1;
       return SizedBox(
         height: compact ? 63 : 70,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          children: [
-            for (var value = 7; value <= 13; value++)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 7),
-                child: TarneebBidButtonV170(label: '$value', subtitle: value >= minBid ? 'طلب قانوني' : 'غير متاح', onPressed: value >= minBid ? () => _humanBid(value) : null),
-              ),
-            TarneebBidButtonV170(label: 'سكون', subtitle: 'تمرير الدور', onPressed: () => _humanBid(null)),
-          ],
-        ),
+        child: Row(children: [
+          Expanded(child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            children: [
+              for (var value = 7; value <= 13; value++)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 7),
+                  child: TarneebBidButtonV170(label: '$value', subtitle: value >= minBid ? _tr('طلب', 'Bid') : _tr('غير متاح', 'Unavailable'), onPressed: value >= minBid ? () => _humanBid(value) : null),
+                ),
+            ],
+          )),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 10, top: 5, bottom: 5),
+            child: TarneebBidButtonV170(label: _tr('سكون', 'Pass'), subtitle: _tr('تمرير الدور', 'Skip bid'), onPressed: () => _humanBid(null)),
+          ),
+        ]),
       );
     }
     if (engine.phase == TarneebPhase.chooseTrump) {
-      const suitLabels = {'C': '♣ شجرة', 'D': '♦ ديناري', 'S': '♠ بستوني', 'H': '♥ كبة'};
+      final suitLabels = _ar ? {'C': '♣ شجرة', 'D': '♦ ديناري', 'S': '♠ بستوني', 'H': '♥ كبة'} : {'C': '♣ Clubs', 'D': '♦ Diamonds', 'S': '♠ Spades', 'H': '♥ Hearts'};
       return Padding(
         padding: const EdgeInsets.fromLTRB(10, 3, 10, 5),
         child: Row(
@@ -5006,7 +4863,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       child: FilledButton.icon(
         onPressed: selectedCode == null ? null : _playSelected,
         icon: const Icon(Icons.style_rounded),
-        label: const Text('ارمِ الورقة المختارة'),
+        label: Text(_tr('العب الورقة المختارة', 'Play selected card')),
         style: FilledButton.styleFrom(backgroundColor: const Color(0xffa8383f), minimumSize: const Size.fromHeight(45)),
       ),
     );
@@ -5062,7 +4919,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
             dense: true,
             leading: const Icon(Icons.forum_rounded),
             title:Text(_tr('دردشة الغرفة','Room chat'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:12)),
-            subtitle:Text(_tr('4 لاعبين متصلين','4 players online'),style:const TextStyle(color:Colors.greenAccent,fontSize:8)),
+            subtitle:Text(_tr('تدريب محلي مع الكمبيوتر', 'Local practice with computer players'),style:const TextStyle(color:Colors.greenAccent,fontSize:8)),
             trailing:IconButton(onPressed:()=>setState((){if(compactLandscape){compactLandscapeChatOpen=false;}else{chatOpen=false;}}),icon:const Icon(Icons.close_rounded,size:18)),
           ),
           Expanded(
@@ -5127,10 +4984,12 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(leading: Icon(Icons.verified_user_outlined), title: Text('اللعب مجاني — لا خصم من التوكنز')),
-            ListTile(leading: const Icon(Icons.menu_book), title: const Text('قوانين اللعبة'), onTap: () { Navigator.pop(sheetContext); showRules(context, widget.controller.localeCode, 'tarneeb'); }),
-            ListTile(leading: const Icon(Icons.settings), title: const Text('إعدادات اللعبة'), onTap: () { Navigator.pop(sheetContext); showSettings(context, widget.controller); }),
-            ListTile(leading: const Icon(Icons.exit_to_app, color: Colors.redAccent), title: const Text('مغادرة الغرفة'), onTap: () { Navigator.pop(sheetContext); confirmLeaveGameV151(context, widget.controller, 'tarneeb'); }),
+            ListTile(leading: const Icon(Icons.smart_toy_outlined), title: Text(_tr('تدريب مع الكمبيوتر', 'Practice with computer players'))),
+            if (widget.controller.vipDays > 0) ListTile(leading: const Icon(Icons.pause_circle_outline), title: Text(awayMode ? _tr('العودة للعب', 'Return to play') : _tr('وضع غائب', 'Away mode')), onTap: () { Navigator.pop(sheetContext); setState(() { awayMode = !awayMode; widget.controller.setAwayMode(awayMode); }); }),
+            ListTile(leading: const Icon(Icons.screen_rotation_rounded), title: Text(_tr('تدوير الشاشة', 'Rotate screen')), onTap: () { Navigator.pop(sheetContext); widget.controller.toggleOrientationMode(); }),
+            ListTile(leading: const Icon(Icons.menu_book), title: Text(_tr('قوانين اللعبة', 'Game rules')), onTap: () { Navigator.pop(sheetContext); showRules(context, widget.controller.localeCode, 'tarneeb'); }),
+            ListTile(leading: const Icon(Icons.settings), title: Text(_tr('إعدادات اللعبة', 'Game settings')), onTap: () { Navigator.pop(sheetContext); showSettings(context, widget.controller); }),
+            ListTile(leading: const Icon(Icons.exit_to_app, color: Colors.redAccent), title: Text(_tr('مغادرة الغرفة', 'Leave table')), onTap: () { Navigator.pop(sheetContext); confirmLeaveGameV151(context, widget.controller, 'tarneeb'); }),
           ],
         ),
       ),
@@ -5264,11 +5123,8 @@ class _LuxuryTable extends StatelessWidget {
                       children: [
                         Text(skin?.icon ?? 'W', style: TextStyle(color: Colors.white.withValues(alpha: .16), fontSize: portrait ? 60 : 78, fontWeight: FontWeight.w900)),
                         SizedBox(height: portrait ? 8 : 4),
-                        Text(trump == null ? phase.toUpperCase() : 'TRUMP ${TarneebCard('A', trump!).symbol}', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, letterSpacing: portrait ? 2 : 3, fontSize: portrait ? 11 : 10)),
-                        if (portrait) Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text('PORTRAIT ELITE TABLE', style: TextStyle(color: Colors.white.withValues(alpha: .18), fontWeight: FontWeight.w800, fontSize: 9, letterSpacing: 2.4)),
-                        ),
+                        if (trump != null)
+                          Text(TarneebCard('A', trump!).symbol, textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withValues(alpha: .28), fontWeight: FontWeight.w900, fontSize: portrait ? 26 : 22)),
                       ],
                     ),
                   ),
@@ -5368,7 +5224,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   bool sending = false;
   bool reactionsOpen = false;
   ReactionItem? floatingReaction;
-  bool chatOpen = true;
+  bool chatOpen = false;
   int chatSection = 0;
   bool awayMode = false;
   int autoPlayedTurns = 0;
@@ -5996,11 +5852,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                   children: [
                     const Icon(Icons.dns_outlined, size: 55, color: Colors.amber),
                     const SizedBox(height: 14),
-                    const Text('محرك اللعبة جاهز في Laravel', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                    Text(widget.controller.localeCode == 'ar' ? 'تعذّر الاتصال بالطاولة' : 'Unable to connect to the table', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 9),
                     Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, height: 1.65)),
                     const SizedBox(height: 14),
-                    Text(widget.controller.api.baseUrl, textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 10, color: Colors.white38)),
+                    Text(widget.controller.localeCode == 'ar' ? 'تحقق من اتصالك ثم حاول مجددًا.' : 'Check your connection and try again.', textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white60)),
                     const SizedBox(height: 16),
                     FilledButton.icon(onPressed: _create, icon: const Icon(Icons.refresh), label: const Text('إعادة الاتصال')),
                   ],
@@ -6324,9 +6180,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       onLongPress: canKick ? () => _kickRoomPlayer(player) : null,
       child: seat,
     );
-    if (index == 0) return Positioned(bottom: 72, left: 0, right: 0, child: interactiveSeat);
-    if (index == 1) return Positioned(right: 0, top: 180, child: interactiveSeat);
-    if (index == 2) return Positioned(top: 0, left: 0, right: 0, child: interactiveSeat);
+    final visualIndex = r8RelativeSeat(room?['players'] is List ? room!['players'] as List : const [], index, state['you']?.toString());
+    if (visualIndex == 0) return Positioned(bottom: 112, left: 0, right: 0, child: interactiveSeat);
+    if (visualIndex == 1) return Positioned(right: 0, top: 180, child: interactiveSeat);
+    if (visualIndex == 2) return Positioned(top: 0, left: 0, right: 0, child: interactiveSeat);
     return Positioned(left: 0, top: 180, child: interactiveSeat);
   }
 
@@ -6346,6 +6203,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       final card=PlayingCard(label:_cardLabel(entry.value),width:34,height:51);
       final name=index<players.length && players[index] is Map ? ((players[index] as Map)['name']?.toString() ?? 'لاعب') : 'لاعب';
       final child=Column(mainAxisSize:MainAxisSize.min,children:[card,Container(margin:const EdgeInsets.only(top:2),padding:const EdgeInsets.symmetric(horizontal:5,vertical:2),decoration:BoxDecoration(color:Colors.black87,borderRadius:BorderRadius.circular(7)),child:Text(name,maxLines:1,style:const TextStyle(fontSize:7,fontWeight:FontWeight.w900)))]);
+      index = r8RelativeSeat(players, index, state['you']?.toString());
       if(index==0)return Positioned(bottom:132,left:0,right:0,child:Center(child:child));
       if(index==1)return Positioned(right:96,top:176,child:child);
       if(index==2)return Positioned(top:72,left:0,right:0,child:Center(child:child));
@@ -6585,28 +6443,19 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   Widget _serverHand() {
-    if (hand.isEmpty) return const SizedBox(height: 55, child: Center(child: Text('لا توجد أوراق ظاهرة في هذه المرحلة', style: TextStyle(color: Colors.white38, fontSize: 10))));
+    if (hand.isEmpty) return const SizedBox(height: 55);
     final reorderable = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = visibleCardWidthV021(constraints.maxWidth, hand.length, preferred: 54, gap: 2);
-        final cardHeight = cardWidth * 1.5;
-        return SizedBox(
-          height: cardHeight + 27,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var index = 0; index < hand.length; index++)
-                  Padding(
-                    padding: EdgeInsets.only(right: index == hand.length - 1 ? 0 : 2),
-                    child: DragTarget<int>(
+    final selectedIndex = hand.indexOf(selectedCard ?? '');
+    return R8CardHand(
+      count: hand.length,
+      compact: MediaQuery.sizeOf(context).height < 430,
+      selectedIndex: selectedIndex < 0 ? null : selectedIndex,
+      cardBuilder: (index, cardWidth, cardHeight) => DragTarget<int>(
                       onWillAcceptWithDetails: (details) => reorderable && !sending && details.data != index,
                       onAcceptWithDetails: (details) => _reorderServerHand(details.data, index),
                       builder: (context, candidate, rejected) {
                         final card = Transform.translate(
-                          offset: Offset(0, selectedCard == hand[index] ? -7 : 0),
+                          offset: Offset.zero,
                           child: GestureDetector(
                             onTap: () => setState(() => selectedCard = selectedCard == hand[index] ? null : hand[index]),
                             onDoubleTap: () => _quickPlayCard(hand[index]),
@@ -6636,12 +6485,6 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                         );
                       },
                     ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -8158,7 +8001,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
         Center(child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(gameArtAsset(game.id), width: 180, height: 118, fit: BoxFit.cover))),
         const SizedBox(height: 5),
         Center(child: Text(L.t(controller.localeCode, game.id), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900))),
-        Center(child: Text('${formatNumber(game.players)} لاعب متصل', style: const TextStyle(color: Colors.white60))),
+        Center(child: Text(controller.localeCode == 'ar' ? (controller.serverConnected ? 'اختر طريقة اللعب' : 'تدريب محلي مع الكمبيوتر') : (controller.serverConnected ? 'Choose how to play' : 'Local practice with computer players'), style: const TextStyle(color: Colors.white60))),
         const SizedBox(height: 15),
         Row(
           children: [

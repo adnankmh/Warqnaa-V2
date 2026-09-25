@@ -125,6 +125,7 @@ void main() {
         tester.view.physicalSize = size;
         final dimensions = '${size.width.toInt()}x${size.height.toInt()}';
         for (final page in <(String, Widget)>[
+          ('login', LoginScreen(controller: controller)),
           ('home', HomeShell(controller: controller)),
           ('profile', R61ProfilePage(controller: controller)),
           ('store', Scaffold(body: StorePage(controller: controller))),
