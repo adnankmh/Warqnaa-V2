@@ -37,6 +37,14 @@ if [[ ! "$PACKAGE" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
 fi
 
 adb install --no-streaming -r "$APK" | tee "$EVIDENCE_DIR/install.txt"
+# Control the notification permission fixture on this isolated test device.
+# Android's permission activity otherwise races with the first-frame check.
+# Do not grant unrelated runtime permissions or change app permission logic.
+NOTIFICATION_PERMISSION=not_required
+if (( $(cat "$EVIDENCE_DIR/android-api.txt") >= 33 )); then
+  adb shell pm grant "$PACKAGE" android.permission.POST_NOTIFICATIONS
+  NOTIFICATION_PERMISSION=pregranted_on_test_device
+fi
 adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
   | tee "$EVIDENCE_DIR/launch.txt"
 
@@ -129,6 +137,7 @@ cat > "$EVIDENCE_DIR/result.json" <<EOF
   "package": "$PACKAGE",
   "pid": $PID,
   "frame_capture_attempts": $FRAME_ATTEMPT,
+  "notification_permission": "$NOTIFICATION_PERMISSION",
   "android_api": "$(cat "$EVIDENCE_DIR/android-api.txt")",
   "apk_sha256": "$APK_SHA256",
   "checks": ["installed", "launcher_started", "process_alive", "activity_resumed", "no_app_crash_or_anr", "first_frame_captured"]

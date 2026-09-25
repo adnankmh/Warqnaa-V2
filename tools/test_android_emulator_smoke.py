@@ -35,7 +35,11 @@ elif args[:2] == ['shell', 'pidof']:
     if not (mode == 'exit' and count > 0):
         print('4242')
 elif args[:2] == ['shell', 'getprop']:
-    print('35')
+    print('32' if mode == 'api32' else '35')
+elif args[:3] == ['shell', 'pm', 'grant']:
+    (root / 'permission-grant').write_text(' '.join(args[3:]))
+    if mode == 'permission_error':
+        sys.exit(1)
 elif args[:2] == ['shell', 'dumpsys']:
     package = 'com.android.launcher' if mode == 'background' and count > 0 else 'com.warqna.warqna_mobile'
     print(f'mResumedActivity: {package}/.MainActivity')
@@ -95,6 +99,20 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(report['apk_sha256'], hashlib.sha256((root / 'test.apk').read_bytes()).hexdigest())
         self.assertEqual((evidence / 'first-frame.png').read_bytes(), fixture_png())
         self.assertTrue((evidence / 'exit-frame.png').exists())
+        self.assertEqual(report['notification_permission'], 'pregranted_on_test_device')
+        self.assertEqual((root / 'permission-grant').read_text(),
+                         'com.warqna.warqna_mobile android.permission.POST_NOTIFICATIONS')
+
+    def test_old_android_does_not_receive_unsupported_permission(self):
+        result, root, evidence = self.run_smoke('api32')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse((root / 'permission-grant').exists())
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['notification_permission'], 'not_required')
+
+    def test_permission_setup_failure_stops_the_check(self):
+        result, _, evidence = self.run_smoke('permission_error')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((evidence / 'result.json').exists())
 
     def test_capture_transport_error_is_retried(self):
         result, _, evidence = self.run_smoke('capture_error')
