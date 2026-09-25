@@ -1054,7 +1054,7 @@ class AppController extends ChangeNotifier {
   Future<void> loginAsGuest() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('lastGuestUsername') ?? 'Guest';
-    displayName = 'ضيف ورقنا';
+    displayName = localeCode == 'ar' ? 'ضيف ورقنا' : 'Warqnaa Guest';
     email = 'guest@warqna.local';
     isAdmin = false;
     await prefs.setString('lastGuestUsername', username);
@@ -3237,14 +3237,32 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> submit({bool offline = false}) async {
+    if (busy) return;
     setState(() { busy = true; error = null; });
-    final result = registerMode
-        ? offline
-            ? await widget.controller.registerOffline(loginController.text, emailController.text, passwordController.text)
-            : await widget.controller.register(loginController.text, emailController.text, passwordController.text)
-        : await widget.controller.login(loginController.text, passwordController.text, offline: offline);
-    if (!mounted) return;
-    setState(() { busy = false; error = result; });
+    try {
+      final result = registerMode
+          ? offline
+              ? await widget.controller.registerOffline(loginController.text, emailController.text, passwordController.text)
+              : await widget.controller.register(loginController.text, emailController.text, passwordController.text)
+          : await widget.controller.login(loginController.text, passwordController.text, offline: offline);
+      if (mounted) setState(() => error = result);
+    } catch (e) {
+      if (mounted) setState(() => error = friendlyErrorMessage(e, widget.controller.localeCode));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> continueAsGuest() async {
+    if (busy) return;
+    setState(() { busy = true; error = null; });
+    try {
+      await widget.controller.loginAsGuest();
+    } catch (e) {
+      if (mounted) setState(() => error = friendlyErrorMessage(e, widget.controller.localeCode));
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   Future<void> forgotPassword() async {
@@ -3309,12 +3327,12 @@ class _LoginScreenState extends State<LoginScreen> {
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
           children: [
-            const Text('حسابات التجربة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            Text(widget.controller.localeCode == 'ar' ? 'ملفات تدريب محلية' : 'Local practice profiles', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             ...accounts.map((account) => ListTile(
               leading: CircleAvatar(child: Text(account.$1.substring(0, 1))),
               title: Text(account.$1, style: const TextStyle(fontWeight: FontWeight.w900)),
-              subtitle: Text('${account.$2} • ${account.$3}'),
+              subtitle: Text(widget.controller.localeCode == 'ar' ? 'تدريب على هذا الجهاز' : 'Practice on this device'),
               trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 15),
               onTap: () => Navigator.pop(sheetContext, account),
             )),
@@ -3322,7 +3340,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-    if (selected == null) return;
+    if (selected == null || !mounted) return;
     loginController.text = selected.$1;
     passwordController.text = selected.$2;
     setState(() { registerMode = false; error = null; });
@@ -3342,164 +3360,113 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final palette = AppPalette.fromCode(widget.controller.themeCode);
     final lang = widget.controller.localeCode;
+    final ar = lang == 'ar';
     return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(.8, -.9),
-                  radius: 1.4,
-                  colors: [palette.accent.withValues(alpha: .32), palette.bg, const Color(0xff030810)],
-                ),
-              ),
-            ),
-          ),
-          Positioned(top: -80, right: -70, child: _GlowOrb(color: palette.gold, size: 230)),
-          Positioned(bottom: -100, left: -90, child: _GlowOrb(color: palette.green, size: 260)),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Column(
-                    children: [
-                      Image.asset('assets/images/brand/warqna_logo.png', width: 260, height: 190, fit: BoxFit.contain),
-                      const SizedBox(height: 8),
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, const Color(0xff030810)])),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: AutofillGroup(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  Row(children: [
+                    Image.asset('assets/images/brand/warqna_logo.png', width: 88, height: 76, fit: BoxFit.contain),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(authTextV151(lang, 'tagline'), style: const TextStyle(color: Colors.white60, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 28),
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: palette.panel.withValues(alpha: .94),
-                          borderRadius: BorderRadius.circular(27),
-                          border: Border.all(color: Colors.white.withValues(alpha: .09)),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .38), blurRadius: 35, offset: const Offset(0, 20))],
+                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                    ])),
+                  ]),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(color: palette.panel.withValues(alpha: .95), borderRadius: BorderRadius.circular(24), border: Border.all(color: palette.gold.withValues(alpha: .2))),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 5),
+                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      const SizedBox(height: 18),
+                      TextField(
+                        key: const ValueKey('r81-login-name'), controller: loginController, enabled: !busy,
+                        autofillHints: const [AutofillHints.username], textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(labelText: authTextV151(lang, registerMode ? 'username' : 'userOrEmail'), prefixIcon: const Icon(Icons.person_outline_rounded)),
+                      ),
+                      if (registerMode) ...[
+                        const SizedBox(height: 12),
+                        TextField(
+                          key: const ValueKey('r81-login-email'), controller: emailController, enabled: !busy,
+                          keyboardType: TextInputType.emailAddress, autofillHints: const [AutofillHints.email], textInputAction: TextInputAction.next,
+                          decoration: InputDecoration(labelText: authTextV151(lang, 'email'), prefixIcon: const Icon(Icons.alternate_email_rounded)),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(registerMode ? authTextV151(lang, 'newAccount') : authTextV151(lang, 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-                            const SizedBox(height: 5),
-                            Text(registerMode ? authTextV151(lang, 'registerSubtitle') : authTextV151(lang, 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                            const SizedBox(height: 18),
-                            TextField(
-                              controller: loginController,
-                              decoration: InputDecoration(
-                                labelText: registerMode ? authTextV151(lang, 'username') : authTextV151(lang, 'userOrEmail'),
-                                prefixIcon: const Icon(Icons.person_outline_rounded),
-                              ),
-                            ),
-                            if (registerMode) ...[
-                              const SizedBox(height: 11),
-                              TextField(
-                                controller: emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(labelText: authTextV151(lang, 'email'), prefixIcon: const Icon(Icons.alternate_email_rounded)),
-                              ),
-                            ],
-                            const SizedBox(height: 11),
-                            TextField(
-                              controller: passwordController,
-                              obscureText: obscure,
-                              onSubmitted: (_) => submit(),
-                              decoration: InputDecoration(
-                                labelText: authTextV151(lang, 'password'),
-                                prefixIcon: const Icon(Icons.lock_outline_rounded),
-                                suffixIcon: IconButton(onPressed: () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
-                              ),
-                            ),
-                            if (!registerMode) Align(
-                              alignment: AlignmentDirectional.centerEnd,
-                              child: TextButton.icon(
-                                onPressed: busy ? null : forgotPassword,
-                                icon: const Icon(Icons.key_rounded, size: 17),
-                                label: Text(lang == 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'),
-                              ),
-                            ),
-                            if (error != null) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(13),
-                                decoration: BoxDecoration(color: Colors.red.withValues(alpha: .12), borderRadius: BorderRadius.circular(13), border: Border.all(color: Colors.red.withValues(alpha: .25))),
-                                child: Text(error!, style: const TextStyle(color: Color(0xffff9a9a), fontSize: 12, height: 1.5)),
-                              ),
-                            ],
-                            const SizedBox(height: 10),
-                            const Text('🌐 تسجيل ودخول مرن: أونلاين أو أوفلاين', textAlign: TextAlign.center, style: TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.w900, fontSize: 11)),
-                            const SizedBox(height: 12),
-                            FilledButton.icon(
-                              onPressed: busy ? null : () => submit(),
-                              icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(registerMode ? Icons.person_add_alt_1 : Icons.login_rounded),
-                              label: Text(registerMode ? authTextV151(lang, 'create') : authTextV151(lang, 'secure')),
-                              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                            ),
-                            const SizedBox(height: 8),
-                            OutlinedButton.icon(
-                              onPressed: busy ? null : () => submit(offline: true),
-                              icon: const Icon(Icons.cloud_off_rounded),
-                              label: Text(registerMode ? 'إنشاء حساب محلي أوفلاين' : 'دخول أوفلاين بالحساب المحفوظ'),
-                              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                            ),
-                            if (!registerMode) ...[
-                              const SizedBox(height: 10),
-                              OutlinedButton.icon(
-                                onPressed: busy || warqnaProductionMode ? null : chooseDemoAccount,
-                                icon: const Icon(Icons.groups_2_outlined),
-                                label: Text(authTextV151(lang, 'chooseDemo')),
-                                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                              ),
-                              const SizedBox(height: 7),
-                              Text(authTextV151(lang, 'fallback'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 9, height: 1.5)),
-                              Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [const Expanded(child: Divider()), Padding(padding: const EdgeInsets.symmetric(horizontal: 9), child: Text(authTextV151(lang, 'orVia'), style: const TextStyle(fontSize: 10, color: Colors.white54))), const Expanded(child: Divider())])),
-                              Row(children: [
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('google'), icon: const Text('G', style: TextStyle(fontWeight: FontWeight.w900)), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Google', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 10))))),
-                                const SizedBox(width: 6),
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('apple'), icon: const Icon(Icons.apple, size: 18), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Apple', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 10))))),
-                                const SizedBox(width: 6),
-                                Expanded(child: OutlinedButton.icon(onPressed: busy ? null : () => socialLogin('facebook'), icon: const Text('f', style: TextStyle(fontWeight: FontWeight.w900)), label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Facebook', maxLines: 1, softWrap: false, style: TextStyle(fontSize: 9))))),
-                              ]),
-                              const SizedBox(height: 7),
-                              FilledButton.tonalIcon(onPressed: busy ? null : widget.controller.loginAsGuest, icon: const Icon(Icons.person_outline_rounded), label: Text(authTextV151(lang, 'guest'))) ,
-                              const SizedBox(height: 5),
-                              Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: TextStyle(color: palette.gold.withValues(alpha: .9), fontSize: 9, height: 1.5)),
-                            ],
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: busy ? null : () => setState(() { registerMode = !registerMode; error = null; }),
-                              child: Text(registerMode ? authTextV151(lang, 'haveAccount') : authTextV151(lang, 'noAccount')),
-                            ),
-                          ],
+                      ],
+                      const SizedBox(height: 12),
+                      TextField(
+                        key: const ValueKey('r81-login-password'), controller: passwordController, enabled: !busy,
+                        obscureText: obscure, enableSuggestions: false, autocorrect: false,
+                        autofillHints: [registerMode ? AutofillHints.newPassword : AutofillHints.password],
+                        onSubmitted: busy ? null : (_) => submit(),
+                        decoration: InputDecoration(
+                          labelText: authTextV151(lang, 'password'), prefixIcon: const Icon(Icons.lock_outline_rounded),
+                          suffixIcon: IconButton(tooltip: ar ? (obscure ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور') : (obscure ? 'Show password' : 'Hide password'), onPressed: busy ? null : () => setState(() => obscure = !obscure), icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined)),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(warqnaProductionMode ? 'حسابات خادم حقيقية • جلسات آمنة • حماية واستعادة للحساب' : 'حساب محلي آمن للعب أوفلاين • مزامنة الخادم عند توفر الإنترنت', textAlign: TextAlign.center, style: TextStyle(color: Colors.white30, fontSize: 9)),
+                      if (!registerMode) Align(alignment: AlignmentDirectional.centerEnd, child: TextButton(onPressed: busy ? null : forgotPassword, child: Text(ar ? 'نسيت كلمة المرور؟' : 'Forgot password?'))),
+                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: const TextStyle(color: Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
+                      const SizedBox(height: 8),
+                      FilledButton.icon(
+                        key: const ValueKey('r81-login-submit'), onPressed: busy ? null : () => submit(),
+                        icon: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(registerMode ? Icons.person_add_alt_1 : Icons.login_rounded),
+                        label: Text(authTextV151(lang, registerMode ? 'create' : 'secure')), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                      ),
+                      TextButton(
+                        key: const ValueKey('r81-login-switch'),
+                        onPressed: busy ? null : () => setState(() { registerMode = !registerMode; error = null; }),
+                        child: Text(authTextV151(lang, registerMode ? 'haveAccount' : 'noAccount')),
+                      ),
+                      if (!registerMode) ...[
+                        const Divider(height: 22),
+                        OutlinedButton.icon(
+                          key: const ValueKey('r81-login-guest'), onPressed: busy ? null : continueAsGuest,
+                          icon: const Icon(Icons.style_outlined), label: Text(ar ? 'جرّب اللعب دون حساب' : 'Try without an account'),
+                          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                      ],
+                    ]),
+                  ),
+                  const SizedBox(height: 10),
+                  ExpansionTile(
+                    key: const PageStorageKey('r81-login-options'),
+                    title: Text(ar ? 'خيارات دخول أخرى' : 'More sign-in options', style: const TextStyle(fontSize: 13)),
+                    leading: const Icon(Icons.more_horiz_rounded), tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                    childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: busy ? null : () => submit(offline: true), icon: const Icon(Icons.cloud_off_rounded),
+                        label: Text(ar ? (registerMode ? 'إنشاء حساب على هذا الجهاز' : 'استخدام الحساب المحفوظ') : (registerMode ? 'Create an account on this device' : 'Use a saved account')),
+                      ),
+                      if (!registerMode && !warqnaProductionMode) TextButton.icon(onPressed: busy ? null : chooseDemoAccount, icon: const Icon(Icons.groups_2_outlined), label: Text(authTextV151(lang, 'chooseDemo'))),
+                      if (!registerMode) ...[
+                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                        Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 6, children: [
+                          for (final provider in ['google', 'apple', 'facebook'])
+                            OutlinedButton(onPressed: busy ? null : () => socialLogin(provider), child: Text(provider == 'google' ? 'Google' : provider == 'apple' ? 'Apple' : 'Facebook')),
+                        ]),
+                      ],
                     ],
                   ),
-                ),
+                ])),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class _GlowOrb extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _GlowOrb({required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .09), boxShadow: [BoxShadow(color: color.withValues(alpha: .16), blurRadius: 90, spreadRadius: 28)]),
-      );
 }
 
 class HomeShell extends StatefulWidget {
