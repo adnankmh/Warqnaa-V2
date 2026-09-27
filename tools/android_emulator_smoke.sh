@@ -48,10 +48,33 @@ fi
 adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
   | tee "$EVIDENCE_DIR/launch.txt"
 
+# Match the main process exactly; pidof may include auxiliary processes or
+# return an empty result during a transient adb failure. Keep raw evidence.
+read_app_pid() {
+  local attempt query_pid query_status
+  for attempt in 1 2 3; do
+    query_status=0
+    adb shell ps -A -o PID,NAME > "$EVIDENCE_DIR/process-query.txt" 2> "$EVIDENCE_DIR/process-query-error.txt" || query_status=$?
+    {
+      printf 'query_status=%s attempt=%s\n' "$query_status" "$attempt"
+      cat "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt"
+    } >> "$EVIDENCE_DIR/process-queries.txt"
+    if [[ "$query_status" == 0 ]]; then
+      query_pid=$(awk -v package="$PACKAGE" '$1 ~ /^[0-9]+$/ && $2 == package {print $1}' "$EVIDENCE_DIR/process-query.txt" | tr -d '\r')
+      if [[ "$query_pid" =~ ^[0-9]+$ ]]; then
+        printf '%s\n' "$query_pid"
+        return 0
+      fi
+    fi
+    sleep 1
+  done
+  return 1
+}
+
 PID=''
 FOREGROUND=''
 for _ in $(seq 1 30); do
-  PID=$(adb shell pidof -s "$PACKAGE" 2>/dev/null | tr -d '\r' || true)
+  PID=$(read_app_pid || true)
   FOREGROUND=$({
     adb shell dumpsys activity activities 2>/dev/null
     adb shell dumpsys activity top 2>/dev/null
@@ -89,7 +112,7 @@ PY
 # Keep the existing screenshot gate, but allow bounded time for rendering.
 FRAME_READY=false
 for FRAME_ATTEMPT in $(seq 1 30); do
-  CURRENT_PID=$(adb shell pidof -s "$PACKAGE" 2>/dev/null | tr -d '\r' || true)
+  CURRENT_PID=$(read_app_pid || true)
   if [[ "$CURRENT_PID" != "$PID" ]]; then
     echo "[FAIL] App exited or restarted while waiting for its first frame." >&2
     exit 1
@@ -111,7 +134,7 @@ fi
 adb logcat --pid="$PID" -d > "$EVIDENCE_DIR/app-logcat.txt"
 adb shell dumpsys meminfo "$PACKAGE" > "$EVIDENCE_DIR/meminfo.txt"
 collect_evidence
-CURRENT_PID=$(adb shell pidof -s "$PACKAGE" 2>/dev/null | tr -d '\r' || true)
+CURRENT_PID=$(read_app_pid || true)
 if [[ "$CURRENT_PID" != "$PID" ]]; then
   echo "[FAIL] App exited or restarted after its first frame." >&2
   exit 1

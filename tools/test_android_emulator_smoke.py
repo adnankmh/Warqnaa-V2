@@ -31,9 +31,18 @@ if args[:2] == ['exec-out', 'screencap']:
         sys.stdout.buffer.write(b'\x89PNG\r\n\x1a\n')
     else:
         sys.stdout.buffer.write((root / 'screen.png').read_bytes())
-elif args[:2] == ['shell', 'pidof']:
+elif args[:2] == ['shell', 'ps']:
+    queries = root / 'queries'
+    query = (int(queries.read_text()) if queries.exists() else 0) + 1
+    queries.write_text(str(query))
+    if mode == 'transient_query' and query == 3:
+        print('adb: device offline', file=sys.stderr)
+        sys.exit(1)
+    print('PID NAME')
+    print('4243 com.warqna.warqna_mobile:sandboxed_process')
     if not (mode == 'exit' and count > 0):
-        print('4242')
+        pid = '5252' if mode == 'restart' and count > 0 else '4242'
+        print(f'{pid} com.warqna.warqna_mobile')
 elif args[:2] == ['shell', 'getprop']:
     print('32' if mode == 'api32' else '35')
 elif args[:3] == ['shell', 'pm', 'grant']:
@@ -142,6 +151,18 @@ class AndroidSmokeTest(unittest.TestCase):
         result, _, evidence = self.run_smoke('background')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('lost its foreground activity', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_transient_adb_query_is_retried_with_evidence(self):
+        result, _, evidence = self.run_smoke('transient_query')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['pid'], 4242)
+        self.assertIn('adb: device offline', (evidence / 'process-queries.txt').read_text())
+
+    def test_real_process_restart_is_rejected(self):
+        result, _, evidence = self.run_smoke('restart')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('exited or restarted', result.stderr)
         self.assertFalse((evidence / 'result.json').exists())
 
     def test_anr_is_not_hidden_by_valid_image(self):
