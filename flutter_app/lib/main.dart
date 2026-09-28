@@ -6048,7 +6048,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               Chip(avatar: const Icon(Icons.timer_outlined, size: 16), label: Text('${seconds}s')),
               if (room?['single_round'] == true || state['single_round'] == true) Chip(label: Text(_roomText('جولة واحدة', 'Single round'))),
               if ((widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle') && state['opening_thresholds'] is Map)
-                Chip(label: Text('نزول: ${((state['opening_thresholds'] as Map).values.isNotEmpty ? (state['opening_thresholds'] as Map).values.first : 51)}')),
+                Chip(label: Text('${_roomText('نزول', 'Open')}: ${((state['opening_thresholds'] as Map).values.isNotEmpty ? (state['opening_thresholds'] as Map).values.first : 51)}')),
               if (state['rummy_turn_meta'] is Map && ((state['rummy_turn_meta'] as Map)[state['you']] as Map?)?['must_meld'] == true)
                 Chip(avatar: const Icon(Icons.warning_amber_rounded, size: 17), label: Text(_roomText('يجب التنزيل قبل الرمي', 'Meld before discarding'))),
             ],
@@ -6231,7 +6231,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Widget _stateSummary() {
     final messages = state['messages'] is List ? state['messages'] as List : const [];
-    final current = messages.isNotEmpty ? messages.last.toString() : 'المحرك ينتظر الحركة التالية';
+    final current = messages.isNotEmpty
+        ? messages.last.toString()
+        : _roomText('المحرك ينتظر الحركة التالية', 'The engine is waiting for the next move');
     final playerNames = <String, String>{};
     final roomPlayers = room?['players'];
     if (roomPlayers is List) {
@@ -6592,19 +6594,19 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     if (widget.game.id == 'domino') {
       final boneyardCount = int.tryParse(state['boneyard_count']?.toString() ?? '') ?? 0;
       if (boneyardCount > 0) {
-        widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw'), child: const Text('سحب حجر')));
+        widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw'), child: Text(_roomText('سحب حجر', 'Draw a tile'))));
       }
     }
     if (widget.game.id == 'backgammon') {
       final moves = state['moves_left'] is List ? state['moves_left'] as List : const [];
       if (moves.isEmpty) {
-        widgets.add(FilledButton.icon(onPressed: sending ? null : () => _action('roll'), icon: const Icon(Icons.casino), label: const Text('رمي النرد')));
+        widgets.add(FilledButton.icon(onPressed: sending ? null : () => _action('roll'), icon: const Icon(Icons.casino), label: Text(_roomText('رمي النرد', 'Roll dice'))));
       } else {
-        widgets.add(FilledButton.icon(onPressed: sending ? null : _showBackgammonMove, icon: const Icon(Icons.open_with), label: const Text('تحريك حجر')));
+        widgets.add(FilledButton.icon(onPressed: sending ? null : _showBackgammonMove, icon: const Icon(Icons.open_with), label: Text(_roomText('تحريك حجر', 'Move a checker'))));
       }
     }
     if (widget.game.id == 'chess') {
-      widgets.add(FilledButton.icon(onPressed: sending ? null : _showChessMove, icon: const Icon(Icons.grid_4x4), label: const Text('نقلة شطرنج')));
+      widgets.add(FilledButton.icon(onPressed: sending ? null : _showChessMove, icon: const Icon(Icons.grid_4x4), label: Text(_roomText('نقلة شطرنج', 'Chess move'))));
     }
 
     if (types.contains('new_round') || state['game_over'] == true) {
@@ -6683,7 +6685,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('اختر المجموعة القانونية'),
+        title: Text(_roomText('اختر المجموعة القانونية', 'Choose a legal meld')),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440, maxHeight: 420),
           child: ListView.separated(
@@ -6705,7 +6707,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('اختر تنزيل المجموعات'),
+        title: Text(_roomText('اختر تنزيل المجموعات', 'Choose melds')),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480, maxHeight: 440),
           child: ListView.separated(
@@ -6715,7 +6717,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             itemBuilder: (_, index) {
               final groups = (options[index]['groups'] as List?) ?? const [];
               final label = groups.map((group) => group is List ? group.map((c) => _cardLabel(c.toString())).join(' ') : '').join('  |  ');
-              return ListTile(title: Text(label, textDirection: TextDirection.ltr), subtitle: Text('${groups.length} مجموعات'), onTap: () => Navigator.pop(dialogContext, options[index]));
+              return ListTile(title: Text(label, textDirection: TextDirection.ltr), subtitle: Text(_roomText('${groups.length} مجموعات', '${groups.length} melds')), onTap: () => Navigator.pop(dialogContext, options[index]));
             },
           ),
         ),
@@ -6728,7 +6730,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تركيب قانوني على مجموعة'),
+        title: Text(_roomText('تركيب قانوني على مجموعة', 'Add legal cards to a meld')),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480, maxHeight: 440),
           child: ListView.separated(
@@ -6740,7 +6742,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               return ListTile(
                 leading: const Icon(Icons.add_link_rounded),
                 title: Text(cards, textDirection: TextDirection.ltr),
-                subtitle: Text('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}'),
+                subtitle: Text(_roomText('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}', 'Meld #${(options[index]['meld_index'] ?? 0) + 1}')),
                 onTap: () => Navigator.pop(dialogContext, options[index]),
               );
             },
@@ -6770,8 +6772,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (_, index) => ListTile(
               leading: const Text('🃏', style: TextStyle(fontSize: 26)),
-              title: Text('استبدل الجوكر بـ ${_cardLabel(options[index]['card']?.toString() ?? '')}', textDirection: TextDirection.rtl),
-              subtitle: Text('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}'),
+              title: Text(_roomText('استبدل الجوكر بـ ${_cardLabel(options[index]['card']?.toString() ?? '')}', 'Replace the joker with ${_cardLabel(options[index]['card']?.toString() ?? '')}')),
+              subtitle: Text(_roomText('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}', 'Meld #${(options[index]['meld_index'] ?? 0) + 1}')),
               onTap: () => Navigator.pop(dialogContext, options[index]),
             ),
           ),
@@ -6794,7 +6796,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         .toList();
     if (choices.isEmpty && action != null) choices.add(Map<String, dynamic>.from(action));
     if (choices.isEmpty) {
-      showToast(context, 'لا توجد حركة قانونية لهذه الورقة.');
+      showToast(context, _roomText('لا توجد حركة قانونية لهذه الورقة.', 'No legal move is available for this card.'));
       return;
     }
     Map<String, dynamic>? selected;
@@ -6804,7 +6806,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       selected = await showDialog<Map<String, dynamic>>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: Text('اختر وظيفة ${_cardLabel(card)}'),
+          title: Text(_roomText('اختر وظيفة ${_cardLabel(card)}', 'Choose how to use ${_cardLabel(card)}')),
           content: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 470, maxHeight: 440),
             child: ListView.separated(
@@ -6813,11 +6815,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (_, index) {
                 final item = choices[index];
-                final label = item['label']?.toString() ?? 'حركة قانونية ${index + 1}';
+                final label = item['label']?.toString() ?? _roomText('حركة قانونية ${index + 1}', 'Legal move ${index + 1}');
                 return ListTile(
                   leading: const Icon(Icons.route_outlined),
                   title: Text(label),
-                  subtitle: item['steps2'] != null ? Text('تقسيم ${item['steps']} + ${item['steps2']}') : null,
+                  subtitle: item['steps2'] != null ? Text(_roomText('تقسيم ${item['steps']} + ${item['steps2']}', 'Split ${item['steps']} + ${item['steps2']}')) : null,
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.pop(dialogContext, item),
                 );

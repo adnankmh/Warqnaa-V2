@@ -76,6 +76,13 @@ void main() {
             final table = tester.getRect(find.byKey(const ValueKey('r10-engine-table')));
             expect(table.height, greaterThanOrEqualTo(300), reason: 'Landscape must retain a visible table');
             final dynamic room = tester.state(find.byType(ServerEngineRoomPage));
+            if (locale == 'en') {
+              expect(
+                ((room.state['messages'] as List?) ?? const []).join(' '),
+                isNot(matches(RegExp(r'[\u0600-\u06FF]'))),
+                reason: '${game.id} must not leak Arabic engine messages into English play',
+              );
+            }
             expect(find.byType(R8TableSeat), findsNWidgets((room.room['players'] as List).length));
             if (size == const Size(390, 844)) {
               final before = Map<String, dynamic>.from(room.state as Map);
@@ -112,6 +119,13 @@ void main() {
                 expect(afterHand.where((card) => card == selected).length,
                   (before['hand'] as List).where((card) => card == selected).length - 1);
                 expect(room.selectedCard, isNull);
+              }
+              if (locale == 'en') {
+                expect(
+                  ((room.state['messages'] as List?) ?? const []).join(' '),
+                  isNot(matches(RegExp(r'[\u0600-\u06FF]'))),
+                  reason: '${game.id} must keep post-action messages in English',
+                );
               }
               expect(tester.takeException(), isNull);
               await snapshot(tester, key, '$locale-${game.id}-after-action');

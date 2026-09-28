@@ -87,6 +87,56 @@ void main() {
       expect(after['messages'], isA<List>(), reason: ids[index]);
     }
   });
+
+  test('English local engines keep gameplay messages in English', () {
+    const ids = <String>[
+      'syrian_tarneeb',
+      'tarneeb_400',
+      'trix',
+      'trix_partner',
+      'trix_complex',
+      'hand',
+      'hand_partner',
+      'saudi_hand',
+      'banakil',
+      'baloot',
+      'basra',
+    ];
+    final arabic = RegExp(r'[\u0600-\u06FF]');
+    for (var index = 0; index < ids.length; index++) {
+      final game = LocalGameSession(
+        gameId: ids[index],
+        humanName: 'Adnan',
+        localeCode: 'en',
+        seed: 200 + index,
+      );
+      var state = Map<String, dynamic>.from(game.room()['state'] as Map);
+      expect(
+        (state['messages'] as List).join(' '),
+        isNot(matches(arabic)),
+        reason: '${ids[index]} startup',
+      );
+      state = Map<String, dynamic>.from(game.timeout()['state'] as Map);
+      expect(
+        (state['messages'] as List).join(' '),
+        isNot(matches(arabic)),
+        reason: '${ids[index]} after action',
+      );
+    }
+
+    final trix = LocalGameSession(
+      gameId: 'trix',
+      humanName: 'Adnan',
+      localeCode: 'en',
+      seed: 319,
+    );
+    final state = Map<String, dynamic>.from(
+      trix.action('choose_contract', const {'contract': 'king_hearts'})['state'] as Map,
+    );
+    expect((state['messages'] as List).join(' '), contains('King of hearts'));
+    expect((state['messages'] as List).join(' '), isNot(matches(arabic)));
+  });
+
   test('Tarneeb 400 uses Hearts as the fixed trump after bidding', () {
     final game = LocalGameSession(gameId: 'tarneeb_400', humanName: 'Adnan', seed: 31);
     final state = Map<String, dynamic>.from(game.timeout()['state'] as Map);
@@ -112,4 +162,3 @@ void main() {
   });
 
 }
-
