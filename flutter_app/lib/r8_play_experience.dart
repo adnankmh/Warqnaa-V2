@@ -163,7 +163,8 @@ class R8GameTile extends StatelessWidget {
 }
 
 /// Card ranks remain legible with 13+ cards. Large rummy hands scroll instead
-/// of shrinking every card to a tiny unreadable thumbnail.
+/// of shrinking every card to a tiny unreadable thumbnail. Each overlapped
+/// card keeps at least a 44 logical-pixel exposed touch target.
 class R8CardHand extends StatelessWidget {
   const R8CardHand({super.key, required this.count, required this.cardBuilder, this.selectedIndex, this.compact = false});
   final int count;
@@ -177,9 +178,11 @@ class R8CardHand extends StatelessWidget {
       final width = compact ? 48.0 : 58.0;
       final height = width * 1.48;
       final available = math.max(width, constraints.maxWidth - 16);
-      final step = count <= 1 ? 0.0 : ((available - width) / (count - 1)).clamp(24.0, width + 5).toDouble();
+      final step = count <= 1 ? 0.0 : ((available - width) / (count - 1)).clamp(44.0, width + 5).toDouble();
       final span = width + step * (count - 1);
-      final order = [for (var i = 0; i < count; i++) if (i != selectedIndex) i, if (selectedIndex != null && selectedIndex! < count && selectedIndex! >= 0) selectedIndex!];
+      // Keep natural paint order so a raised/selected card never steals the
+      // exposed hit area of the card immediately after it.
+      final order = [for (var i = 0; i < count; i++) i];
       final cards = SizedBox(width: span, height: height + 20, child: Stack(clipBehavior: Clip.none, children: [
         for (final index in order)
           Positioned(key: ValueKey('r8-hand-$index'), left: step * index, top: selectedIndex == index ? 0 : 12, width: width, height: height,

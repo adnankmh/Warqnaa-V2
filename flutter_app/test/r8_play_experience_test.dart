@@ -121,4 +121,39 @@ void main() {
     expect(find.textContaining('Play again'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink()); await tester.pump(const Duration(seconds: 6)); controller.dispose();
   });
+
+  testWidgets('a 19-card hand keeps every exposed card target at least 44 pixels wide', (tester) async {
+    tester.view.physicalSize = const Size(320, 640); tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
+    final tapped = <int>[];
+    await tester.pumpWidget(host(Scaffold(body: Align(
+      alignment: Alignment.bottomCenter,
+      child: R8CardHand(
+        count: 19,
+        selectedIndex: 7,
+        cardBuilder: (index, width, height) => GestureDetector(
+          key: ValueKey('long-hand-card-$index'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => tapped.add(index),
+          child: PlayingCard(label: '${index + 1}♠', width: width, height: height, selected: index == 7),
+        ),
+      ),
+    )), 'en'));
+    await tester.pump();
+
+    final rects = [for (var index = 0; index < 19; index++) tester.getRect(find.byKey(ValueKey('long-hand-card-$index')))];
+    for (var index = 1; index < rects.length; index++) {
+      expect(rects[index].left - rects[index - 1].left, greaterThanOrEqualTo(44), reason: 'card $index exposed width');
+    }
+    expect(tester.widget<SingleChildScrollView>(find.byType(SingleChildScrollView)).scrollDirection, Axis.horizontal);
+
+    for (var index = 0; index < 19; index++) {
+      final card = find.byKey(ValueKey('long-hand-card-$index'));
+      await tester.ensureVisible(card);
+      await tester.pump();
+      await tester.tapAt(tester.getTopLeft(card) + const Offset(8, 8));
+      await tester.pump();
+      expect(tapped.last, index, reason: 'card $index must remain independently tappable');
+    }
+  });
 }
