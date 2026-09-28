@@ -55,6 +55,7 @@ part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
 part 'r6_5_operations.dart';
 part 'r8_play_experience.dart';
+part 'r9_local_studio.dart';
 // Contract anchor: LuckyWheelHomeCardV182(controller: controller) is rendered by the V183/V184 responsive home screen.
 
 final GlobalKey<NavigatorState> warqnaNavigatorKey = GlobalKey<NavigatorState>();
@@ -167,6 +168,7 @@ class AppController extends ChangeNotifier {
   bool isAdmin = false;
   String adminRole = 'player';
   bool get isPrimaryAdmin => isAdmin && adminRole == 'primary_admin';
+  bool get isLocalAdmin => isAuthenticated && adminRole == 'local_admin' && authToken == null && !serverConnected;
   int? currentUserId;
   bool serverConnected = false;
   String? lastStoreError;
@@ -306,7 +308,9 @@ class AppController extends ChangeNotifier {
     ],
   };
 
-  String get _accountPrefix => 'warqna.account.${username.trim().toLowerCase()}.';
+  String get _accountPrefix => adminRole == 'local_admin'
+      ? 'warqna.device-admin.adnan.'
+      : 'warqna.account.${username.trim().toLowerCase()}.';
   String _accountKey(String key) => '$_accountPrefix$key';
 
   Future<void> _loadAccountState(
@@ -606,6 +610,8 @@ class AppController extends ChangeNotifier {
     displayName = username;
     email = mail.trim();
     isAdmin = false;
+    adminRole = 'player';
+    currentUserId = null;
     await _storeOfflineCredentials(prefs, username, email, password, admin: false);
     await _loadAccountState(prefs, defaultCoins: isAdmin ? '1000000000000000000' : '1500', defaultLevel: isAdmin ? 99 : 1, defaultVipDays: isAdmin ? 3650 : 0);
     _applyLocalLoginStreak();
@@ -823,10 +829,18 @@ class AppController extends ChangeNotifier {
       isAdmin = prefs.getBool('isAdmin') ?? false;
       adminRole = prefs.getString('adminRole') ?? (isAdmin ? 'admin' : 'player');
     }
+    if (adminRole == 'local_admin') {
+      authToken = null;
+      api.token = null;
+      isAdmin = false;
+      currentUserId = null;
+    }
     if (authToken != null && authToken!.isNotEmpty) {
       api.token = authToken;
       try {
+        final sessionToken = authToken;
         final data = await api.bootstrap();
+        if (authToken != sessionToken || adminRole == 'local_admin') return;
         _applySession(data);
         unawaited(R10AssetDelivery.instance.refresh(api, bootstrap: data));
         isAuthenticated = true;
@@ -1051,12 +1065,33 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  /// Device-only workspace. It never grants a server role or API session.
+  Future<void> loginAsLocalAdmin() async {
+    connectivityTimerV173?.cancel();
+    authToken = null;
+    api.token = null;
+    currentUserId = null;
+    serverConnected = false;
+    isAdmin = false;
+    adminRole = 'local_admin';
+    username = 'Adnan';
+    displayName = 'Adnan';
+    email = 'adnan@device.local';
+    final prefs = await SharedPreferences.getInstance();
+    await _loadAccountState(prefs, defaultCoins: '1000000', defaultLevel: 99, defaultVipDays: 36500, defaultAvatar: '👑');
+    isAuthenticated = true;
+    await _save();
+    refreshUi();
+  }
+
   Future<void> loginAsGuest() async {
     final prefs = await SharedPreferences.getInstance();
     username = prefs.getString('lastGuestUsername') ?? 'Guest';
     displayName = localeCode == 'ar' ? 'ضيف ورقنا' : 'Warqnaa Guest';
     email = 'guest@warqna.local';
     isAdmin = false;
+    adminRole = 'player';
+    currentUserId = null;
     await prefs.setString('lastGuestUsername', username);
     await _loadAccountState(prefs, defaultCoins: '1500', defaultLevel: 1, defaultVipDays: 0, defaultAvatar: '🃏');
     _applyLocalLoginStreak();
@@ -1081,6 +1116,8 @@ class AppController extends ChangeNotifier {
     isAuthenticated = false;
     serverConnected = false;
     isAdmin = false;
+    adminRole = 'player';
+    currentUserId = null;
     authToken = null;
     api.token = null;
     final prefs = await SharedPreferences.getInstance();
@@ -3439,6 +3476,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ]),
                   ),
                   const SizedBox(height: 10),
+                  if (!registerMode) OutlinedButton.icon(
+                    key: const ValueKey('r9-local-admin-login'),
+                    onPressed: busy ? null : () async {
+                      setState(() { busy = true; error = null; });
+                      try { await widget.controller.loginAsLocalAdmin(); }
+                      catch (e) { if (mounted) setState(() => error = friendlyErrorMessage(e, lang)); }
+                      finally { if (mounted) setState(() => busy = false); }
+                    },
+                    icon: const Icon(Icons.admin_panel_settings_outlined),
+                    label: Text(ar ? 'إدارة Adnan • دون إنترنت' : 'Adnan studio • offline'),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                  ),
                   ExpansionTile(
                     key: const PageStorageKey('r81-login-options'),
                     title: Text(ar ? 'خيارات دخول أخرى' : 'More sign-in options', style: const TextStyle(fontSize: 13)),

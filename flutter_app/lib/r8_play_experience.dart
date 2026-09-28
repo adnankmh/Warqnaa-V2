@@ -13,10 +13,9 @@ class R8HomeLobby extends StatelessWidget {
     final featured = <GameInfo>[
       ...controller.homeGames,
       ...customerGamesR101.where((game) => !controller.homeGameIds.contains(game.id)),
-    ].take(6).toList();
+    ].toList();
     final first = featured.first;
     return LayoutBuilder(builder: (context, constraints) {
-      final columns = constraints.maxWidth >= 1000 ? 4 : constraints.maxWidth >= 600 ? 3 : 2;
       return ListView(
         key: const PageStorageKey('r8-home-scroll'),
         padding: EdgeInsets.fromLTRB(constraints.maxWidth > 700 ? 24 : 14, 12, constraints.maxWidth > 700 ? 24 : 14, 24),
@@ -33,6 +32,8 @@ class R8HomeLobby extends StatelessWidget {
               onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R61ProfilePage(controller: controller))),
             ),
           ]),
+          const SizedBox(height: 12),
+          R9SessionBanner(controller: controller),
           const SizedBox(height: 16),
           _R8WelcomeTable(controller: controller, game: first),
           const SizedBox(height: 14),
@@ -44,19 +45,7 @@ class R8HomeLobby extends StatelessWidget {
             Expanded(child: _R8Portal(icon: Icons.storefront_outlined, label: ar ? 'المقتنيات' : 'Collection', onTap: () => onTab(0))),
           ]),
           const SizedBox(height: 20),
-          Row(children: [
-            Expanded(child: Text(ar ? 'اختر لعبتك' : 'Choose your game', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900))),
-            IconButton(tooltip: ar ? 'تخصيص ألعابك' : 'Customize your games', onPressed: () => showHomeGamesSelector(context, controller), icon: const Icon(Icons.tune_rounded, size: 20)),
-            TextButton(onPressed: () => onTab(1), child: Text(ar ? 'كل الألعاب' : 'All games')),
-          ]),
-          const SizedBox(height: 4),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: featured.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, crossAxisSpacing: 12, mainAxisSpacing: 12, mainAxisExtent: constraints.maxWidth < 360 ? 158 : 174),
-            itemBuilder: (context, index) => R8GameTile(game: featured[index], locale: controller.localeCode, onTap: () => showGameLobby(context, controller, featured[index])),
-          ),
+          R9GameLibrary(controller: controller, games: featured, onAllGames: () => onTab(1)),
           const SizedBox(height: 20),
           _R61SocialStrip(controller: controller, onOpen: () => onTab(3)),
           const SizedBox(height: 12),
