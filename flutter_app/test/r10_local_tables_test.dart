@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +68,51 @@ void main() {
           final cards = tester.widgetList<PlayingCard>(find.descendant(of: find.byType(R8CardHand), matching: find.byType(PlayingCard)));
           expect(cards, isNotEmpty);
           expect(cards.every((card) => card.width >= 48), isTrue);
+          if (game.id != 'tarneeb') {
+            final table = tester.getRect(find.byKey(const ValueKey('r10-engine-table')));
+            expect(table.height, greaterThanOrEqualTo(300), reason: 'Landscape must retain a visible table');
+            final dynamic room = tester.state(find.byType(ServerEngineRoomPage));
+            expect(find.byType(R8TableSeat), findsNWidgets((room.room['players'] as List).length));
+            if (size == const Size(390, 844)) {
+              final before = Map<String, dynamic>.from(room.state as Map);
+              final phase = before['phase'];
+              if (phase == 'bidding' || phase == 'choose_contract') {
+                final bid = phase == 'bidding';
+                final button = find.text(bid
+                  ? (locale == 'ar' ? 'اختيار الطلب' : 'Choose bid')
+                  : (locale == 'ar' ? 'اختيار العقد' : 'Choose contract'));
+                await tester.ensureVisible(button); await tester.tap(button); await tester.pumpAndSettle();
+                expect(find.text(bid
+                  ? (locale == 'ar' ? 'اختر الطلب القانوني' : 'Choose your bid')
+                  : (locale == 'ar' ? 'اختر العقد المتاح' : 'Choose a contract')), findsOneWidget);
+                final dialog = find.byType(AlertDialog);
+                final choice = bid
+                  ? find.descendant(of: dialog, matching: find.byType(TarneebBidButtonV170)).first
+                  : find.descendant(of: dialog, matching: find.byType(FilledButton)).first;
+                await tester.tap(choice); await tester.pump(const Duration(milliseconds: 350));
+                expect(find.byType(AlertDialog), findsNothing);
+                expect(room.state.toString(), isNot(before.toString()));
+              } else {
+                final card = find.descendant(of: find.byType(R8CardHand), matching: find.byType(PlayingCard)).first;
+                await tester.ensureVisible(card);
+                await tester.tapAt(tester.getTopLeft(card) + const Offset(8, 8));
+                await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
+                expect(room.selectedCard, isNotNull);
+                final selected = room.selectedCard;
+                final button = find.text(phase == 'discard'
+                  ? (locale == 'ar' ? 'رمي الورقة' : 'Discard card')
+                  : (locale == 'ar' ? 'لعب الورقة' : 'Play card'));
+                await tester.ensureVisible(button); await tester.tap(button); await tester.pump();
+                final afterHand = room.hand as List;
+                expect(afterHand.length, (before['hand'] as List).length - 1);
+                expect(afterHand.where((card) => card == selected).length,
+                  (before['hand'] as List).where((card) => card == selected).length - 1);
+                expect(room.selectedCard, isNull);
+              }
+              expect(tester.takeException(), isNull);
+              await snapshot(tester, key, '$locale-${game.id}-after-action');
+            }
+          }
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pump(const Duration(seconds: 6));
           controller.dispose();

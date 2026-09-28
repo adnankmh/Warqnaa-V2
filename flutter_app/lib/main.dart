@@ -5738,26 +5738,32 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          children: [
-            Text(L.t(widget.controller.localeCode, widget.game.id), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-            Text(room == null ? 'محرك لعب احترافي' : '${localSession != null ? 'محلي ذكي' : 'خادم موثوق'} • غرفة $roomCode • ${isVoiceRoom ? 'صوتية' : 'عادية'} • لعب مجاني', style: TextStyle(fontSize: 9, color: Theme.of(context).colorScheme.primary)),
-          ],
-        ),
-        centerTitle: true,
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(L.t(widget.controller.localeCode, widget.game.id), maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          Text(localSession != null ? _roomText('تدريب مع الكمبيوتر', 'Practice with computer') : _roomText('غرفة $roomCode', 'Room $roomCode'),
+            maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.primary)),
+        ]),
         actions: [
-          if (isVoiceRoom)
-            IconButton(
-              tooltip: voiceRoom?.micEnabled == false ? 'تشغيل الميكروفون' : 'كتم الميكروفون',
-              onPressed: voiceRoom == null ? null : () => voiceRoom!.setMicEnabled(!voiceRoom!.micEnabled),
-              icon: Icon(voiceRoom?.micEnabled == false ? Icons.mic_off_rounded : Icons.mic_rounded, color: voiceRoom?.micEnabled == false ? Colors.redAccent : Colors.greenAccent),
-            ),
-          if (widget.controller.vipDays > 0)
-            IconButton(tooltip: awayMode ? 'العودة للعب' : 'وضع غائب', onPressed: () => setState(() { awayMode = !awayMode; widget.controller.setAwayMode(awayMode); }), icon: Icon(awayMode ? Icons.play_circle_fill_rounded : Icons.pause_circle_outline_rounded, color: awayMode ? Colors.amber : null)),
-          IconButton(onPressed: () => inviteFriendsToRoomV151(context, widget.controller, widget.game.id), tooltip: 'دعوة الأصدقاء', icon: const Icon(Icons.person_add_alt_1_rounded)),
-          IconButton(onPressed: () => confirmLeaveGameV151(context, widget.controller, widget.game.id), tooltip: 'الخروج', icon: const Icon(Icons.logout_rounded, color: Colors.redAccent)),
-          IconButton(onPressed: widget.controller.toggleOrientationMode, tooltip: 'طولي / عرضي', icon: Icon(widget.controller.landscapeMode ? Icons.stay_current_portrait : Icons.stay_current_landscape)),
-          IconButton(onPressed: () => showRules(context, widget.controller.localeCode, widget.game.id), icon: const Icon(Icons.menu_book_outlined)),
+          IconButton(onPressed: () => inviteFriendsToRoomV151(context, widget.controller, widget.game.id),
+            tooltip: _roomText('دعوة الأصدقاء', 'Invite friends'), icon: const Icon(Icons.person_add_alt_1_rounded)),
+          PopupMenuButton<String>(
+            tooltip: _roomText('خيارات الطاولة', 'Table options'),
+            onSelected: (value) {
+              switch (value) {
+                case 'away': setState(() { awayMode = !awayMode; widget.controller.setAwayMode(awayMode); });
+                case 'orientation': widget.controller.toggleOrientationMode();
+                case 'rules': showRules(context, widget.controller.localeCode, widget.game.id);
+                case 'leave': confirmLeaveGameV151(context, widget.controller, widget.game.id);
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'away', child: Text(awayMode ? _roomText('العودة للعب', 'Return to play') : _roomText('وضع غائب', 'Away mode'))),
+              PopupMenuItem(value: 'orientation', child: Text(_roomText('طولي / عرضي', 'Portrait / landscape'))),
+              PopupMenuItem(value: 'rules', child: Text(_roomText('قواعد اللعبة', 'Game rules'))),
+              PopupMenuItem(value: 'leave', child: Text(_roomText('الخروج', 'Leave game'))),
+            ],
+          ),
         ],
       ),
       body: SafeArea(
@@ -5995,16 +6001,42 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     );
   }
 
-  Widget _engineBoard(BuildContext context) {
-    final viewport = MediaQuery.sizeOf(context);
-    final desktopWeb = isDesktopWebV183(viewport.width);
-    final tableSide = desktopWeb ? math.max(74.0, viewport.width * .055) : 34.0;
-    final tableTop = desktopWeb ? 24.0 : 34.0;
-    final tableBottom = desktopWeb ? 112.0 : 128.0;
+  String _phaseLabel(String phase) => switch (phase) {
+    'bidding' => _roomText('الطلب', 'Bidding'),
+    'choose_contract' => _roomText('اختيار العقد', 'Choose contract'),
+    'choose_trump' => _roomText('اختيار الحكم', 'Choose trump'),
+    'draw' => _roomText('سحب ورقة', 'Draw a card'),
+    'discard' => _roomText('رمي ورقة', 'Discard a card'),
+    'playing' => _roomText('اللعب', 'Playing'),
+    'game_over' => _roomText('انتهت اللعبة', 'Game over'),
+    _ => _roomText('جولة ${state['round'] ?? 1}', 'Round ${state['round'] ?? 1}'),
+  };
+
+  Widget _engineTable() => LayoutBuilder(builder: (context, board) {
     final players = room?['players'] is List ? room!['players'] as List : const [];
-    final phase = state['phase']?.toString() ?? 'playing';
-    return Column(
-      children: [
+    return Stack(key: const ValueKey('r10-engine-table'), children: [
+      Positioned.fill(left: 20, right: 20, top: 24, bottom: 24,
+        child: _LuxuryTable(trump: state['trump']?.toString(), phase: enginePhase,
+          skinId: widget.controller.selectedTable, controller: widget.controller)),
+      for (var i = 0; i < players.length; i++) Builder(builder: (context) {
+        final relative = r8RelativeSeat(players, i, state['you']?.toString());
+        final seat = _serverPlayer(players[i] is Map ? Map<String, dynamic>.from(players[i] as Map) : {}, i, players.length);
+        if (relative == 0) return Positioned(bottom: 0, left: 0, right: 0, child: Center(child: seat));
+        if (relative == 2 || players.length == 2) return Positioned(top: 0, left: 0, right: 0, child: Center(child: seat));
+        return Positioned(left: relative == 1 ? null : 4, right: relative == 1 ? 4 : null,
+          top: math.max(72, (board.maxHeight - 80) / 2), child: seat);
+      }),
+      ..._trickSeatWidgets(),
+      if (roundXpNoticesV174.isNotEmpty)
+        Positioned(top: 8, left: 12, right: 12, child: RoundXpBannerV174(notices: roundXpNoticesV174)),
+      if (floatingReaction != null)
+        Positioned.fill(child: Center(child: FloatingReaction(key: ValueKey(floatingReaction!.id), reaction: floatingReaction!,
+          onCompleted: () { if (mounted) setState(() => floatingReaction = null); }))),
+    ]);
+  });
+
+  Widget _engineBoard(BuildContext context) => LayoutBuilder(builder: (context, area) {
+    final status = <Widget>[
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 3),
           child: Wrap(
@@ -6012,56 +6044,20 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             runSpacing: 5,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Chip(label: Text('المرحلة: $phase')),
-              Chip(label: Text('⏱ ${seconds.toString().padLeft(2, '0')}')),
-              const Chip(label: Text('🛡️ بدون رسوم')),
-              if (room?['single_round'] == true || state['single_round'] == true) const Chip(label: Text('⚡ جولة واحدة')),
+              Chip(label: Text(_phaseLabel(enginePhase))),
+              Chip(avatar: const Icon(Icons.timer_outlined, size: 16), label: Text('${seconds}s')),
+              if (room?['single_round'] == true || state['single_round'] == true) Chip(label: Text(_roomText('جولة واحدة', 'Single round'))),
               if ((widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle') && state['opening_thresholds'] is Map)
                 Chip(label: Text('نزول: ${((state['opening_thresholds'] as Map).values.isNotEmpty ? (state['opening_thresholds'] as Map).values.first : 51)}')),
               if (state['rummy_turn_meta'] is Map && ((state['rummy_turn_meta'] as Map)[state['you']] as Map?)?['must_meld'] == true)
-                const Chip(avatar: Icon(Icons.warning_amber_rounded, size: 17), label: Text('يجب التنزيل قبل الرمي')),
+                Chip(avatar: const Icon(Icons.warning_amber_rounded, size: 17), label: Text(_roomText('يجب التنزيل قبل الرمي', 'Meld before discarding'))),
             ],
           ),
         ),
         if (_isTarneebFamilyServer) _serverTarneebStatusStrip(context),
-        Expanded(
-          child: Stack(
-            children: [
-              Positioned.fill(left: tableSide, right: tableSide, top: tableTop, bottom: tableBottom, child: _LuxuryTable(trump: state['trump']?.toString(), phase: phase, skinId: widget.controller.selectedTable, controller: widget.controller)),
-              Positioned(top: desktopWeb ? 28 : 40, left: 0, right: 0, child: Center(child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, controller: widget.controller))),
-              Positioned(left: desktopWeb ? tableSide + 12 : 40, top: desktopWeb ? 104 : 120, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-              if (players.length > 2) Positioned(right: desktopWeb ? tableSide + 12 : 40, top: desktopWeb ? 104 : 120, child: OpponentCardStack(cardBackId: widget.controller.selectedCardBack, vertical: true, controller: widget.controller)),
-              for (var i = 0; i < players.length; i++) _serverPlayer(players[i] is Map ? Map<String, dynamic>.from(players[i] as Map) : {}, i, players.length),
-              ..._trickSeatWidgets(),
-              Positioned.fill(
-                left: desktopWeb ? tableSide + 120 : 80,
-                right: desktopWeb ? tableSide + 120 : 80,
-                top: desktopWeb ? 84 : 100,
-                bottom: desktopWeb ? 150 : 190,
-                child: Center(child: _stateSummary()),
-              ),
-              if (roundXpNoticesV174.isNotEmpty)
-                Positioned(
-                  top: 8,
-                  left: 12,
-                  right: 12,
-                  child: RoundXpBannerV174(notices: roundXpNoticesV174),
-                ),
-              if (floatingReaction != null)
-                Positioned.fill(
-                  child: Center(
-                    child: FloatingReaction(
-                      key: ValueKey(floatingReaction!.id),
-                      reaction: floatingReaction!,
-                      onCompleted: () { if (mounted) setState(() => floatingReaction = null); },
-                    ),
-                  ),
-                ),
-              Positioned(bottom: 0, left: 4, right: 4, child: _serverHand()),
-            ],
-          ),
-        ),
-        _serverActions(context),
+    ];
+    final controls = <Widget>[
+      _serverHand(), _serverActions(context),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           child: Row(
@@ -6091,11 +6087,21 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               },
             ),
           ),
-      ],
-    );
-  }
-
-
+    ];
+    if (area.maxHeight < 500 && area.maxWidth >= 600) {
+      return Row(children: [
+        Expanded(child: _engineTable()),
+        SizedBox(width: 300, child: SingleChildScrollView(child: Column(children: [...status, ...controls]))),
+      ]);
+    }
+    // Never compress the card table into the fixed header/hand controls.
+    // Small phones and expanded chat scroll while card ranks stay readable.
+    return SingleChildScrollView(child: Column(children: [
+      ...status,
+      SizedBox(height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable()),
+      ...controls,
+    ]));
+  });
 
   Future<void> _refreshServerRoom() async {
     if (localSession != null || roomCode.isEmpty) return;
@@ -6179,88 +6185,39 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   Widget _serverPlayer(Map<String, dynamic> player, int index, int count) {
-    final ar = widget.controller.localeCode == 'ar';
-    final name = player['name']?.toString() ?? player['username']?.toString() ?? '${ar ? 'لاعب' : 'Player'} ${index + 1}';
+    final name = player['name']?.toString() ?? player['username']?.toString() ?? _roomText('لاعب', 'Player');
     final bot = player['bot'] == true;
-    final mine = player['key']?.toString() == state['you']?.toString();
+    final key = (player['key'] ?? player['user_key'])?.toString() ?? '';
+    final mine = key == (state['you']?.toString() ?? (localSession != null ? 'user:0' : null));
     final profile = bot ? botProfiles[index % botProfiles.length] : null;
-    final playerKey = (player['key'] ?? player['user_key'])?.toString() ?? '';
-    final lastPlayed = state['last_played_by_player'] is Map ? (state['last_played_by_player'] as Map)[playerKey]?.toString() : null;
-    final seatTricks = state['seat_tricks'] is Map ? int.tryParse((state['seat_tricks'] as Map)[playerKey]?.toString() ?? '') ?? 0 : 0;
-    final bidRaw = state['bid'];
-    final bid = bidRaw is Map ? Map<String, dynamic>.from(bidRaw) : const <String, dynamic>{};
-    final isBidder = bid['player']?.toString() == playerKey;
-    final team = index.isEven ? 'teamA' : 'teamB';
-    final playerDeltaMap = state['player_round_score_delta'] is Map ? state['player_round_score_delta'] as Map : const {};
-    final roundDeltaMap = state['last_round_score_delta'] is Map ? state['last_round_score_delta'] as Map : const {};
-    final delta = int.tryParse((playerDeltaMap[playerKey] ?? roundDeltaMap[team])?.toString() ?? '') ?? 0;
-    final deltaText = delta > 0 ? '+$delta' : '$delta';
-    final seatMeta = _isTarneebFamilyServer
-        ? (ar ? 'لمات اللاعب: $seatTricks • نقاط الجولة: $deltaText' : 'Player tricks: $seatTricks • Round points: $deltaText')
-        : (bot ? (ar ? 'BOT • ${widget.controller.botDifficultyCode.toUpperCase()}' : 'BOT • ${widget.controller.botDifficultyCode.toUpperCase()}') : (ar ? 'متصل' : 'LIVE'));
-    final seatBid = _isTarneebFamilyServer && isBidder
-        ? (ar ? 'الطلب ${bid['value'] ?? '—'}' : 'BID ${bid['value'] ?? '—'}')
-        : (bot ? 'BOT ${widget.controller.botDifficultyCode.toUpperCase()}' : 'LIVE');
-    final seat = PlayerSeat(
-      name: bot ? profile!.name(widget.controller.localeCode) : name,
-      letter: name.isEmpty ? '?' : name.substring(0, 1),
-      avatarEmoji: (!bot && mine) ? widget.controller.avatarEmoji : (!bot ? (player['avatar_emoji']?.toString() ?? '👤') : null),
-      botProfile: profile,
-      bid: seatBid,
-      meta: seatMeta,
-      lastCardLabel: _isTarneebFamilyServer && lastPlayed != null && lastPlayed.isNotEmpty ? _cardLabel(lastPlayed) : null,
-      nameColor: (!bot && mine) ? colorFromHex(widget.controller.selectedNameColor) : (bot ? profile!.secondary : colorFromHex(player['name_color']?.toString() ?? '#e5e7eb')),
-      badge: bot ? 'BOT' : ((!bot && mine) ? storeProductById(widget.controller.selectedBadge)?.icon : (player['badge']?.toString() ?? '')),
-      onProfileTap: bot
-          ? () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(profile!, widget.controller.localeCode))
-          : () => openPlayerProfileV021(
-                context,
-                widget.controller,
-                userId: int.tryParse(player['user_id']?.toString() ?? ''),
-                name: name,
-                username: player['username']?.toString(),
-                avatar: player['avatar']?.toString(),
-                level: int.tryParse(player['level']?.toString() ?? '') ?? 1,
-                countryCode: player['country_code']?.toString() ?? 'PS',
-                online: player['connected'] == true,
-              ),
+    final active = key == state['current_player']?.toString() && state['game_over'] != true;
+    final tricks = state['tricks'] is Map ? (state['tricks'] as Map)[key] : null;
+    return GestureDetector(
+      onLongPress: !bot && !mine && room?['is_owner'] == true && room?['allow_owner_kick'] == true ? () => _kickRoomPlayer(player) : null,
+      child: R8TableSeat(
+        key: ValueKey('r10-seat-$index'), name: name, compact: true,
+        avatar: bot ? Bot3DAvatar(profile: profile!, size: 40, showLevel: false)
+          : mine ? AccountAvatar(controller: widget.controller, size: 40)
+          : GlowAvatar(text: player['avatar']?.toString() ?? '•', size: 40, color: Theme.of(context).colorScheme.primary),
+        detail: '${bot ? _roomText('كمبيوتر', 'Computer') : mine ? _roomText('أنت', 'You') : _roomText('لاعب', 'Player')}${tricks == null ? '' : ' · $tricks'}',
+        active: active, seconds: active && mine ? seconds : null, turnSeconds: turnDuration,
+        onTap: bot ? () => showPublicPlayerProfileV170(context, widget.controller, botProfileFriendV021(profile!, widget.controller.localeCode))
+          : mine ? () => showProfile(context, widget.controller)
+          : () => openPlayerProfileV021(context, widget.controller,
+              userId: int.tryParse(player['user_id']?.toString() ?? ''), name: name,
+              username: player['username']?.toString(), avatar: player['avatar']?.toString(),
+              level: int.tryParse(player['level']?.toString() ?? '') ?? 1,
+              countryCode: player['country_code']?.toString() ?? 'PS', online: player['connected'] == true),
+      ),
     );
-    final canKick = !bot && !mine && room?['is_owner'] == true && room?['allow_owner_kick'] == true;
-    final interactiveSeat = GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onLongPress: canKick ? () => _kickRoomPlayer(player) : null,
-      child: seat,
-    );
-    final visualIndex = r8RelativeSeat(room?['players'] is List ? room!['players'] as List : const [], index, state['you']?.toString());
-    if (visualIndex == 0) return Positioned(bottom: 112, left: 0, right: 0, child: interactiveSeat);
-    if (visualIndex == 1) return Positioned(right: 0, top: 180, child: interactiveSeat);
-    if (visualIndex == 2) return Positioned(top: 0, left: 0, right: 0, child: interactiveSeat);
-    return Positioned(left: 0, top: 180, child: interactiveSeat);
   }
 
-  List<Widget> _trickSeatWidgets() {
-    final raw = state['trick'];
-    final entries = <MapEntry<String,String>>[];
-    if (raw is Map) {
-      for (final entry in raw.entries) { entries.add(MapEntry(entry.key.toString(), entry.value.toString())); }
-    } else if (raw is List) {
-      for (final item in raw.whereType<Map>()) { entries.add(MapEntry((item['player'] ?? item['user'] ?? '').toString(), (item['card'] ?? item['tile'] ?? '').toString())); }
-    }
-    if (entries.isEmpty) return const <Widget>[];
-    final players = room?['players'] is List ? room!['players'] as List : const [];
-    final keys = players.map((raw)=>raw is Map ? (raw['key'] ?? raw['user_key'] ?? '').toString() : '').toList();
-    return entries.map((entry){
-      var index=keys.indexOf(entry.key); if(index<0) index=entries.indexOf(entry);
-      final card=PlayingCard(label:_cardLabel(entry.value),width:34,height:51);
-      final name=index<players.length && players[index] is Map ? ((players[index] as Map)['name']?.toString() ?? 'لاعب') : 'لاعب';
-      final child=Column(mainAxisSize:MainAxisSize.min,children:[card,Container(margin:const EdgeInsets.only(top:2),padding:const EdgeInsets.symmetric(horizontal:5,vertical:2),decoration:BoxDecoration(color:Colors.black87,borderRadius:BorderRadius.circular(7)),child:Text(name,maxLines:1,style:const TextStyle(fontSize:7,fontWeight:FontWeight.w900)))]);
-      index = r8RelativeSeat(players, index, state['you']?.toString());
-      if(index==0)return Positioned(bottom:132,left:0,right:0,child:Center(child:child));
-      if(index==1)return Positioned(right:96,top:176,child:child);
-      if(index==2)return Positioned(top:72,left:0,right:0,child:Center(child:child));
-      return Positioned(left:96,top:176,child:child);
-    }).toList();
-  }
+  // One scrollable trick/table summary avoids duplicated cards and fixed
+  // offsets that pushed seats and card faces out of short landscape tables.
+  List<Widget> _trickSeatWidgets() => [
+    Positioned.fill(left: 88, right: 88, top: 76, bottom: 76,
+      child: Center(child: SingleChildScrollView(child: _stateSummary()))),
+  ];
 
   Widget _stateSummary() {
     final messages = state['messages'] is List ? state['messages'] as List : const [];
