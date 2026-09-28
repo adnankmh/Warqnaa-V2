@@ -142,6 +142,37 @@ void main() {
     }, skip: runtimeUrl.isEmpty);
   }
 
+  for (final locale in ['ar', 'en']) {
+    testWidgets('R9 local studio renders and restores offline $locale', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      AppSounds.enabled = false;
+      final controller = AppController()..localeCode = locale;
+      addTearDown(() { controller.connectivityTimerV173?.cancel(); controller.dispose(); });
+      await controller.loginAsLocalAdmin();
+      await controller.updateHomeGames(['trix', 'basra']);
+      await tester.runAsync(() => controller.load());
+      expect(controller.isLocalAdmin, isTrue);
+      expect(controller.api.token, isNull);
+      expect(controller.homeGameIds, ['trix', 'basra']);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      tester.view.devicePixelRatio = 1;
+      for (final size in [const Size(320, 640), const Size(390, 844), const Size(844, 390), const Size(1280, 800)]) {
+        tester.view.physicalSize = size;
+        final dimensions = '${size.width.toInt()}x${size.height.toInt()}';
+        for (final page in <(String, Widget)>[
+          ('local-studio', R9LocalStudio(controller: controller)),
+          ('local-home', HomeShell(controller: controller)),
+        ]) {
+          final key = GlobalKey();
+          await tester.pumpWidget(reviewApp(page.$2, controller, key));
+          await capture(tester, key, '$locale-${page.$1}-$dimensions');
+          await tester.pumpWidget(const SizedBox.shrink());
+        }
+      }
+    }, skip: runtimeUrl.isEmpty);
+  }
+
   testWidgets('R7 live primary role remains authoritative in Flutter', (tester) async {
     final oldOverride = HttpOverrides.current;
     HttpOverrides.global = null;
