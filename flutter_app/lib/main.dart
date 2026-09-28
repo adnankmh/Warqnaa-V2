@@ -5264,6 +5264,8 @@ class ServerEngineRoomPage extends StatefulWidget {
 }
 
 class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with WidgetsBindingObserver {
+  String _roomText(String ar, String en) => widget.controller.localeCode == 'ar' ? ar : en;
+
   LocalGameSession? localSession;
   Map<String, dynamic>? room;
   String? error;
@@ -5935,10 +5937,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   String _serverSuitLabel(String? raw) {
     final ar = widget.controller.localeCode == 'ar';
     return switch ((raw ?? '').toLowerCase()) {
-      'hearts' => ar ? '♥ كبة' : '♥ Hearts',
-      'diamonds' => ar ? '♦ ديناري' : '♦ Diamonds',
-      'spades' => ar ? '♠ بستوني' : '♠ Spades',
-      'clubs' => ar ? '♣ سباتي' : '♣ Clubs',
+      'hearts' || 'h' => ar ? '♥ كبة' : '♥ Hearts',
+      'diamonds' || 'd' => ar ? '♦ ديناري' : '♦ Diamonds',
+      'spades' || 's' => ar ? '♠ بستوني' : '♠ Spades',
+      'clubs' || 'c' => ar ? '♣ سباتي' : '♣ Clubs',
       _ => ar ? 'بانتظار الاختيار' : 'Waiting',
     };
   }
@@ -6568,56 +6570,56 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                     ? _playJackarooCard(selectedCard!, matchingCardAction)
                     : _action(action, {'card': selectedCard, 'tile': selectedCard}),
         icon: Icon(action == 'discard' ? Icons.delete_sweep_outlined : Icons.style),
-        label: Text(action == 'discard' ? 'رمي الورقة' : action == 'move_to_foundation' ? 'إلى الأساس' : action == 'play_tile' ? 'لعب الحجر' : 'لعب الورقة'),
+        label: Text(action == 'discard' ? _roomText('رمي الورقة', 'Discard card') : action == 'move_to_foundation' ? _roomText('إلى الأساس', 'To foundation') : action == 'play_tile' ? _roomText('لعب الحجر', 'Play tile') : _roomText('لعب الورقة', 'Play card')),
       ));
     }
 
     final bids = availableActions.where((item) => item['type'] == 'bid').map((item) => int.tryParse(item['amount']?.toString() ?? '')).whereType<int>().toSet().toList()..sort();
     if (bids.isNotEmpty || enginePhase == 'bidding') {
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseServerBid(bids), child: const Text('اختيار الطلب')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseServerBid(bids), child: Text(_roomText('اختيار الطلب', 'Choose bid'))));
     }
     if (types.contains('pass') || (availableActions.isEmpty && (widget.game.id == 'domino' || widget.game.id == 'backgammon'))) {
-      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('pass'), child: const Text('سكون')));
+      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('pass'), child: Text(_roomText('سكون', 'Pass'))));
     }
 
     final trumpActions = availableActions.where((item) => item['type'] == 'choose_trump').toList();
     if (trumpActions.isNotEmpty || enginePhase.contains('trump')) {
       final suits = trumpActions.map((item) => item['suit']?.toString()).whereType<String>().toSet().toList();
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseServerTrump(suits), child: const Text('اختيار الحكم')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseServerTrump(suits), child: Text(_roomText('اختيار الحكم', 'Choose trump'))));
     }
 
     final contracts = availableActions.where((item) => item['type'] == 'choose_contract').map((item) => item['contract']?.toString()).whereType<String>().toSet().toList();
     if (contracts.isNotEmpty || enginePhase.contains('contract')) {
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseContract(contracts), child: const Text('اختيار العقد')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseContract(contracts), child: Text(_roomText('اختيار العقد', 'Choose contract'))));
     }
 
     if (types.contains('draw_deck') || (availableActions.isEmpty && enginePhase == 'draw')) {
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_deck'), child: const Text('سحب من الرزمة')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_deck'), child: Text(_roomText('سحب من الرزمة', 'Draw from deck'))));
     }
     if (types.contains('draw_discard')) {
-      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('draw_discard'), child: const Text('سحب المكشوف')));
+      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('draw_discard'), child: Text(_roomText('سحب المكشوف', 'Take discard'))));
     }
     if (types.contains('draw_stock')) {
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_stock'), child: const Text('سحب ورقة')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_stock'), child: Text(_roomText('سحب ورقة', 'Draw a card'))));
     }
     if (types.contains('organize')) {
-      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _action('organize'), icon: const Icon(Icons.auto_awesome, size: 17), label: const Text('ترتيب ذكي')));
+      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _action('organize'), icon: const Icon(Icons.auto_awesome, size: 17), label: Text(_roomText('ترتيب ذكي', 'Sort cards'))));
     }
     final melds = availableActions.where((item) => item['type'] == 'meld' && item['cards'] is List).toList();
     if (melds.isNotEmpty) {
-      widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeld(melds), icon: const Icon(Icons.layers_outlined, size: 17), label: const Text('تنزيل مجموعة')));
+      widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeld(melds), icon: const Icon(Icons.layers_outlined, size: 17), label: Text(_roomText('تنزيل مجموعة', 'Meld a set'))));
     }
     final meldMany = availableActions.where((item) => item['type'] == 'meld_many' && item['groups'] is List).toList();
     if (meldMany.isNotEmpty) {
-      widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeldMany(meldMany), icon: const Icon(Icons.dashboard_customize_outlined, size: 17), label: const Text('تنزيل عدة مجموعات')));
+      widgets.add(FilledButton.tonalIcon(onPressed: sending ? null : () => _chooseMeldMany(meldMany), icon: const Icon(Icons.dashboard_customize_outlined, size: 17), label: Text(_roomText('تنزيل عدة مجموعات', 'Meld sets'))));
     }
     final layoffs = availableActions.where((item) => item['type'] == 'layoff').toList();
     if (layoffs.isNotEmpty) {
-      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseLayoff(layoffs), icon: const Icon(Icons.add_link_rounded, size: 17), label: const Text('تركيب على مجموعة')));
+      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseLayoff(layoffs), icon: const Icon(Icons.add_link_rounded, size: 17), label: Text(_roomText('تركيب على مجموعة', 'Add to a meld'))));
     }
     final replacements = availableActions.where((item) => item['type'] == 'replace_wild').toList();
     if (replacements.isNotEmpty) {
-      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseWildReplacement(replacements), icon: const Icon(Icons.swap_horiz_rounded, size: 17), label: const Text('استبدال الجوكر')));
+      widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _chooseWildReplacement(replacements), icon: const Icon(Icons.swap_horiz_rounded, size: 17), label: Text(_roomText('استبدال الجوكر', 'Replace joker'))));
     }
 
     if (widget.game.id == 'domino') {
@@ -6639,10 +6641,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     }
 
     if (types.contains('new_round') || state['game_over'] == true) {
-      widgets.add(FilledButton.icon(onPressed: sending ? null : () => _action('new_round'), icon: const Icon(Icons.replay), label: const Text('إعادة اللعب')));
+      widgets.add(FilledButton.icon(onPressed: sending ? null : () => _action('new_round'), icon: const Icon(Icons.replay), label: Text(_roomText('إعادة اللعب', 'Play again'))));
     }
     if (widgets.isEmpty) {
-      widgets.add(FilledButton.tonal(onPressed: sending ? null : _timeout, child: Text(sending ? 'جارٍ التنفيذ…' : 'تشغيل الحركة التلقائية')));
+      widgets.add(FilledButton.tonal(onPressed: sending ? null : _timeout, child: Text(sending ? _roomText('جارٍ التنفيذ…', 'Playing…') : _roomText('تشغيل الحركة التلقائية', 'Auto play'))));
     }
     return AnimatedSize(
       duration: const Duration(milliseconds: 180),
@@ -6662,8 +6664,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   Future<void> _chooseServerBid(List<int> values) async {
     final options = values.isEmpty ? [for (var i = 7; i <= 13; i++) i] : values;
     final value = await showDialog<int>(context: context, builder: (dialogContext) => AlertDialog(
-      title: const Text('اختر الطلب القانوني'),
-      content: Wrap(spacing: 8, runSpacing: 8, children: options.map((amount) => TarneebBidButtonV170(label: '$amount', subtitle: 'طلب', onPressed: () => Navigator.pop(dialogContext, amount))).toList()),
+      title: Text(_roomText('اختر الطلب القانوني', 'Choose your bid')),
+      content: Wrap(spacing: 8, runSpacing: 8, children: options.map((amount) => TarneebBidButtonV170(label: '$amount', subtitle: _roomText('طلب', 'Bid'), onPressed: () => Navigator.pop(dialogContext, amount))).toList()),
     ));
     if (value != null) _action('bid', {'amount': value});
   }
@@ -6674,7 +6676,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final suit = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('اختر نوع الحكم'),
+        title: Text(_roomText('اختر نوع الحكم', 'Choose trump suit')),
         content: Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -6692,19 +6694,19 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Future<void> _chooseContract(List<String> values) async {
     final options = values.isEmpty ? const ['king_hearts', 'girls', 'diamonds', 'tricks', 'trix', 'complex', 'sun', 'hokm'] : values;
-    const labels = {
-      'king_hearts': 'شيخ الكبة',
-      'girls': 'البنات',
-      'queens': 'البنات',
-      'diamonds': 'الديناري',
-      'tricks': 'اللطوش',
-      'trix': 'تركس',
-      'complex': 'كمبلكس',
-      'sun': 'صن',
-      'hokm': 'حكم',
+    final labels = {
+      'king_hearts': _roomText('شيخ الكبة', 'King of hearts'),
+      'girls': _roomText('البنات', 'Queens'),
+      'queens': _roomText('البنات', 'Queens'),
+      'diamonds': _roomText('الديناري', 'Diamonds'),
+      'tricks': _roomText('اللطوش', 'Tricks'),
+      'trix': _roomText('تركس', 'Trix'),
+      'complex': _roomText('كمبلكس', 'Complex'),
+      'sun': _roomText('صن', 'Sun'),
+      'hokm': _roomText('حكم', 'Hokm'),
     };
     final contract = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
-      title: const Text('اختر العقد المتاح'),
+      title: Text(_roomText('اختر العقد المتاح', 'Choose a contract')),
       content: Wrap(spacing: 6, runSpacing: 6, children: options.map((value) => FilledButton.tonal(onPressed: () => Navigator.pop(dialogContext, value), child: Text(labels[value] ?? value))).toList()),
     ));
     if (contract != null) _action('choose_contract', {'contract': contract});
@@ -6792,7 +6794,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('استبدال الجوكر'),
+        title: Text(_roomText('استبدال الجوكر', 'Replace joker')),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 450, maxHeight: 420),
           child: ListView.separated(
