@@ -41,6 +41,10 @@ void main() {
     for (final family in ['R7Review', 'Roboto']) {
       await (FontLoader(family)..addFont(Future.value(bytes))).load();
     }
+    const emoji = String.fromEnvironment('R7_EMOJI_FONT');
+    if (emoji.isNotEmpty) {
+      await (FontLoader('R7Emoji')..addFont(File(emoji).readAsBytes().then(ByteData.sublistView))).load();
+    }
     const icons = String.fromEnvironment('R7_MATERIAL_FONT');
     if (icons.isNotEmpty) {
       await (FontLoader('MaterialIcons')..addFont(File(icons).readAsBytes().then(ByteData.sublistView))).load();
@@ -78,10 +82,10 @@ void main() {
               final phase = before['phase'];
               if (phase == 'bidding' || phase == 'choose_contract') {
                 final bid = phase == 'bidding';
-                final button = find.text(bid
+                final button = find.widgetWithText(FilledButton, bid
                   ? (locale == 'ar' ? 'اختيار الطلب' : 'Choose bid')
                   : (locale == 'ar' ? 'اختيار العقد' : 'Choose contract'));
-                await tester.ensureVisible(button); await tester.tap(button); await tester.pumpAndSettle();
+                await tester.ensureVisible(button); await tester.pump(); await tester.tap(button); await tester.pumpAndSettle();
                 expect(find.text(bid
                   ? (locale == 'ar' ? 'اختر الطلب القانوني' : 'Choose your bid')
                   : (locale == 'ar' ? 'اختر العقد المتاح' : 'Choose a contract')), findsOneWidget);
@@ -102,7 +106,7 @@ void main() {
                 final button = find.text(phase == 'discard'
                   ? (locale == 'ar' ? 'رمي الورقة' : 'Discard card')
                   : (locale == 'ar' ? 'لعب الورقة' : 'Play card'));
-                await tester.ensureVisible(button); await tester.tap(button); await tester.pump();
+                await tester.ensureVisible(button); await tester.pump(); await tester.tap(button); await tester.pump();
                 final afterHand = room.hand as List;
                 expect(afterHand.length, (before['hand'] as List).length - 1);
                 expect(afterHand.where((card) => card == selected).length,

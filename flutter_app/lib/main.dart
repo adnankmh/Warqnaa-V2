@@ -6191,10 +6191,20 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final mine = key == (state['you']?.toString() ?? (localSession != null ? 'user:0' : null));
     final profile = bot ? botProfiles[index % botProfiles.length] : null;
     final active = key == state['current_player']?.toString() && state['game_over'] != true;
-    final tricks = state['tricks'] is Map ? (state['tricks'] as Map)[key] : null;
+    final trickCounts = state['seat_tricks'] ?? state['tricks'];
+    final tricks = trickCounts is Map ? trickCounts[key] : null;
+    final lastCard = state['last_played_by_player'] is Map ? (state['last_played_by_player'] as Map)[key]?.toString() : null;
+    final deltas = state['player_round_score_delta'] is Map ? state['player_round_score_delta'] as Map : const {};
+    final teamDeltas = state['last_round_score_delta'] is Map ? state['last_round_score_delta'] as Map : const {};
+    final delta = deltas[key] ?? teamDeltas[index.isEven ? 'teamA' : 'teamB'];
+    final seatDescription = [name,
+      if (tricks != null) _roomText('اللمّات: $tricks', 'Tricks: $tricks'),
+      if (lastCard != null) _roomText('آخر ورقة: ${_cardLabel(lastCard)}', 'Last card: ${_cardLabel(lastCard)}'),
+      if (delta != null) _roomText('نقاط الجولة: $delta', 'Round points: $delta'),
+    ].join(' • ');
     return GestureDetector(
       onLongPress: !bot && !mine && room?['is_owner'] == true && room?['allow_owner_kick'] == true ? () => _kickRoomPlayer(player) : null,
-      child: R8TableSeat(
+      child: Tooltip(message: seatDescription, child: R8TableSeat(
         key: ValueKey('r10-seat-$index'), name: name, compact: true,
         avatar: bot ? Bot3DAvatar(profile: profile!, size: 40, showLevel: false)
           : mine ? AccountAvatar(controller: widget.controller, size: 40)
@@ -6208,7 +6218,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               username: player['username']?.toString(), avatar: player['avatar']?.toString(),
               level: int.tryParse(player['level']?.toString() ?? '') ?? 1,
               countryCode: player['country_code']?.toString() ?? 'PS', online: player['connected'] == true),
-      ),
+      )),
     );
   }
 
