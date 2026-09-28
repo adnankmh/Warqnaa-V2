@@ -85,7 +85,7 @@ void main() {
                 final button = find.widgetWithText(FilledButton, bid
                   ? (locale == 'ar' ? 'اختيار الطلب' : 'Choose bid')
                   : (locale == 'ar' ? 'اختيار العقد' : 'Choose contract'));
-                await tester.ensureVisible(button); await tester.pump(); await tester.tap(button); await tester.pumpAndSettle();
+                await tester.ensureVisible(button); await tester.pump(); await tester.tap(button); await tester.pump(const Duration(milliseconds: 500));
                 expect(find.text(bid
                   ? (locale == 'ar' ? 'اختر الطلب القانوني' : 'Choose your bid')
                   : (locale == 'ar' ? 'اختر العقد المتاح' : 'Choose a contract')), findsOneWidget);
