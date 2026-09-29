@@ -137,10 +137,13 @@ extension WarqnaV173Controller on AppController {
 
   Future<void> startConnectivityMonitorV173() async {
     connectivityTimerV173?.cancel();
+    if (isLocalAdmin) return;
     connectivityTimerV173 = Timer.periodic(const Duration(seconds: 20), (_) async {
-      if (!isAuthenticated || authToken == null) return;
+      if (!isAuthenticated || authToken == null || isLocalAdmin) return;
+      final sessionToken = authToken;
       try {
         final data = await api.bootstrap();
+        if (authToken != sessionToken || isLocalAdmin) return;
         _applySession(data);
         final roomCode = activeRoomCode;
         if (roomCode != null && roomCode.trim().isNotEmpty) {
@@ -148,6 +151,7 @@ extension WarqnaV173Controller on AppController {
           // must not make the whole application appear offline.
           try { await api.heartbeatRoomV300(roomCode); } catch (_) {}
         }
+        if (authToken != sessionToken || isLocalAdmin) return;
         if (!serverConnected) { serverConnected = true; refreshUi(); }
       } catch (_) {
         if (serverConnected) { serverConnected = false; refreshUi(); }
@@ -158,8 +162,10 @@ extension WarqnaV173Controller on AppController {
   Future<bool> reconnectV173() async {
     if (authToken == null || authToken!.isEmpty) return false;
     api.token = authToken;
+    final sessionToken = authToken;
     try {
       final data = await api.bootstrap();
+      if (authToken != sessionToken || isLocalAdmin) return false;
       _applySession(data);
       isAuthenticated = true;
       serverConnected = true;

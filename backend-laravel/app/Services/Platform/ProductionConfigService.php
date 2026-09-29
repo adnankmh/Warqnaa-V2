@@ -30,7 +30,25 @@ class ProductionConfigService
             ],
             'voice' => [
                 'enabled' => (bool) data_get($flags, 'voice_rooms.enabled', true),
+                'stun_count' => count((array) config('voice.stun_urls', [])),
+                'turn_configured' => count((array) config('voice.turn_urls', [])) > 0,
                 'turn_required' => count((array) config('voice.turn_urls', [])) > 0,
+                'production_ready' => app()->environment(['local','testing']) || count((array) config('voice.turn_urls', [])) > 0,
+            ],
+            'multiplayer' => [
+                'enabled' => true,
+                'server_authoritative' => true,
+                'heartbeat' => true,
+                'reconnect' => true,
+                'parties' => true,
+                'public_runtime' => $this->hasPublicRuntimeUrl(),
+            ],
+            'commerce' => [
+                'enabled' => (bool) config('warqna_commerce.enabled', true),
+                'sandbox' => (bool) config('warqna_commerce.sandbox', false),
+                'google_play_verification_ready' => $this->providerReady('google_play'),
+                'apple_verification_ready' => $this->providerReady('apple'),
+                'web_verification_ready' => $this->providerReady('web'),
             ],
             'account_cancellation' => [
                 'grace_days' => max(30, (int) config('warqna.account_deletion_grace_days', 30)),
@@ -81,6 +99,20 @@ class ProductionConfigService
     {
         $flags = $this->flags();
         return array_key_exists($key, $flags) ? (bool) data_get($flags, $key.'.enabled', $default) : $default;
+    }
+
+    private function hasPublicRuntimeUrl(): bool
+    {
+        $host = strtolower((string) parse_url((string) config('app.url', ''), PHP_URL_HOST));
+        return $host !== '' && !in_array($host, ['localhost','127.0.0.1','0.0.0.0','::1'], true);
+    }
+
+    private function providerReady(string $provider): bool
+    {
+        if (!(bool) config("warqna_commerce.providers.$provider.enabled", false)) return false;
+        if ($provider === 'web' && trim((string) config('warqna_commerce.providers.web.stripe_secret', '')) !== '') return true;
+        return trim((string) config("warqna_commerce.providers.$provider.verifier_url", '')) !== ''
+            && trim((string) config("warqna_commerce.providers.$provider.verifier_secret", '')) !== '';
     }
 
     public function forget(): void

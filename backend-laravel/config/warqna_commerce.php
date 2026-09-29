@@ -3,9 +3,22 @@ return [
     'enabled' => env('WARQNAA_COMMERCE_ENABLED', true),
     'sandbox' => env('WARQNAA_COMMERCE_SANDBOX', false),
     'providers' => [
-        'google_play' => ['enabled' => env('WARQNAA_GOOGLE_PLAY_BILLING', true)],
-        'apple' => ['enabled' => env('WARQNAA_APPLE_IAP', true)],
-        'web' => ['enabled' => env('WARQNAA_WEB_PAYMENTS', true)],
+        'google_play' => [
+            'enabled' => env('WARQNAA_GOOGLE_PLAY_BILLING', true),
+            'verifier_url' => env('WARQNAA_GOOGLE_PLAY_VERIFIER_URL', ''),
+            'verifier_secret' => env('WARQNAA_GOOGLE_PLAY_VERIFIER_SECRET', ''),
+        ],
+        'apple' => [
+            'enabled' => env('WARQNAA_APPLE_IAP', true),
+            'verifier_url' => env('WARQNAA_APPLE_VERIFIER_URL', ''),
+            'verifier_secret' => env('WARQNAA_APPLE_VERIFIER_SECRET', ''),
+        ],
+        'web' => [
+            'enabled' => env('WARQNAA_WEB_PAYMENTS', true),
+            'verifier_url' => env('WARQNAA_WEB_VERIFIER_URL', ''),
+            'verifier_secret' => env('WARQNAA_WEB_VERIFIER_SECRET', ''),
+            'stripe_secret' => env('WARQNAA_STRIPE_SECRET', ''),
+        ],
     ],
     'ads' => [
         'rewarded' => true,

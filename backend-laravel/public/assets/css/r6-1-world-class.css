@@ -95,3 +95,46 @@
 @media(prefers-reduced-motion:reduce){
   .warqna-r61 *,.warqna-r61 *:before,.warqna-r61 *:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* R16 — premium responsive card-room geometry.
+   Original Warqnaa proportions: portrait-first on phones, dedicated wide board
+   on desktop/landscape. Artwork remains contained so seats/cards stay clear. */
+body.warqna-r61.is-room-page .table-wrap{display:grid;place-items:center;min-width:0;overflow:visible}
+body.warqna-r61.is-room-page .table-wrap .game-table{
+  height:auto!important;min-height:0!important;max-width:100%!important;
+  overflow:visible!important;isolation:isolate!important;
+  border-radius:clamp(28px,4.4vw,52px)!important;
+  border-color:#6b431f!important;
+  box-shadow:inset 0 0 80px rgba(0,0,0,.38),inset 0 0 0 2px rgba(238,203,121,.13),0 24px 64px rgba(0,0,0,.44)!important;
+}
+body.warqna-r61.is-room-page .game-table.has-table-art::after{
+  background-size:contain!important;background-position:center!important;opacity:.48!important;filter:saturate(.86) contrast(.94)!important
+}
+body.warqna-r61.is-room-page .game-table .seat-profile{
+  min-width:clamp(92px,11vw,132px)!important;border-radius:16px!important;
+  border-color:rgba(239,199,96,.42)!important;backdrop-filter:blur(12px)
+}
+body.warqna-r61.is-room-page .game-table .hand-row{max-width:94%!important;gap:clamp(2px,.35vw,5px)!important}
+body.warqna-r61.is-room-page .game-table .card{width:clamp(48px,5.2vw,72px)!important;height:auto!important;aspect-ratio:0.6923!important}
+@media (orientation:portrait) and (max-width:900px){
+  body.warqna-r61.is-room-page .room-shell{grid-template-columns:1fr!important;gap:10px!important}
+  body.warqna-r61.is-room-page .table-wrap .game-table{
+    width:min(94vw,560px)!important;aspect-ratio:10/15.2!important;
+    border-width:clamp(9px,2.5vw,14px)!important;border-radius:clamp(28px,8vw,42px)!important;margin:12px auto 58px!important
+  }
+  body.warqna-r61.is-room-page .game-table.has-table-art::after{inset:21% 12%!important}
+  body.warqna-r61.is-room-page .seat-north{top:-40px!important}
+  body.warqna-r61.is-room-page .seat-south{bottom:-50px!important}
+  body.warqna-r61.is-room-page .seat-west{left:-20px!important;top:46%!important}
+  body.warqna-r61.is-room-page .seat-east{right:-20px!important;top:46%!important}
+  body.warqna-r61.is-room-page .game-table .seat-profile img{width:clamp(42px,12vw,58px)!important;height:clamp(42px,12vw,58px)!important}
+}
+@media (orientation:landscape), (min-width:901px){
+  body.warqna-r61.is-room-page .table-wrap .game-table{
+    width:min(100%,1180px)!important;aspect-ratio:16/9.6!important;
+    border-width:clamp(10px,1.15vw,16px)!important;margin:8px auto 46px!important
+  }
+  body.warqna-r61.is-room-page .game-table.has-table-art::after{inset:13% 20%!important}
+  body.warqna-r61.is-room-page .seat-west{left:-30px!important;top:48%!important}
+  body.warqna-r61.is-room-page .seat-east{right:-30px!important;top:48%!important}
+}
