@@ -1,12 +1,12 @@
 <?php
 namespace Database\Seeders;
-use Illuminate\Database\Seeder; use Illuminate\Support\Facades\{Hash,DB}; use Illuminate\Support\Str; use App\Models\{User,Profile,Wallet,Club,ClubMember,Tournament}; use App\Services\Games\GameCatalog; use App\Services\WarqnaPro\StoreCatalogService;
+use Illuminate\Database\Seeder; use Illuminate\Support\Facades\{Hash,DB}; use Illuminate\Support\Str; use App\Models\{User,Profile,Wallet,Club,ClubMember,Tournament,InventoryItem,StoreItem}; use App\Services\Games\GameCatalog; use App\Services\WarqnaPro\StoreCatalogService;
 class DatabaseSeeder extends Seeder { public function run(): void {
  // v136: country_name() now returns a scalar string, so Seeder can use it directly without helper variables.
  // B304: find the primary administrator by durable identity first so reseeding never
  // recreates Adnan after the user changes username/email/password from Account Security.
- $adminUsername=(string)env('ADMIN_USERNAME','PrimaryAdmin');
- $adminEmail=(string)env('ADMIN_EMAIL','admin@warqnaa.local');
+ $adminUsername=(string)env('ADMIN_USERNAME','Adnan');
+ $adminEmail=(string)env('ADMIN_EMAIL','adnan.admin@warqnaa.local');
  $admin=null;
  if (\Illuminate\Support\Facades\Schema::hasColumn('users','admin_role')) {
    $admin=User::query()->where('admin_role','primary_admin')->first();
@@ -33,16 +33,16 @@ class DatabaseSeeder extends Seeder { public function run(): void {
  // Production never gets known demo credentials unless WARQNAA_SEED_DEMO_USERS=true is explicitly set.
  $seedDemoUsers = !app()->environment('production') || filter_var(env('WARQNAA_SEED_DEMO_USERS', false), FILTER_VALIDATE_BOOL);
  $demoUsers = [
-   ['Kareem','kareem@warqna.local','Kareem123','#38bdf8','JO',42,250000,'🦅'],
-   ['Rami','rami@warqna.local','Rami12345','#22c55e','PS',35,180000,'🐺'],
-   ['Lina','lina@warqna.local','Lina12345','#ec4899','EG',28,120000,'🌹'],
-   ['Samar','samar@warqna.local','Samar12345','#a78bfa','PS',24,95000,'🦋'],
-   ['Layla','layla@warqna.local','Layla12345','#f59e0b','JO',31,110000,'🌙'],
-   ['Jameel','jameel@warqna.local','Jameel12345','#fb923c','PS',22,88000,'🐯'],
-   ['Nour','nour@warqna.local','Nour12345','#fde047','EG',19,76000,'⭐'],
-   ['Omar','omar@warqna.local','Omar12345','#60a5fa','PS',27,68000,'🛡️'],
-   ['Sara','sara@warqna.local','Sara12345','#f472b6','LB',29,72000,'👑'],
-   ['Basel','basel@warqna.local','Basel12345','#ef4444','SY',33,84000,'🔥'],
+   ['Kareem','kareem@warqna.local','Kareem123','#38bdf8','JO',88,10000000,'🦅'],
+   ['Rami','rami@warqna.local','Rami12345','#22c55e','PS',84,10000000,'🐺'],
+   ['Lina','lina@warqna.local','Lina12345','#ec4899','EG',91,10000000,'🌹'],
+   ['Samar','samar@warqna.local','Samar12345','#a78bfa','PS',79,10000000,'🦋'],
+   ['Layla','layla@warqna.local','Layla12345','#f59e0b','JO',93,10000000,'🌙'],
+   ['Jameel','jameel@warqna.local','Jameel12345','#fb923c','PS',77,10000000,'🐯'],
+   ['Nour','nour@warqna.local','Nour12345','#fde047','EG',82,10000000,'⭐'],
+   ['Omar','omar@warqna.local','Omar12345','#60a5fa','PS',86,10000000,'🛡️'],
+   ['Sara','sara@warqna.local','Sara12345','#f472b6','LB',95,10000000,'👑'],
+   ['Basel','basel@warqna.local','Basel12345','#ef4444','SY',90,10000000,'🔥'],
  ];
  if (!$seedDemoUsers) $demoUsers = [];
  $seededDemoUsers = [];
@@ -51,6 +51,43 @@ class DatabaseSeeder extends Seeder { public function run(): void {
    Profile::updateOrCreate(['user_id'=>$u->id],['display_name'=>$username,'avatar'=>$avatar,'country_code'=>$country,'country_name'=>country_name($country),'level'=>$level,'xp'=>$level*1200,'games_played'=>$level*15,'wins'=>$level*7,'name_color'=>$color,'chat_color'=>$color,'pasha_days'=>['Kareem'=>30,'Rami'=>14,'Lina'=>7,'Samar'=>3,'Layla'=>21,'Jameel'=>5,'Nour'=>2,'Omar'=>10,'Sara'=>18,'Basel'=>45][$username] ?? 0,'badge'=>'pro']);
    Wallet::updateOrCreate(['user_id'=>$u->id],['tokens'=>$tokens,'gems'=>0]);
    $seededDemoUsers[strtolower($username)] = $u;
+ }
+
+ // R17: twenty additional local QA accounts. Combined with the historical ten
+ // above this yields 30 reusable non-production accounts across high/mid/low tiers.
+ $r17QaUsers = [
+   ['AsemQA','asem.qa@warqna.local','AsemQA12345','#0ea5e9','PS',44,2000000,'🙂','عاصم'],
+   ['AdhamQA','adham.qa@warqna.local','AdhamQA12345','#14b8a6','JO',51,2000000,'😄','أدهم'],
+   ['KinanQA','kinan.qa@warqna.local','KinanQA12345','#3b82f6','PS',58,2000000,'😊','كنان'],
+   ['BayanQA','bayan.qa@warqna.local','BayanQA12345','#ec4899','PS',63,2000000,'🌸','بيان'],
+   ['HoorQA','hoor.qa@warqna.local','HoorQA12345','#a855f7','JO',67,2000000,'✨','حور'],
+   ['KamelQA','kamel.qa@warqna.local','KamelQA12345','#f59e0b','EG',72,2000000,'😎','كامل'],
+   ['SaharQA','sahar.qa@warqna.local','SaharQA12345','#f43f5e','PS',76,2000000,'🌹','سحر'],
+   ['MaisQA','mais.qa@warqna.local','MaisQA12345','#8b5cf6','LB',81,2000000,'💫','ميس'],
+   ['ShahdQA','shahd.qa@warqna.local','ShahdQA12345','#db2777','PS',86,2000000,'🦋','شهد'],
+   ['HalaQA','hala.qa@warqna.local','HalaQA12345','#06b6d4','JO',90,2000000,'🌙','حلا'],
+   ['YazanQA','yazan.qa@warqna.local','YazanQA12345','#60a5fa','PS',3,1000000,'🙂','يزن'],
+   ['JanaQA','jana.qa@warqna.local','JanaQA12345','#f472b6','PS',6,1000000,'😊','جنى'],
+   ['TalaQA','tala.qa@warqna.local','TalaQA12345','#c084fc','JO',9,1000000,'🌷','تالا'],
+   ['QaisQA','qais.qa@warqna.local','QaisQA12345','#22c55e','PS',12,1000000,'😄','قيس'],
+   ['RawanQA','rawan.qa@warqna.local','RawanQA12345','#fb7185','PS',15,1000000,'🌺','روان'],
+   ['MalikQA','malik.qa@warqna.local','MalikQA12345','#f97316','JO',18,1000000,'🙂','مالك'],
+   ['ReemQA','reem.qa@warqna.local','ReemQA12345','#e879f9','PS',21,1000000,'✨','ريم'],
+   ['LaithQA','laith.qa@warqna.local','LaithQA12345','#0d9488','PS',24,1000000,'😎','ليث'],
+   ['DanaQA','dana.qa@warqna.local','DanaQA12345','#d946ef','LB',27,1000000,'🌼','دانا'],
+   ['ZaidQA','zaid.qa@warqna.local','ZaidQA12345','#0284c7','PS',30,1000000,'🙂','زيد'],
+ ];
+ if (!$seedDemoUsers) $r17QaUsers = [];
+ $seededR17QaUsers = [];
+ foreach ($r17QaUsers as [$username,$email,$password,$color,$country,$level,$tokens,$avatar,$displayName]) {
+   $u=User::updateOrCreate(['email'=>$email],['username'=>$username,'password'=>Hash::make($password),'is_admin'=>false,'is_banned'=>false]);
+   Profile::updateOrCreate(['user_id'=>$u->id],[
+     'display_name'=>$displayName,'avatar'=>$avatar,'country_code'=>$country,'country_name'=>country_name($country),
+     'level'=>$level,'xp'=>$level*1200,'games_played'=>max(15,$level*14),'wins'=>max(5,$level*6),
+     'name_color'=>$color,'chat_color'=>$color,'pasha_days'=>$level>=70?7:0,'badge'=>$level>=70?'pro':null,
+   ]);
+   Wallet::updateOrCreate(['user_id'=>$u->id],['tokens'=>$tokens,'gems'=>0]);
+   $seededR17QaUsers[strtolower($username)] = $u;
  }
 
  // V0.3 demo club: mixed levels and delegated permissions for testing groups.
@@ -77,6 +114,24 @@ class DatabaseSeeder extends Seeder { public function run(): void {
 
  // v128 premium store catalog sync: 40 tables + 40 card backs + Pasha 7 days = 10000 tokens.
  try { app(StoreCatalogService::class)->sync(); } catch (\Throwable $e) {}
+
+ // R17 QA inventory distribution: high-tier accounts own most collectibles,
+ // mid-tier accounts own a useful subset, and low-tier accounts keep starter/free items.
+ if ($seedDemoUsers && \Illuminate\Support\Facades\Schema::hasTable('inventory_items') && \Illuminate\Support\Facades\Schema::hasTable('store_items')) {
+   $qaCollectibles=StoreItem::query()->where('active',true)->whereNotIn('category',['pasha','competition_ticket'])->orderBy('id')->get()->values();
+   $grantQaItems=function(User $user,string $tier) use($qaCollectibles): void {
+     foreach($qaCollectibles as $index=>$item){
+       $include = $tier==='high' ? ($index % 8 !== 7) : ($tier==='mid' ? ($index % 3 === 0) : ((int)$item->price===0 || $index<4));
+       if(!$include) continue;
+       InventoryItem::updateOrCreate(
+         ['user_id'=>$user->id,'store_item_id'=>$item->id],
+         ['quantity'=>$tier==='high'?10:1,'active'=>false,'activated_at'=>null,'expires_at'=>null]
+       );
+     }
+   };
+   foreach($seededDemoUsers as $user) $grantQaItems($user,'high');
+   foreach($seededR17QaUsers as $user) $grantQaItems($user,(int)($user->profile?->level ?? 1)>=40?'mid':'low');
+ }
  
  if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
   foreach ([['default_theme','royal','string','appearance','الثيم الافتراضي'],['force_global_theme','0','bool','appearance','فرض الثيم'],['store_enabled','1','bool','modules','تشغيل المتجر'],['clubs_enabled','1','bool','modules','تشغيل النوادي'],['tournaments_enabled','1','bool','modules','تشغيل المسابقات'],['chat_enabled','1','bool','modules','تشغيل الدردشة'],['support_enabled','1','bool','modules','تشغيل الدعم']] as [$key,$value,$type,$group,$label])

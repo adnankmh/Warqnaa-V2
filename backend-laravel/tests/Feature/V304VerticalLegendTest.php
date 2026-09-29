@@ -34,7 +34,7 @@ class V304VerticalLegendTest extends TestCase
         Wallet::create(['user_id'=>$admin->id,'tokens'=>100,'gems'=>0]);
 
         $this->assertTrue($admin->fresh()->isPrimaryAdmin());
-        $this->assertSame('1000000000000000000000000000000', $admin->fresh('wallet')->displayTokenBalance());
+        $this->assertSame('1000000', $admin->fresh('wallet')->displayTokenBalance());
     }
 
     public function test_mobile_bootstrap_exposes_only_arabic_english_as_active_locales(): void

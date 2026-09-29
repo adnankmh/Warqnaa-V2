@@ -42,14 +42,20 @@ class BotProfile {
 }
 
 const botProfiles = <BotProfile>[
-  BotProfile(id: 'asem', nameAr: 'عاصم', nameEn: 'Asem', seed: 11, level: 72, difficulty: BotDifficulty.pro, primary: Color(0xff2563eb), secondary: Color(0xff38bdf8), styleAr: 'تكتيكي متوازن', styleEn: 'Balanced tactician'),
-  BotProfile(id: 'jameel', nameAr: 'جميل', nameEn: 'Jameel', seed: 23, level: 68, difficulty: BotDifficulty.pro, primary: Color(0xff0f766e), secondary: Color(0xff34d399), styleAr: 'دفاعي وصبور', styleEn: 'Patient defender'),
-  BotProfile(id: 'layla_ai', nameAr: 'ليلى', nameEn: 'Layla', seed: 37, level: 76, difficulty: BotDifficulty.master, primary: Color(0xff7c3aed), secondary: Color(0xffd8b4fe), styleAr: 'قراءة متقدمة', styleEn: 'Advanced reader'),
-  BotProfile(id: 'samer_ai', nameAr: 'سامر', nameEn: 'Samer', seed: 41, level: 64, difficulty: BotDifficulty.pro, primary: Color(0xffb45309), secondary: Color(0xfffacc15), styleAr: 'هجومي ذكي', styleEn: 'Smart aggressor'),
-  BotProfile(id: 'nour_ai', nameAr: 'نور', nameEn: 'Nour', seed: 53, level: 70, difficulty: BotDifficulty.pro, primary: Color(0xffbe185d), secondary: Color(0xfffb7185), styleAr: 'إدارة أوراق دقيقة', styleEn: 'Precise hand control'),
-  BotProfile(id: 'basel_ai', nameAr: 'باسل', nameEn: 'Basel', seed: 67, level: 81, difficulty: BotDifficulty.master, primary: Color(0xff991b1b), secondary: Color(0xfff87171), styleAr: 'ضغط محسوب', styleEn: 'Calculated pressure'),
-  BotProfile(id: 'omar_ai', nameAr: 'عمر', nameEn: 'Omar', seed: 79, level: 74, difficulty: BotDifficulty.pro, primary: Color(0xff1d4ed8), secondary: Color(0xff93c5fd), styleAr: 'شريك موثوق', styleEn: 'Reliable partner'),
-  BotProfile(id: 'sara_ai', nameAr: 'سارة', nameEn: 'Sara', seed: 89, level: 78, difficulty: BotDifficulty.master, primary: Color(0xff9333ea), secondary: Color(0xfff0abfc), styleAr: 'مناورة احترافية', styleEn: 'Professional maneuvering'),
+  BotProfile(id: 'asem', nameAr: 'عاصم', nameEn: 'Asem', seed: 11, level: 82, difficulty: BotDifficulty.pro, primary: Color(0xff2563eb), secondary: Color(0xff38bdf8), styleAr: 'تكتيكي متوازن', styleEn: 'Balanced tactician'),
+  BotProfile(id: 'adnan_ai', nameAr: 'عدنان', nameEn: 'Adnan', seed: 17, level: 88, difficulty: BotDifficulty.master, primary: Color(0xff0f766e), secondary: Color(0xff5eead4), styleAr: 'قراءة هادئة وحاسمة', styleEn: 'Calm decisive reader'),
+  BotProfile(id: 'kinan_ai', nameAr: 'كنان', nameEn: 'Kinan', seed: 23, level: 76, difficulty: BotDifficulty.pro, primary: Color(0xff1d4ed8), secondary: Color(0xff93c5fd), styleAr: 'شريك دقيق', styleEn: 'Precise partner'),
+  BotProfile(id: 'bayan_ai', nameAr: 'بيان', nameEn: 'Bayan', seed: 31, level: 74, difficulty: BotDifficulty.pro, primary: Color(0xffbe185d), secondary: Color(0xfff9a8d4), styleAr: 'مناورة مرنة', styleEn: 'Flexible maneuvering'),
+  BotProfile(id: 'hoor_ai', nameAr: 'حور', nameEn: 'Hoor', seed: 37, level: 86, difficulty: BotDifficulty.master, primary: Color(0xff7c3aed), secondary: Color(0xffd8b4fe), styleAr: 'قراءة متقدمة', styleEn: 'Advanced reader'),
+  BotProfile(id: 'kamel_ai', nameAr: 'كامل', nameEn: 'Kamel', seed: 41, level: 71, difficulty: BotDifficulty.pro, primary: Color(0xffb45309), secondary: Color(0xfffacc15), styleAr: 'هجومي ذكي', styleEn: 'Smart aggressor'),
+  BotProfile(id: 'sahar_ai', nameAr: 'سحر', nameEn: 'Sahar', seed: 47, level: 80, difficulty: BotDifficulty.master, primary: Color(0xffe11d48), secondary: Color(0xfffda4af), styleAr: 'إدارة أوراق دقيقة', styleEn: 'Precise hand control'),
+  BotProfile(id: 'mais_ai', nameAr: 'ميس', nameEn: 'Mais', seed: 53, level: 77, difficulty: BotDifficulty.pro, primary: Color(0xff9333ea), secondary: Color(0xffe879f9), styleAr: 'لعب صبور', styleEn: 'Patient play'),
+  BotProfile(id: 'shahd_ai', nameAr: 'شهد', nameEn: 'Shahd', seed: 59, level: 84, difficulty: BotDifficulty.master, primary: Color(0xffdb2777), secondary: Color(0xfff9a8d4), styleAr: 'ضغط محسوب', styleEn: 'Calculated pressure'),
+  BotProfile(id: 'hala_ai', nameAr: 'حلا', nameEn: 'Hala', seed: 61, level: 72, difficulty: BotDifficulty.pro, primary: Color(0xff0891b2), secondary: Color(0xff67e8f9), styleAr: 'سريعة البديهة', styleEn: 'Quick thinker'),
+  BotProfile(id: 'jameel', nameAr: 'جميل', nameEn: 'Jameel', seed: 67, level: 79, difficulty: BotDifficulty.pro, primary: Color(0xff15803d), secondary: Color(0xff86efac), styleAr: 'دفاعي وصبور', styleEn: 'Patient defender'),
+  BotProfile(id: 'nour_ai', nameAr: 'نور', nameEn: 'Nour', seed: 71, level: 75, difficulty: BotDifficulty.pro, primary: Color(0xffc2410c), secondary: Color(0xfffdba74), styleAr: 'إيقاع متزن', styleEn: 'Steady rhythm'),
+  BotProfile(id: 'omar_ai', nameAr: 'عمر', nameEn: 'Omar', seed: 79, level: 83, difficulty: BotDifficulty.master, primary: Color(0xff1d4ed8), secondary: Color(0xff93c5fd), styleAr: 'شريك موثوق', styleEn: 'Reliable partner'),
+  BotProfile(id: 'sara_ai', nameAr: 'سارة', nameEn: 'Sara', seed: 89, level: 85, difficulty: BotDifficulty.master, primary: Color(0xff9333ea), secondary: Color(0xfff0abfc), styleAr: 'مناورة احترافية', styleEn: 'Professional maneuvering'),
 ];
 
 class Bot3DAvatar extends StatelessWidget {
@@ -765,7 +771,7 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
   void initState() {
     super.initState();
     controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700));
-    AppSounds.fire(widget.reaction.category == 'victory' || widget.reaction.category == 'pasha' ? 'reward' : 'reaction');
+    AppSounds.fire('reaction_${widget.reaction.category}');
     scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: .2, end: 1.18).chain(CurveTween(curve: Curves.easeOutBack)), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 25),

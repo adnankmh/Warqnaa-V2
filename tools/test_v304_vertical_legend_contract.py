@@ -48,7 +48,7 @@ ok('grantTwoTemporaryRewards' in level and 'addDays(7)' in level,'each level-up 
 challenge=text('backend-laravel/app/Services/WarqnaPro/ChallengeRoadService.php')
 ok(('b304_table_phoenix' in challenge and 'b304_profile_aurora_30d' in challenge) or (ROOT/'flutter_app/lib/v305_single_table.dart').exists(),'B304 challenge history is preserved or superseded by V305 single-table rewards')
 user=text('backend-laravel/app/Models/User.php')
-ok("PRIMARY_ADMIN_DISPLAY_BALANCE = '1000000000000000000000000000000'" in user and 'isPrimaryAdmin' in user,'primary admin unlimited display balance and role protection are preserved')
+ok("PRIMARY_ADMIN_DISPLAY_BALANCE = '1000000'" in user and 'isPrimaryAdmin' in user,'primary admin shows the clean one-million ceremonial balance while role protection is preserved')
 setup=text('backend-laravel/app/Console/Commands/SetupLocalAdmins.php')
 ok('WARQNAA_LOCAL_ADMIN_PASSWORD' in setup and 'WARQNAA_LOCAL_DEPUTY_PASSWORD' in setup,'privileged credentials are provisioned from local environment, not source literals')
 ok((ROOT/'tools/check_git_privacy_v304.py').exists(),'B304 Git privacy gate exists')
