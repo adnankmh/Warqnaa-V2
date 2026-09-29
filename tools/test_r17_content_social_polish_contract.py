@@ -25,7 +25,7 @@ for name in ('عاصم','عدنان','كنان','بيان','حور','كامل','
 pasha=text('flutter_app/lib/v173_global.dart')
 ok('pashaStyleV173(controller.selectedPashaStyle)' in pasha and 'Image.asset(style.asset' in pasha,'Pasha hat follows selected color/style asset')
 sounds=text('flutter_app/lib/services/app_sounds.dart')
-ok("'reaction': 'emoji'" in sounds and "'reaction_victory': 'legendary_emote'" in sounds and "final assetCue = _cueAliases[cue] ?? cue" in sounds,'reaction audio aliases point to shipped sound assets')
+ok("'reaction': 'emoji'" in sounds and "'reaction_victory': 'legendary_emote'" in sounds and "final cue = _cueAliases[requestedCue] ?? requestedCue" in sounds and "AssetSource('sounds/r10/$cue.ogg')" in sounds,'reaction audio aliases point to shipped sound assets while preserving the R10 OGG bus contract')
 ok("AppSounds.fire('reaction_${widget.reaction.category}')" in bots,'animated reactions select category-specific sound cues')
 privacy=text('tools/check_git_privacy_v304.py')
 ok('BAD_NAMES' in privacy and "'.env'" in privacy and 'BAD_SUFFIXES' in privacy,'privacy gate blocks local environment, database, key and credential files without publishing real secrets')
