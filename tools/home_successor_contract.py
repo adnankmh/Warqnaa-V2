@@ -5,12 +5,24 @@ These checks establish reachability, not runtime or visual correctness.
 import re
 
 
-def r61_home_is_wired(main: str, home: str) -> bool:
-    return all((
+def r61_home_is_wired(main: str, home: str, lobby: str = '') -> bool:
+    base = all((
         "part 'r6_1_world_class.dart';" in main,
         bool(re.search(r'=>\s*R61HomeDashboard\(controller:\s*controller,\s*onTab:\s*onTab\)', main)),
         'class R61HomeDashboard extends StatelessWidget' in home,
-        "controller.localeCode == 'ar'" in home,
+    ))
+    if "part 'r8_play_experience.dart';" in main:
+        return base and all((
+            '=> R8HomeLobby(controller: controller, onTab: onTab)' in home,
+            'class R8HomeLobby extends StatelessWidget' in lobby,
+            "controller.localeCode == 'ar'" in lobby,
+            'constraints.maxWidth' in lobby,
+            'onTab(1)' in lobby,
+            'showGameLobby(context, controller, game)' in lobby,
+            'R64RoomBrowserPage(controller: controller)' in lobby,
+            'R65PartyPage(controller: controller)' in lobby,
+        ))
+    return base and all((
         'LayoutBuilder' in home,
         'constraints.maxWidth' in home,
         '_R61Hero(controller: controller, onPlay: () => onTab(1))' in home,

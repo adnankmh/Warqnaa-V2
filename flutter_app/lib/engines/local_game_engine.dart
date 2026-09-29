@@ -49,6 +49,7 @@ class LocalGameSession {
     'Janan', 'Hoor', 'Jannat', 'Alaa', 'Afnan', 'Shahd', 'Hala', 'Shatha', 'Qamar',
   ];
   List<String> get _botNames => localeCode == 'ar' ? _botNamesAr : _botNamesEn;
+  String _t(String ar, String en) => localeCode == 'ar' ? ar : en;
 
   final List<List<String>> _hands = <List<String>>[];
   final List<String> _deck = <String>[];
@@ -199,24 +200,27 @@ class LocalGameSession {
       trump = _oppositeSameColorSuitLocal(_cardSuit(revealedCard));
       phase = 'bidding';
       enginePhase = 'bidding';
-      _messages.add('طرنيب سوري 41: الورقة المكشوفة ${_prettyCard(revealedCard)} والحكم ${_suitSymbol(trump!)}. أعلن طلبًا مستقلًا من 2 إلى 13.');
+      _messages.add(_t(
+        'طرنيب سوري 41: الورقة المكشوفة ${_prettyCard(revealedCard)} والحكم ${_suitSymbol(trump!)}. أعلن طلبًا مستقلًا من 2 إلى 13.',
+        'Syrian Tarneeb 41: ${_prettyCard(revealedCard)} is revealed and ${_suitSymbol(trump!)} is trump. Bid from 2 to 13.',
+      ));
     } else if (_isTarneeb400) {
       phase = 'bidding';
       enginePhase = 'bidding';
       trump = 'H';
-      _messages.add('طرنيب 400: أعلن طلبك المستقل من 2 إلى 13، والكبة ♥ هي الحكم الثابت.');
+      _messages.add(_t('طرنيب 400: أعلن طلبك المستقل من 2 إلى 13، والكبة ♥ هي الحكم الثابت.', 'Tarneeb 400: bid from 2 to 13. Hearts ♥ are permanent trump.'));
     } else if (gameId == 'tarneeb') {
       phase = 'bidding';
       enginePhase = 'bidding';
-      _messages.add('طرنيب: ابدأ الطلب من 7 إلى 13 أو مرّر. بعد تثبيت أعلى طلب يختار صاحبه نوع الطرنيب.');
+      _messages.add(_t('طرنيب: ابدأ الطلب من 7 إلى 13 أو مرّر. بعد تثبيت أعلى طلب يختار صاحبه نوع الطرنيب.', 'Tarneeb: bid from 7 to 13 or pass. The highest bidder chooses trump.'));
     } else if (_isTrix) {
       phase = 'choose_contract';
       enginePhase = 'choose_contract';
-      _messages.add('اختر عقد الجولة ثم ابدأ اللعب.');
+      _messages.add(_t('اختر عقد الجولة ثم ابدأ اللعب.', 'Choose the round contract, then start playing.'));
     } else if (_isBaloot) {
       phase = 'choose_contract';
       enginePhase = 'choose_contract';
-      _messages.add('اختر صن أو حكم.');
+      _messages.add(_t('اختر صن أو حكم.', 'Choose Sun or Hokm.'));
     } else {
       phase = 'playing';
       enginePhase = 'playing';
@@ -291,9 +295,9 @@ class LocalGameSession {
     phase = 'discard';
     enginePhase = 'discard';
     if (gameId == 'banakil') {
-      _messages.add('بناكل: معك 19 ورقة. ارمِ ورقة أولاً، ثم اسحب ونزّل مجموعات من 3 أوراق فأكثر دون حد أدنى.');
+      _messages.add(_t('بناكل: معك 19 ورقة. ارمِ ورقة أولاً، ثم اسحب ونزّل مجموعات من 3 أوراق فأكثر دون حد أدنى.', 'Banakil: you have 19 cards. Discard first, then draw and meld groups of 3 or more with no opening minimum.'));
     } else {
-      _messages.add('هاند: معك 15 ورقة. ارمِ أولاً، ثم افتح بمجموع مجموعة أو عدة مجموعات قيمتها 51 نقطة على الأقل.');
+      _messages.add(_t('هاند: معك 15 ورقة. ارمِ أولاً، ثم افتح بمجموع مجموعة أو عدة مجموعات قيمتها 51 نقطة على الأقل.', 'Hand: you have 15 cards. Discard first, then open with one or more melds worth at least 51 points.'));
     }
     for (final hand in _hands) {
       _sortHand(hand);
@@ -310,7 +314,7 @@ class LocalGameSession {
     }
     phase = 'playing';
     enginePhase = 'playing';
-    _messages.add('التقط الورق المطابق أو مجموعة تساوي قيمة ورقتك.');
+    _messages.add(_t('التقط الورق المطابق أو مجموعة تساوي قيمة ورقتك.', 'Capture a matching card or a group whose values add up to your card.'));
   }
 
   void _dealBasraHands() {
@@ -390,7 +394,7 @@ class LocalGameSession {
   List<Map<String, dynamic>> _availableActions() {
     if (gameOver) {
       return <Map<String, dynamic>>[
-        <String, dynamic>{'type': 'new_round', 'label': 'إعادة اللعب'},
+        <String, dynamic>{'type': 'new_round', 'label': _t('إعادة اللعب', 'Play again')},
       ];
     }
 
@@ -408,11 +412,15 @@ class LocalGameSession {
       ];
       if (_starterDiscardPending) return actions;
       final suggestions = _meldSuggestions(_hands[0]);
+      final openingRequired = _localRummyOpeningRequired(0);
       for (final meld in suggestions) {
-        actions.add(<String, dynamic>{'type': 'meld', 'cards': meld});
+        if (_localRummyOpened(0) || _rummyPoints(meld) >= openingRequired) {
+          actions.add(<String, dynamic>{'type': 'meld', 'cards': meld});
+        }
       }
       final multiple = _nonOverlappingMelds(suggestions);
-      if (multiple.length >= 2) {
+      final multiplePoints = multiple.fold<int>(0, (sum, meld) => sum + _rummyPoints(meld));
+      if (multiple.length >= 2 && (_localRummyOpened(0) || multiplePoints >= openingRequired)) {
         actions.add(<String, dynamic>{'type': 'meld_many', 'groups': multiple});
       }
       if (_localRummyOpened(0)) {
@@ -534,11 +542,19 @@ class LocalGameSession {
     } else if (phase == 'choose_trump') {
       _trickAction('choose_trump', <String, dynamic>{'suit': _bestSuit(_hands[0])});
     } else if (phase == 'choose_contract') {
-      _trickAction('choose_contract', <String, dynamic>{'contract': _isBaloot ? 'sun' : (gameId == 'trix_complex' ? 'complex' : 'tricks')});
+      final choices = gameId == 'trix_complex'
+          ? <String>['complex', 'trix']
+          : <String>['tricks', 'girls', 'diamonds', 'king_hearts', 'trix'];
+      final nextContract = _isBaloot
+          ? 'sun'
+          : choices.firstWhere((value) => !_trixContractsUsed.contains(value));
+      _trickAction('choose_contract', <String, dynamic>{'contract': nextContract});
     } else {
       final legal = _legalCardsFor(0);
       if (legal.isNotEmpty) {
         _trickAction('play_card', <String, dynamic>{'card': legal.first});
+      } else if (_isTrix && phase == 'trix_playing') {
+        _trickAction('pass_trix', const <String, dynamic>{});
       }
     }
     return room();
@@ -547,27 +563,27 @@ class LocalGameSession {
   void _trickAction(String action, Map<String, dynamic> payload) {
     if (phase == 'bidding') {
       if (_isTarneeb400 || _isSyrianTarneeb) {
-        if (action != 'bid') throw StateError('هذه اللعبة تتطلب إعلان طلب مستقل من كل لاعب.');
+        if (action != 'bid') throw StateError(_t('هذه اللعبة تتطلب إعلان طلب مستقل من كل لاعب.', 'Each player must make an individual bid in this game.'));
         final amount = int.tryParse(payload['amount']?.toString() ?? '') ?? 0;
         final minimum = _isSyrianTarneeb ? 2 : _tarneeb400MinimumBidLocal(0);
-        if (amount < minimum || amount > 13) throw StateError('الطلب المستقل غير قانوني.');
+        if (amount < minimum || amount > 13) throw StateError(_t('الطلب المستقل غير قانوني.', 'That individual bid is not legal.'));
         _tarneeb400Bids[0] = amount;
-        _messages.add('$humanName أعلن $amount');
+        _messages.add(_t('$humanName أعلن $amount', '$humanName bid $amount'));
         _finishLocalBidding();
         return;
       }
       if (action == 'pass') {
-        _messages.add('$humanName: سكون');
+        _messages.add(_t('$humanName: سكون', '$humanName: Pass'));
       } else if (action == 'bid') {
         final amount = int.tryParse(payload['amount']?.toString() ?? '') ?? 0;
         if (amount < max(7, highestBid + 1) || amount > 13) {
-          throw StateError('طلب غير قانوني.');
+          throw StateError(_t('طلب غير قانوني.', 'That bid is not legal.'));
         }
         highestBid = amount;
         bidWinner = 0;
-        _messages.add('$humanName طلب $amount');
+        _messages.add(_t('$humanName طلب $amount', '$humanName bid $amount'));
       } else {
-        throw StateError('الحركة غير متاحة في المزايدة.');
+        throw StateError(_t('الحركة غير متاحة في المزايدة.', 'That action is unavailable during bidding.'));
       }
       _finishLocalBidding();
       return;
@@ -575,51 +591,51 @@ class LocalGameSession {
 
     if (phase == 'choose_contract') {
       if (action != 'choose_contract') {
-        throw StateError('اختر العقد أولاً.');
+        throw StateError(_t('اختر العقد أولاً.', 'Choose a contract first.'));
       }
       final value = payload['contract']?.toString() ?? '';
       if (_isBaloot) {
         if (value != 'sun' && value != 'hokm') {
-          throw StateError('اختر صن أو حكم.');
+          throw StateError(_t('اختر صن أو حكم.', 'Choose Sun or Hokm.'));
         }
         contract = value;
         if (value == 'hokm') {
           phase = 'choose_trump';
           enginePhase = 'choose_trump';
-          _messages.add('تم اختيار حكم؛ اختر النوع.');
+          _messages.add(_t('تم اختيار حكم؛ اختر النوع.', 'Hokm selected; choose the trump suit.'));
         } else {
           phase = 'playing';
           enginePhase = 'playing';
           trump = null;
-          _messages.add('بدأت جولة الصن.');
+          _messages.add(_t('بدأت جولة الصن.', 'The Sun round has started.'));
         }
       } else {
         final allowed = gameId == 'trix_complex' ? const <String>{'complex', 'trix'} : const <String>{'king_hearts', 'girls', 'diamonds', 'tricks', 'trix'};
         if (!allowed.contains(value) || _trixContractsUsed.contains(value)) {
-          throw StateError('العقد غير متاح في المملكة الحالية.');
+          throw StateError(_t('العقد غير متاح في المملكة الحالية.', 'That contract is unavailable in the current kingdom.'));
         }
         contract = value;
         phase = value == 'trix' ? 'trix_playing' : 'playing';
         enginePhase = phase;
         currentSeat = _kingdomOwnerSeat;
-        _messages.add('العقد: ${_contractLabel(value)}');
+        _messages.add(_t('العقد: ${_contractLabel(value)}', 'Contract: ${_contractLabel(value)}'));
       }
       return;
     }
 
     if (phase == 'choose_trump') {
       if (action != 'choose_trump') {
-        throw StateError('اختر نوع الحكم أولاً.');
+        throw StateError(_t('اختر نوع الحكم أولاً.', 'Choose the trump suit first.'));
       }
       final suit = payload['suit']?.toString() ?? '';
       if (!_suits.contains(suit)) {
-        throw StateError('نوع غير صحيح.');
+        throw StateError(_t('نوع غير صحيح.', 'That suit is invalid.'));
       }
       trump = suit;
       phase = 'playing';
       enginePhase = 'playing';
       currentSeat = bidWinner ?? 0;
-      _messages.add('الحكم: ${_suitSymbol(suit)}');
+      _messages.add(_t('الحكم: ${_suitSymbol(suit)}', 'Trump: ${_suitSymbol(suit)}'));
       _autoBotsUntilHuman();
       return;
     }
@@ -630,13 +646,13 @@ class LocalGameSession {
       } else if (action == 'play_card') {
         _playTrixCard(0, payload['card']?.toString() ?? '');
       } else {
-        throw StateError('اختر ورقة قابلة للتركيب أو مرّر عند عدم وجود حركة.');
+        throw StateError(_t('اختر ورقة قابلة للتركيب أو مرّر عند عدم وجود حركة.', 'Play a legal Trix card, or pass when no move is available.'));
       }
       _autoBotsUntilHuman();
       return;
     }
     if (action != 'play_card') {
-      throw StateError('اختر ورقة للعب.');
+      throw StateError(_t('اختر ورقة للعب.', 'Choose a card to play.'));
     }
     final card = payload['card']?.toString() ?? '';
     _playTrickCard(0, card);
@@ -664,7 +680,7 @@ class LocalGameSession {
         final strength = _handStrength(_hands[seat]);
         final declared = (minimum + (strength ~/ 70)).clamp(minimum, 8).toInt();
         _tarneeb400Bids[seat] = declared;
-        _messages.add('${_botNames[seat - 1]} أعلن $declared');
+        _messages.add(_t('${_botNames[seat - 1]} أعلن $declared', '${_botNames[seat - 1]} bid $declared'));
       }
       var total = _tarneeb400Bids.values.fold<int>(0, (sum, value) => sum + value);
       while (total < 11) {
@@ -681,8 +697,8 @@ class LocalGameSession {
       enginePhase = 'playing';
       currentSeat = 0;
       _messages.add(_isSyrianTarneeb
-          ? 'بدأ طرنيب سوري 41: كل لاعب يُحاسب على طلبه بصورة مستقلة.'
-          : 'الكبة ♥ هي الحكم الثابت، وكل لاعب يُحاسب على طلبه بصورة مستقلة.');
+          ? _t('بدأ طرنيب سوري 41: كل لاعب يُحاسب على طلبه بصورة مستقلة.', 'Syrian Tarneeb 41 started. Each player is scored against their own bid.')
+          : _t('الكبة ♥ هي الحكم الثابت، وكل لاعب يُحاسب على طلبه بصورة مستقلة.', 'Hearts ♥ are permanent trump. Each player is scored against their own bid.'));
       return;
     }
     final biddingOrder = <int>[1, 2, 3];
@@ -692,9 +708,9 @@ class LocalGameSession {
       if (suggested > highestBid && suggested <= 10 && _random.nextDouble() > .25) {
         highestBid = suggested;
         bidWinner = seat;
-        _messages.add('${_botNames[seat - 1]} طلب $suggested');
+        _messages.add(_t('${_botNames[seat - 1]} طلب $suggested', '${_botNames[seat - 1]} bid $suggested'));
       } else {
-        _messages.add('${_botNames[seat - 1]}: سكون');
+        _messages.add(_t('${_botNames[seat - 1]}: سكون', '${_botNames[seat - 1]}: Pass'));
       }
     }
     bidWinner ??= _strongestSeat();
@@ -710,7 +726,7 @@ class LocalGameSession {
       phase = 'playing';
       enginePhase = 'playing';
       currentSeat = bidWinner!;
-      _messages.add('${_botNames[bidWinner! - 1]} اختار ${_suitSymbol(trump!)}');
+      _messages.add(_t('${_botNames[bidWinner! - 1]} اختار ${_suitSymbol(trump!)}', '${_botNames[bidWinner! - 1]} chose ${_suitSymbol(trump!)}'));
       _autoBotsUntilHuman();
     }
   }
@@ -718,27 +734,27 @@ class LocalGameSession {
   void _playTrickCard(int seat, String card) {
     if (_isTrix && phase == 'trix_playing') {
       if (currentSeat != seat) {
-        throw StateError('ليس دور هذا اللاعب.');
+        throw StateError(_t('ليس دور هذا اللاعب.', 'It is not this player’s turn.'));
       }
       _playTrixCard(seat, card);
       return;
     }
     if (phase != 'playing' || currentSeat != seat) {
-      throw StateError('ليس دور هذا اللاعب.');
+      throw StateError(_t('ليس دور هذا اللاعب.', 'It is not this player’s turn.'));
     }
     final legal = _legalCardsFor(seat);
     if (!legal.contains(card)) {
-      throw StateError('يجب اتباع النوع المتصدر عند توفره.');
+      throw StateError(_t('يجب اتباع النوع المتصدر عند توفره.', 'You must follow the lead suit when possible.'));
     }
     _hands[seat].remove(card);
     _trick[seat] = card;
-    _messages.add('${_seatName(seat)} رمى ${_prettyCard(card)}');
+    _messages.add(_t('${_seatName(seat)} رمى ${_prettyCard(card)}', '${_seatName(seat)} played ${_prettyCard(card)}'));
 
     if (_trick.length == 4) {
       final winner = _trickWinner();
       _tricksWon[winner] = (_tricksWon[winner] ?? 0) + 1;
       _scoreTrixTrick(winner);
-      _messages.add('${_seatName(winner)} أخذ اللمّة');
+      _messages.add(_t('${_seatName(winner)} أخذ اللمّة', '${_seatName(winner)} won the trick'));
       _trick.clear();
       currentSeat = winner;
       if (_hands.every((hand) => hand.isEmpty)) {
@@ -772,7 +788,7 @@ class LocalGameSession {
         contract = values.firstWhere((value) => !_trixContractsUsed.contains(value));
         phase = contract == 'trix' ? 'trix_playing' : 'playing';
         enginePhase = phase;
-        _messages.add('${_seatName(currentSeat)} اختار ${_contractLabel(contract!)}.');
+        _messages.add(_t('${_seatName(currentSeat)} اختار ${_contractLabel(contract!)}.', '${_seatName(currentSeat)} chose ${_contractLabel(contract!)}.'));
       } else if (phase == 'choose_trump') {
         trump = _bestSuit(_hands[currentSeat]);
         phase = 'playing';
@@ -933,7 +949,7 @@ class LocalGameSession {
   }
 
   void _playTrixCard(int seat, String card) {
-    if (!_legalTrixCards(seat).contains(card)) throw StateError('الورقة لا تركب على سلاسل تركس الحالية.');
+    if (!_legalTrixCards(seat).contains(card)) throw StateError(_t('الورقة لا تركب على سلاسل تركس الحالية.', 'That card does not fit the current Trix sequences.'));
     _hands[seat].remove(card);
     final suit = _cardSuit(card);
     final value = _standardRanks.indexOf(_cardRank(card)) + 2;
@@ -944,7 +960,7 @@ class LocalGameSession {
       board['low'] = min(board['low'] as int, value);
       board['high'] = max(board['high'] as int, value);
     }
-    _messages.add('${_seatName(seat)} ركّب ${_prettyCard(card)}');
+    _messages.add(_t('${_seatName(seat)} ركّب ${_prettyCard(card)}', '${_seatName(seat)} placed ${_prettyCard(card)}'));
     if (_hands[seat].isEmpty && !_trixFinishOrder.contains(seat)) _trixFinishOrder.add(seat);
     if (_trixFinishOrder.length >= playerCount - 1) {
       for (var i = 0; i < playerCount; i++) {
@@ -957,7 +973,7 @@ class LocalGameSession {
         final target = _trixFinishOrder[i];
         _scores[target] = (_scores[target] ?? 0) + (i < awards.length ? awards[i] : 0);
       }
-      _messages.add('اكتمل عقد تركس: ${_trixFinishOrder.map(_seatName).join('، ')}.');
+      _messages.add(_t('اكتمل عقد تركس: ${_trixFinishOrder.map(_seatName).join('، ')}.', 'Trix contract complete: ${_trixFinishOrder.map(_seatName).join(', ')}.'));
       _completeTrixContract();
       return;
     }
@@ -965,8 +981,8 @@ class LocalGameSession {
   }
 
   void _passTrix(int seat) {
-    if (_legalTrixCards(seat).isNotEmpty) throw StateError('لديك ورقة قانونية ويجب لعبها.');
-    _messages.add('${_seatName(seat)} مرّر.');
+    if (_legalTrixCards(seat).isNotEmpty) throw StateError(_t('لديك ورقة قانونية ويجب لعبها.', 'You have a legal card and must play it.'));
+    _messages.add(_t('${_seatName(seat)} مرّر.', '${_seatName(seat)} passed.'));
     currentSeat = (seat + 1) % playerCount;
   }
 
@@ -990,7 +1006,7 @@ class LocalGameSession {
         final best = _scores.entries.reduce((a, b) => a.value >= b.value ? a : b);
         winnerKey = best.key == 0 ? 'user:0' : 'bot:${best.key}';
       }
-      _messages.add('انتهت جميع ممالك تركس.');
+      _messages.add(_t('انتهت جميع ممالك تركس.', 'All Trix kingdoms are complete.'));
       return;
     }
     round++;
@@ -1020,7 +1036,7 @@ class LocalGameSession {
     currentSeat = _kingdomOwnerSeat;
     phase = 'choose_contract';
     enginePhase = 'choose_contract';
-    _messages.add('بدأت الجولة $round من مملكة ${_seatName(_kingdomOwnerSeat)}.');
+    _messages.add(_t('بدأت الجولة $round من مملكة ${_seatName(_kingdomOwnerSeat)}.', 'Round $round started in ${_seatName(_kingdomOwnerSeat)}’s kingdom.'));
   }
 
   List<List<String>> _nonOverlappingMelds(List<List<String>> suggestions) {
@@ -1076,7 +1092,7 @@ class LocalGameSession {
       final teamAQualified = ((_scores[0] ?? 0) >= 41 && (_scores[2] ?? 0) > 0) || ((_scores[2] ?? 0) >= 41 && (_scores[0] ?? 0) > 0);
       final teamBQualified = ((_scores[1] ?? 0) >= 41 && (_scores[3] ?? 0) > 0) || ((_scores[3] ?? 0) >= 41 && (_scores[1] ?? 0) > 0);
       winnerKey = teamAQualified || (!teamBQualified && ((_scores[0] ?? 0) + (_scores[2] ?? 0) >= (_scores[1] ?? 0) + (_scores[3] ?? 0))) ? 'user:0' : 'bot:1';
-      _messages.add('طرنيب سوري 41: تم حساب طلب كل لاعب بصورة مستقلة.');
+      _messages.add(_t('طرنيب سوري 41: تم حساب طلب كل لاعب بصورة مستقلة.', 'Syrian Tarneeb 41: every player’s bid was scored independently.'));
     } else if (_isTarneeb400) {
       for (var seat = 0; seat < 4; seat++) {
         final declared = _tarneeb400Bids[seat] ?? 2;
@@ -1087,7 +1103,7 @@ class LocalGameSession {
       final teamA = (_scores[0] ?? 0) + (_scores[2] ?? 0);
       final teamB = (_scores[1] ?? 0) + (_scores[3] ?? 0);
       winnerKey = teamA >= teamB ? 'user:0' : 'bot:1';
-      _messages.add('طرنيب 400: نقاط فريقك $teamA مقابل $teamB، مع حساب طلب كل لاعب بشكل مستقل.');
+      _messages.add(_t('طرنيب 400: نقاط فريقك $teamA مقابل $teamB، مع حساب طلب كل لاعب بشكل مستقل.', 'Tarneeb 400: your team $teamA — $teamB, with every player’s bid scored independently.'));
     } else if (_isTarneebVariant && !_isSyrianTarneeb) {
       final teamA = (_tricksWon[0] ?? 0) + (_tricksWon[2] ?? 0);
       final teamB = (_tricksWon[1] ?? 0) + (_tricksWon[3] ?? 0);
@@ -1112,7 +1128,7 @@ class LocalGameSession {
       }
       final humanTeamWon = teamA >= teamB;
       winnerKey = humanTeamWon ? 'user:0' : 'bot:1';
-      _messages.add('النتيجة: فريقك $teamA مقابل $teamB.');
+      _messages.add(_t('النتيجة: فريقك $teamA مقابل $teamB.', 'Score: your team $teamA — $teamB.'));
     } else if (_isTrix) {
       gameOver = false;
       phase = 'playing';
@@ -1127,7 +1143,7 @@ class LocalGameSession {
       _scores[2] = teamA;
       _scores[1] = teamB;
       _scores[3] = teamB;
-      _messages.add('انتهت الجولة: فريقك $teamA مقابل $teamB.');
+      _messages.add(_t('انتهت الجولة: فريقك $teamA مقابل $teamB.', 'Round complete: your team $teamA — $teamB.'));
     }
   }
 
@@ -1159,7 +1175,7 @@ class LocalGameSession {
       final requested = (payload['cards'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
       if (requested.isNotEmpty) {
         if (requested.length != _hands[0].length || !_containsAll(_hands[0], requested) || !_containsAll(requested, _hands[0])) {
-          throw StateError('ترتيب اليد غير صالح. لا يمكن إضافة أو حذف ورق أثناء إعادة الترتيب.');
+          throw StateError(_t('ترتيب اليد غير صالح. لا يمكن إضافة أو حذف ورق أثناء إعادة الترتيب.', 'Invalid hand order. Cards cannot be added or removed while sorting.'));
         }
         _hands[0]
           ..clear()
@@ -1178,7 +1194,7 @@ class LocalGameSession {
       } else if (action == 'draw_discard' && _discard.isNotEmpty) {
         _hands[0].add(_discard.removeLast());
       } else {
-        throw StateError('يجب السحب أولاً.');
+        throw StateError(_t('يجب السحب أولاً.', 'You must draw first.'));
       }
       phase = 'discard';
       enginePhase = 'discard';
@@ -1186,51 +1202,51 @@ class LocalGameSession {
       return;
     }
     if (_starterDiscardPending && action != 'discard' && action != 'organize') {
-      throw StateError('يجب رمي الورقة الإضافية أولاً.');
+      throw StateError(_t('يجب رمي الورقة الإضافية أولاً.', 'Discard the extra card first.'));
     }
     if (action == 'meld_many') {
       final rawGroups = (payload['groups'] as List?) ?? const <dynamic>[];
       final groups = rawGroups.map((group) => (group as List).map((e) => e.toString()).toList()).toList();
-      if (groups.isEmpty || groups.length > 8) throw StateError('اختر مجموعتين قانونيتين على الأقل.');
+      if (groups.isEmpty || groups.length > 8) throw StateError(_t('اختر مجموعتين قانونيتين على الأقل.', 'Choose at least two legal melds.'));
       final all = <String>[for (final group in groups) ...group];
-      if (!_containsAll(_hands[0], all) || groups.any((group) => !_isValidMeld(group))) throw StateError('إحدى مجموعات التنزيل غير قانونية.');
+      if (!_containsAll(_hands[0], all) || groups.any((group) => !_isValidMeld(group))) throw StateError(_t('إحدى مجموعات التنزيل غير قانونية.', 'One of the selected melds is not legal.'));
       final total = groups.fold<int>(0, (sum, group) => sum + _rummyPoints(group));
       final openingRequired = _localRummyOpeningRequired(0);
-      if (!_localRummyOpened(0) && total < openingRequired) throw StateError('مجموع النزول الأول يجب أن يبلغ $openingRequired نقطة على الأقل.');
+      if (!_localRummyOpened(0) && total < openingRequired) throw StateError(_t('مجموع النزول الأول يجب أن يبلغ $openingRequired نقطة على الأقل.', 'Your opening melds must be worth at least $openingRequired points.'));
       for (final card in all) {
         _hands[0].remove(card);
       }
       for (final group in groups) { _melds.add(group); _meldOwners.add(0); }
       _recordLocalRummyOpening(0, total);
-      _messages.add('$humanName نزّل ${groups.length} مجموعات بقيمة إجمالية $total.');
+      _messages.add(_t('$humanName نزّل ${groups.length} مجموعات بقيمة إجمالية $total.', '$humanName melded ${groups.length} sets worth $total points.'));
       if (_hands[0].isEmpty) _finishRummy(0);
       return;
     }
     if (action == 'layoff') {
       final index = int.tryParse(payload['meld_index']?.toString() ?? '') ?? -1;
       final cards = (payload['cards'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
-      if (!_localRummyOpened(0) || index < 0 || index >= _melds.length || cards.isEmpty || !_containsAll(_hands[0], cards)) throw StateError('التركيب غير متاح.');
+      if (!_localRummyOpened(0) || index < 0 || index >= _melds.length || cards.isEmpty || !_containsAll(_hands[0], cards)) throw StateError(_t('التركيب غير متاح.', 'Adding to that meld is unavailable.'));
       final owner = _meldOwners.length > index ? _meldOwners[index] : 0;
       final sameSide = owner == 0 || (_isHandPartner || gameId == 'banakil') && owner.isEven;
       final combined = <String>[..._melds[index], ...cards];
-      if (!sameSide || !_isValidMeld(combined)) throw StateError('لا يمكن تركيب هذه الأوراق على المجموعة المختارة.');
+      if (!sameSide || !_isValidMeld(combined)) throw StateError(_t('لا يمكن تركيب هذه الأوراق على المجموعة المختارة.', 'Those cards cannot be added to the selected meld.'));
       for (final card in cards) {
         _hands[0].remove(card);
       }
       _melds[index] = combined;
-      _messages.add('$humanName ركّب ${cards.length} ورقة على مجموعة موجودة.');
+      _messages.add(_t('$humanName ركّب ${cards.length} ورقة على مجموعة موجودة.', '$humanName added ${cards.length} card(s) to an existing meld.'));
       if (_hands[0].isEmpty) _finishRummy(0);
       return;
     }
     if (action == 'meld') {
       final cards = (payload['cards'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
       if (!_isValidMeld(cards) || !_containsAll(_hands[0], cards)) {
-        throw StateError('المجموعة المختارة غير قانونية.');
+        throw StateError(_t('المجموعة المختارة غير قانونية.', 'The selected meld is not legal.'));
       }
       final openingRequired = _localRummyOpeningRequired(0);
       final meldPoints = _rummyPoints(cards);
       if (!_localRummyOpened(0) && meldPoints < openingRequired) {
-        throw StateError('مجموع النزول الأول يجب أن يبلغ $openingRequired نقطة على الأقل.');
+        throw StateError(_t('مجموع النزول الأول يجب أن يبلغ $openingRequired نقطة على الأقل.', 'Your opening meld must be worth at least $openingRequired points.'));
       }
       for (final card in cards) {
         _hands[0].remove(card);
@@ -1238,22 +1254,22 @@ class LocalGameSession {
       _melds.add(cards);
       _meldOwners.add(0);
       _recordLocalRummyOpening(0, meldPoints);
-      _messages.add('$humanName نزّل مجموعة من ${cards.length} أوراق بقيمة $meldPoints.');
+      _messages.add(_t('$humanName نزّل مجموعة من ${cards.length} أوراق بقيمة $meldPoints.', '$humanName melded ${cards.length} cards worth $meldPoints points.'));
       if (_hands[0].isEmpty) {
         _finishRummy(0);
       }
       return;
     }
     if (action != 'discard') {
-      throw StateError('اختر ورقة للرمي.');
+      throw StateError(_t('اختر ورقة للرمي.', 'Choose a card to discard.'));
     }
     final card = payload['card']?.toString() ?? '';
     if (!_hands[0].remove(card)) {
-      throw StateError('الورقة غير موجودة في يدك.');
+      throw StateError(_t('الورقة غير موجودة في يدك.', 'That card is not in your hand.'));
     }
     _discard.add(card);
     _starterDiscardPending = false;
-    _messages.add('$humanName رمى ${_prettyCard(card)}');
+    _messages.add(_t('$humanName رمى ${_prettyCard(card)}', '$humanName discarded ${_prettyCard(card)}'));
     if (_hands[0].isEmpty) {
       _finishRummy(0);
       return;
@@ -1281,7 +1297,7 @@ class LocalGameSession {
       _melds.add(meld);
       _meldOwners.add(seat);
       _recordLocalRummyOpening(seat, _rummyPoints(meld));
-      _messages.add('${_seatName(seat)} نزّل مجموعة بقيمة ${_rummyPoints(meld)}.');
+      _messages.add(_t('${_seatName(seat)} نزّل مجموعة بقيمة ${_rummyPoints(meld)}.', '${_seatName(seat)} melded a set worth ${_rummyPoints(meld)} points.'));
     }
     if (_hands[seat].isEmpty) {
       _finishRummy(seat);
@@ -1291,7 +1307,7 @@ class LocalGameSession {
     _hands[seat].remove(discard);
     _discard.add(discard);
     _starterDiscardPending = false;
-    _messages.add('${_seatName(seat)} رمى ${_prettyCard(discard)}');
+    _messages.add(_t('${_seatName(seat)} رمى ${_prettyCard(discard)}', '${_seatName(seat)} discarded ${_prettyCard(discard)}'));
     if (_hands[seat].isEmpty) {
       _finishRummy(seat);
       return;
@@ -1314,9 +1330,9 @@ class LocalGameSession {
       final partner = (winner + 2) % 4;
       _scores[partner] = _scores[winner] ?? 0;
       winnerKey = winner.isEven ? 'user:0' : 'bot:1';
-      _messages.add('فريق ${_seatName(winner)} أنهى اليد وفاز بالجولة.');
+      _messages.add(_t('فريق ${_seatName(winner)} أنهى اليد وفاز بالجولة.', '${_seatName(winner)}’s team emptied their hand and won the round.'));
     } else {
-      _messages.add('${_seatName(winner)} أنهى يده وفاز بالجولة.');
+      _messages.add(_t('${_seatName(winner)} أنهى يده وفاز بالجولة.', '${_seatName(winner)} emptied their hand and won the round.'));
     }
   }
 
@@ -1376,7 +1392,8 @@ class LocalGameSession {
         suggestions.add(List<String>.from(run));
       }
     }
-    return suggestions;
+    // Bots refine this list in place by opening threshold, so keep it growable.
+    return suggestions.where(_isValidMeld).toList();
   }
 
   bool _isValidMeld(List<String> cards) {
@@ -1448,7 +1465,7 @@ class LocalGameSession {
 
   void _basraAction(String action, Map<String, dynamic> payload) {
     if (action != 'play_card') {
-      throw StateError('اختر ورقة للعب.');
+      throw StateError(_t('اختر ورقة للعب.', 'Choose a card to play.'));
     }
     final card = payload['card']?.toString() ?? '';
     _playBasraCard(0, card);
@@ -1457,12 +1474,12 @@ class LocalGameSession {
 
   void _playBasraCard(int seat, String card) {
     if (currentSeat != seat || !_hands[seat].remove(card)) {
-      throw StateError('الحركة غير قانونية.');
+      throw StateError(_t('الحركة غير قانونية.', 'That move is not legal.'));
     }
     final captured = _basraCapture(card);
     if (captured.isEmpty) {
       _table.add(card);
-      _messages.add('${_seatName(seat)} وضع ${_prettyCard(card)}');
+      _messages.add(_t('${_seatName(seat)} وضع ${_prettyCard(card)}', '${_seatName(seat)} placed ${_prettyCard(card)}'));
     } else {
       final clearsTable = captured.length == _table.length;
       for (final item in captured) {
@@ -1474,7 +1491,10 @@ class LocalGameSession {
       if (clearsTable && _cardRank(card) != 'J') {
         _basras[seat] = (_basras[seat] ?? 0) + (card == '7D' ? 2 : 1);
       }
-      _messages.add('${_seatName(seat)} التقط ${captured.length} ورقة${clearsTable ? ' وسجّل باصرة' : ''}.');
+      _messages.add(_t(
+        '${_seatName(seat)} التقط ${captured.length} ورقة${clearsTable ? ' وسجّل باصرة' : ''}.',
+        '${_seatName(seat)} captured ${captured.length} card(s)${clearsTable ? ' and scored a Basra' : ''}.',
+      ));
     }
     currentSeat = (seat + 1) % 2;
     if (_hands[0].isEmpty && _hands[1].isEmpty) {
@@ -1576,7 +1596,7 @@ class LocalGameSession {
     phase = 'finished';
     enginePhase = 'finished';
     winnerKey = (_scores[0] ?? 0) >= (_scores[1] ?? 0) ? 'user:0' : 'bot:1';
-    _messages.add('انتهت الجولة: أنت ${_scores[0]} — الخصم ${_scores[1]}.');
+    _messages.add(_t('انتهت الجولة: أنت ${_scores[0]} — الخصم ${_scores[1]}.', 'Round complete: You ${_scores[0]} — Opponent ${_scores[1]}.'));
   }
 
   void _sortHand(List<String> hand) {
@@ -1692,20 +1712,20 @@ class LocalGameSession {
 
   String _prettyCard(String card) {
     if (card.startsWith('JOKER')) {
-      return 'جوكر';
+      return _t('جوكر', 'Joker');
     }
     return '${_cardRank(card)}${_suitSymbol(_cardSuit(card))}';
   }
 
   String _contractLabel(String value) => switch (value) {
-        'king_hearts' => 'شيخ الكبة',
-        'girls' => 'البنات',
-        'diamonds' => 'الديناري',
-        'tricks' => 'اللطوش',
-        'trix' => 'تركس',
-        'complex' => 'كمبلكس',
-        'sun' => 'صن',
-        'hokm' => 'حكم',
+        'king_hearts' => _t('شيخ الكبة', 'King of hearts'),
+        'girls' => _t('البنات', 'Queens'),
+        'diamonds' => _t('الديناري', 'Diamonds'),
+        'tricks' => _t('اللطوش', 'Tricks'),
+        'trix' => _t('تركس', 'Trix'),
+        'complex' => _t('كمبلكس', 'Complex'),
+        'sun' => _t('صن', 'Sun'),
+        'hokm' => _t('حكم', 'Hokm'),
         _ => value,
       };
 }
