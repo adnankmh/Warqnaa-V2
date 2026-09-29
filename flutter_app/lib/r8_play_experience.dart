@@ -175,10 +175,13 @@ class R8CardHand extends StatelessWidget {
   Widget build(BuildContext context) {
     if (count == 0) return const SizedBox.shrink();
     return LayoutBuilder(builder: (context, constraints) {
-      final width = compact ? 48.0 : 58.0;
+      final viewport = constraints.maxWidth;
+      final width = compact
+          ? (viewport < 340 ? 46.0 : viewport > 900 ? 54.0 : 50.0)
+          : (viewport < 340 ? 54.0 : viewport > 900 ? 68.0 : viewport > 600 ? 64.0 : 58.0);
       final height = width * 1.48;
-      final available = math.max(width, constraints.maxWidth - 16);
-      final step = count <= 1 ? 0.0 : ((available - width) / (count - 1)).clamp(44.0, width + 5).toDouble();
+      final available = math.max(width, viewport - 16);
+      final step = count <= 1 ? 0.0 : ((available - width) / (count - 1)).clamp(44.0, width + 6).toDouble();
       final span = width + step * (count - 1);
       // Keep natural paint order so a raised/selected card never steals the
       // exposed hit area of the card immediately after it.
@@ -207,25 +210,43 @@ class R8TableSeat extends StatelessWidget {
   final int turnSeconds;
   final bool compact;
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: '$name, $detail', button: true,
-    child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(15), child: AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      width: compact ? 78 : 92,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: active ? const Color(0xff214b3b) : const Color(0xe619241f), borderRadius: BorderRadius.circular(15), border: Border.all(color: active ? const Color(0xffffd780) : const Color(0xff54634f), width: active ? 1.8 : .7)),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        SizedBox.square(dimension: compact ? 29 : 38, child: FittedBox(child: avatar)),
-        const SizedBox(height: 3),
-        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: compact ? 9 : 11, fontWeight: FontWeight.w800)),
-        Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: compact ? 8 : 9, color: const Color(0xffd7c89d))),
-        if (active && seconds != null) ...[
-          const SizedBox(height: 4),
-          LinearProgressIndicator(value: (seconds! / math.max(1, turnSeconds)).clamp(0.0, 1.0), minHeight: 3, borderRadius: BorderRadius.circular(3), color: seconds! <= 3 ? Colors.redAccent : const Color(0xffefd18a), backgroundColor: Colors.black26),
-        ],
-      ]),
-    )),
-  );
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
+    final tight = screen.shortestSide < 360;
+    final seatWidth = compact ? (tight ? 72.0 : 80.0) : (tight ? 84.0 : 96.0);
+    final avatarSize = compact ? (tight ? 27.0 : 31.0) : (tight ? 34.0 : 40.0);
+    final radius = tight ? 13.0 : 16.0;
+    return Semantics(
+      label: '$name, $detail', button: true,
+      child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(radius), child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: seatWidth,
+        padding: EdgeInsets.symmetric(horizontal: tight ? 3 : 5, vertical: tight ? 3 : 5),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: active
+                ? const [Color(0xff285944), Color(0xff153c2e)]
+                : const [Color(0xf0222f29), Color(0xf0141d19)],
+          ),
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(color: active ? const Color(0xffffd780) : const Color(0xff56665b), width: active ? 1.8 : .8),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 10, offset: const Offset(0, 5))],
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          SizedBox.square(dimension: avatarSize, child: FittedBox(child: avatar)),
+          const SizedBox(height: 3),
+          Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)),
+          Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: const Color(0xffe0cf9f))),
+          if (active && seconds != null) ...[
+            const SizedBox(height: 4),
+            LinearProgressIndicator(value: (seconds! / math.max(1, turnSeconds)).clamp(0.0, 1.0), minHeight: 3, borderRadius: BorderRadius.circular(3), color: seconds! <= 3 ? Colors.redAccent : const Color(0xffefd18a), backgroundColor: Colors.black26),
+          ],
+        ]),
+      )),
+    );
+  }
 }
 
 /// Rotate presentation only. Engine seat order/team ownership is untouched.
