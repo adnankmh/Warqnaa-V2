@@ -15,7 +15,9 @@ class StoreController
     {
         $catalog->sync();
         if(class_exists('\\App\\Models\\SiteSetting') && !\App\Models\SiteSetting::getValue('store_enabled',true)) return view('store.index',['items'=>collect(),'inventory'=>auth()->user()->inventoryItems()->with('storeItem')->latest()->get(),'storeDisabled'=>true]);
-        $allItems=StoreItem::where('active',true)->orderBy('category')->orderBy('price')->get();
+        $allItems=StoreItem::where('active',true)
+            ->orderByRaw("CASE category WHEN 'table' THEN 10 WHEN 'card_back' THEN 20 WHEN 'pasha' THEN 30 WHEN 'profile_frame' THEN 40 WHEN 'profile_cover' THEN 50 WHEN 'name_frame' THEN 60 WHEN 'name_color' THEN 70 WHEN 'text_color' THEN 80 WHEN 'profile_color' THEN 90 WHEN 'badge' THEN 100 WHEN 'effect' THEN 110 WHEN 'emoji_pack' THEN 120 WHEN 'xp_booster' THEN 130 WHEN 'competition_ticket' THEN 140 ELSE 999 END")
+            ->orderBy('price')->orderBy('id')->get();
         $grouped=$allItems->groupBy(function($item){ return $item->category==='name_frame' ? 'name_color' : $item->category; });
         return view('store.index', [
             'items'=>$grouped,
@@ -40,7 +42,7 @@ class StoreController
         }
 
         $user = auth()->user();
-        if (!$item->duration_days && in_array($item->category, ['badge','table','pasha_style','card_back','name_color','text_color','effect','profile_cover'], true)) {
+        if (!$item->duration_days && in_array($item->category, ['badge','table','pasha_style','card_back','name_color','text_color','profile_color','name_frame','effect','emoji_pack','profile_cover','profile_frame'], true)) {
             if ($user->inventoryItems()->where('store_item_id', $item->id)->exists()) {
                 return $this->friendlyFail('هذا العنصر موجود لديك بالفعل. يمكنك تفعيله من مشترياتي.');
             }
