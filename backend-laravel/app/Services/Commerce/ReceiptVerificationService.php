@@ -14,7 +14,7 @@ class ReceiptVerificationService
 {
     public function verify(string $provider, string $productId, string $receiptToken): array
     {
-        if ((bool)config('warqna_commerce.sandbox', false) && str_starts_with($receiptToken, 'sandbox:')) {
+        if ((bool)config('warqna_commerce.sandbox', false) && str_starts_with($receiptToken,'sandbox:')) {
             return [
                 'verified'=>true,
                 'status'=>'verified',
