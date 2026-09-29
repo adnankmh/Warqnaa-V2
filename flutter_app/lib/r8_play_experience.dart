@@ -177,7 +177,7 @@ class R8CardHand extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       final viewport = constraints.maxWidth;
       final width = compact
-          ? (viewport < 340 ? 46.0 : viewport > 900 ? 54.0 : 50.0)
+          ? (viewport < 340 ? 48.0 : viewport > 900 ? 54.0 : 50.0)
           : (viewport < 340 ? 54.0 : viewport > 900 ? 68.0 : viewport > 600 ? 64.0 : 58.0);
       final height = width * 1.48;
       final available = math.max(width, viewport - 16);
