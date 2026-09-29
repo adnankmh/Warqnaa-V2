@@ -41,6 +41,51 @@ void main() {
     expect(afterStarterDiscard['phase'], 'draw');
   });
 
+  test('Banakil draw and meld flow exposes one combined-meld control', () {
+    Map<String, dynamic>? meldState;
+    LocalGameSession? selectedGame;
+    for (var seed = 0; seed < 400 && meldState == null; seed++) {
+      final game = LocalGameSession(gameId: 'banakil', humanName: 'Adnan', seed: seed);
+      var state = Map<String, dynamic>.from(game.room()['state'] as Map);
+      final discard = (state['available_actions'] as List)
+          .cast<Map>()
+          .firstWhere((action) => action['type'] == 'discard');
+      state = Map<String, dynamic>.from(
+        game.action('discard', <String, dynamic>{'card': discard['card']})['state'] as Map,
+      );
+      if (state['game_over'] == true) continue;
+      expect(state['phase'], 'draw');
+      state = Map<String, dynamic>.from(
+        game.action('draw_deck', const <String, dynamic>{})['state'] as Map,
+      );
+      final melds = (state['available_actions'] as List)
+          .cast<Map>()
+          .where((action) => action['type'] == 'meld')
+          .toList();
+      if (melds.isNotEmpty) {
+        selectedGame = game;
+        meldState = state;
+      }
+    }
+    expect(selectedGame, isNotNull, reason: 'A deterministic Banakil hand should expose a legal meld');
+    final actions = (meldState!['available_actions'] as List).cast<Map>();
+    expect(
+      actions.where((action) => action['type'] == 'meld_many').length,
+      lessThanOrEqualTo(1),
+      reason: 'The table must not render duplicate combined-meld controls',
+    );
+
+    final meld = actions.firstWhere((action) => action['type'] == 'meld');
+    final beforeHand = (meldState['hand'] as List).length;
+    final beforeMelds = (meldState['melds'] as List).length;
+    final after = Map<String, dynamic>.from(
+      selectedGame!.action('meld', <String, dynamic>{'cards': meld['cards']})['state'] as Map,
+    );
+    expect((after['hand'] as List).length, beforeHand - (meld['cards'] as List).length);
+    expect((after['melds'] as List).length, beforeMelds + 1);
+    expect(after['phase'], anyOf('discard', 'finished'));
+  });
+
   test('Basra deals four cards to the player and four to table', () {
     final game = LocalGameSession(gameId: 'basra', humanName: 'Adnan', seed: 15);
     final state = Map<String, dynamic>.from(game.room()['state'] as Map);
@@ -158,6 +203,47 @@ void main() {
         expect(state['hand'], isA<List>(), reason: '${ids[index]} / $difficulty');
         expect((state['hand'] as List).isNotEmpty, isTrue, reason: '${ids[index]} / $difficulty');
       }
+    }
+  });
+
+  test('every curated local game can finish and restart a complete match', () {
+    const ids = <String>[
+      'tarneeb',
+      'syrian_tarneeb',
+      'tarneeb_400',
+      'trix',
+      'trix_partner',
+      'trix_complex',
+      'hand',
+      'hand_partner',
+      'saudi_hand',
+      'banakil',
+      'baloot',
+      'basra',
+    ];
+    for (var index = 0; index < ids.length; index++) {
+      final game = LocalGameSession(
+        gameId: ids[index],
+        humanName: 'Adnan',
+        localeCode: 'en',
+        difficulty: 'master',
+        seed: 2400 + index,
+      );
+      var room = game.room();
+      var steps = 0;
+      while (room['state']['game_over'] != true && steps < 8000) {
+        room = game.timeout();
+        steps++;
+      }
+      expect(room['state']['game_over'], isTrue, reason: '${ids[index]} stalled after $steps actions');
+      expect(room['state']['winner'], isNotNull, reason: '${ids[index]} must publish a winner');
+
+      final restarted = game.action('new_round', const <String, dynamic>{});
+      final state = Map<String, dynamic>.from(restarted['state'] as Map);
+      expect(state['game_over'], isFalse, reason: '${ids[index]} restart');
+      expect(state['round'], 1, reason: '${ids[index]} restart round');
+      expect(state['winner'], isNull, reason: '${ids[index]} restart winner');
+      expect((state['hand'] as List).isNotEmpty, isTrue, reason: '${ids[index]} restart hand');
     }
   });
 

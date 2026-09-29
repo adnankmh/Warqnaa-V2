@@ -538,11 +538,19 @@ class LocalGameSession {
     } else if (phase == 'choose_trump') {
       _trickAction('choose_trump', <String, dynamic>{'suit': _bestSuit(_hands[0])});
     } else if (phase == 'choose_contract') {
-      _trickAction('choose_contract', <String, dynamic>{'contract': _isBaloot ? 'sun' : (gameId == 'trix_complex' ? 'complex' : 'tricks')});
+      final choices = gameId == 'trix_complex'
+          ? <String>['complex', 'trix']
+          : <String>['tricks', 'girls', 'diamonds', 'king_hearts', 'trix'];
+      final nextContract = _isBaloot
+          ? 'sun'
+          : choices.firstWhere((value) => !_trixContractsUsed.contains(value));
+      _trickAction('choose_contract', <String, dynamic>{'contract': nextContract});
     } else {
       final legal = _legalCardsFor(0);
       if (legal.isNotEmpty) {
         _trickAction('play_card', <String, dynamic>{'card': legal.first});
+      } else if (_isTrix && phase == 'trix_playing') {
+        _trickAction('pass_trix', const <String, dynamic>{});
       }
     }
     return room();
