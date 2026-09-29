@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
+import 'package:warqna_mobile/engines/local_game_engine.dart';
 import 'package:warqna_mobile/models/room_launch_options.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
 import 'r7_runtime_review_test.dart' show reviewApp;
@@ -50,6 +51,66 @@ void main() {
       await (FontLoader('MaterialIcons')..addFont(File(icons).readAsBytes().then(ByteData.sublistView))).load();
     }
   });
+
+  for (final locale in ['ar', 'en']) {
+    testWidgets('Trix shows a clear pass control when no card is legal in $locale', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      LocalGameSession? passingGame;
+      Map<String, dynamic>? passingRoom;
+      for (var seed = 0; seed < 500 && passingGame == null; seed++) {
+        final game = LocalGameSession(gameId: 'trix', humanName: 'Adnan', localeCode: locale, seed: seed);
+        var candidate = game.action('choose_contract', const <String, dynamic>{'contract': 'trix'});
+        for (var step = 0; step < 160 && candidate['state']['game_over'] != true; step++) {
+          final actions = (candidate['state']['available_actions'] as List).cast<Map>();
+          if (actions.any((action) => action['type'] == 'pass_trix')) {
+            passingGame = game;
+            passingRoom = Map<String, dynamic>.from(candidate);
+            break;
+          }
+          candidate = game.timeout();
+        }
+      }
+      expect(passingGame, isNotNull, reason: 'A deterministic Trix deal must reach a blocked player');
+
+      final controller = AppController()..localeCode = locale;
+      await controller.loginAsLocalAdmin();
+      final key = GlobalKey();
+      final gameInfo = gamesCatalog.firstWhere((game) => game.id == 'trix');
+      await tester.pumpWidget(reviewApp(
+        GameRoomPage(controller: controller, game: gameInfo, options: const RoomLaunchOptions(turnSeconds: 120)),
+        controller,
+        key,
+      ));
+      await tester.pump(const Duration(milliseconds: 200));
+
+      final dynamic table = tester.state(find.byType(ServerEngineRoomPage));
+      table.localSession = passingGame;
+      table.room = passingRoom;
+      table.seconds = 120;
+      table.setState(() {});
+      await tester.pump();
+
+      final label = locale == 'ar' ? 'مرّر' : 'Pass';
+      final pass = find.widgetWithText(OutlinedButton, label);
+      expect(pass, findsOneWidget);
+      expect(find.text(locale == 'ar' ? 'تشغيل الحركة التلقائية' : 'Auto play'), findsNothing);
+      await snapshot(tester, key, '$locale-trix-pass-control');
+
+      final beforeMessages = (table.state['messages'] as List).length;
+      await tester.tap(pass);
+      await tester.pump(const Duration(milliseconds: 350));
+      expect((table.state['messages'] as List).length, greaterThan(beforeMessages));
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 6));
+      controller.dispose();
+    });
+  }
 
   for (final locale in ['ar', 'en']) {
     for (final size in [const Size(320, 640), const Size(390, 844), const Size(844, 390), const Size(1280, 800)]) {

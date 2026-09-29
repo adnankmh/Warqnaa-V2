@@ -6550,6 +6550,13 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     if (types.contains('pass') || (availableActions.isEmpty && (widget.game.id == 'domino' || widget.game.id == 'backgammon'))) {
       widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('pass'), child: Text(_roomText('سكون', 'Pass'))));
     }
+    if (types.contains('pass_trix')) {
+      widgets.add(OutlinedButton.icon(
+        onPressed: sending ? null : () => _action('pass_trix'),
+        icon: const Icon(Icons.skip_next_rounded, size: 18),
+        label: Text(_roomText('مرّر', 'Pass')),
+      ));
+    }
 
     final trumpActions = availableActions.where((item) => item['type'] == 'choose_trump').toList();
     if (trumpActions.isNotEmpty || enginePhase.contains('trump')) {

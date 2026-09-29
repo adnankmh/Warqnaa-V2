@@ -100,6 +100,40 @@ void main() {
     expect(state['phase'], 'choose_contract');
   });
 
+  test('Trix exposes and accepts an explicit pass only when no card is legal', () {
+    LocalGameSession? passingGame;
+    Map<String, dynamic>? passingState;
+    for (var seed = 0; seed < 500 && passingGame == null; seed++) {
+      final game = LocalGameSession(gameId: 'trix', humanName: 'Adnan', seed: seed);
+      var room = game.action('choose_contract', const <String, dynamic>{'contract': 'trix'});
+      for (var step = 0; step < 160 && room['state']['game_over'] != true; step++) {
+        final state = Map<String, dynamic>.from(room['state'] as Map);
+        final actions = (state['available_actions'] as List).cast<Map>();
+        if (actions.any((action) => action['type'] == 'pass_trix')) {
+          passingGame = game;
+          passingState = state;
+          break;
+        }
+        room = game.timeout();
+      }
+    }
+
+    expect(passingGame, isNotNull, reason: 'A deterministic Trix deal must reach a blocked player');
+    expect(passingState!['phase'], 'trix_playing');
+    expect(passingState['legal_cards'], isEmpty);
+    expect(
+      (passingState['available_actions'] as List).cast<Map>().where((action) => action['type'] == 'pass_trix'),
+      hasLength(1),
+    );
+
+    final beforeMessages = (passingState['messages'] as List).length;
+    final after = Map<String, dynamic>.from(
+      passingGame!.action('pass_trix', const <String, dynamic>{})['state'] as Map,
+    );
+    expect((after['messages'] as List).length, greaterThan(beforeMessages));
+    expect((after['messages'] as List).join(' '), contains('مرّر'));
+  });
+
   test('Baloot deals eight cards and offers sun or hokm', () {
     final game = LocalGameSession(gameId: 'baloot', humanName: 'Adnan', seed: 23);
     final state = Map<String, dynamic>.from(game.room()['state'] as Map);
