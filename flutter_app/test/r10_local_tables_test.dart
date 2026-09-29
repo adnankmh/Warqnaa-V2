@@ -113,6 +113,92 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
+    testWidgets('trick table blocks an illegal card before sending it in $locale', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      LocalGameSession? constrainedGame;
+      Map<String, dynamic>? constrainedRoom;
+      for (var seed = 0; seed < 500 && constrainedGame == null; seed++) {
+        final game = LocalGameSession(gameId: 'trix', humanName: 'Adnan', localeCode: locale, seed: seed);
+        var candidate = game.action('choose_contract', const <String, dynamic>{'contract': 'king_hearts'});
+        for (var step = 0; step < 160 && candidate['state']['game_over'] != true; step++) {
+          final state = Map<String, dynamic>.from(candidate['state'] as Map);
+          final hand = (state['hand'] as List).map((card) => card.toString()).toList();
+          final legal = (state['legal_cards'] as List).map((card) => card.toString()).toList();
+          if (legal.isNotEmpty && legal.length < hand.length) {
+            constrainedGame = game;
+            constrainedRoom = Map<String, dynamic>.from(candidate);
+            break;
+          }
+          candidate = game.timeout();
+        }
+      }
+      expect(constrainedGame, isNotNull, reason: 'A deterministic trick must require following suit');
+
+      final controller = AppController()..localeCode = locale;
+      await controller.loginAsLocalAdmin();
+      final key = GlobalKey();
+      final gameInfo = gamesCatalog.firstWhere((game) => game.id == 'trix');
+      await tester.pumpWidget(reviewApp(
+        GameRoomPage(controller: controller, game: gameInfo, options: const RoomLaunchOptions(turnSeconds: 120)),
+        controller,
+        key,
+      ));
+      await tester.pump(const Duration(milliseconds: 200));
+
+      final dynamic table = tester.state(find.byType(ServerEngineRoomPage));
+      table.localSession = constrainedGame;
+      table.room = constrainedRoom;
+      table.seconds = 120;
+      table.setState(() {});
+      await tester.pump();
+
+      final state = Map<String, dynamic>.from(constrainedRoom!['state'] as Map);
+      final hand = (state['hand'] as List).map((card) => card.toString()).toList();
+      final legal = (state['legal_cards'] as List).map((card) => card.toString()).toList();
+      final illegalCard = hand.firstWhere((card) => !legal.contains(card));
+      final legalCard = legal.first;
+      String cardLabel(String value) => value
+          .replaceAll('_', '')
+          .replaceAll('C', '♣')
+          .replaceAll('D', '♦')
+          .replaceAll('S', '♠')
+          .replaceAll('H', '♥');
+      Finder card(String value) => find.descendant(
+        of: find.byType(R8CardHand),
+        matching: find.byWidgetPredicate((widget) => widget is PlayingCard && widget.label == cardLabel(value)),
+      );
+
+      await tester.ensureVisible(card(illegalCard));
+      await tester.tapAt(tester.getTopLeft(card(illegalCard)) + const Offset(8, 8));
+      await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
+      final blockedLabel = locale == 'ar' ? 'هذه الورقة غير قانونية' : 'This card is not legal';
+      final blocked = find.widgetWithText(FilledButton, blockedLabel);
+      expect(blocked, findsOneWidget);
+      expect(tester.widget<FilledButton>(blocked).onPressed, isNull);
+      await snapshot(tester, key, '$locale-trix-illegal-card-guard');
+
+      await tester.ensureVisible(card(legalCard));
+      await tester.tapAt(tester.getTopLeft(card(legalCard)) + const Offset(8, 8));
+      await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
+      final play = find.widgetWithText(FilledButton, locale == 'ar' ? 'لعب الورقة' : 'Play card');
+      expect(tester.widget<FilledButton>(play).onPressed, isNotNull);
+      final beforeHand = (table.state['hand'] as List).length;
+      await tester.tap(play);
+      await tester.pump(const Duration(milliseconds: 350));
+      expect((table.state['hand'] as List).length, beforeHand - 1);
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 6));
+      controller.dispose();
+    });
+  }
+
+  for (final locale in ['ar', 'en']) {
     for (final size in [const Size(320, 640), const Size(390, 844), const Size(844, 390), const Size(1280, 800)]) {
       for (final game in gamesCatalog.where((game) => !game.serverOnly)) {
         testWidgets('offline table ${game.id} $locale $size', (tester) async {

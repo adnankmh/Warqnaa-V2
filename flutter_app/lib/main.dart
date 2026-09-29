@@ -6522,6 +6522,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               (item) => item?['card']?.toString() == selectedCard && {'play_card', 'discard', 'move_to_foundation', 'play_tile'}.contains(item?['type']?.toString()),
               orElse: () => null,
             );
+    final selectedCardIsLegal = selectedCard == null || legal.isEmpty || legal.contains(selectedCard);
 
     if (selectedCard != null) {
       final fallback = widget.game.id == 'domino'
@@ -6531,15 +6532,15 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               : 'play_card';
       final action = matchingCardAction?['type']?.toString() ?? fallback;
       widgets.add(FilledButton.icon(
-        onPressed: sending
+        onPressed: sending || !selectedCardIsLegal
             ? null
             : () => action == 'play_tile'
                 ? _playDominoTile(selectedCard!)
                 : widget.game.id == 'jackaroo'
                     ? _playJackarooCard(selectedCard!, matchingCardAction)
                     : _action(action, {'card': selectedCard, 'tile': selectedCard}),
-        icon: Icon(action == 'discard' ? Icons.delete_sweep_outlined : Icons.style),
-        label: Text(action == 'discard' ? _roomText('رمي الورقة', 'Discard card') : action == 'move_to_foundation' ? _roomText('إلى الأساس', 'To foundation') : action == 'play_tile' ? _roomText('لعب الحجر', 'Play tile') : _roomText('لعب الورقة', 'Play card')),
+        icon: Icon(!selectedCardIsLegal ? Icons.block_rounded : action == 'discard' ? Icons.delete_sweep_outlined : Icons.style),
+        label: Text(!selectedCardIsLegal ? _roomText('هذه الورقة غير قانونية', 'This card is not legal') : action == 'discard' ? _roomText('رمي الورقة', 'Discard card') : action == 'move_to_foundation' ? _roomText('إلى الأساس', 'To foundation') : action == 'play_tile' ? _roomText('لعب الحجر', 'Play tile') : _roomText('لعب الورقة', 'Play card')),
       ));
     }
 
