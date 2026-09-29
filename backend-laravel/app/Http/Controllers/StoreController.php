@@ -14,6 +14,7 @@ class StoreController
     public function index(StoreCatalogService $catalog, CommerceCatalogService $commerce)
     {
         $catalog->sync();
+        if(auth()->check() && auth()->user()->admin_role==='primary_admin') app(\App\Services\Admin\PrimaryAdminStateService::class)->enforce(auth()->user());
         if(class_exists('\\App\\Models\\SiteSetting') && !\App\Models\SiteSetting::getValue('store_enabled',true)) return view('store.index',['items'=>collect(),'inventory'=>auth()->user()->inventoryItems()->with('storeItem')->latest()->get(),'storeDisabled'=>true]);
         $allItems=StoreItem::where('active',true)
             ->orderByRaw("CASE category WHEN 'table' THEN 10 WHEN 'card_back' THEN 20 WHEN 'pasha' THEN 30 WHEN 'profile_frame' THEN 40 WHEN 'profile_cover' THEN 50 WHEN 'name_frame' THEN 60 WHEN 'name_color' THEN 70 WHEN 'text_color' THEN 80 WHEN 'profile_color' THEN 90 WHEN 'badge' THEN 100 WHEN 'effect' THEN 110 WHEN 'emoji_pack' THEN 120 WHEN 'xp_booster' THEN 130 WHEN 'competition_ticket' THEN 140 ELSE 999 END")
