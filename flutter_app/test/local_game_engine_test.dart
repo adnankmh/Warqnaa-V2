@@ -232,7 +232,26 @@ void main() {
       var room = game.room();
       var steps = 0;
       while (room['state']['game_over'] != true && steps < 8000) {
-        room = game.timeout();
+        final state = Map<String, dynamic>.from(room['state'] as Map);
+        if (const <String>{'hand', 'hand_partner', 'saudi_hand', 'banakil'}.contains(ids[index])) {
+          final actions = (state['available_actions'] as List).cast<Map>();
+          if (state['phase'] == 'draw') {
+            room = game.action('draw_deck', const <String, dynamic>{});
+          } else {
+            final playable = actions.where(
+              (action) => const <String>{'meld_many', 'meld', 'layoff'}.contains(action['type']),
+            );
+            final selected = playable.isNotEmpty
+                ? playable.first
+                : actions.firstWhere((action) => action['type'] == 'discard');
+            room = game.action(
+              selected['type'].toString(),
+              Map<String, dynamic>.from(selected),
+            );
+          }
+        } else {
+          room = game.timeout();
+        }
         steps++;
       }
       expect(room['state']['game_over'], isTrue, reason: '${ids[index]} stalled after $steps actions');

@@ -412,11 +412,15 @@ class LocalGameSession {
       ];
       if (_starterDiscardPending) return actions;
       final suggestions = _meldSuggestions(_hands[0]);
+      final openingRequired = _localRummyOpeningRequired(0);
       for (final meld in suggestions) {
-        actions.add(<String, dynamic>{'type': 'meld', 'cards': meld});
+        if (_localRummyOpened(0) || _rummyPoints(meld) >= openingRequired) {
+          actions.add(<String, dynamic>{'type': 'meld', 'cards': meld});
+        }
       }
       final multiple = _nonOverlappingMelds(suggestions);
-      if (multiple.length >= 2) {
+      final multiplePoints = multiple.fold<int>(0, (sum, meld) => sum + _rummyPoints(meld));
+      if (multiple.length >= 2 && (_localRummyOpened(0) || multiplePoints >= openingRequired)) {
         actions.add(<String, dynamic>{'type': 'meld_many', 'groups': multiple});
       }
       if (_localRummyOpened(0)) {
@@ -1388,7 +1392,7 @@ class LocalGameSession {
         suggestions.add(List<String>.from(run));
       }
     }
-    return suggestions;
+    return suggestions.where(_isValidMeld).toList(growable: false);
   }
 
   bool _isValidMeld(List<String> cards) {
