@@ -172,6 +172,6 @@ class MobileEngagementController extends Controller
     private function walletPayload($user): array
     {
         $wallet = $user->wallet()->firstOrCreate(['user_id'=>$user->id], ['tokens'=>50,'gems'=>0]);
-        return ['tokens'=>(string)$wallet->tokens,'gems'=>(string)$wallet->gems];
+        return ['tokens'=>$user->displayTokenBalance(),'gems'=>(string)$wallet->gems];
     }
 }

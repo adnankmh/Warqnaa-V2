@@ -4,12 +4,9 @@ import re, subprocess, sys
 
 ROOT=Path(__file__).resolve().parents[1]
 SKIP={'.git','vendor','node_modules','build','.dart_tool','.idea','.gradle'}
-# Construct privileged literals so the privacy gate does not publish them itself.
-BAD_LITERALS=(
-    'Adnan'+'123',
-    'Abd'+'Abd'+'123',
-    'adnanasd63'+'@gmail.com',
-)
+# Never publish real privileged account identifiers or passwords in this gate.
+# Secret-bearing local files are rejected by name/suffix; deployment credentials live only in environment/secret stores.
+BAD_LITERALS=()
 BAD_NAMES={'.env','.warqnaa-admin.local.env','auth.json','key.properties','id_rsa','id_ed25519','LOCAL_ADMIN_ACCESS.txt'}
 BAD_SUFFIXES={'.sqlite','.sqlite3','.db','.jks','.keystore','.p8','.p12','.pem','.key','.sql','.dump','.bak'}
 BAD_PATTERNS=(re.compile(r'^service-account.*\.json$',re.I),re.compile(r'^firebase-admin.*\.json$',re.I),re.compile(r'^credentials.*\.json$',re.I))

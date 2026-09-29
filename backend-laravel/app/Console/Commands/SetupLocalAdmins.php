@@ -21,8 +21,8 @@ class SetupLocalAdmins extends Command
 
         $accounts=[
             [
-                'username'=>trim((string)env('WARQNAA_LOCAL_ADMIN_USERNAME','PrimaryAdmin')),
-                'email'=>trim((string)env('WARQNAA_LOCAL_ADMIN_EMAIL','admin@warqnaa.local')),
+                'username'=>trim((string)env('WARQNAA_LOCAL_ADMIN_USERNAME','Adnan')),
+                'email'=>trim((string)env('WARQNAA_LOCAL_ADMIN_EMAIL','adnan.admin@warqnaa.local')),
                 'password'=>(string)env('WARQNAA_LOCAL_ADMIN_PASSWORD',''),
             ],
             [

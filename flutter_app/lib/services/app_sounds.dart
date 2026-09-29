@@ -22,7 +22,6 @@ class AppSounds {
   static final Map<String, AudioPlayer> _players = <String, AudioPlayer>{};
   static final Map<String, DateTime> _lastPlayed = <String, DateTime>{};
 
-
   static SoundChannel channelFor(String cue) {
     if (<String>{'card_play','deal','shuffle','round_end','next_round','bid'}.contains(cue)) return SoundChannel.cards;
     if (<String>{'emoji','reaction','gift'}.contains(cue)) return SoundChannel.reactions;
@@ -35,20 +34,31 @@ class AppSounds {
     channelVolumes[channel] = value.clamp(0.0, 1.0).toDouble();
   }
 
-  static Future<void> play(String cue, {double? volumeOverride, Duration throttle = const Duration(milliseconds: 45)}) async {
+  static const Map<String, String> _cueAliases = <String, String>{
+    'reaction': 'emoji',
+    'reaction_fun': 'emoji',
+    'reaction_power': 'card_combo',
+    'reaction_victory': 'legendary_emote',
+    'reaction_pasha': 'legendary_emote',
+    'reaction_mood': 'emoji',
+    'reaction_friendly': 'emoji',
+  };
+
+  static Future<void> play(String requestedCue, {double? volumeOverride, Duration throttle = const Duration(milliseconds: 45)}) async {
     if (!enabled) return;
     final now = DateTime.now();
-    final previous = _lastPlayed[cue];
+    final previous = _lastPlayed[requestedCue];
     if (previous != null && now.difference(previous) < throttle) return;
-    _lastPlayed[cue] = now;
+    _lastPlayed[requestedCue] = now;
+    final cue = _cueAliases[requestedCue] ?? requestedCue;
     try {
-      final player = _players.putIfAbsent(cue, AudioPlayer.new);
+      final player = _players.putIfAbsent(requestedCue, AudioPlayer.new);
       await player.stop();
-      final channelVolume = channelVolumes[channelFor(cue)] ?? 1.0;
+      final channelVolume = channelVolumes[channelFor(requestedCue)] ?? 1.0;
       final effectiveVolume = (volumeOverride ?? (volume * channelVolume)).clamp(0.0, 1.0).toDouble();
       await player.play(AssetSource('sounds/r10/$cue.ogg'), volume: effectiveVolume);
     } catch (error) {
-      debugPrint('Sound cue $cue skipped: $error');
+      debugPrint('Sound cue $requestedCue ($cue) skipped: $error');
     }
   }
 

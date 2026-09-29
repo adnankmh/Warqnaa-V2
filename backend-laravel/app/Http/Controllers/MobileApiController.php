@@ -557,10 +557,11 @@ class MobileApiController extends Controller
     private function walletPayload(User $user): array
     {
         $wallet = $user->wallet()->firstOrCreate(['user_id' => $user->id], ['tokens' => 50, 'gems' => 0]);
+        $displayTokens = $user->displayTokenBalance();
         return [
             'id' => $wallet->id,
-            'tokens' => (string) $wallet->tokens,
-            'tokens_formatted' => number_format((int) $wallet->tokens),
+            'tokens' => $displayTokens,
+            'tokens_formatted' => number_format((int) $displayTokens),
             'gems' => (string) $wallet->gems,
         ];
     }
