@@ -1392,7 +1392,8 @@ class LocalGameSession {
         suggestions.add(List<String>.from(run));
       }
     }
-    return suggestions.where(_isValidMeld).toList(growable: false);
+    // Bots refine this list in place by opening threshold, so keep it growable.
+    return suggestions.where(_isValidMeld).toList();
   }
 
   bool _isValidMeld(List<String> cards) {
