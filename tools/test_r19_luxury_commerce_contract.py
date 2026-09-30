@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = (ROOT / 'flutter_app/lib/r10_1_release.dart').read_text(encoding='utf-8')
+PROFILE = (ROOT / 'flutter_app/lib/v304_vertical_legend.dart').read_text(encoding='utf-8')
 
 checks = {
     'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.1+710-luxury-commerce'" in SRC,
@@ -15,6 +16,17 @@ checks = {
     'client success cannot grant tokens': 'Client success alone never grants tokens.' in SRC,
     'raw card data warning retained': 'No raw card storage' in SRC,
     'offer cadence palette': all(x in SRC for x in ["'daily' =>", "'weekly' =>", "'monthly' =>", "'annual' =>"]),
+    'luxury profile collection': all(x in PROFILE for x in [
+        'r19_profile_midnight_cyan_30d',
+        'r19_profile_obsidian_gold_30d',
+        'r19_profile_royal_crimson_30d',
+        'r19_profile_sapphire_pasha_30d',
+        'r19_profile_aurora_luxe_30d',
+        'r19_profile_emerald_crown_30d',
+    ]),
+    'profile colours remain real store products': PROFILE.count("category:'profile_colors'") >= 12,
+    'profile gradient remains selected-product driven': 'storeProductById(controller.selectedProfileColorB304)' in PROFILE,
+    'luxury profile products expire safely': PROFILE.count("collection:'r19_luxury_profile'") == 6 and PROFILE.count('durationDays:30') >= 12,
 }
 
 failed = [name for name, ok in checks.items() if not ok]
