@@ -218,26 +218,7 @@ class R19PashaProfileHero extends StatelessWidget {
                     InkWell(
                       onTap: () => showAvatarPicker(context, controller),
                       borderRadius: BorderRadius.circular(80),
-                      child: Stack(clipBehavior: Clip.none, children: <Widget>[
-                        AccountAvatar(controller: controller, size: avatarSize),
-                        if (pashaActive)
-                          PositionedDirectional(
-                            end: -7,
-                            top: -13,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xff07111d).withValues(alpha: .90),
-                                border: Border.all(color: pashaAccent.withValues(alpha: .72)),
-                                boxShadow: <BoxShadow>[BoxShadow(color: pashaAccent.withValues(alpha: .34), blurRadius: 12)],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(5),
-                                child: PashaHatV173(controller: controller, width: compact ? 35 : 41, height: compact ? 25 : 29),
-                              ),
-                            ),
-                          ),
-                      ]),
+                      child: AccountAvatar(controller: controller, size: avatarSize),
                     ),
                     SizedBox(width: compact ? 11 : 15),
                     Expanded(

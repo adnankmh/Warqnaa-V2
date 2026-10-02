@@ -4,6 +4,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = (ROOT / 'flutter_app/lib/r10_1_release.dart').read_text(encoding='utf-8')
 PROFILE = (ROOT / 'flutter_app/lib/v304_vertical_legend.dart').read_text(encoding='utf-8')
 WORLD = (ROOT / 'flutter_app/lib/r6_1_world_class.dart').read_text(encoding='utf-8')
+AVATAR = (ROOT / 'flutter_app/lib/v170_global.dart').read_text(encoding='utf-8')
+MAIN = (ROOT / 'flutter_app/lib/main.dart').read_text(encoding='utf-8')
 PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
 WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
 RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
@@ -39,6 +41,12 @@ checks = {
         "b304ProfileGradient(controller)",
     ]),
     'real profile uses R19 identity hero': 'R19PashaProfileHero(controller: controller)' in WORLD,
+    'Pasha avatar uses the selected style once': (
+        'final String? pashaAsset;' in AVATAR
+        and "pashaAsset ?? 'assets/images/pasha.png'" in AVATAR
+        and 'pashaAsset: controller.activePashaStyleV173.asset' in MAIN
+        and 'PashaHatV173(controller: controller, width: compact' not in SRC
+    ),
     'R19 profile widget regression exists': WIDGET_TEST.is_file(),
     'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
         "controller.selectedPashaStyle = 'blue'",

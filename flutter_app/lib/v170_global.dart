@@ -22,6 +22,7 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
               bytes: AccountAvatar(controller: controller)._decode(),
               color: colorFromHex(controller.selectedNameColor),
               pasha: controller.vipDays > 0,
+              pashaAsset: controller.activePashaStyleV173.asset,
               size: 42,
             ),
             const SizedBox(width: 8),
@@ -388,8 +389,9 @@ class _PashaColorAvatarV170 extends StatelessWidget {
   final Uint8List? bytes;
   final Color color;
   final bool pasha;
+  final String? pashaAsset;
   final double size;
-  const _PashaColorAvatarV170({required this.name, required this.emoji, required this.bytes, required this.color, required this.pasha, required this.size});
+  const _PashaColorAvatarV170({required this.name, required this.emoji, required this.bytes, required this.color, required this.pasha, required this.size, this.pashaAsset});
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -404,9 +406,25 @@ class _PashaColorAvatarV170 extends StatelessWidget {
           ),
           if (pasha)
             Positioned(
-              top: -8,
-              right: -5,
-              child: Image.asset('assets/images/pasha.png', width: size * .75, height: size * .55, fit: BoxFit.contain),
+              top: -5,
+              right: -4,
+              child: Container(
+                width: size * .50,
+                height: size * .38,
+                padding: EdgeInsets.all(size * .025),
+                decoration: BoxDecoration(
+                  color: const Color(0xff07111d).withValues(alpha: .90),
+                  borderRadius: BorderRadius.circular(size),
+                  border: Border.all(color: color.withValues(alpha: .68)),
+                  boxShadow: <BoxShadow>[BoxShadow(color: color.withValues(alpha: .32), blurRadius: size * .10)],
+                ),
+                child: Image.asset(
+                  pashaAsset ?? 'assets/images/pasha.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (_, __, ___) => const Center(child: Text('👑')),
+                ),
+              ),
             ),
         ]),
       );

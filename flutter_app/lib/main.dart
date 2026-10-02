@@ -7258,6 +7258,7 @@ class AccountAvatar extends StatelessWidget {
         bytes: _decode(),
         color: colorFromHex(controller.selectedNameColor),
         pasha: controller.vipDays > 0,
+        pashaAsset: controller.activePashaStyleV173.asset,
         size: size,
       );
 }
