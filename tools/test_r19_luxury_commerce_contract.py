@@ -3,6 +3,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC = (ROOT / 'flutter_app/lib/r10_1_release.dart').read_text(encoding='utf-8')
 PROFILE = (ROOT / 'flutter_app/lib/v304_vertical_legend.dart').read_text(encoding='utf-8')
+WORLD = (ROOT / 'flutter_app/lib/r6_1_world_class.dart').read_text(encoding='utf-8')
+PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
+WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
 
 checks = {
     'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.1+710-luxury-commerce'" in SRC,
@@ -27,6 +30,16 @@ checks = {
     'profile colours remain real store products': PROFILE.count("category:'profile_colors'") >= 12,
     'profile gradient remains selected-product driven': 'storeProductById(controller.selectedProfileColorB304)' in PROFILE,
     'luxury profile products expire safely': PROFILE.count("collection:'r19_luxury_profile'") == 6 and PROFILE.count('durationDays:30') >= 12,
+    'responsive Pasha profile hero': all(x in SRC for x in [
+        'class R19PashaProfileHero',
+        "constraints.maxWidth < 420",
+        "MediaQuery.maybeOf(context)?.disableAnimations",
+        "controller.activePashaStyleV173",
+        "b304ProfileGradient(controller)",
+    ]),
+    'real profile uses R19 identity hero': 'R19PashaProfileHero(controller: controller)' in WORLD,
+    'R19 profile widget regression exists': WIDGET_TEST.is_file(),
+    'R19 contract is part of release preflight': 'test_r19_luxury_commerce_contract.py' in PREFLIGHT,
 }
 
 failed = [name for name, ok in checks.items() if not ok]

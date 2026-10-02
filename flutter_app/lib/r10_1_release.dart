@@ -156,6 +156,179 @@ Color r19OfferAccent(String cadence) => switch (cadence) {
   _ => const Color(0xff25e4df),
 };
 
+/// R19 identity header shared by the full profile surface.
+///
+/// The purchased profile gradient remains the backdrop while the active
+/// Pasha style supplies only the identity accent. This keeps both cosmetic
+/// selections visible without changing membership, gameplay, or economy.
+class R19PashaProfileHero extends StatelessWidget {
+  const R19PashaProfileHero({super.key, required this.controller});
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final pashaActive = controller.vipDays > 0;
+    final pashaStyle = controller.activePashaStyleV173;
+    final pashaAccent = colorFromHex(pashaStyle.primaryHex);
+    final profileProduct = storeProductById(controller.selectedProfileColorB304);
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    return Semantics(
+      label: 'r19-pasha-profile-hero',
+      container: true,
+      child: ProfileCover(
+        coverId: controller.selectedCover,
+        height: 258,
+        colors: b304ProfileGradient(controller),
+        animated: !reduceMotion,
+        child: LayoutBuilder(builder: (context, constraints) {
+          final compact = constraints.maxWidth < 420;
+          final avatarSize = compact ? 92.0 : 112.0;
+          return Stack(children: <Widget>[
+            PositionedDirectional(
+              top: 14,
+              start: 14,
+              child: _R19IdentityPill(
+                key: const Key('r19-pasha-membership'),
+                icon: pashaActive ? Icons.workspace_premium_rounded : Icons.workspace_premium_outlined,
+                label: pashaActive
+                    ? (ar ? 'باشا • ${controller.vipDays} يوم' : 'Pasha • ${controller.vipDays} days')
+                    : (ar ? 'الباشا غير فعّال' : 'Pasha inactive'),
+                accent: pashaActive ? pashaAccent : Colors.white70,
+              ),
+            ),
+            PositionedDirectional(
+              top: 14,
+              end: 14,
+              child: _R19IdentityPill(
+                key: const Key('r19-pasha-style'),
+                icon: Icons.palette_outlined,
+                label: ar ? pashaStyle.nameAr : pashaStyle.nameEn,
+                accent: pashaAccent,
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(compact ? 14 : 18, 70, compact ? 14 : 18, 17),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
+                    InkWell(
+                      onTap: () => showAvatarPicker(context, controller),
+                      borderRadius: BorderRadius.circular(80),
+                      child: Stack(clipBehavior: Clip.none, children: <Widget>[
+                        AccountAvatar(controller: controller, size: avatarSize),
+                        if (pashaActive)
+                          PositionedDirectional(
+                            end: -7,
+                            top: -13,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xff07111d).withValues(alpha: .90),
+                                border: Border.all(color: pashaAccent.withValues(alpha: .72)),
+                                boxShadow: <BoxShadow>[BoxShadow(color: pashaAccent.withValues(alpha: .34), blurRadius: 12)],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: PashaHatV173(controller: controller, width: compact ? 35 : 41, height: compact ? 25 : 29),
+                              ),
+                            ),
+                          ),
+                      ]),
+                    ),
+                    SizedBox(width: compact ? 11 : 15),
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Row(children: <Widget>[
+                            Flexible(
+                              child: Text(
+                                controller.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: compact ? 21 : 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: pashaActive ? pashaAccent : colorFromHex(controller.selectedNameColor),
+                                  shadows: <Shadow>[Shadow(color: pashaAccent.withValues(alpha: .46), blurRadius: 12)],
+                                ),
+                              ),
+                            ),
+                            if (controller.isAdmin)
+                              const Padding(
+                                padding: EdgeInsetsDirectional.only(start: 6),
+                                child: Icon(Icons.verified_rounded, color: Color(0xffffcf58), size: 20),
+                              ),
+                          ]),
+                          const SizedBox(height: 3),
+                          Text(
+                            '@${controller.username} • ${controller.countryFlag} ${controller.countryName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(spacing: 7, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: <Widget>[
+                            R5RuntimeBadge(controller: controller),
+                            _R19IdentityPill(
+                              key: const Key('r19-profile-gradient'),
+                              icon: Icons.gradient_rounded,
+                              label: profileProduct?.name(controller.localeCode) ?? (ar ? 'هوية ورقنا' : 'Warqnaa identity'),
+                              accent: b304ProfileGradient(controller).last,
+                              compact: true,
+                            ),
+                          ]),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ]);
+        }),
+      ),
+    );
+  }
+}
+
+class _R19IdentityPill extends StatelessWidget {
+  const _R19IdentityPill({super.key, required this.icon, required this.label, required this.accent, this.compact = false});
+  final IconData icon;
+  final String label;
+  final Color accent;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: BoxConstraints(maxWidth: compact ? 210 : 170),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10, vertical: compact ? 5 : 7),
+        decoration: BoxDecoration(
+          color: const Color(0xff07111d).withValues(alpha: .82),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: accent.withValues(alpha: .55)),
+          boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .16), blurRadius: 12)],
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Icon(icon, size: compact ? 13 : 15, color: accent),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.white, fontSize: compact ? 9 : 10, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ]),
+      );
+}
+
 class R101CommerceShowcase extends StatelessWidget {
   const R101CommerceShowcase({super.key, required this.controller});
   final AppController controller;
