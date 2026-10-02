@@ -7,11 +7,12 @@ WORLD = (ROOT / 'flutter_app/lib/r6_1_world_class.dart').read_text(encoding='utf
 AVATAR = (ROOT / 'flutter_app/lib/v170_global.dart').read_text(encoding='utf-8')
 MAIN = (ROOT / 'flutter_app/lib/main.dart').read_text(encoding='utf-8')
 PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
-WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
+PROFILE_WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
+BOOSTER_WIDGET_TEST = ROOT / 'flutter_app/test/r19_booster_status_test.dart'
 RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
 
 checks = {
-    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.1+710-luxury-commerce'" in SRC,
+    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.2+711-premium-boosters'" in SRC,
     'premium visual themes': all(x in SRC for x in ["'midnight_cyan'", "'obsidian_gold'", "'royal_crimson'", "'sapphire_pasha'", "'aurora_luxe'"]),
     'legacy themes retained': all(x in SRC for x in ["'dark'", "'light'", "'green'", "'gold'", "'purple'", "'ocean'"]),
     'luxury store hero': 'Warqnaa Luxury Store' in SRC and 'متجر ورقنا المميز' in SRC,
@@ -47,11 +48,33 @@ checks = {
         and 'pashaAsset: controller.activePashaStyleV173.asset' in MAIN
         and 'PashaHatV173(controller: controller, width: compact' not in SRC
     ),
-    'R19 profile widget regression exists': WIDGET_TEST.is_file(),
+    'R19 profile widget regression exists': PROFILE_WIDGET_TEST.is_file(),
+    'premium booster status is integrated into real store': all(x in SRC + MAIN for x in [
+        'class R19BoosterStatus',
+        'R19BoosterStatus(controller: controller',
+        "product.category == 'boost'",
+        'showProductPreview(context, controller, product)',
+        'controller.activeXpMultiplier',
+        'controller.boosterExpiresAtV173',
+    ]),
+    'booster copy forbids in-match advantage': all(x in SRC for x in [
+        'XP progression only',
+        'No in-match advantage',
+        'turn order, round score, or match result',
+        'لا أفضلية داخل اللعب',
+    ]),
+    'R19 booster widget regression exists': BOOSTER_WIDGET_TEST.is_file() and all(x in BOOSTER_WIDGET_TEST.read_text(encoding='utf-8') for x in [
+        "const Size(320, 640)",
+        "const Size(844, 390)",
+        "for (final locale in <String>['ar', 'en'])",
+        "Key('r19-browse-boosters')",
+    ]),
     'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
         "controller.selectedPashaStyle = 'blue'",
         "controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d'",
         "('local-profile', R61ProfilePage(controller: controller))",
+        "'local-booster',",
+        'controller.activeXpMultiplier = 2.5',
     ]),
     'R19 contract is part of release preflight': 'test_r19_luxury_commerce_contract.py' in PREFLIGHT,
 }

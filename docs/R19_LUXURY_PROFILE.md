@@ -8,10 +8,11 @@ Implemented in this increment:
 - Pasha hat, glow, name and membership presentation synchronized with the selected Pasha colour;
 - explicit Arabic RTL and English LTR labels, compact-screen sizing and reduced-motion support;
 - release-gate and widget coverage for the live profile surface.
+- a responsive Arabic/English premium booster status surface in the real store;
+- an explicit XP-only boundary: boosters never affect cards, turn order, round scoring, or match results;
+- active multiplier/expiry presentation plus direct navigation to the existing booster catalogue.
 
 Still planned within the same validated R19 line:
-- Pasha colour synchronization across table identity and remaining applicable cosmetics;
-- premium booster presentation without gameplay pay-to-win effects;
 - animated/voiced reaction presentation using shipped or original verified assets;
 - Arabic bot/avatar presentation and responsive profile surfaces.
 

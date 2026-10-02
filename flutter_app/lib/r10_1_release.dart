@@ -1,7 +1,7 @@
 part of 'main.dart';
 
 const String warqnaaR101Release = '0.5.1+221';
-const String warqnaaR19LuxuryCommerce = '1.9.1+710-luxury-commerce';
+const String warqnaaR19LuxuryCommerce = '1.9.2+711-premium-boosters';
 
 /// R10.1 keeps unfinished server-dependent titles out of the customer lobby.
 List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly && !b304BannedCustomerGames.contains(game.id)).toList(growable: false);
@@ -322,12 +322,224 @@ class _R19IdentityPill extends StatelessWidget {
       );
 }
 
+/// Premium presentation for the existing XP booster contract.
+///
+/// This surface deliberately reads the controller's already established
+/// multiplier and expiry only. It does not activate a booster, award XP, alter
+/// a hand, or decide a match result; those responsibilities remain in the
+/// existing economy/progression paths.
+class R19BoosterStatus extends StatelessWidget {
+  const R19BoosterStatus({super.key, required this.controller, required this.onBrowse});
+
+  final AppController controller;
+  final VoidCallback onBrowse;
+
+  String _remaining(bool ar) {
+    final expiry = controller.boosterExpiresAtV173;
+    if (expiry == null) return ar ? 'غير فعّال' : 'Inactive';
+    final duration = expiry.difference(DateTime.now());
+    if (duration <= Duration.zero) return ar ? 'منتهي' : 'Expired';
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    if (hours > 0) return ar ? '$hours س $minutes د متبقية' : '${hours}h ${minutes}m left';
+    return ar ? '$minutes د متبقية' : '${minutes}m left';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final active = controller.activeXpMultiplier > 1 &&
+        controller.boosterExpiresAtV173 != null &&
+        controller.boosterExpiresAtV173!.isAfter(DateTime.now());
+    final accent = active ? const Color(0xff55f4ca) : const Color(0xffffc85a);
+    final multiplier = active
+        ? _multiplierLabelV183(math.max(1.0, controller.activeXpMultiplier)).replaceFirst('×', '')
+        : '1';
+
+    return Semantics(
+      label: 'r19-premium-booster-status',
+      container: true,
+      child: Container(
+        key: const Key('r19-premium-booster-status'),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: const LinearGradient(
+            begin: AlignmentDirectional.topStart,
+            end: AlignmentDirectional.bottomEnd,
+            colors: <Color>[Color(0xff071724), Color(0xff102b3b), Color(0xff20162d)],
+          ),
+          border: Border.all(color: accent.withValues(alpha: .34)),
+          boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .11), blurRadius: 24, offset: const Offset(0, 10))],
+        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final compact = constraints.maxWidth < 560;
+          final visual = _R19BoosterOrb(active: active, accent: accent, multiplier: multiplier, compact: compact);
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(children: <Widget>[
+                Expanded(
+                  child: Text(
+                    ar ? 'مسرّعات التقدّم' : 'Progress boosters',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                  ),
+                ),
+                _R19StorePill(
+                  icon: active ? Icons.bolt_rounded : Icons.bolt_outlined,
+                  text: active ? (ar ? 'فعّال الآن' : 'Active now') : (ar ? 'جاهز للاختيار' : 'Ready to browse'),
+                  color: accent,
+                ),
+              ]),
+              const SizedBox(height: 5),
+              Text(
+                active
+                    ? (ar ? 'مضاعف XP ×$multiplier • ${_remaining(true)}' : '×$multiplier XP • ${_remaining(false)}')
+                    : (ar ? 'لا يوجد مسرّع فعّال الآن' : 'No booster is active right now'),
+                style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 9),
+              Text(
+                ar
+                    ? 'يعزّز تقدّم XP المؤهّل فقط. لا يغيّر أوراقك أو ترتيب الأدوار أو نقاط الجولة أو نتيجة المباراة.'
+                    : 'Boosts eligible XP progression only. It never changes your cards, turn order, round score, or match result.',
+                style: TextStyle(fontSize: 10.5, height: 1.5, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .72)),
+              ),
+              const SizedBox(height: 11),
+              Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
+                _R19BoosterBoundary(icon: Icons.auto_graph_rounded, label: ar ? 'تقدّم XP فقط' : 'XP progression only'),
+                _R19BoosterBoundary(icon: Icons.timer_outlined, label: ar ? 'تفعيل مؤقت واضح' : 'Clear timed activation'),
+                _R19BoosterBoundary(icon: Icons.gpp_good_outlined, label: ar ? 'لا أفضلية داخل اللعب' : 'No in-match advantage'),
+              ]),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('r19-browse-boosters'),
+                onPressed: onBrowse,
+                icon: const Icon(Icons.rocket_launch_rounded, size: 18),
+                label: Text(ar ? 'استعراض المسرّعات' : 'Browse boosters'),
+              ),
+            ],
+          );
+          if (compact) {
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+              Align(alignment: Alignment.center, child: visual),
+              const SizedBox(height: 10),
+              details,
+            ]);
+          }
+          return Row(children: <Widget>[
+            visual,
+            const SizedBox(width: 18),
+            Expanded(child: details),
+          ]);
+        }),
+      ),
+    );
+  }
+}
+
+class _R19BoosterOrb extends StatelessWidget {
+  const _R19BoosterOrb({required this.active, required this.accent, required this.multiplier, required this.compact});
+  final bool active;
+  final Color accent;
+  final String multiplier;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = compact ? 104.0 : 126.0;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(colors: <Color>[accent.withValues(alpha: .31), const Color(0xff091521), const Color(0xff050b12)]),
+        border: Border.all(color: accent.withValues(alpha: .55), width: 1.5),
+        boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .20), blurRadius: 25)],
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+        Icon(active ? Icons.rocket_launch_rounded : Icons.rocket_launch_outlined, color: accent, size: compact ? 30 : 38),
+        const SizedBox(height: 5),
+        Text('×$multiplier', style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900)),
+        Text('XP', style: TextStyle(color: accent, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+      ]),
+    );
+  }
+}
+
+class _R19BoosterBoundary extends StatelessWidget {
+  const _R19BoosterBoundary({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .055),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: Colors.white.withValues(alpha: .11)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Icon(icon, size: 13, color: const Color(0xff73ddff)),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Colors.white70)),
+        ]),
+      );
+}
+
 class R101CommerceShowcase extends StatelessWidget {
   const R101CommerceShowcase({super.key, required this.controller});
   final AppController controller;
 
   void _openCheckout(BuildContext context) {
     Navigator.push(context, MaterialPageRoute<void>(builder: (_) => B307CashShopPage(controller: controller)));
+  }
+
+  void _openBoosters(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final boosters = products.where((product) => product.category == 'boost' && controller.isStoreProductVisible(product)).toList(growable: false);
+    showPremiumSheet(
+      context,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+        Text(ar ? 'مسرّعات XP' : 'XP boosters', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 5),
+        Text(
+          ar
+              ? 'اختر مسرّع التقدّم المناسب. التفعيل مؤقت ولا يغيّر أي قرار أو نتيجة داخل المباراة.'
+              : 'Choose a progression booster. Activation is temporary and never changes an in-match decision or result.',
+          style: const TextStyle(color: Colors.white60, fontSize: 10.5, height: 1.5),
+        ),
+        const SizedBox(height: 12),
+        for (final product in boosters)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: PremiumPanel(
+              child: ListTile(
+                onTap: () => showProductPreview(context, controller, product),
+                leading: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: <Color>[controller.color1For(product), controller.color2For(product)]),
+                  ),
+                  child: const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 23),
+                ),
+                title: Text(controller.nameFor(product), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900)),
+                subtitle: Text(
+                  ar
+                      ? '24 ساعة بعد التفعيل • مخزون ${boosterValidityDaysV183(product.id)} أيام'
+                      : '24h after activation • ${boosterValidityDaysV183(product.id)}-day inventory',
+                  style: const TextStyle(fontSize: 9.5, color: Colors.white60),
+                ),
+                trailing: Text('×${_multiplierLabelV183(product.multiplier).replaceFirst('×', '')}', style: TextStyle(color: controller.color1For(product), fontSize: 16, fontWeight: FontWeight.w900)),
+              ),
+            ),
+          ),
+      ]),
+    );
   }
 
   @override
@@ -434,6 +646,8 @@ class R101CommerceShowcase extends StatelessWidget {
             },
           ),
         ),
+        const SizedBox(height: 12),
+        R19BoosterStatus(controller: controller, onBrowse: () => _openBoosters(context)),
         const SizedBox(height: 9),
         Text(
           ar ? 'الدفع الحقيقي لا يمنح التوكنز من نجاح العميل وحده؛ الاعتماد النهائي يتم بعد تحقق الخادم من الإيصال.' : 'Real-money purchases remain server receipt-verified. Client success alone never grants tokens.',

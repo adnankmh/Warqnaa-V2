@@ -158,6 +158,8 @@ void main() {
       // entitlement and a non-default style in real rendered review evidence.
       controller.selectedPashaStyle = 'blue';
       controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d';
+      controller.activeXpMultiplier = 2.5;
+      controller.boosterExpiresAtV173 = DateTime.now().add(const Duration(hours: 6));
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       tester.view.devicePixelRatio = 1;
@@ -168,6 +170,15 @@ void main() {
           ('local-studio', R9LocalStudio(controller: controller)),
           ('local-home', HomeShell(controller: controller)),
           ('local-profile', R61ProfilePage(controller: controller)),
+          (
+            'local-booster',
+            Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(10),
+                child: R19BoosterStatus(controller: controller, onBrowse: () {}),
+              ),
+            ),
+          ),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));
