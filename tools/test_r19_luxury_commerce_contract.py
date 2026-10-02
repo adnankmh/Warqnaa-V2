@@ -6,6 +6,7 @@ PROFILE = (ROOT / 'flutter_app/lib/v304_vertical_legend.dart').read_text(encodin
 WORLD = (ROOT / 'flutter_app/lib/r6_1_world_class.dart').read_text(encoding='utf-8')
 PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
 WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
+RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
 
 checks = {
     'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.1+710-luxury-commerce'" in SRC,
@@ -39,6 +40,11 @@ checks = {
     ]),
     'real profile uses R19 identity hero': 'R19PashaProfileHero(controller: controller)' in WORLD,
     'R19 profile widget regression exists': WIDGET_TEST.is_file(),
+    'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
+        "controller.selectedPashaStyle = 'blue'",
+        "controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d'",
+        "('local-profile', R61ProfilePage(controller: controller))",
+    ]),
     'R19 contract is part of release preflight': 'test_r19_luxury_commerce_contract.py' in PREFLIGHT,
 }
 

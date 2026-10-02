@@ -154,6 +154,10 @@ void main() {
       expect(controller.isLocalAdmin, isTrue);
       expect(controller.api.token, isNull);
       expect(controller.homeGameIds, ['trix', 'basra']);
+      // Exercise the completed R19 identity composition with an active Pasha
+      // entitlement and a non-default style in real rendered review evidence.
+      controller.selectedPashaStyle = 'blue';
+      controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d';
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       tester.view.devicePixelRatio = 1;
@@ -163,6 +167,7 @@ void main() {
         for (final page in <(String, Widget)>[
           ('local-studio', R9LocalStudio(controller: controller)),
           ('local-home', HomeShell(controller: controller)),
+          ('local-profile', R61ProfilePage(controller: controller)),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));
