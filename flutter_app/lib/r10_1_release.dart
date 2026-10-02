@@ -274,7 +274,19 @@ class R19PashaProfileHero extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Wrap(spacing: 7, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: <Widget>[
-                            R5RuntimeBadge(controller: controller),
+                            _R19IdentityPill(
+                              key: const Key('r19-server-state'),
+                              icon: controller.serverConnected && controller.isAuthenticated
+                                  ? Icons.cloud_done_outlined
+                                  : Icons.cloud_off_outlined,
+                              label: controller.serverConnected && controller.isAuthenticated
+                                  ? (ar ? 'متصل بالخادم' : 'Server connected')
+                                  : (ar ? 'غير متصل بالخادم' : 'Server offline'),
+                              accent: controller.serverConnected && controller.isAuthenticated
+                                  ? const Color(0xff62d68a)
+                                  : const Color(0xffffba6d),
+                              compact: true,
+                            ),
                             _R19IdentityPill(
                               key: const Key('r19-profile-gradient'),
                               icon: Icons.gradient_rounded,

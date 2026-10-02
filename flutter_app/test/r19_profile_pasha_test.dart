@@ -38,9 +38,16 @@ void main() {
         await tester.pumpWidget(_profileApp(controller));
         await tester.pump(const Duration(milliseconds: 250));
 
-        expect(find.bySemanticsLabel('r19-pasha-profile-hero'), findsOneWidget);
+        expect(find.byType(R19PashaProfileHero), findsOneWidget);
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is Semantics && widget.properties.label == 'r19-pasha-profile-hero',
+          ),
+          findsOneWidget,
+        );
         expect(find.byKey(const Key('r19-pasha-membership')), findsOneWidget);
         expect(find.byKey(const Key('r19-pasha-style')), findsOneWidget);
+        expect(find.byKey(const Key('r19-server-state')), findsOneWidget);
         expect(find.byKey(const Key('r19-profile-gradient')), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'أزرق' : 'Blue'), findsOneWidget);
         expect(tester.takeException(), isNull);
