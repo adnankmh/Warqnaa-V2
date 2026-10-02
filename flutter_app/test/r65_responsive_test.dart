@@ -120,6 +120,10 @@ void main() {
         expect(tester.takeException(), isNull);
         if (locale == 'en') {
           final storeScroll = find.byType(Scrollable).first;
+          // Store sections are lazily built. Prime the outer list after the
+          // R19 commerce/booster content before locating the level section.
+          await tester.drag(storeScroll, const Offset(0, -300));
+          await tester.pumpAndSettle();
           await tester.scrollUntilVisible(
             find.textContaining('Level progress'),
             250,

@@ -475,6 +475,7 @@ class _R19BoosterBoundary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(maxWidth: 210),
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: .055),
@@ -484,7 +485,14 @@ class _R19BoosterBoundary extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
           Icon(icon, size: 13, color: const Color(0xff73ddff)),
           const SizedBox(width: 5),
-          Text(label, style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Colors.white70)),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Colors.white70),
+            ),
+          ),
         ]),
       );
 }
