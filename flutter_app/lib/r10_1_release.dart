@@ -296,7 +296,16 @@ class _R19StorePill extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, size: 13, color: color),
           const SizedBox(width: 4),
-          Text(text, style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: color)),
+          Flexible(
+            fit: FlexFit.loose,
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: color),
+            ),
+          ),
         ]),
       );
 }
