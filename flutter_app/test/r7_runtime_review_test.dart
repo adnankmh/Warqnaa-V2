@@ -80,8 +80,8 @@ class R19ReactionReview extends StatelessWidget {
     body: SafeArea(
       child: LayoutBuilder(builder: (context, area) {
         final reaction = reactionCatalog.firstWhere((item) => item.id == 'r91_good_game');
-        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: true));
-        final dock = ReactionDock(locale: locale, soundEnabled: true, onSelected: (_) {});
+        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: AppSounds.enabled));
+        final dock = ReactionDock(locale: locale, soundEnabled: AppSounds.enabled, onSelected: (_) {});
         if (area.maxHeight < 500) {
           return Padding(
             padding: const EdgeInsets.all(10),
