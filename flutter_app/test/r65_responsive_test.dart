@@ -119,7 +119,12 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(tester.takeException(), isNull);
         if (locale == 'en') {
-          final storeScroll = find.byType(Scrollable).first;
+          final storeScroll = find.byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+            description: 'outer vertical StorePage scrollable',
+          ).first;
           Future<void> buildLazyStoreSection(Finder target) async {
             for (var attempt = 0; attempt < 8 && target.evaluate().isEmpty; attempt += 1) {
               await tester.drag(storeScroll, const Offset(0, -250));
