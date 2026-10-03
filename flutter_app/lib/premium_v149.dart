@@ -526,14 +526,24 @@ class _ReactionDockState extends State<ReactionDock> {
                           onTap: () => widget.onSelected(item),
                           borderRadius: BorderRadius.circular(14),
                           child: Container(
-                            padding: const EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(color: Colors.white.withValues(alpha: .055), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white.withValues(alpha: .07))),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                item.animated ? _AnimatedReaction(item.emoji, size: 38) : Text(item.emoji, style: const TextStyle(fontSize: 38)),
-                                const SizedBox(height: 2),
-                                Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white70, fontWeight: FontWeight.w800)),
+                                Expanded(
+                                  child: Center(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: item.animated ? _AnimatedReaction(item.emoji, size: 36) : Text(item.emoji, style: const TextStyle(fontSize: 36)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 1),
+                                SizedBox(
+                                  height: 12,
+                                  child: Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white70, fontWeight: FontWeight.w800)),
+                                ),
                               ],
                             ),
                           ),
