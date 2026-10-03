@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:warqna_mobile/main.dart';
 
@@ -42,7 +43,8 @@ void main() {
         final label = find.text(locale == 'ar' ? 'ورقنا' : 'Warqnaa');
         final richText = tester.widget<RichText>(find.descendant(of: label, matching: find.byType(RichText)));
         expect(richText.text.style?.fontFamily, family);
-        expect(richText.textDirection, locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+        final paragraph = tester.renderObject<RenderParagraph>(find.descendant(of: label, matching: find.byType(RichText)));
+        expect(paragraph.textDirection, locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
         expect(tester.takeException(), isNull);
       }
     });
