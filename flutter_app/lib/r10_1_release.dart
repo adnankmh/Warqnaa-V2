@@ -41,7 +41,7 @@ const Map<String, R101ThemeSpec> r101Themes = <String, R101ThemeSpec>{
   'aurora_luxe': R101ThemeSpec(code:'aurora_luxe',accent:Color(0xff63f2d1),accent2:Color(0xffc18cff),background:Color(0xff09151b),surface:Color(0xff17313a),light:false),
 };
 
-ThemeData r101Theme(String code, String fallbackAccentHex) {
+ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, String localeCode = 'en'}) {
   final fallbackAccent = colorFromHex(fallbackAccentHex);
   final spec = r101Themes[code] ?? R101ThemeSpec(
     code: code,
@@ -51,7 +51,7 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
     surface: const Color(0xff111e2e),
     light: false,
   );
-  final base = R9Design.theme(light: spec.light, accent: spec.accent);
+  final base = R9Design.theme(light: spec.light, accent: spec.accent, fontFamily: fontFamily, arabic: localeCode == 'ar');
   final scheme = base.colorScheme.copyWith(
     primary: spec.accent,
     secondary: spec.accent2,
@@ -75,34 +75,34 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
     inputDecorationTheme: base.inputDecorationTheme.copyWith(
       filled: true,
       fillColor: Color.lerp(spec.surface, spec.background, spec.light ? .08 : .20),
-      labelStyle: TextStyle(color: scheme.onSurface.withValues(alpha: .72), fontWeight: FontWeight.w700),
+      labelStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface.withValues(alpha: .72), fontWeight: FontWeight.w700),
       prefixIconColor: spec.accent,
       suffixIconColor: scheme.onSurface.withValues(alpha: .66),
     ),
     filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
       backgroundColor: spec.accent,
       foregroundColor: spec.light ? Colors.white : const Color(0xff111111),
-      textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .15),
+      textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w900, letterSpacing: localeCode == 'ar' ? 0 : .15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       minimumSize: const Size(44, 46),
     )),
     outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
       foregroundColor: scheme.onSurface,
       side: BorderSide(color: spec.accent.withValues(alpha: .36)),
-      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       minimumSize: const Size(44, 46),
     )),
     textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
       foregroundColor: spec.accent,
-      textStyle: const TextStyle(fontWeight: FontWeight.w800),
+      textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     )),
     chipTheme: base.chipTheme.copyWith(
       backgroundColor: spec.surface,
       selectedColor: spec.accent.withValues(alpha: .22),
       side: BorderSide(color: spec.accent.withValues(alpha: .22)),
-      labelStyle: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w800),
+      labelStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface, fontWeight: FontWeight.w800),
     ),
     listTileTheme: base.listTileTheme.copyWith(
       textColor: scheme.onSurface,
@@ -111,7 +111,7 @@ ThemeData r101Theme(String code, String fallbackAccentHex) {
     ),
     snackBarTheme: base.snackBarTheme.copyWith(
       backgroundColor: Color.lerp(spec.surface, spec.background, .18),
-      contentTextStyle: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w700),
+      contentTextStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface, fontWeight: FontWeight.w700),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       behavior: SnackBarBehavior.floating,
     ),

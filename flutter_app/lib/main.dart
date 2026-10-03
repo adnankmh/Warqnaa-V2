@@ -143,7 +143,8 @@ class _WarqnaAppState extends State<WarqnaApp> {
               child: ClipRect(child: child ?? const SizedBox.shrink()),
             );
           },
-          theme: r101Theme(controller.themeCode, controller.uiAccentHex),
+          theme: r101Theme(controller.themeCode, controller.uiAccentHex,
+            fontFamily: controller.uiFontFamily, localeCode: controller.localeCode),
           home: !controller.ready
               ? const AppLoadingScreen()
               : controller.isAuthenticated

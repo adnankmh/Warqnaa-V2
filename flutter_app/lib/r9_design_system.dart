@@ -23,7 +23,7 @@ abstract final class R9Design {
   static const Color ink = Color(0xFF0D1524);
   static const Color ivory = Color(0xFFF6F2E8);
 
-  static ThemeData theme({required bool light, required Color accent}) {
+  static ThemeData theme({required bool light, required Color accent, String? fontFamily, bool arabic = false}) {
     final scheme = light
         ? ColorScheme.fromSeed(
             seedColor: accent,
@@ -38,6 +38,7 @@ abstract final class R9Design {
 
     final base = ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily,
       brightness: light ? Brightness.light : Brightness.dark,
       colorScheme: scheme,
       scaffoldBackgroundColor: light ? const Color(0xFFF2EEE6) : midnight,
@@ -47,8 +48,8 @@ abstract final class R9Design {
     );
 
     final text = base.textTheme.copyWith(
-      headlineLarge: base.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.7),
-      headlineMedium: base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -.45),
+      headlineLarge: base.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: arabic ? 0 : -.7),
+      headlineMedium: base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: arabic ? 0 : -.45),
       titleLarge: base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
       titleMedium: base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
       bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.35),
@@ -81,7 +82,7 @@ abstract final class R9Design {
           minimumSize: const Size(44, 48),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(rMedium)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
+          textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w900),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -90,7 +91,7 @@ abstract final class R9Design {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(rMedium)),
           side: BorderSide(color: scheme.outlineVariant.withValues(alpha: .75)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -113,6 +114,7 @@ abstract final class R9Design {
         indicatorColor: accent.withValues(alpha: .14),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
+            fontFamily: fontFamily,
             fontSize: 11,
             fontWeight: states.contains(WidgetState.selected) ? FontWeight.w900 : FontWeight.w700,
           ),
