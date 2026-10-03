@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
+import 'package:warqna_mobile/premium_v149.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
 
 const runtimeUrl = String.fromEnvironment('R7_RUNTIME_URL');
