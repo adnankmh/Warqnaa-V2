@@ -22,7 +22,7 @@ void main() {
   });
 
   for (final locale in <String>['ar', 'en']) {
-    for (final size in <Size>[const Size(320, 640), const Size(844, 390)]) {
+    for (final size in <Size>[const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
       testWidgets('R19 reaction dock $locale ${size.width}x${size.height}', (tester) async {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;

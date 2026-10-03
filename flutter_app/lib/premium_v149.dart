@@ -510,7 +510,15 @@ class _ReactionDockState extends State<ReactionDock> {
                   builder: (context, grid) => GridView.builder(
                     shrinkWrap: true,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: grid.maxWidth >= 520 ? 6 : grid.maxWidth >= 360 ? 5 : 4,
+                      crossAxisCount: grid.maxWidth >= 1000
+                          ? 10
+                          : grid.maxWidth >= 720
+                              ? 8
+                              : grid.maxWidth >= 520
+                                  ? 6
+                                  : grid.maxWidth >= 360
+                                      ? 5
+                                      : 4,
                       childAspectRatio: .92,
                       crossAxisSpacing: 7,
                       mainAxisSpacing: 7,
