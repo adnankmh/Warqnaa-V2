@@ -462,13 +462,25 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
     } catch (_) {}
   }
   if (!context.mounted) return;
+  final ar = controller.localeCode == 'ar';
+  BotProfile? botProfile;
+  if (visible.id < 0) {
+    for (final candidate in botProfiles) {
+      if (candidate.seed == -visible.id) {
+        botProfile = candidate;
+        break;
+      }
+    }
+  }
   final country = countryByCode(visible.countryCode);
   final color = colorFromHex(visible.nameColor);
   final winRate = visible.gamesPlayed <= 0 ? 0 : ((visible.wins / visible.gamesPlayed) * 100).round();
   await showPremiumSheet(
     context,
     child: Column(children: [
-      Container(
+      if (botProfile != null)
+        BotIdentityShowcase(profile: botProfile, locale: controller.localeCode)
+      else Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(18, 24, 18, 18),
         decoration: BoxDecoration(
@@ -482,17 +494,17 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
           Text(visible.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: color, shadows: [Shadow(color: color, blurRadius: 12)])),
           Text('@${visible.username}', style: const TextStyle(color: Colors.white60)),
           const SizedBox(height: 7),
-          Text('${country.flag} ${country.name(controller.localeCode)} • المستوى ${visible.level}', style: const TextStyle(fontWeight: FontWeight.w900)),
+          Text('${country.flag} ${country.name(controller.localeCode)} • ${ar ? 'المستوى' : 'Level'} ${visible.level}', style: const TextStyle(fontWeight: FontWeight.w900)),
           if (visible.badge != null && visible.badge!.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Chip(label: Text(visible.badge!))),
         ]),
       ),
       const SizedBox(height: 12),
       Row(children: [
-        Expanded(child: ProfileMetric(value: '${visible.level}', label: 'المستوى')),
+        Expanded(child: ProfileMetric(value: '${visible.level}', label: ar ? 'المستوى' : 'Level')),
         const SizedBox(width: 7),
-        Expanded(child: ProfileMetric(value: '${visible.gamesPlayed}', label: 'المباريات')),
+        Expanded(child: ProfileMetric(value: '${visible.gamesPlayed}', label: ar ? 'المباريات' : 'Games')),
         const SizedBox(width: 7),
-        Expanded(child: ProfileMetric(value: '$winRate%', label: 'نسبة الفوز')),
+        Expanded(child: ProfileMetric(value: '$winRate%', label: ar ? 'نسبة الفوز' : 'Win rate')),
       ]),
       const SizedBox(height: 10),
       PremiumPanel(
@@ -502,18 +514,18 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
             Row(children: [
               const Icon(Icons.auto_graph_rounded, color: Colors.lightBlueAccent),
               const SizedBox(width: 7),
-              Expanded(child: Text('تقدم المستوى ${visible.level}', style: const TextStyle(fontWeight: FontWeight.w900))),
+              Expanded(child: Text(ar ? 'تقدم المستوى ${visible.level}' : 'Level ${visible.level} progress', style: const TextStyle(fontWeight: FontWeight.w900))),
               Text('${formatNumber(visible.xp)} / ${formatNumber(visible.xpNext)} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 10)),
             ]),
             const SizedBox(height: 8),
             ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: visible.xpNext <= 0 ? 0 : (visible.xp / visible.xpNext).clamp(0, 1).toDouble(), minHeight: 8)),
             const SizedBox(height: 10),
             Row(children: [
-              Expanded(child: ProfileMetric(value: '${visible.roundPoints}', label: 'نقاط الجولات')),
+              Expanded(child: ProfileMetric(value: '${visible.roundPoints}', label: ar ? 'نقاط الجولات' : 'Round points')),
               const SizedBox(width: 6),
-              Expanded(child: ProfileMetric(value: '${visible.tournamentPoints}', label: 'المسابقات')),
+              Expanded(child: ProfileMetric(value: '${visible.tournamentPoints}', label: ar ? 'المسابقات' : 'Competitions')),
               const SizedBox(width: 6),
-              Expanded(child: ProfileMetric(value: '${visible.clubPoints}', label: 'النادي')),
+              Expanded(child: ProfileMetric(value: '${visible.clubPoints}', label: ar ? 'النادي' : 'Club')),
             ]),
           ]),
         ),
@@ -526,7 +538,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
             child: Row(children: [
               Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(14)), child: Text(visible.clubLogo?.isNotEmpty == true ? visible.clubLogo! : '🛡️', style: const TextStyle(fontSize: 24))),
               const SizedBox(width: 9),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('النادي', style: TextStyle(color: Colors.white54, fontSize: 9)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي' : 'Club', style: const TextStyle(color: Colors.white54, fontSize: 9)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
               const Icon(Icons.groups_rounded, color: Colors.lightBlueAccent),
             ]),
           ),
@@ -539,13 +551,13 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
           child: Row(children: [
             Icon(visible.online ? Icons.circle : Icons.circle_outlined, size: 13, color: visible.online ? Colors.greenAccent : Colors.white38),
             const SizedBox(width: 8),
-            Expanded(child: Text(visible.online ? 'متصل الآن' : visible.activity, style: const TextStyle(fontWeight: FontWeight.w800))),
-            if (visible.pashaDays > 0) Flexible(child: Text('👑 باشا ${visible.pashaDays} يوم', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900))),
+            Expanded(child: Text(visible.online ? (ar ? 'متصل الآن' : 'Online now') : visible.activity, style: const TextStyle(fontWeight: FontWeight.w800))),
+            if (visible.pashaDays > 0) Flexible(child: Text(ar ? '👑 باشا ${visible.pashaDays} يوم' : '👑 Pasha ${visible.pashaDays} days', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900))),
           ]),
         ),
       ),
       const SizedBox(height: 10),
-      const Text('رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.', style: TextStyle(color: Colors.white54, fontSize: 10)),
+      Text(ar ? 'رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.' : 'Token balance is private and never appears on a public profile.', style: const TextStyle(color: Colors.white54, fontSize: 10)),
     ]),
   );
 }

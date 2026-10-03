@@ -99,6 +99,22 @@ class R19ReactionReview extends StatelessWidget {
   );
 }
 
+class R19BotReview extends StatelessWidget {
+  final String locale;
+  const R19BotReview({super.key, required this.locale});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xff050b12),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: BotRosterShowcase(locale: locale, profiles: botProfiles.take(12).toList()),
+          ),
+        ),
+      );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -210,6 +226,7 @@ void main() {
             ),
           ),
           ('local-reaction', R19ReactionReview(locale: locale)),
+          ('local-bots', R19BotReview(locale: locale)),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));

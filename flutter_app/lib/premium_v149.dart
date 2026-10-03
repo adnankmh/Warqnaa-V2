@@ -39,6 +39,12 @@ class BotProfile {
 
   String name(String locale) => locale == 'ar' ? nameAr : nameEn;
   String style(String locale) => locale == 'ar' ? styleAr : styleEn;
+  String difficultyLabel(String locale) => switch (difficulty) {
+        BotDifficulty.easy => locale == 'ar' ? 'هادئ' : 'Easy',
+        BotDifficulty.normal => locale == 'ar' ? 'متوازن' : 'Balanced',
+        BotDifficulty.pro => locale == 'ar' ? 'احترافي' : 'Pro',
+        BotDifficulty.master => locale == 'ar' ? 'خبير' : 'Master',
+      };
 }
 
 const botProfiles = <BotProfile>[
@@ -63,6 +69,7 @@ class Bot3DAvatar extends StatelessWidget {
   final double size;
   final bool online;
   final bool showLevel;
+  final String? locale;
 
   const Bot3DAvatar({
     super.key,
@@ -70,11 +77,16 @@ class Bot3DAvatar extends StatelessWidget {
     this.size = 48,
     this.online = true,
     this.showLevel = false,
+    this.locale,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final language = locale ?? Localizations.maybeLocaleOf(context)?.languageCode ?? 'en';
+    return Semantics(
+      image: true,
+      label: language == 'ar' ? 'الصورة الرمزية للاعب الآلي ${profile.nameAr}' : '${profile.nameEn} computer-player avatar',
+      child: SizedBox(
       width: size,
       height: size,
       child: Stack(
@@ -146,11 +158,122 @@ class Bot3DAvatar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: Colors.white.withValues(alpha: .18)),
               ),
-              child: Text('BOT', style: TextStyle(fontSize: size * .10, letterSpacing: .6, fontWeight: FontWeight.w900, color: Colors.white70)),
+              child: Text(language == 'ar' ? 'آلي' : 'BOT', style: TextStyle(fontSize: size * .10, letterSpacing: .4, fontWeight: FontWeight.w900, color: Colors.white70)),
             ),
           ),
         ],
       ),
+    ));
+  }
+}
+
+class BotIdentityShowcase extends StatelessWidget {
+  final BotProfile profile;
+  final String locale;
+  final bool compact;
+
+  const BotIdentityShowcase({super.key, required this.profile, required this.locale, this.compact = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final rtl = locale == 'ar';
+    final avatarSize = compact ? 64.0 : 102.0;
+    final identity = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Bot3DAvatar(profile: profile, size: avatarSize, showLevel: true, locale: locale),
+        SizedBox(height: compact ? 8 : 12),
+        Text(profile.name(locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: compact ? 16 : 24, fontWeight: FontWeight.w900, color: profile.secondary)),
+        Text(rtl ? 'لاعب ورقنا الآلي' : 'Warqnaa computer player', style: const TextStyle(fontSize: 9, color: Colors.white60, fontWeight: FontWeight.w700)),
+      ],
+    );
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(profile.style(locale), textAlign: compact ? TextAlign.center : TextAlign.start, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: compact ? 11 : 15, height: 1.25, fontWeight: FontWeight.w900)),
+        SizedBox(height: compact ? 7 : 12),
+        Wrap(
+          alignment: compact ? WrapAlignment.center : WrapAlignment.start,
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _BotIdentityPill(icon: Icons.psychology_alt_rounded, label: profile.difficultyLabel(locale), color: profile.secondary),
+            _BotIdentityPill(icon: Icons.military_tech_rounded, label: '${rtl ? 'المستوى' : 'Level'} ${profile.level}', color: const Color(0xffffd166)),
+            _BotIdentityPill(icon: Icons.translate_rounded, label: rtl ? 'هوية عربية أصلية' : 'Original Arabic identity', color: const Color(0xff5de7ff)),
+          ],
+        ),
+        if (!compact) ...[
+          const SizedBox(height: 12),
+          Row(children: [
+            const Icon(Icons.gpp_good_outlined, size: 16, color: Color(0xff5de7ff)),
+            const SizedBox(width: 6),
+            Expanded(child: Text(rtl ? 'قرارات اللعب تأتي من المحرك المعتمد، لا من واجهة العرض.' : 'Gameplay decisions come from the authoritative engine, not this presentation layer.', style: const TextStyle(fontSize: 9, color: Colors.white60, height: 1.35))),
+          ]),
+        ],
+      ],
+    );
+    return Directionality(
+      textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+      child: Container(
+        padding: EdgeInsets.all(compact ? 12 : 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [profile.primary.withValues(alpha: .34), const Color(0xff0b1724), profile.secondary.withValues(alpha: .12)]),
+          borderRadius: BorderRadius.circular(compact ? 20 : 26),
+          border: Border.all(color: profile.secondary.withValues(alpha: .42)),
+          boxShadow: [BoxShadow(color: profile.primary.withValues(alpha: .16), blurRadius: 24, offset: const Offset(0, 12))],
+        ),
+        child: compact
+            ? identity
+            : LayoutBuilder(builder: (context, area) {
+                if (area.maxWidth < 430) return Column(children: [identity, const SizedBox(height: 16), details]);
+                return Row(children: [SizedBox(width: 132, child: identity), const SizedBox(width: 18), Expanded(child: details)]);
+              }),
+      ),
+    );
+  }
+}
+
+class _BotIdentityPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _BotIdentityPill({required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(color: color.withValues(alpha: .10), borderRadius: BorderRadius.circular(999), border: Border.all(color: color.withValues(alpha: .28))),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 13, color: color), const SizedBox(width: 4), Text(label, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w900))]),
+      );
+}
+
+class BotRosterShowcase extends StatelessWidget {
+  final String locale;
+  final List<BotProfile> profiles;
+  const BotRosterShowcase({super.key, required this.locale, this.profiles = botProfiles});
+
+  @override
+  Widget build(BuildContext context) {
+    final rtl = locale == 'ar';
+    return Directionality(
+      textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+      child: LayoutBuilder(builder: (context, area) {
+        final columns = area.maxWidth >= 1050 ? 6 : area.maxWidth >= 700 ? 4 : 2;
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(rtl ? 'خصوم ورقنا الآليون' : 'Warqnaa computer players', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 3),
+          Text(rtl ? 'شخصيات عربية أصلية وواضحة الهوية؛ لكل شخصية أسلوب ومستوى مستقل.' : 'Original Arabic personas with clear identity, individual play style and level.', style: const TextStyle(fontSize: 10, color: Colors.white60, height: 1.4)),
+          const SizedBox(height: 12),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: math.min(profiles.length, columns * 2),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .83 : .88, crossAxisSpacing: 8, mainAxisSpacing: 8),
+            itemBuilder: (context, index) => BotIdentityShowcase(profile: profiles[index], locale: locale, compact: true),
+          ),
+        ]);
+      }),
     );
   }
 }

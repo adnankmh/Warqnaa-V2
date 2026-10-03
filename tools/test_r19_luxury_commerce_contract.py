@@ -10,12 +10,14 @@ PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
 PROFILE_WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
 BOOSTER_WIDGET_TEST = ROOT / 'flutter_app/test/r19_booster_status_test.dart'
 REACTION_WIDGET_TEST = ROOT / 'flutter_app/test/r19_reaction_stage_test.dart'
+AVATAR_WIDGET_TEST = ROOT / 'flutter_app/test/r19_avatar_bot_stage_test.dart'
 RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
 REACTIONS = (ROOT / 'flutter_app/lib/premium_v149.dart').read_text(encoding='utf-8')
 SOUNDS = (ROOT / 'flutter_app/lib/services/app_sounds.dart').read_text(encoding='utf-8')
+SMALL_TABLE = (ROOT / 'flutter_app/lib/v021_patch.dart').read_text(encoding='utf-8')
 
 checks = {
-    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.3+712-reaction-stage'" in SRC,
+    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.4+713-avatar-bot-stage'" in SRC,
     'premium visual themes': all(x in SRC for x in ["'midnight_cyan'", "'obsidian_gold'", "'royal_crimson'", "'sapphire_pasha'", "'aurora_luxe'"]),
     'legacy themes retained': all(x in SRC for x in ["'dark'", "'light'", "'green'", "'gold'", "'purple'", "'ocean'"]),
     'luxury store hero': 'Warqnaa Luxury Store' in SRC and 'متجر ورقنا المميز' in SRC,
@@ -93,6 +95,30 @@ checks = {
         "const Size(844, 390)",
         "reduceMotion: true",
     ]),
+    'R19 bot identities keep original localized presentation': all(x in REACTIONS for x in [
+        'class BotIdentityShowcase',
+        'class BotRosterShowcase',
+        "language == 'ar' ? 'آلي' : 'BOT'",
+        'Original Arabic identity',
+        'Gameplay decisions come from the authoritative engine, not this presentation layer.',
+    ]),
+    'public bot profile keeps its painted identity': all(x in AVATAR for x in [
+        'candidate.seed == -visible.id',
+        'BotIdentityShowcase(profile: botProfile, locale: controller.localeCode)',
+        "ar ? 'المباريات' : 'Games'",
+        'Token balance is private and never appears on a public profile.',
+    ]),
+    'small-table bot badges are localized': all(x in SMALL_TABLE for x in [
+        "locale == 'ar' ? 'ذكاء خبير' : 'MASTER AI'",
+        "locale == 'ar' ? 'ذكاء احترافي' : 'PRO AI'",
+    ]),
+    'R19 bot regression covers RTL, LTR, phone, landscape and web': AVATAR_WIDGET_TEST.is_file() and all(x in AVATAR_WIDGET_TEST.read_text(encoding='utf-8') for x in [
+        "for (final locale in <String>['ar', 'en'])",
+        'const Size(320, 640)',
+        'const Size(844, 390)',
+        'const Size(1280, 800)',
+        'find.byType(Bot3DAvatar)',
+    ]),
     'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
         "controller.selectedPashaStyle = 'blue'",
         "controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d'",
@@ -100,6 +126,7 @@ checks = {
         "'local-booster',",
         'controller.activeXpMultiplier = 2.5',
         "('local-reaction', R19ReactionReview(locale: locale))",
+        "('local-bots', R19BotReview(locale: locale))",
     ]),
     'R19 contract is part of release preflight': 'test_r19_luxury_commerce_contract.py' in PREFLIGHT,
 }
