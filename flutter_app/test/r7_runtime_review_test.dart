@@ -80,8 +80,10 @@ class R19ReactionReview extends StatelessWidget {
     body: SafeArea(
       child: LayoutBuilder(builder: (context, area) {
         final reaction = reactionCatalog.firstWhere((item) => item.id == 'r91_good_game');
-        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: AppSounds.enabled));
-        final dock = ReactionDock(locale: locale, soundEnabled: AppSounds.enabled, onSelected: (_) {});
+        // Widget tests have no native audio plugin; this review surface must
+        // render the honest motion-only state without starting an audio stream.
+        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: false));
+        final dock = ReactionDock(locale: locale, soundEnabled: false, onSelected: (_) {});
         if (area.maxHeight < 500) {
           return Padding(
             padding: const EdgeInsets.all(10),
