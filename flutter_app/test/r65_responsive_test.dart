@@ -126,7 +126,7 @@ void main() {
             description: 'outer vertical StorePage scrollable',
           ).first;
           Future<void> buildLazyStoreSection(Finder target) async {
-            for (var attempt = 0; attempt < 8 && target.evaluate().isEmpty; attempt += 1) {
+            for (var attempt = 0; attempt < 20 && target.evaluate().isEmpty; attempt += 1) {
               await tester.drag(storeScroll, const Offset(0, -250));
               await tester.pump(const Duration(milliseconds: 120));
             }
