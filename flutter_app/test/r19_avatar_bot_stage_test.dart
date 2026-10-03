@@ -50,7 +50,9 @@ void main() {
       await tester.pumpWidget(botApp(locale, BotRosterShowcase(locale: locale, profiles: botProfiles.take(6).toList())));
       await tester.pump(const Duration(milliseconds: 120));
       expect(find.text(locale == 'ar' ? 'خصوم ورقنا الآليون' : 'Warqnaa computer players'), findsOneWidget);
-      expect(find.byType(Bot3DAvatar), findsNWidgets(6));
+      // The phone roster intentionally limits itself to two rows of two cards;
+      // wider review surfaces exercise the expanded four/six-column variants.
+      expect(find.byType(Bot3DAvatar), findsNWidgets(4));
       expect(tester.takeException(), isNull);
     });
   }
