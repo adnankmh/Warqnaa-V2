@@ -4753,7 +4753,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     final seatSide = compact ? 78.0 : 92.0;
     final handHeight = withHand ? (compact ? 91.0 : 106.0) : 0.0;
     return Stack(children: [
-      Positioned.fill(left: 20, right: 20, top: 25, bottom: math.max(15, handHeight - 12), child: _LuxuryTable(trump: engine.trump, phase: engine.phase.name, skinId: widget.controller.selectedTable, controller: widget.controller)),
+      Positioned.fill(left: 20, right: 20, top: 25, bottom: math.max(15, handHeight - 12), child: WarqnaaTableSurface(trump: engine.trump, phase: engine.phase.name, skinId: widget.controller.selectedTable, controller: widget.controller)),
       Positioned(top: 2, left: 0, right: 0, child: Center(child: _localSeat(2, compact: compact))),
       Positioned(right: 5, top: math.max(45, (board.maxHeight - handHeight) * .43), child: _localSeat(1, compact: compact)),
       Positioned(left: 5, top: math.max(45, (board.maxHeight - handHeight) * .43), child: _localSeat(3, compact: compact)),
@@ -5060,35 +5060,64 @@ class PremiumCardBack extends StatelessWidget {
     final c2 = product?.previewColor2 ?? const Color(0xfffacc15);
     final customBytes = decodeDataImage(controller?.customCardBackData);
     final asset = customBytes == null ? product?.imageAsset : null;
-    return Container(
-      width: width,
-      height: height,
-      alignment: Alignment.center,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(width * .18),
-        gradient: customBytes == null && asset == null
-            ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [c1, Color.lerp(c1, Colors.black, .35)!])
+    return Semantics(
+      image: true,
+      label: Directionality.of(context) == TextDirection.rtl ? 'ظهر ورقنا' : 'Warqnaa card back',
+      child: Container(
+        key: const ValueKey('r19-warqnaa-card-back'),
+        width: width,
+        height: height,
+        alignment: Alignment.center,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(width * .18),
+          gradient: customBytes == null && asset == null
+              ? LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color.lerp(c1, c2, .10)!, Color.lerp(c1, Colors.black, .42)!])
+              : null,
+          image: customBytes != null
+              ? DecorationImage(image: MemoryImage(customBytes), fit: BoxFit.cover)
+              : asset == null
+                  ? null
+                  : DecorationImage(image: AssetImage(asset), fit: BoxFit.cover, filterQuality: FilterQuality.high),
+          border: Border.all(color: c2, width: 1.4),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 5, offset: const Offset(0, 3))],
+        ),
+        child: asset == null && customBytes == null
+            ? CustomPaint(
+                painter: _WarqnaaCardBackPainter(color: c2),
+                child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
+              )
             : null,
-        image: customBytes != null
-            ? DecorationImage(image: MemoryImage(customBytes), fit: BoxFit.cover)
-            : asset == null
-                ? null
-                : DecorationImage(image: AssetImage(asset), fit: BoxFit.cover, filterQuality: FilterQuality.high),
-        border: Border.all(color: c2, width: 1.4),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 5, offset: const Offset(0, 3))],
       ),
-      child: asset == null && customBytes == null
-          ? Container(
-              width: width * .62,
-              height: height * .67,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(width * .12), border: Border.all(color: c2.withValues(alpha: .7))),
-              child: Text(product?.icon ?? 'W', style: TextStyle(color: c2, fontSize: width * .34, fontWeight: FontWeight.w900)),
-            )
-          : null,
     );
   }
+}
+
+class _WarqnaaCardBackPainter extends CustomPainter {
+  final Color color;
+  const _WarqnaaCardBackPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final line = Paint()
+      ..color = color.withValues(alpha: .58)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(.7, size.width * .035);
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(size.width * .13, size.height * .09, size.width * .74, size.height * .82), Radius.circular(size.width * .12)),
+      line,
+    );
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(math.pi / 4);
+    canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: size.width * .38, height: size.width * .38), line);
+    canvas.restore();
+    canvas.drawCircle(center, size.width * .16, line..color = color.withValues(alpha: .32));
+  }
+
+  @override
+  bool shouldRepaint(covariant _WarqnaaCardBackPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class OpponentCardStack extends StatelessWidget {
@@ -5107,12 +5136,12 @@ class OpponentCardStack extends StatelessWidget {
   }
 }
 
-class _LuxuryTable extends StatelessWidget {
+class WarqnaaTableSurface extends StatelessWidget {
   final String? trump;
   final String phase;
   final String skinId;
   final AppController? controller;
-  const _LuxuryTable({required this.trump, required this.phase, this.skinId = v305PremiumTableId, this.controller});
+  const WarqnaaTableSurface({super.key, required this.trump, required this.phase, this.skinId = v305PremiumTableId, this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -5122,17 +5151,22 @@ class _LuxuryTable extends StatelessWidget {
     final dark = Color.lerp(c1, Colors.black, .62)!;
     final customBytes = decodeDataImage(controller?.customTableBackgroundData);
     final assetImage = customBytes == null && skin?.imageAsset != null ? R10AssetDelivery.instance.provider(skin!.imageAsset!) : null;
-    return LayoutBuilder(
+    final ar = Directionality.of(context) == TextDirection.rtl;
+    return Semantics(
+      image: true,
+      label: ar ? 'طاولة ورقنا الملكية' : 'Warqnaa Royal Table',
+      child: LayoutBuilder(
       builder: (context, constraints) {
         final portrait = constraints.maxHeight > constraints.maxWidth;
         final radius = portrait ? 38.0 : 30.0;
         final overlay = portrait ? LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .08), Colors.transparent, Colors.black.withValues(alpha: .14)]) : null;
         return AnimatedContainer(
+          key: const ValueKey('r19-warqnaa-table-surface'),
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
-            gradient: RadialGradient(center: portrait ? const Alignment(0, -.38) : const Alignment(0, -.25), radius: portrait ? 1.08 : .95, colors: [c2.withValues(alpha: portrait ? .54 : .48), c1, dark]),
+            gradient: RadialGradient(center: portrait ? const Alignment(0, -.30) : const Alignment(0, -.18), radius: portrait ? 1.12 : 1.02, colors: [Color.lerp(c1, c2, portrait ? .18 : .14)!, c1, dark]),
             border: Border.all(color: c2, width: portrait ? 4.2 : 5),
             boxShadow: [
               BoxShadow(color: Colors.black.withValues(alpha: .62), blurRadius: portrait ? 28 : 32, offset: Offset(0, portrait ? 12 : 18)),
@@ -5143,7 +5177,7 @@ class _LuxuryTable extends StatelessWidget {
             borderRadius: BorderRadius.circular(radius),
             child: Stack(
               children: [
-                Positioned.fill(child: CustomPaint(painter: _TablePatternPainter(color: c2))),
+                Positioned.fill(child: CustomPaint(painter: _WarqnaaTablePatternPainter(color: c2))),
                 if (customBytes != null || assetImage != null)
                   Center(
                     child: FractionallySizedBox(
@@ -5183,23 +5217,64 @@ class _LuxuryTable extends StatelessWidget {
           ),
         );
       },
-    );
+    ));
   }
 }
 
-class _TablePatternPainter extends CustomPainter {
+class _WarqnaaTablePatternPainter extends CustomPainter {
   final Color color;
-  const _TablePatternPainter({this.color = Colors.white});
+  const _WarqnaaTablePatternPainter({this.color = Colors.white});
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color.withValues(alpha: .055)..style = PaintingStyle.stroke..strokeWidth = 1;
-    for (var i = 1; i < 7; i++) {
-      canvas.drawOval(Rect.fromCenter(center: Offset(size.width / 2, size.height / 2), width: size.width * i / 7, height: size.height * i / 7), paint);
+    final shortest = math.min(size.width, size.height);
+    final center = Offset(size.width / 2, size.height / 2);
+    final line = Paint()
+      ..color = color.withValues(alpha: .085)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1, shortest * .004);
+    final whisper = Paint()
+      ..color = color.withValues(alpha: .045)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(.7, shortest * .0025);
+    final readingZone = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: center, width: size.width * .46, height: size.height * .24),
+      Radius.circular(shortest * .08),
+    );
+    canvas.drawRRect(readingZone, Paint()..color = Colors.black.withValues(alpha: .075));
+    canvas.drawRRect(readingZone, whisper);
+
+    final star = Path();
+    for (var i = 0; i < 16; i++) {
+      final angle = -math.pi / 2 + i * math.pi / 8;
+      final radius = shortest * (i.isEven ? .15 : .072);
+      final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;
+      if (i == 0) {
+        star.moveTo(point.dx, point.dy);
+      } else {
+        star.lineTo(point.dx, point.dy);
+      }
+    }
+    star.close();
+    canvas.drawPath(star, whisper);
+    canvas.drawCircle(center, shortest * .19, whisper);
+
+    final inset = shortest * .055;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(Rect.fromLTWH(inset, inset, size.width - inset * 2, size.height - inset * 2), Radius.circular(shortest * .10)),
+      line,
+    );
+    for (final alignment in const [Alignment(-.78, -.72), Alignment(.78, -.72), Alignment(-.78, .72), Alignment(.78, .72)]) {
+      final p = alignment.alongSize(size);
+      canvas.save();
+      canvas.translate(p.dx, p.dy);
+      canvas.rotate(math.pi / 4);
+      canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: shortest * .07, height: shortest * .07), whisper);
+      canvas.restore();
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _WarqnaaTablePatternPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class RoundXpNoticeV174 {
@@ -6016,7 +6091,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final players = room?['players'] is List ? room!['players'] as List : const [];
     return Stack(key: const ValueKey('r10-engine-table'), children: [
       Positioned.fill(left: 20, right: 20, top: 24, bottom: 24,
-        child: _LuxuryTable(trump: state['trump']?.toString(), phase: enginePhase,
+        child: WarqnaaTableSurface(trump: state['trump']?.toString(), phase: enginePhase,
           skinId: widget.controller.selectedTable, controller: widget.controller)),
       for (var i = 0; i < players.length; i++) Builder(builder: (context) {
         final relative = r8RelativeSeat(players, i, state['you']?.toString());
@@ -7044,33 +7119,111 @@ class PlayingCard extends StatelessWidget {
     final centerSize = math.max(compactCard ? 9.0 : 16.0, width * .48).toDouble();
     final edgeInset = compactCard ? 1.5 : 3.5;
     final verticalInset = compactCard ? 1.0 : 2.5;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 170),
-      curve: Curves.easeOutCubic,
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xfffffff9), Color(0xffeee7d8)]),
-        borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()),
-        border: Border.all(color: selected ? Theme.of(context).colorScheme.primary : const Color(0xffc9c0ac), width: selected ? 2.4 : 1.1),
-        boxShadow: [
-          BoxShadow(color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: .34) : Colors.black.withValues(alpha: .34), blurRadius: selected ? 17 : 8, offset: const Offset(0, 5)),
-          const BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1)),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(math.max(6.0, width * .16).toDouble()),
-        child: Stack(
-          children: [
-            Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))])),
-            Center(child: Text(suit.isEmpty ? label : suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: centerSize, shadows: const [Shadow(color: Colors.white, blurRadius: 1)]))),
-            Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
-            if (selected) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()), gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .18), Colors.transparent]))))),
+    return Semantics(
+      image: true,
+      label: label,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 170),
+        curve: Curves.easeOutCubic,
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xfffffff9), Color(0xffeee7d8)]),
+          borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()),
+          border: Border.all(color: selected ? Theme.of(context).colorScheme.primary : const Color(0xffc9c0ac), width: selected ? 2.4 : 1.1),
+          boxShadow: [
+            BoxShadow(color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: .34) : Colors.black.withValues(alpha: .34), blurRadius: selected ? 17 : 8, offset: const Offset(0, 5)),
+            const BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1)),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(math.max(6.0, width * .16).toDouble()),
+          child: Stack(
+            children: [
+              Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))])),
+              Positioned.fill(
+                child: CustomPaint(
+                  key: ValueKey('r19-card-face-$label'),
+                  painter: _WarqnaaCardFacePainter(rank: rank, suit: suit, ink: ink, compact: compactCard, referenceSize: centerSize),
+                ),
+              ),
+              Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
+              if (selected) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()), gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .18), Colors.transparent]))))),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _WarqnaaCardFacePainter extends CustomPainter {
+  final String rank;
+  final String suit;
+  final Color ink;
+  final bool compact;
+  final double referenceSize;
+  const _WarqnaaCardFacePainter({required this.rank, required this.suit, required this.ink, required this.compact, required this.referenceSize});
+
+  void _glyph(Canvas canvas, String value, Offset point, double fontSize, {Color? color, FontWeight weight = FontWeight.w900}) {
+    final painter = TextPainter(
+      text: TextSpan(text: value, style: TextStyle(color: color ?? ink, fontSize: fontSize, fontWeight: weight, height: 1)),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    )..layout();
+    painter.paint(canvas, point - Offset(painter.width / 2, painter.height / 2));
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (suit.isEmpty) {
+      _glyph(canvas, rank, Offset(size.width / 2, size.height / 2), referenceSize);
+      return;
+    }
+    if (compact) {
+      _glyph(canvas, suit, Offset(size.width / 2, size.height / 2), referenceSize);
+      return;
+    }
+    final center = Offset(size.width / 2, size.height / 2);
+    if (const {'J', 'Q', 'K'}.contains(rank)) {
+      final badge = RRect.fromRectAndRadius(
+        Rect.fromCenter(center: center, width: size.width * .48, height: size.height * .47),
+        Radius.circular(size.width * .12),
+      );
+      canvas.drawRRect(badge, Paint()..color = ink.withValues(alpha: .055));
+      canvas.drawRRect(badge, Paint()..color = const Color(0xffb8893e).withValues(alpha: .72)..style = PaintingStyle.stroke..strokeWidth = math.max(.7, size.width * .025));
+      _glyph(canvas, rank, center - Offset(0, size.height * .055), size.width * .35, color: ink);
+      _glyph(canvas, suit, center + Offset(0, size.height * .145), size.width * .18, color: ink);
+      return;
+    }
+    if (rank == 'A') {
+      _glyph(canvas, suit, center, size.width * .53, color: ink);
+      canvas.drawCircle(center, size.width * .28, Paint()..color = const Color(0xffb8893e).withValues(alpha: .45)..style = PaintingStyle.stroke..strokeWidth = math.max(.7, size.width * .022));
+      return;
+    }
+    final count = int.tryParse(rank);
+    if (count == null || count < 2 || count > 10) {
+      _glyph(canvas, suit, center, referenceSize);
+      return;
+    }
+    final positions = switch (count) {
+      2 => const [Offset(.50, .27), Offset(.50, .73)],
+      3 => const [Offset(.50, .24), Offset(.50, .50), Offset(.50, .76)],
+      4 => const [Offset(.34, .27), Offset(.66, .27), Offset(.34, .73), Offset(.66, .73)],
+      5 => const [Offset(.34, .25), Offset(.66, .25), Offset(.50, .50), Offset(.34, .75), Offset(.66, .75)],
+      6 => const [Offset(.34, .24), Offset(.66, .24), Offset(.34, .50), Offset(.66, .50), Offset(.34, .76), Offset(.66, .76)],
+      7 => const [Offset(.34, .22), Offset(.66, .22), Offset(.50, .38), Offset(.34, .50), Offset(.66, .50), Offset(.34, .78), Offset(.66, .78)],
+      8 => const [Offset(.34, .21), Offset(.66, .21), Offset(.50, .35), Offset(.34, .47), Offset(.66, .47), Offset(.50, .63), Offset(.34, .79), Offset(.66, .79)],
+      9 => const [Offset(.34, .20), Offset(.66, .20), Offset(.34, .38), Offset(.66, .38), Offset(.50, .50), Offset(.34, .62), Offset(.66, .62), Offset(.34, .80), Offset(.66, .80)],
+      _ => const [Offset(.34, .19), Offset(.66, .19), Offset(.50, .30), Offset(.34, .39), Offset(.66, .39), Offset(.34, .61), Offset(.66, .61), Offset(.50, .70), Offset(.34, .81), Offset(.66, .81)],
+    };
+    for (final position in positions) {
+      _glyph(canvas, suit, Offset(size.width * position.dx, size.height * position.dy), size.width * .16, color: ink);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WarqnaaCardFacePainter oldDelegate) => oldDelegate.rank != rank || oldDelegate.suit != suit || oldDelegate.ink != ink || oldDelegate.compact != compact;
 }
 
 class PlayerSeat extends StatelessWidget {

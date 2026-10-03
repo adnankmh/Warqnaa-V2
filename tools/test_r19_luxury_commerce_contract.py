@@ -11,13 +11,14 @@ PROFILE_WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
 BOOSTER_WIDGET_TEST = ROOT / 'flutter_app/test/r19_booster_status_test.dart'
 REACTION_WIDGET_TEST = ROOT / 'flutter_app/test/r19_reaction_stage_test.dart'
 AVATAR_WIDGET_TEST = ROOT / 'flutter_app/test/r19_avatar_bot_stage_test.dart'
+GAME_ART_WIDGET_TEST = ROOT / 'flutter_app/test/r19_game_art_stage_test.dart'
 RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
 REACTIONS = (ROOT / 'flutter_app/lib/premium_v149.dart').read_text(encoding='utf-8')
 SOUNDS = (ROOT / 'flutter_app/lib/services/app_sounds.dart').read_text(encoding='utf-8')
 SMALL_TABLE = (ROOT / 'flutter_app/lib/v021_patch.dart').read_text(encoding='utf-8')
 
 checks = {
-    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.4+713-avatar-bot-stage'" in SRC,
+    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.5+714-game-art-stage'" in SRC,
     'premium visual themes': all(x in SRC for x in ["'midnight_cyan'", "'obsidian_gold'", "'royal_crimson'", "'sapphire_pasha'", "'aurora_luxe'"]),
     'legacy themes retained': all(x in SRC for x in ["'dark'", "'light'", "'green'", "'gold'", "'purple'", "'ocean'"]),
     'luxury store hero': 'Warqnaa Luxury Store' in SRC and 'متجر ورقنا المميز' in SRC,
@@ -118,6 +119,25 @@ checks = {
         'const Size(844, 390)',
         'const Size(1280, 800)',
         'find.byType(Bot3DAvatar)',
+    ]),
+    'R19 original table and card art is generated in app': all(x in MAIN for x in [
+        'class WarqnaaTableSurface',
+        'class _WarqnaaTablePatternPainter',
+        "ValueKey('r19-warqnaa-table-surface')",
+        'class _WarqnaaCardFacePainter',
+        'class _WarqnaaCardBackPainter',
+        "ValueKey('r19-card-face-$label')",
+        "oldDelegate.color != color",
+    ]),
+    'R19 game-art regression covers RTL, LTR, portrait and landscape': GAME_ART_WIDGET_TEST.is_file() and all(x in GAME_ART_WIDGET_TEST.read_text(encoding='utf-8') for x in [
+        "for (final locale in <String>['ar', 'en'])",
+        'const Size(320, 640)',
+        'const Size(844, 390)',
+        "PlayingCard(label: 'A♠'",
+        "PlayingCard(label: 'Q♥'",
+        "PlayingCard(label: '10♦'",
+        "ValueKey('r19-warqnaa-table-surface')",
+        "ValueKey('r19-warqnaa-card-back')",
     ]),
     'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
         "controller.selectedPashaStyle = 'blue'",
