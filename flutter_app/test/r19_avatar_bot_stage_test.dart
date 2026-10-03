@@ -53,6 +53,7 @@ void main() {
       // The phone roster intentionally limits itself to two rows of two cards;
       // wider review surfaces exercise the expanded four/six-column variants.
       expect(find.byType(Bot3DAvatar), findsNWidgets(4));
+      expect(find.text(botProfiles.first.style(locale)), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

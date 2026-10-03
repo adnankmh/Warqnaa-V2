@@ -224,7 +224,20 @@ class BotIdentityShowcase extends StatelessWidget {
           boxShadow: [BoxShadow(color: profile.primary.withValues(alpha: .16), blurRadius: 24, offset: const Offset(0, 12))],
         ),
         child: compact
-            ? identity
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  identity,
+                  const SizedBox(height: 7),
+                  Text(
+                    profile.style(locale),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 9, height: 1.2, color: Colors.white70, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              )
             : LayoutBuilder(builder: (context, area) {
                 if (area.maxWidth < 430) return Column(children: [identity, const SizedBox(height: 16), details]);
                 return Row(children: [SizedBox(width: 132, child: identity), const SizedBox(width: 18), Expanded(child: details)]);
