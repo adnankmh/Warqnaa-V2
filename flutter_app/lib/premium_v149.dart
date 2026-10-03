@@ -282,7 +282,7 @@ class BotRosterShowcase extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: math.min(profiles.length, columns * 2),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .83 : .88, crossAxisSpacing: 8, mainAxisSpacing: 8),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .74 : .78, crossAxisSpacing: 8, mainAxisSpacing: 8),
             itemBuilder: (context, index) => BotIdentityShowcase(profile: profiles[index], locale: locale, compact: true),
           ),
         ]);
