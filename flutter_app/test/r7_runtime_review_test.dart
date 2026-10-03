@@ -69,6 +69,33 @@ Widget reviewApp(Widget child, AppController controller, GlobalKey key) => Repai
   ),
 );
 
+class R19ReactionReview extends StatelessWidget {
+  final String locale;
+  const R19ReactionReview({super.key, required this.locale});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xff050b12),
+    body: SafeArea(
+      child: LayoutBuilder(builder: (context, area) {
+        final reaction = reactionCatalog.firstWhere((item) => item.id == 'r91_good_game');
+        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: true));
+        final dock = ReactionDock(locale: locale, soundEnabled: true, onSelected: (_) {});
+        if (area.maxHeight < 500) {
+          return Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: [Expanded(child: stage), const SizedBox(width: 10), SizedBox(width: 330, child: dock)]),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(children: [Expanded(child: stage), const SizedBox(height: 10), SizedBox(height: 330, child: dock)]),
+        );
+      }),
+    ),
+  );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
@@ -179,6 +206,7 @@ void main() {
               ),
             ),
           ),
+          ('local-reaction', R19ReactionReview(locale: locale)),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));

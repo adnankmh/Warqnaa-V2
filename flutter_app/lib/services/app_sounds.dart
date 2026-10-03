@@ -21,10 +21,11 @@ class AppSounds {
   };
   static final Map<String, AudioPlayer> _players = <String, AudioPlayer>{};
   static final Map<String, DateTime> _lastPlayed = <String, DateTime>{};
+  static DateTime? _lastSpecificReaction;
 
   static SoundChannel channelFor(String cue) {
     if (<String>{'card_play','deal','shuffle','round_end','next_round','bid'}.contains(cue)) return SoundChannel.cards;
-    if (<String>{'emoji','reaction','gift'}.contains(cue)) return SoundChannel.reactions;
+    if (<String>{'emoji','reaction','gift'}.contains(cue) || cue.startsWith('reaction_')) return SoundChannel.reactions;
     if (<String>{'win','reward','purchase','booster_activate','ticket_flip'}.contains(cue)) return SoundChannel.rewards;
     if (<String>{'message','notification','invite','room_join','room_create'}.contains(cue)) return SoundChannel.social;
     return SoundChannel.ui;
@@ -46,7 +47,17 @@ class AppSounds {
 
   static Future<void> play(String requestedCue, {double? volumeOverride, Duration throttle = const Duration(milliseconds: 45)}) async {
     if (!enabled) return;
+    final requestedAt = DateTime.now();
+    if (requestedCue == 'emoji') {
+      // A reaction tap historically requested a generic emoji cue immediately
+      // before FloatingReaction requested its richer category cue. Give the
+      // category cue priority instead of playing both on top of each other.
+      await Future<void>.delayed(const Duration(milliseconds: 70));
+      final specific = _lastSpecificReaction;
+      if (specific != null && !specific.isBefore(requestedAt)) return;
+    }
     final now = DateTime.now();
+    if (requestedCue.startsWith('reaction_')) _lastSpecificReaction = now;
     final previous = _lastPlayed[requestedCue];
     if (previous != null && now.difference(previous) < throttle) return;
     _lastPlayed[requestedCue] = now;

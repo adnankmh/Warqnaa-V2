@@ -269,6 +269,16 @@ class ReactionItem {
 
   const ReactionItem(this.id, this.emoji, this.category, this.labelAr, this.labelEn, {this.animated = false});
   String label(String locale) => locale == 'ar' ? labelAr : labelEn;
+
+  /// Reaction sound is presentation-only. It never changes room/game state.
+  String get soundCue => switch (category) {
+        'power' => 'reaction_power',
+        'victory' => 'reaction_victory',
+        'pasha' => 'reaction_pasha',
+        'mood' => 'reaction_mood',
+        'fun' => 'reaction_fun',
+        _ => 'reaction_friendly',
+      };
 }
 
 const reactionCatalog = <ReactionItem>[
@@ -403,8 +413,15 @@ class ReactionDock extends StatefulWidget {
   final String locale;
   final ValueChanged<ReactionItem> onSelected;
   final Set<String>? unlockedCategories;
+  final bool? soundEnabled;
 
-  const ReactionDock({super.key, required this.locale, required this.onSelected, this.unlockedCategories});
+  const ReactionDock({
+    super.key,
+    required this.locale,
+    required this.onSelected,
+    this.unlockedCategories,
+    this.soundEnabled,
+  });
 
   @override
   State<ReactionDock> createState() => _ReactionDockState();
@@ -416,6 +433,7 @@ class _ReactionDockState extends State<ReactionDock> {
   @override
   Widget build(BuildContext context) {
     final rtl = widget.locale == 'ar';
+    final soundEnabled = widget.soundEnabled ?? AppSounds.enabled;
     const labelsAr = <String, String>{'friendly': 'ودية', 'fun': 'مرحة', 'power': 'قوية', 'victory': 'فوز', 'mood': 'مشاعر', 'pasha': 'باشا'};
     const labelsEn = <String, String>{'friendly': 'Friendly', 'fun': 'Fun', 'power': 'Power', 'victory': 'Victory', 'mood': 'Mood', 'pasha': 'Pasha'};
     final allowed = widget.unlockedCategories ?? labelsAr.keys.toSet();
@@ -436,6 +454,38 @@ class _ReactionDockState extends State<ReactionDock> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      rtl ? 'تفاعلات ورقنا' : 'Warqnaa reactions',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff5de7ff).withValues(alpha: .10),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: const Color(0xff5de7ff).withValues(alpha: .24)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(soundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded, size: 14, color: const Color(0xff5de7ff)),
+                        const SizedBox(width: 4),
+                        Text(
+                          soundEnabled ? (rtl ? 'صوت وحركة' : 'Sound & motion') : (rtl ? 'حركة فقط' : 'Motion only'),
+                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xffbdf7ff)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 height: 38,
                 child: ListView(
@@ -456,29 +506,41 @@ class _ReactionDockState extends State<ReactionDock> {
               ),
               const SizedBox(height: 8),
               Flexible(
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, childAspectRatio: .95, crossAxisSpacing: 7, mainAxisSpacing: 7),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return InkWell(
-                      onTap: () => widget.onSelected(item),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: .055), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white.withValues(alpha: .07))),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            item.animated ? _AnimatedReaction(item.emoji, size: 42) : Text(item.emoji, style: const TextStyle(fontSize: 42)),
-                            const SizedBox(height: 2),
-                            Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white70, fontWeight: FontWeight.w800)),
-                          ],
+                child: LayoutBuilder(
+                  builder: (context, grid) => GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: grid.maxWidth >= 520 ? 6 : grid.maxWidth >= 360 ? 5 : 4,
+                      childAspectRatio: .92,
+                      crossAxisSpacing: 7,
+                      mainAxisSpacing: 7,
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final motion = item.animated ? (rtl ? 'متحرك' : 'Animated') : (rtl ? 'ثابت' : 'Static');
+                      return Semantics(
+                        button: true,
+                        label: '${item.label(widget.locale)}، $motion',
+                        child: InkWell(
+                          onTap: () => widget.onSelected(item),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(color: Colors.white.withValues(alpha: .055), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white.withValues(alpha: .07))),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                item.animated ? _AnimatedReaction(item.emoji, size: 38) : Text(item.emoji, style: const TextStyle(fontSize: 38)),
+                                const SizedBox(height: 2),
+                                Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white70, fontWeight: FontWeight.w800)),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -754,7 +816,17 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
 class FloatingReaction extends StatefulWidget {
   final ReactionItem reaction;
   final VoidCallback? onCompleted;
-  const FloatingReaction({super.key, required this.reaction, this.onCompleted});
+  final String? locale;
+  final bool? soundEnabled;
+  final bool? reduceMotion;
+  const FloatingReaction({
+    super.key,
+    required this.reaction,
+    this.onCompleted,
+    this.locale,
+    this.soundEnabled,
+    this.reduceMotion,
+  });
 
   @override
   State<FloatingReaction> createState() => _FloatingReactionState();
@@ -766,12 +838,19 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
   late final Animation<double> fade;
   late final Animation<Offset> slide;
   late final Animation<double> rotation;
+  late final bool soundEnabled;
+  late final bool reduceMotion;
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700));
-    AppSounds.fire('reaction_${widget.reaction.category}');
+    soundEnabled = widget.soundEnabled ?? AppSounds.enabled;
+    reduceMotion = widget.reduceMotion ?? WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: reduceMotion ? 1050 : 1700),
+    );
+    if (soundEnabled && widget.reaction.animated) AppSounds.fire(widget.reaction.soundCue);
     scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: .2, end: 1.18).chain(CurveTween(curve: Curves.easeOutBack)), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.18, end: 1.0), weight: 25),
@@ -798,24 +877,16 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
   }
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-        opacity: fade,
-        child: SlideTransition(
-          position: slide,
-          child: ScaleTransition(
-            scale: scale,
-            child: AnimatedBuilder(
-              animation: controller,
-              builder: (context, child) => Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, .0014)
-                  ..rotateY(rotation.value)
-                  ..rotateZ(rotation.value * .42),
-                child: child,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+  Widget build(BuildContext context) {
+    final locale = widget.locale ?? Localizations.localeOf(context).languageCode;
+    final rtl = locale == 'ar';
+    final card = Semantics(
+      container: true,
+      liveRegion: true,
+      label: '${rtl ? 'تفاعل' : 'Reaction'}: ${widget.reaction.label(locale)}',
+      child: Container(
+                constraints: const BoxConstraints(maxWidth: 270),
+                padding: const EdgeInsets.fromLTRB(22, 15, 22, 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xee20364d), Color(0xee07111c), Color(0xee341d4d)]),
                   borderRadius: BorderRadius.circular(26),
@@ -826,18 +897,53 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
                     BoxShadow(color: Color(0x44ffd166), blurRadius: 18, spreadRadius: 1),
                   ],
                 ),
-                child: Stack(alignment: Alignment.center, clipBehavior: Clip.none, children: [
+                child: Stack(clipBehavior: Clip.none, children: [
                   if (widget.reaction.animated) ...[
-                    const Positioned(left: -10, top: -9, child: Icon(Icons.auto_awesome, size: 18, color: Color(0xffffd166))),
-                    const Positioned(right: -12, bottom: -7, child: Icon(Icons.auto_awesome, size: 14, color: Color(0xff5de7ff))),
-                    Positioned(right: -5, top: 2, child: Container(width: 8, height: 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xffff8fab)))),
+                    const PositionedDirectional(start: -10, top: -9, child: Icon(Icons.auto_awesome, size: 18, color: Color(0xffffd166))),
+                    const PositionedDirectional(end: -12, bottom: -7, child: Icon(Icons.auto_awesome, size: 14, color: Color(0xff5de7ff))),
                   ],
-                  Text(widget.reaction.emoji, style: TextStyle(fontSize: 76, foreground: Paint()..color = const Color(0x22ffffff))),
-                  Text(widget.reaction.emoji, style: const TextStyle(fontSize: 60, shadows: [Shadow(color: Color(0xaa000000), blurRadius: 9, offset: Offset(0, 5)), Shadow(color: Color(0x88ffffff), blurRadius: 10)])),
+                  Column(mainAxisSize: MainAxisSize.min, children: [
+                    Stack(alignment: Alignment.center, children: [
+                      Text(widget.reaction.emoji, style: TextStyle(fontSize: 76, foreground: Paint()..color = const Color(0x22ffffff))),
+                      Text(widget.reaction.emoji, style: const TextStyle(fontSize: 60, shadows: [Shadow(color: Color(0xaa000000), blurRadius: 9, offset: Offset(0, 5)), Shadow(color: Color(0x88ffffff), blurRadius: 10)])),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(widget.reaction.label(locale), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 3),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(soundEnabled ? Icons.graphic_eq_rounded : Icons.motion_photos_on_outlined, size: 13, color: const Color(0xff5de7ff)),
+                      const SizedBox(width: 4),
+                      Text(soundEnabled ? (rtl ? 'صوت تفاعلي' : 'Reaction sound') : (rtl ? 'حركة فقط' : 'Motion only'), style: const TextStyle(color: Color(0xffbdf7ff), fontSize: 8, fontWeight: FontWeight.w800)),
+                    ]),
+                  ]),
                 ]),
               ),
-            ),
-          ),
+    );
+    return Directionality(
+      textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+      child: FadeTransition(
+        opacity: fade,
+        child: reduceMotion
+            ? card
+            : SlideTransition(
+                position: slide,
+                child: ScaleTransition(
+                  scale: scale,
+                  child: AnimatedBuilder(
+                    animation: controller,
+                    builder: (context, child) => Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..setEntry(3, 2, .0014)
+                        ..rotateY(rotation.value)
+                        ..rotateZ(rotation.value * .42),
+                      child: child,
+                    ),
+                    child: card,
+                  ),
+                ),
+              ),
         ),
       );
+  }
 }

@@ -9,10 +9,13 @@ MAIN = (ROOT / 'flutter_app/lib/main.dart').read_text(encoding='utf-8')
 PREFLIGHT = (ROOT / 'tools/validate_release.py').read_text(encoding='utf-8')
 PROFILE_WIDGET_TEST = ROOT / 'flutter_app/test/r19_profile_pasha_test.dart'
 BOOSTER_WIDGET_TEST = ROOT / 'flutter_app/test/r19_booster_status_test.dart'
+REACTION_WIDGET_TEST = ROOT / 'flutter_app/test/r19_reaction_stage_test.dart'
 RUNTIME_REVIEW = (ROOT / 'flutter_app/test/r7_runtime_review_test.dart').read_text(encoding='utf-8')
+REACTIONS = (ROOT / 'flutter_app/lib/premium_v149.dart').read_text(encoding='utf-8')
+SOUNDS = (ROOT / 'flutter_app/lib/services/app_sounds.dart').read_text(encoding='utf-8')
 
 checks = {
-    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.2+711-premium-boosters'" in SRC,
+    'R19 release anchor': "warqnaaR19LuxuryCommerce = '1.9.3+712-reaction-stage'" in SRC,
     'premium visual themes': all(x in SRC for x in ["'midnight_cyan'", "'obsidian_gold'", "'royal_crimson'", "'sapphire_pasha'", "'aurora_luxe'"]),
     'legacy themes retained': all(x in SRC for x in ["'dark'", "'light'", "'green'", "'gold'", "'purple'", "'ocean'"]),
     'luxury store hero': 'Warqnaa Luxury Store' in SRC and 'متجر ورقنا المميز' in SRC,
@@ -69,12 +72,34 @@ checks = {
         "for (final locale in <String>['ar', 'en'])",
         "Key('r19-browse-boosters')",
     ]),
+    'R19 reaction stage is localized, audible and reduced-motion safe': all(x in REACTIONS for x in [
+        "String get soundCue => switch (category)",
+        "rtl ? 'تفاعلات ورقنا' : 'Warqnaa reactions'",
+        "reduceMotion ? 1050 : 1700",
+        "if (soundEnabled && widget.reaction.animated) AppSounds.fire(widget.reaction.soundCue)",
+        "liveRegion: true",
+    ]),
+    'reaction audio stays on the shipped fail-safe sound bus': all(x in SOUNDS for x in [
+        "'reaction_friendly': 'emoji'",
+        "'reaction_power': 'card_combo'",
+        "'reaction_victory': 'legendary_emote'",
+        "cue.startsWith('reaction_')",
+        "await Future<void>.delayed(const Duration(milliseconds: 70))",
+        "AssetSource('sounds/r10/$cue.ogg')",
+    ]),
+    'R19 reaction regression covers RTL, LTR, phone and landscape': REACTION_WIDGET_TEST.is_file() and all(x in REACTION_WIDGET_TEST.read_text(encoding='utf-8') for x in [
+        "for (final locale in <String>['ar', 'en'])",
+        "const Size(320, 640)",
+        "const Size(844, 390)",
+        "reduceMotion: true",
+    ]),
     'active Pasha profile is captured in runtime review': all(x in RUNTIME_REVIEW for x in [
         "controller.selectedPashaStyle = 'blue'",
         "controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d'",
         "('local-profile', R61ProfilePage(controller: controller))",
         "'local-booster',",
         'controller.activeXpMultiplier = 2.5',
+        "('local-reaction', R19ReactionReview(locale: locale))",
     ]),
     'R19 contract is part of release preflight': 'test_r19_luxury_commerce_contract.py' in PREFLIGHT,
 }

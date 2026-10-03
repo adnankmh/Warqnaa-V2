@@ -1,7 +1,7 @@
 part of 'main.dart';
 
 const String warqnaaR101Release = '0.5.1+221';
-const String warqnaaR19LuxuryCommerce = '1.9.2+711-premium-boosters';
+const String warqnaaR19LuxuryCommerce = '1.9.3+712-reaction-stage';
 
 /// R10.1 keeps unfinished server-dependent titles out of the customer lobby.
 List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly && !b304BannedCustomerGames.contains(game.id)).toList(growable: false);
