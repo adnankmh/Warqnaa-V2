@@ -794,7 +794,8 @@ class ProfileCover extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: colors ?? cover.colors))),
-            if (animated) const AmbientTableFX(density: 8, subtle: true),
+            const Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: R20CoverPatternPainter()))),
+            if (animated && !MediaQuery.disableAnimationsOf(context)) const AmbientTableFX(density: 8, subtle: true),
             Positioned(right: 18, top: 12, child: Icon(cover.icon, size: height * .55, color: Colors.white.withValues(alpha: .10))),
             Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withValues(alpha: .58)])))),
             if (child != null) child!,
@@ -1100,4 +1101,28 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
         ),
       );
   }
+}
+
+/// Original, static edge geometry leaves the profile's reading zone clear.
+class R20CoverPatternPainter extends CustomPainter {
+  const R20CoverPatternPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = const Color(0x12FFFFFF)..style = PaintingStyle.stroke..strokeWidth = 1;
+    for (final anchor in [Offset(0, size.height), Offset(size.width, 0)]) {
+      for (var ring = 1; ring <= 3; ring++) {
+        final radius = size.shortestSide * (.12 + ring * .13);
+        final path = Path();
+        for (var point = 0; point < 8; point++) {
+          final angle = point * math.pi / 4;
+          final vertex = anchor + Offset(math.cos(angle), math.sin(angle)) * radius;
+          if (point == 0) { path.moveTo(vertex.dx, vertex.dy); } else { path.lineTo(vertex.dx, vertex.dy); }
+        }
+        path.close();
+        canvas.drawPath(path, paint);
+      }
+    }
+  }
+  @override
+  bool shouldRepaint(covariant R20CoverPatternPainter oldDelegate) => false;
 }

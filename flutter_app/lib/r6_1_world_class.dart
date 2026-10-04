@@ -525,10 +525,10 @@ class R61ProfilePage extends StatelessWidget {
                 LinearProgressIndicator(value: controller.levelProgress, minHeight: 9, borderRadius: BorderRadius.circular(20)),
                 const SizedBox(height: 11),
                 Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
-                  Chip(label: Text('🎯 ${controller.roundPoints}')),
-                  Chip(label: Text('🏆 ${controller.tournamentPoints}')),
-                  Chip(label: Text('🛡️ ${controller.clubPoints}')),
-                  Chip(label: Text('👑 ${controller.vipDays}')),
+                  R20ProfileCounter(icon: Icons.track_changes_rounded, label: ar ? 'نقاط الجولات' : 'Round points', value: controller.roundPoints),
+                  R20ProfileCounter(icon: Icons.emoji_events_rounded, label: ar ? 'نقاط البطولات' : 'Tournament points', value: controller.tournamentPoints),
+                  R20ProfileCounter(icon: Icons.shield_rounded, label: ar ? 'نقاط النادي' : 'Club points', value: controller.clubPoints),
+                  R20ProfileCounter(icon: Icons.diamond_rounded, label: ar ? 'أيام الباشا' : 'Pasha days', value: controller.vipDays),
                 ]),
               ]),
             ),
@@ -575,4 +575,21 @@ class R61ProfilePage extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Stable decorative icons do not depend on OS emoji fonts.
+class R20ProfileCounter extends StatelessWidget {
+  const R20ProfileCounter({super.key, required this.icon, required this.label, required this.value});
+  final IconData icon;
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: '$label: $value',
+    child: ExcludeSemantics(child: Tooltip(
+      message: label,
+      child: Chip(avatar: Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary), label: Text(formatNumber(value))),
+    )),
+  );
 }

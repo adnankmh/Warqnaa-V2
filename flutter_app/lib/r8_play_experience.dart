@@ -45,6 +45,8 @@ class R8HomeLobby extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(child: _R8Portal(icon: Icons.storefront_outlined, label: ar ? 'المقتنيات' : 'Collection', accent: const Color(0xffa884ff), onTap: () => onTab(0))),
           ]),
+          const SizedBox(height: 14),
+          HomeQuickActionsV170(controller: controller, onTab: onTab),
           const SizedBox(height: 20),
           R9GameLibrary(controller: controller, games: games, onAllGames: () => onTab(1)),
           const SizedBox(height: 18),

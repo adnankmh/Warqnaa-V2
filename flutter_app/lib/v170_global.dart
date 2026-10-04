@@ -223,7 +223,7 @@ class ResponsiveAccountStatsV170 extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
         final children = <Widget>[
           _AccountMetricV170(
-            icon: '🏅',
+            icon: Icons.workspace_premium_rounded,
             label: L.t(controller.localeCode, 'level'),
             value: 'LV.${controller.level}',
             details: '${formatNumber(controller.xp)} / ${formatNumber(controller.xpNext)} XP',
@@ -231,17 +231,19 @@ class ResponsiveAccountStatsV170 extends StatelessWidget {
             onTap: () => showProfile(context, controller),
           ),
           _AccountMetricV170(
-            icon: '🪙',
+            icon: Icons.monetization_on_rounded,
             label: L.t(controller.localeCode, 'coins'),
             value: formatNumber(controller.coins),
-            details: 'الرصيد المتاح',
+            details: controller.localeCode == 'ar' ? 'الرصيد المتاح' : 'Available balance',
             onTap: () => showWallet(context, controller),
           ),
           _AccountMetricV170(
-            icon: '👑',
+            icon: Icons.diamond_rounded,
             label: L.t(controller.localeCode, 'vip'),
             value: '${controller.vipDays} ${L.t(controller.localeCode, 'days')}',
-            details: controller.vipDays > 0 ? 'مزايا الباشا فعّالة' : 'اضغط للترقية',
+            details: controller.vipDays > 0
+                ? (controller.localeCode == 'ar' ? 'مزايا الباشا فعّالة' : 'Pasha benefits active')
+                : (controller.localeCode == 'ar' ? 'اضغط للترقية' : 'Tap to upgrade'),
             accent: const Color(0xffffcf67),
             onTap: () => showPashaBenefits(context, controller),
           ),
@@ -259,7 +261,7 @@ class ResponsiveAccountStatsV170 extends StatelessWidget {
 
 
 class _AccountMetricV170 extends StatelessWidget {
-  final String icon;
+  final IconData icon;
   final String label;
   final String value;
   final String details;
@@ -275,7 +277,7 @@ class _AccountMetricV170 extends StatelessWidget {
       constraints:const BoxConstraints(minHeight:94),
       padding:const EdgeInsets.all(11),
       child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.center,children:[
-        Row(children:[Text(icon,style:const TextStyle(fontSize:18)),const SizedBox(width:5),Expanded(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:10,fontWeight:FontWeight.w800)))]),
+        Row(children:[Icon(icon, size: 20, color: accent ?? Theme.of(context).colorScheme.primary),const SizedBox(width:5),Expanded(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:10,fontWeight:FontWeight.w800)))]),
         const SizedBox(height:4),
         FittedBox(fit:BoxFit.scaleDown,alignment:AlignmentDirectional.centerStart,child:Text(value,maxLines:1,style:TextStyle(fontWeight:FontWeight.w900,fontSize:17,color:accent))),
         const SizedBox(height:3),
@@ -307,10 +309,10 @@ class HomeQuickActionsV170 extends StatelessWidget {
     return PremiumPanel(
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: GridView.builder(
+        child: LayoutBuilder(builder: (context, box) => GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:8,mainAxisSpacing:8,childAspectRatio:1.08),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: box.maxWidth >= 900 ? 6 : 3,crossAxisSpacing:8,mainAxisSpacing:8,childAspectRatio: box.maxWidth >= 600 ? 1.6 : 1.08),
           itemCount: actions.length,
           itemBuilder: (context,index) {
             final action=actions[index];
@@ -336,7 +338,7 @@ class HomeQuickActionsV170 extends StatelessWidget {
               ),
             );
           },
-        ),
+        )),
       ),
     );
   }

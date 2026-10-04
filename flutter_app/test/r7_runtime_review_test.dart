@@ -175,6 +175,7 @@ void main() {
           ('home', HomeShell(controller: controller)),
           ('profile', R61ProfilePage(controller: controller)),
           ('store', Scaffold(body: StorePage(controller: controller))),
+          ('store-collections', Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: R20StoreCollections(controller: controller)))),
           ('social', Scaffold(body: R61SocialHubPage(controller: controller))),
           ('table', TarneebRoomPage(controller: controller, game: gamesCatalog.firstWhere((game) => game.id == 'tarneeb'))),
         ]) {
