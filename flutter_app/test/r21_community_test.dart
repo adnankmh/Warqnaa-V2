@@ -98,6 +98,7 @@ void main() {
     expect(find.descendant(of: find.byType(AlertDialog), matching: find.textContaining('Entry fee: 500 tokens')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('r21-cup-confirm'))); await tester.pumpAndSettle();
     expect(api.joins, 1); expect(api.acceptedFee, 500);
+    expect(find.text('Your request is processing. Awaiting confirmation.'), findsOneWidget);
     await tester.tap(find.text('Warqnaa Cup')); await tester.pump();
     expect(find.byKey(const ValueKey('r21-cup-register')), findsNothing); expect(api.joins, 1);
     api.pendingJoin.complete({'ok': true}); await tester.pumpAndSettle();

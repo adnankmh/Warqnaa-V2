@@ -445,7 +445,7 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
 
   Future<void> _load() async {
     if (!widget.controller.serverConnected) { if (mounted) setState(() { loading = false; serverVerified = false; }); return; }
-    if (mounted && data.isEmpty) setState(() => loading = true);
+    if (mounted) setState(() { serverVerified = false; if (data.isEmpty) loading = true; });
     try {
       final response = await widget.controller.api.clubsWorldR11();
       if (mounted) setState(() { data = response; error = null; serverVerified = true; });
