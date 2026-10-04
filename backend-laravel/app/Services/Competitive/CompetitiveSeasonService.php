@@ -103,6 +103,8 @@ class CompetitiveSeasonService
                 'id'=>$t->id,'key'=>$t->key,'name'=>$t->name,'game'=>$t->game?->key,'game_name'=>$t->game?->name,
                 'format'=>$t->format,'scope'=>$t->scope,'status'=>$t->status,'entry_fee'=>(int)$t->entry_fee,
                 'prize_pool'=>(int)$t->prize_pool,'players'=>$t->entries()->count(),'max_players'=>(int)($t->max_players ?: 0),
+                'registered'=>$t->entries()->where('user_id',$user->id)->exists(),
+                'registration_closes_at'=>$t->registration_closes_at?->toIso8601String(),
                 'starts_at'=>$t->starts_at?->toIso8601String(),'current_round'=>(int)$t->current_round,
             ])->values(),
             'tiers'=>config('warqna_competitive.tiers', []),

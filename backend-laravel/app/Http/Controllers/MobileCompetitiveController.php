@@ -61,7 +61,9 @@ class MobileCompetitiveController extends Controller
     public function joinTournament(Request $request, Tournament $tournament, CompetitionService $competitions)
     {
         abort_unless($tournament->key,422,'هذه البطولة تستخدم التسجيل عبر صفحة الويب حالياً.');
-        $result=$competitions->join($request->user(),$tournament->key,(int)$tournament->entry_fee);
+        $data=$request->validate(['expected_entry_fee'=>'nullable|integer|min:0|max:1000000']);
+        $result=$competitions->join($request->user(),$tournament->key,(int)$tournament->entry_fee,
+            isset($data['expected_entry_fee']) ? (int)$data['expected_entry_fee'] : null);
         return response()->json(['ok'=>true,'message'=>'تم تسجيلك في البطولة.']+$result,201);
     }
 

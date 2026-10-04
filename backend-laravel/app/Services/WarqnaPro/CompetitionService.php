@@ -14,7 +14,7 @@ class CompetitionService
     public function __construct(private readonly WalletService $wallet) {}
 
     /** @return array<string,mixed> */
-    public function join(User $user, string $key, int $requestedFee): array
+    public function join(User $user, string $key, int $requestedFee, ?int $expectedFee = null): array
     {
         $season = app(CompetitiveSeasonService::class)->activeSeason(false);
         $tournament = Tournament::with(['game','season'])->where('key',$key)->first();
@@ -49,8 +49,11 @@ class CompetitionService
         $required=$this->requiredPlayers($game,max(2,(int)$tournament->seats_per_match),max(1,(int)$tournament->stages));
         $entryMode = (int)$tournament->entry_fee > 0 ? 'tokens' : 'free';
         $usedTicket = null;
-        DB::transaction(function () use ($user, $tournament, $required, &$entryMode, &$usedTicket) {
+        DB::transaction(function () use ($user, $tournament, $required, $expectedFee, &$entryMode, &$usedTicket) {
             $locked=Tournament::with(['game','season'])->lockForUpdate()->findOrFail($tournament->id);
+            // Check consent against the locked price before consuming a ticket or currency.
+            abort_if($expectedFee !== null && $expectedFee !== (int)$locked->entry_fee, 409,
+                'تغيّرت رسوم البطولة. راجع التفاصيل وأكّد السعر الجديد.');
             $this->assertJoinable($user,$locked,$required);
             if((int)$locked->entry_fee>0){
                 $ticket = CompetitionTicket::where('user_id', $user->id)

@@ -29,9 +29,13 @@ class MobileClubWorldController extends Controller
         AuthenticatedActor::resolve($request);
         $this->assertEnabled();
         $membership = ClubMember::with('club')->where('user_id', $request->user()->id)->first();
+        $pendingIds = ClubJoinRequest::where('user_id', $request->user()->id)
+            ->where('status', 'pending')->pluck('club_id')->map(fn ($id) => (int)$id)->all();
         $clubs = Club::with(['owner.profile', 'members.user.profile'])->withCount('members')
             ->where('visibility', '!=', 'private')->orderByDesc('weekly_points')->latest()->limit(60)->get()
-            ->map(fn (Club $club) => $this->clubPayload($club, $request))->values();
+            ->map(fn (Club $club) => $this->clubPayload($club, $request) + [
+                'join_request_pending' => in_array((int)$club->id, $pendingIds, true),
+            ])->values();
 
         return response()->json([
             'ok' => true,

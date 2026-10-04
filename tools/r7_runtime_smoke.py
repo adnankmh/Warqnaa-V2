@@ -6,6 +6,7 @@ accept a remote URL, use a developer's .env, or publish requests/server logs.
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import argparse
 import base64
 import http.cookiejar
@@ -106,6 +107,39 @@ def exercise(base, metadata, accounts):
     public_profile = player.api(f"/social/users/{accounts['peer']['id']}/profile")
     require('email' not in public_profile['user'], 'Public social profile exposed email')
     checks.append('two_account_social_privacy')
+
+    admin = clients['admin']
+    club = admin.api('/clubs-world', {'name': 'Warqnaa Review Majlis', 'description': 'Synthetic club for release review', 'visibility': 'request'}, status=201)['club']
+    player.api(f"/clubs-world/{club['id']}/join", {}, status=202)
+    pending = next(c for c in player.api('/clubs-world')['clubs'] if c['id'] == club['id'])
+    require(pending['join_request_pending'], 'Own club request did not persist')
+    hidden = next(c for c in peer.api('/clubs-world')['clubs'] if c['id'] == club['id'])
+    require(not hidden['join_request_pending'], 'Club request status leaked across accounts')
+    request = admin.api(f"/clubs-world/{club['id']}")['join_requests'][0]
+    admin.api(f"/clubs-world/join-requests/{request['id']}", {'status': 'accepted'}, method='PATCH')
+    require(player.api('/clubs-world')['my_club']['id'] == club['id'], 'Club acceptance was not durable')
+    checks.append('clubs_request_privacy_acceptance_and_restoration')
+
+    game = next(g for g in catalog if g['key'] == 'basra')
+    starts = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
+    for scope, ar_name, en_name, fee in [('global', 'كأس ورقنا العالمي', 'Warqnaa World Cup', 0), ('club', 'كأس المجلس', 'Majlis Cup', 500), ('country', 'كأس فلسطين', 'Palestine Cup', 250)]:
+        payload = {'key': 'r21_review_' + scope, 'game_id': game['id'], 'name_ar': ar_name, 'name_en': en_name,
+                   'format': 'single_elimination', 'scope': scope, 'stages': 1, 'seats_per_match': 2,
+                   'entry_fee': fee, 'prize_pool': 1000, 'starts_at': starts}
+        if scope == 'club': payload['club_id'] = club['id']
+        if scope == 'country': payload['country_code'] = 'PS'
+        created = admin.api('/admin/competitive/tournaments', payload)['tournament']
+        if scope == 'global': cup = created
+    before = player.api('/wallet')['wallet']['tokens']
+    player.api(f"/competitive/tournaments/{cup['id']}/join", {'expected_entry_fee': 1}, status=409)
+    require(player.api('/wallet')['wallet']['tokens'] == before, 'Rejected fee consent changed wallet')
+    player.api(f"/competitive/tournaments/{cup['id']}/join", {'expected_entry_fee': 0}, status=201)
+    player.api(f"/competitive/tournaments/{cup['id']}/leave", method='DELETE')
+    player.api(f"/competitive/tournaments/{cup['id']}/join", {'expected_entry_fee': 0}, status=201)
+    dashboard = player.api('/competitive')['competitive']
+    registered = next(c for c in dashboard['tournaments'] if c['id'] == cup['id'])
+    require(registered['registered'], 'Tournament entry did not restore in dashboard')
+    checks.append('tournament_consent_registration_withdrawal_and_restoration')
 
     room = player.api('/games/session', {'game': 'tarneeb', 'visibility': 'public', 'room_name': 'R7 Runtime Room', 'turn_seconds': 10}, status=201)['room']
     code = room['code']

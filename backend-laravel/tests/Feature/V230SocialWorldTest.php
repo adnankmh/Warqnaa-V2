@@ -272,11 +272,21 @@ class V230SocialWorldTest extends TestCase
         $this->withToken($applicantToken)->postJson("/api/mobile/v1/clubs-world/{$clubId}/join")
             ->assertStatus(202)->assertJsonPath('status', 'pending');
         $joinRequest = ClubJoinRequest::where('club_id', $clubId)->where('user_id', $applicant->id)->firstOrFail();
+        $this->withToken($applicantToken)->getJson('/api/mobile/v1/clubs-world')
+            ->assertOk()->assertJsonPath('clubs.0.join_request_pending', true);
+        $this->withToken($ownerToken)->getJson('/api/mobile/v1/clubs-world')
+            ->assertOk()->assertJsonPath('clubs.0.join_request_pending', false);
+        $this->withToken($applicantToken)->postJson("/api/mobile/v1/clubs-world/{$clubId}/join")
+            ->assertStatus(202);
+        $this->assertSame(1, ClubJoinRequest::where('club_id', $clubId)->where('user_id', $applicant->id)->count());
 
         $this->withToken($ownerToken)->patchJson("/api/mobile/v1/clubs-world/join-requests/{$joinRequest->id}", [
             'status' => 'accepted',
         ])->assertOk();
         $this->assertTrue(ClubMember::where('club_id', $clubId)->where('user_id', $applicant->id)->exists());
+        $this->withToken($applicantToken)->getJson('/api/mobile/v1/clubs-world')
+            ->assertOk()->assertJsonPath('clubs.0.join_request_pending', false)
+            ->assertJsonPath('my_club.id', $clubId);
 
         $otherOwner = User::factory()->create();
         $otherClub = Club::create([
