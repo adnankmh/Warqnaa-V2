@@ -82,7 +82,9 @@ LocalFriend botProfileFriendV021(BotProfile profile, String locale) => LocalFrie
       tournamentPoints: profile.level * 17,
       clubPoints: profile.level * 9,
       nameColor: colorToHex(profile.secondary),
-      badge: profile.difficulty == BotDifficulty.master ? 'MASTER AI' : 'PRO AI',
+      badge: profile.difficulty == BotDifficulty.master
+          ? (locale == 'ar' ? 'ذكاء خبير' : 'MASTER AI')
+          : (locale == 'ar' ? 'ذكاء احترافي' : 'PRO AI'),
     );
 
 class PlayerIdentityTapV021 extends StatelessWidget {

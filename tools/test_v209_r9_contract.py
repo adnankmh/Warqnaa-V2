@@ -37,7 +37,13 @@ ok("'languages' => [" in mobile and all(f"'{code}'" in mobile for code in ('ar',
 liveops=read('backend-laravel/app/Services/WarqnaPro/LiveOpsService.php')
 ok('rewarded_enabled' in liveops and "'daily'" in liveops and "'weekly'" in liveops and "'monthly'" in liveops and "'annual'" in liveops,'R9 live-ops foundation includes ads and offer cadences')
 bots=read('flutter_app/lib/premium_v149.dart')
-ok("Text('BOT'" in bots,'bot identity is explicit in the avatar UI')
+legacy_bot_badge = "Text('BOT'" in bots
+localized_bot_badge = (
+    "language == 'ar' ? 'آلي' : 'BOT'" in bots
+    and 'class Bot3DAvatar extends StatelessWidget' in bots
+    and 'return Semantics(' in bots
+)
+ok(legacy_bot_badge or localized_bot_badge,'bot identity is explicit and accessibility-safe in the avatar UI')
 asset=ROOT/'docs/ar/reports/current/R9_ASSET_AUDIT.json'
 ok(asset.is_file(),'R9 asset audit report exists')
 audit=json.loads(asset.read_text(encoding='utf-8'))

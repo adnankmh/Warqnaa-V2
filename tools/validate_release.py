@@ -1627,6 +1627,13 @@ def check_r64_world_championship_contract() -> None:
     print(result.stdout.strip())
     print("[OK] R6.2 + R6.3 + R6.4 merged world championship contract")
 
+def check_r19_luxury_profile_contract() -> None:
+    result = subprocess.run([sys.executable, str(ROOT / "tools/test_r19_luxury_commerce_contract.py")], cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if result.returncode != 0:
+        fail("R19 luxury commerce/profile contract failed: " + result.stdout.strip())
+    print(result.stdout.strip())
+    print("[OK] R19 luxury commerce, profile gradient and Pasha identity contract")
+
 def check_successor_compatibility_contracts() -> None:
     # Keep local preflight aligned with the historical gates run by all CI jobs.
     for script in (
@@ -1711,6 +1718,7 @@ def main() -> None:
     check_b305_r10_admin_ui_contract()
     check_r61_world_class_contract()
     check_r64_world_championship_contract()
+    check_r19_luxury_profile_contract()
     check_successor_compatibility_contracts()
     check_secrets()
     check_dart_structure()

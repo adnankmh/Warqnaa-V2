@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
+import 'package:warqna_mobile/premium_v149.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
 
 const runtimeUrl = String.fromEnvironment('R7_RUNTIME_URL');
@@ -68,6 +69,51 @@ Widget reviewApp(Widget child, AppController controller, GlobalKey key) => Repai
     home: child,
   ),
 );
+
+class R19ReactionReview extends StatelessWidget {
+  final String locale;
+  const R19ReactionReview({super.key, required this.locale});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xff050b12),
+    body: SafeArea(
+      child: LayoutBuilder(builder: (context, area) {
+        final reaction = reactionCatalog.firstWhere((item) => item.id == 'r91_good_game');
+        // Widget tests have no native audio plugin; this review surface must
+        // render the honest motion-only state without starting an audio stream.
+        final stage = Center(child: FloatingReaction(reaction: reaction, locale: locale, soundEnabled: false));
+        final dock = ReactionDock(locale: locale, soundEnabled: false, onSelected: (_) {});
+        if (area.maxHeight < 500) {
+          return Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(children: [Expanded(child: stage), const SizedBox(width: 10), SizedBox(width: 330, child: dock)]),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(children: [Expanded(child: stage), const SizedBox(height: 10), SizedBox(height: 330, child: dock)]),
+        );
+      }),
+    ),
+  );
+}
+
+class R19BotReview extends StatelessWidget {
+  final String locale;
+  const R19BotReview({super.key, required this.locale});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xff050b12),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(12),
+            child: BotRosterShowcase(locale: locale, profiles: botProfiles.take(12).toList()),
+          ),
+        ),
+      );
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -154,6 +200,12 @@ void main() {
       expect(controller.isLocalAdmin, isTrue);
       expect(controller.api.token, isNull);
       expect(controller.homeGameIds, ['trix', 'basra']);
+      // Exercise the completed R19 identity composition with an active Pasha
+      // entitlement and a non-default style in real rendered review evidence.
+      controller.selectedPashaStyle = 'blue';
+      controller.selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d';
+      controller.activeXpMultiplier = 2.5;
+      controller.boosterExpiresAtV173 = DateTime.now().add(const Duration(hours: 6));
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       tester.view.devicePixelRatio = 1;
@@ -163,6 +215,18 @@ void main() {
         for (final page in <(String, Widget)>[
           ('local-studio', R9LocalStudio(controller: controller)),
           ('local-home', HomeShell(controller: controller)),
+          ('local-profile', R61ProfilePage(controller: controller)),
+          (
+            'local-booster',
+            Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(10),
+                child: R19BoosterStatus(controller: controller, onBrowse: () {}),
+              ),
+            ),
+          ),
+          ('local-reaction', R19ReactionReview(locale: locale)),
+          ('local-bots', R19BotReview(locale: locale)),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));
