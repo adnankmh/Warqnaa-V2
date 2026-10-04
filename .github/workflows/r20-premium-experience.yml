@@ -1,0 +1,88 @@
+name: R20 Premium Experience Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'codex/r20-*'
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  contract:
+    name: Contract / privacy / authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: R20 premium experience contract
+        run: python3 tools/test_r20_premium_experience_contract.py --json "$RUNNER_TEMP/r20-premium.json"
+      - name: Git privacy gate
+        run: python3 tools/check_git_privacy_v304.py
+      - name: Verify no merge-ready visual debt
+        run: |
+          python3 - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['RUNNER_TEMP'],'r20-premium.json')
+          data=json.load(open(p,encoding='utf-8'))
+          debt=data['visual_debt']['decorative_profile_glyphs_remaining']
+          print('Tracked profile glyph debt:', debt)
+          # During active R20 development the contract may report the promoted R19 debt.
+          # The dedicated merge-ready job below blocks merge until it is zero.
+          PY
+      - uses: actions/upload-artifact@v6
+        with:
+          name: r20-premium-contract-evidence
+          path: ${{ runner.temp }}/r20-premium.json
+
+  flutter-focused:
+    name: Flutter premium surfaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: stable
+          cache: true
+      - name: Resolve Flutter packages
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Analyze
+        working-directory: flutter_app
+        run: flutter analyze
+      - name: Focused premium regression
+        working-directory: flutter_app
+        run: |
+          flutter test test/r19_profile_pasha_test.dart
+          flutter test test/r19_booster_status_test.dart
+          flutter test test/r19_reaction_stage_test.dart
+          flutter test test/r19_avatar_bot_stage_test.dart
+          flutter test test/r19_game_art_stage_test.dart
+          flutter test test/r19_typography_test.dart
+          flutter test test/r65_responsive_test.dart
+
+  merge-ready:
+    name: Merge-ready visual debt guard
+    needs: [contract, flutter-focused]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require stable profile metric icons before R20 merge
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('flutter_app/lib/v170_global.dart').read_text(encoding='utf-8',errors='ignore')
+          bad=[g for g in ('🏅','🪙','👑') if f"icon: '{g}'" in src]
+          if bad:
+              raise SystemExit('R20 merge blocked until decorative profile metric emoji become Material Icons: '+', '.join(bad))
+          print('Stable profile metric icon gate: PASS')
+          PY
