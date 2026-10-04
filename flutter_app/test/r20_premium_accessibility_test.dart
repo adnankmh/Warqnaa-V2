@@ -16,8 +16,9 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       tester.view.devicePixelRatio = 1;
+      var selectedTab = -1;
       final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
+      try {
       for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
         tester.view.physicalSize = size;
         await tester.pumpWidget(MaterialApp(
@@ -26,6 +27,7 @@ void main() {
           theme: r101Theme('midnight_cyan', '#25e4df'),
           home: Scaffold(body: ListView(children: [
             ResponsiveAccountStatsV170(controller: controller),
+            HomeQuickActionsV170(controller: controller, onTab: (tab) => selectedTab = tab),
             R20ProfileCounter(icon: Icons.track_changes_rounded, label: locale == 'ar' ? 'نقاط الجولات' : 'Round points', value: 42),
           ])),
         ));
@@ -36,8 +38,12 @@ void main() {
         expect(find.text(locale == 'ar' ? 'الرصيد المتاح' : 'Available balance'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'اضغط للترقية' : 'Tap to upgrade'), findsOneWidget);
         expect(find.bySemanticsLabel(locale == 'ar' ? 'نقاط الجولات: 42' : 'Round points: 42'), findsOneWidget);
+        await tester.ensureVisible(find.byIcon(Icons.shield_rounded));
+        await tester.tap(find.byIcon(Icons.shield_rounded));
+        expect(selectedTab, 3);
         expect(tester.takeException(), isNull);
       }
+      } finally { semantics.dispose(); }
     });
   }
   testWidgets('R20 cover respects reduced motion without losing content', (tester) async {

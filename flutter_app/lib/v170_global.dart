@@ -309,10 +309,10 @@ class HomeQuickActionsV170 extends StatelessWidget {
     return PremiumPanel(
       child: Padding(
         padding: const EdgeInsets.all(10),
-        child: GridView.builder(
+        child: LayoutBuilder(builder: (context, box) => GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:3,crossAxisSpacing:8,mainAxisSpacing:8,childAspectRatio:1.08),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: box.maxWidth >= 900 ? 6 : 3,crossAxisSpacing:8,mainAxisSpacing:8,childAspectRatio: box.maxWidth >= 600 ? 1.6 : 1.08),
           itemCount: actions.length,
           itemBuilder: (context,index) {
             final action=actions[index];
@@ -338,7 +338,7 @@ class HomeQuickActionsV170 extends StatelessWidget {
               ),
             );
           },
-        ),
+        )),
       ),
     );
   }
