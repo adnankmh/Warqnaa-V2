@@ -25,11 +25,11 @@ void main() {
           locale: Locale(locale), supportedLocales: const [Locale('ar'), Locale('en')],
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
           theme: r101Theme('midnight_cyan', '#25e4df'),
-          home: Scaffold(body: ListView(children: [
+          home: Scaffold(key: ValueKey(size), body: SingleChildScrollView(child: Column(children: [
             ResponsiveAccountStatsV170(controller: controller),
             HomeQuickActionsV170(controller: controller, onTab: (tab) => selectedTab = tab),
             R20ProfileCounter(icon: Icons.track_changes_rounded, label: locale == 'ar' ? 'نقاط الجولات' : 'Round points', value: 42),
-          ])),
+          ]))),
         ));
         await tester.pump(const Duration(milliseconds: 200));
         expect(find.byIcon(Icons.workspace_premium_rounded), findsOneWidget);
