@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
       - name: Verify cumulative authority and resilience contracts
         run: |
           python3 tools/test_r22_multiplayer_resilience_contract.py
