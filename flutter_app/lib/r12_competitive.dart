@@ -276,7 +276,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
             if (tournament['status'] == 'open')
               FilledButton.icon(key: const ValueKey('r21-cup-register'),
                 onPressed: live && id > 0 && !cupBusy && (tournament['registered'] == true || _r12Int(tournament['players']) < _r12Int(tournament['max_players']))
-                    ? () { Navigator.pop(sheetContext); unawaited(_submitCup(tournament)); } : null,
+                    ? () { if (sheetContext.mounted) Navigator.pop(sheetContext); unawaited(_submitCup(tournament)); } : null,
                 icon: Icon(tournament['registered'] == true ? Icons.logout_rounded : Icons.how_to_reg),
                 label: Text(tournament['registered'] == true ? (ar ? 'إلغاء التسجيل' : 'Withdraw') : (ar ? 'سجّل في البطولة' : 'Register')),
               ),

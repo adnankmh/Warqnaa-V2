@@ -120,7 +120,7 @@ def exercise(base, metadata, accounts):
     require(player.api('/clubs-world')['my_club']['id'] == club['id'], 'Club acceptance was not durable')
     checks.append('clubs_request_privacy_acceptance_and_restoration')
 
-    game = next(g for g in catalog if g['key'] == 'basra')
+    game = next(g for g in admin.api('/admin/competitive')['games'] if g['key'] == 'basra')
     starts = (datetime.now(timezone.utc) + timedelta(hours=2)).isoformat()
     for scope, ar_name, en_name, fee in [('global', 'كأس ورقنا العالمي', 'Warqnaa World Cup', 0), ('club', 'كأس المجلس', 'Majlis Cup', 500), ('country', 'كأس فلسطين', 'Palestine Cup', 250)]:
         payload = {'key': 'r21_review_' + scope, 'game_id': game['id'], 'name_ar': ar_name, 'name_en': en_name,

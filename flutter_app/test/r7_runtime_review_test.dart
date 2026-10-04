@@ -167,7 +167,7 @@ void main() {
         final clubs = await controller.api.clubsWorldR11();
         final competitive = await controller.api.competitiveR12();
         reviewClubs = (clubs['clubs'] as List).map((item) => Map<String, dynamic>.from(item as Map)).toList();
-        reviewCups = ((competitive['competitive'] as Map)['tournaments'] as List).map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        reviewCups = ((competitive['competitive'] as Map)['tournaments'] as List).map((item) => Map<String, dynamic>.from(item as Map)).where((cup) => cup['key'].toString().startsWith('r21_review_')).toList();
         expect(reviewClubs, isNotEmpty); expect(reviewCups, hasLength(3));
       });
       controller.localeCode = locale;

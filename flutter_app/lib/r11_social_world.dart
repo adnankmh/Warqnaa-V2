@@ -478,9 +478,9 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
     setState(() => joiningId = id);
     try {
       final response = await widget.controller.api.joinClubWorldR11(id);
-      if (mounted) showToast(context, response['status'] == 'pending'
+      if (mounted) { showToast(context, response['status'] == 'pending'
           ? (ar ? 'تم إرسال طلبك. سيظهر هنا حتى يراجعه النادي.' : 'Request sent. Its status stays here until the club reviews it.')
-          : (ar ? 'أهلًا بك في النادي.' : 'Welcome to the club.'));
+          : (ar ? 'أهلًا بك في النادي.' : 'Welcome to the club.')); }
       await _load();
     } catch (e) { if (mounted) showToast(context, ar ? 'تعذر الانضمام. حدّث البيانات وحاول مجددًا.' : 'Unable to join. Refresh and try again.'); }
     finally { if (mounted) setState(() => joiningId = null); }
@@ -596,7 +596,7 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
         Text(ar ? '${filtered.length} نادي' : '${filtered.length} clubs', style: const TextStyle(color: Colors.white60)),
       ]),
       const SizedBox(height: 12),
-      if (filtered.isEmpty) _R11Empty(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
+      if (filtered.isEmpty) _R11Notice(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
       else LayoutBuilder(builder: (context, constraints) {
         final columns = constraints.maxWidth >= 1000 ? 3 : constraints.maxWidth >= 650 ? 2 : 1;
         final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
