@@ -15,6 +15,8 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       tester.view.devicePixelRatio = 1;
+      final catalogItem = R20StoreCollections(controller: controller).items('emoji').first;
+      controller.owned.add(catalogItem.id);
       final coins = controller.coins;
       final inventory = Set<String>.from(controller.owned);
       for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
@@ -35,7 +37,7 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('r20-collection-emoji')));
         await tester.pumpAndSettle();
         expect(find.text(locale == 'ar' ? 'اختر عنصرًا للمعاينة. الشراء أو التفعيل يتم بعد التأكيد.' : 'Choose an item to preview. Purchase or activation requires confirmation.'), findsOneWidget);
-        expect(find.byKey(const ValueKey('r20-collection-item-emoji_fun')), findsOneWidget);
+        expect(find.byKey(ValueKey('r20-collection-item-${catalogItem.id}')), findsOneWidget);
         expect(controller.coins, coins);
         expect(controller.owned, inventory);
         expect(tester.takeException(), isNull);

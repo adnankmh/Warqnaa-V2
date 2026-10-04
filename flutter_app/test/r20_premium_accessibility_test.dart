@@ -37,6 +37,8 @@ void main() {
         expect(find.byIcon(Icons.diamond_rounded), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'الرصيد المتاح' : 'Available balance'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'اضغط للترقية' : 'Tap to upgrade'), findsOneWidget);
+        await tester.ensureVisible(find.byType(R20ProfileCounter));
+        await tester.pump();
         expect(find.bySemanticsLabel(locale == 'ar' ? 'نقاط الجولات: 42' : 'Round points: 42'), findsOneWidget);
         await tester.ensureVisible(find.byIcon(Icons.shield_rounded));
         await tester.tap(find.byIcon(Icons.shield_rounded));
