@@ -26,6 +26,8 @@ def main() -> int:
 
     checks: list[dict] = []
     v170 = text("flutter_app/lib/v170_global.dart")
+    profile = text('flutter_app/lib/r6_1_world_class.dart')
+    premium = text('flutter_app/lib/premium_v149.dart')
     r10 = text("flutter_app/lib/r10_1_release.dart")
     v304 = text("flutter_app/lib/v304_vertical_legend.dart")
     user = text("backend-laravel/app/Models/User.php")
@@ -42,6 +44,11 @@ def main() -> int:
     require("server-authoritative" in doc.lower(), "R20 scope explicitly preserves server-authoritative gameplay/economy", checks)
     require("320px" in doc and "desktop" in doc.lower(), "R20 responsive scope covers narrow phones through desktop", checks)
     require("Arabic RTL" in doc and "English LTR" in doc, "R20 bilingual direction contract is explicit", checks)
+
+    require("final IconData icon;" in v170, "account metrics use stable Material icons", checks)
+    require("R20ProfileCounter" in profile and "avatar: Icon(icon" in profile, "live profile counters use stable icons with accessible labels", checks)
+    require("MediaQuery.disableAnimationsOf(context)" in premium, "profile cover respects reduced motion", checks)
+    require("r20_premium_accessibility_test.dart" in text(".github/workflows/r20-premium-experience.yml"), "R20 accessibility regression is required by its CI gate", checks)
 
     decorative_profile_glyphs = [glyph for glyph in ("🏅", "🪙", "👑") if f"icon: '{glyph}'" in v170]
     visual_debt = {

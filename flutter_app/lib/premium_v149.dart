@@ -794,7 +794,7 @@ class ProfileCover extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: colors ?? cover.colors))),
-            if (animated) const AmbientTableFX(density: 8, subtle: true),
+            if (animated && !MediaQuery.disableAnimationsOf(context)) const AmbientTableFX(density: 8, subtle: true),
             Positioned(right: 18, top: 12, child: Icon(cover.icon, size: height * .55, color: Colors.white.withValues(alpha: .10))),
             Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black.withValues(alpha: .58)])))),
             if (child != null) child!,
