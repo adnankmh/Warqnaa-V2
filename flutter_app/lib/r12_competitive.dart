@@ -54,6 +54,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   Future<void> _load({bool quiet = false}) async {
     if (!mounted) return;
+    queueTimer?.cancel();
     serverVerified = false;
     if (!quiet && mounted) setState(() { loading = true; error = null; });
     try {
@@ -180,6 +181,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   }
 
   Future<void> _enterMatch(Map<String,dynamic> current) async {
+    if (!live) return;
     final code=current['room_code']?.toString()??'', key=current['game']?.toString()??'tarneeb'; if(code.isEmpty)return;
     GameInfo game=gamesCatalog.first; for(final item in gamesCatalog){if(item.id==key){game=item;break;}}
     if(!mounted)return; await openGameRoom(context,widget.controller,game,options:RoomLaunchOptions(roomCode:code,voiceEnabled:false)); await _load(quiet:true);
