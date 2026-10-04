@@ -35,3 +35,14 @@ The first R20 change is visual hardening carried forward explicitly from R19: re
 ## Merge rule
 
 R20 does not merge while the contract report contains `decorative_profile_glyphs_remaining`, while any required CI gate is red, or while a known responsive/RTL regression is unresolved. After R20 merges, R21 starts only from the latest verified `main`.
+
+## Implemented R20 surfaces
+
+- Stable Material profile/account icons and named semantic counters replace the known missing decorative emoji glyphs.
+- Profile covers use original quiet edge geometry and disable ambient animation when reduced motion is requested.
+- The live home lobby exposes six real quick actions; desktop uses a compact single row, phones use two rows.
+- Six store collections show visible catalog counts and active ownership counts. Browsing opens actual catalog entries; preview and purchase retain the existing confirmation/authority paths. Hidden products and unavailable daily packs stay excluded.
+- The focused gate verifies responsive browsing in Arabic/English without modifying currency or inventory, as well as hidden-product filtering.
+- The runtime workflow captures the real collection surface in both locales at phone, landscape and desktop sizes, in addition to all existing journeys and all 12 local game tables.
+
+Final merge still requires all six workflows to pass on the same PR head and inspection of the generated responsive captures.

@@ -68,6 +68,7 @@ jobs:
           flutter test test/r19_game_art_stage_test.dart
           flutter test test/r19_typography_test.dart
           flutter test test/r20_premium_accessibility_test.dart
+          flutter test test/r20_store_collections_test.dart
           flutter test test/r65_responsive_test.dart
 
   merge-ready:

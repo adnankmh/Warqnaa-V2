@@ -655,6 +655,8 @@ class R101CommerceShowcase extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+        R20StoreCollections(controller: controller),
+        const SizedBox(height: 12),
         R19BoosterStatus(controller: controller, onBrowse: () => _openBoosters(context)),
         const SizedBox(height: 9),
         Text(
@@ -664,6 +666,78 @@ class R101CommerceShowcase extends StatelessWidget {
         ),
       ]),
     );
+  }
+}
+
+/// Browse the existing catalog without mutating inventory or currency.
+class R20StoreCollections extends StatelessWidget {
+  const R20StoreCollections({super.key, required this.controller});
+  final AppController controller;
+
+  List<StoreProduct> items(String category) => products.where((p) =>
+      p.category == category && controller.isStoreProductVisible(p) &&
+      (p.collection != 'daily_pack_v176' || controller.isOwnedActiveV176(p.id))).toList(growable: false);
+
+  void browse(BuildContext context, String category, String title) {
+    final ar = controller.localeCode == 'ar';
+    final catalog = items(category);
+    showPremiumSheet(context, child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 6),
+        Text(ar ? 'اختر عنصرًا للمعاينة. الشراء أو التفعيل يتم بعد التأكيد.' : 'Choose an item to preview. Purchase or activation requires confirmation.', style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: 12),
+        if (catalog.isEmpty) Text(ar ? 'لا توجد عناصر متاحة حاليًا.' : 'No items are available right now.'),
+        for (final product in catalog) ListTile(
+          key: ValueKey('r20-collection-item-${product.id}'),
+          leading: Icon(controller.isOwnedActiveV176(product.id) ? Icons.inventory_2_outlined : Icons.auto_awesome_outlined),
+          title: Text(controller.nameFor(product), maxLines: 2, overflow: TextOverflow.ellipsis),
+          subtitle: Text(controller.isOwnedActiveV176(product.id) ? (ar ? 'مملوك • معاينة وتفعيل' : 'Owned • preview and activate') : (ar ? 'معاينة قبل الشراء' : 'Preview before purchase')),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => showProductPreview(context, controller, product),
+        ),
+      ],
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final groups = <(String, String, IconData)>[
+      ('pasha', ar ? 'الباشا' : 'Pasha', Icons.diamond_rounded),
+      ('themes', ar ? 'الثيمات' : 'Themes', Icons.palette_outlined),
+      ('cards', ar ? 'ظهر الورق' : 'Card backs', Icons.style_outlined),
+      ('profile_colors', ar ? 'هوية الملف' : 'Profile identity', Icons.gradient_rounded),
+      ('emoji', ar ? 'التفاعلات' : 'Reactions', Icons.emoji_emotions_outlined),
+      ('covers', ar ? 'الأغلفة' : 'Covers', Icons.wallpaper_outlined),
+    ];
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(ar ? 'مجموعاتك المميزة' : 'Explore your collections', style: Theme.of(context).textTheme.titleMedium),
+      const SizedBox(height: 10),
+      LayoutBuilder(builder: (context, box) {
+        final columns = box.maxWidth >= 1000 ? 6 : box.maxWidth >= 600 ? 3 : 2;
+        final width = (box.maxWidth - (columns - 1) * 8) / columns;
+        return Wrap(spacing: 8, runSpacing: 8, children: [for (final group in groups)
+          SizedBox(width: width, child: Material(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+            child: InkWell(
+              key: ValueKey('r20-collection-${group.$1}'),
+              borderRadius: BorderRadius.circular(18),
+              onTap: () => browse(context, group.$1, group.$2),
+              child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(group.$3, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 8),
+                Text(group.$2, style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(ar ? '${items(group.$1).length} عنصر • ${items(group.$1).where((p) => controller.isOwnedActiveV176(p.id)).length} مملوك' : '${items(group.$1).length} items • ${items(group.$1).where((p) => controller.isOwnedActiveV176(p.id)).length} owned', style: Theme.of(context).textTheme.bodySmall),
+              ])),
+            ),
+          )),
+        ]);
+      }),
+    ]);
   }
 }
 
