@@ -95,7 +95,7 @@ void main() {
     await tester.ensureVisible(find.byKey(const ValueKey('r21-cup-register')));
     await tester.tap(find.byKey(const ValueKey('r21-cup-register'))); await tester.pumpAndSettle();
     expect(api.joins, 0);
-    expect(find.textContaining('Entry fee: 500 tokens'), findsOneWidget);
+    expect(find.descendant(of: find.byType(AlertDialog), matching: find.textContaining('Entry fee: 500 tokens')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('r21-cup-confirm'))); await tester.pumpAndSettle();
     expect(api.joins, 1); expect(api.acceptedFee, 500);
     await tester.tap(find.text('Warqnaa Cup')); await tester.pump();

@@ -379,6 +379,13 @@ class V240CompetitiveArenaTest extends TestCase
             'scope'=>'global','starts_at'=>now()->addHour(),'registration_closes_at'=>now()->addMinutes(45),
             'auto_accept'=>true,'random_seating'=>false,'chat_enabled'=>true,'turn_seconds'=>10,'bracket'=>['messages'=>[]],
         ]);
+        // A route-bound model can hold an earlier quote while the service sees the new price.
+        try {
+            app(CompetitionService::class)->join($player,$cup->key,400,400);
+            $this->fail('Stale route quote should be rejected before the legacy fee check.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $error) {
+            $this->assertSame(409,$error->getStatusCode());
+        }
         $token=$player->createToken('r21-consent')->plainTextToken;
         foreach ([0, 400, 600] as $staleFee) {
             $this->withToken($token)->postJson("/api/mobile/v1/competitive/tournaments/{$cup->id}/join",[

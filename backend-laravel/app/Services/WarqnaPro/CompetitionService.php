@@ -19,6 +19,8 @@ class CompetitionService
         $season = app(CompetitiveSeasonService::class)->activeSeason(false);
         $tournament = Tournament::with(['game','season'])->where('key',$key)->first();
         if ($tournament) {
+            abort_if($expectedFee !== null && $expectedFee !== (int)$tournament->entry_fee, 409,
+                'تغيّرت رسوم البطولة. راجع التفاصيل وأكّد السعر الجديد.');
             if ($requestedFee > 0 && $requestedFee !== (int)$tournament->entry_fee) {
                 throw new RuntimeException('قيمة دخول المنافسة غير مطابقة لإعدادات الخادم.');
             }
