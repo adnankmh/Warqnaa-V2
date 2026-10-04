@@ -433,6 +433,10 @@ class R11ClubsWorldPage extends StatefulWidget {
 class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
   Map<String, dynamic> data = <String, dynamic>{};
   bool loading = true;
+  bool serverVerified = false;
+  int? joiningId;
+  bool creating = false;
+  bool get live => serverVerified && widget.controller.serverConnected;
   String? error;
   bool get ar => widget.controller.localeCode == 'ar';
 
@@ -440,13 +444,13 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    if (!widget.controller.serverConnected) { if (mounted) setState(() => loading = false); return; }
-    if (mounted && data.isEmpty) setState(() => loading = true);
+    if (!widget.controller.serverConnected) { if (mounted) setState(() { loading = false; serverVerified = false; }); return; }
+    if (mounted) setState(() { serverVerified = false; if (data.isEmpty) loading = true; });
     try {
       final response = await widget.controller.api.clubsWorldR11();
-      if (mounted) setState(() { data = response; error = null; });
+      if (mounted) setState(() { data = response; error = null; serverVerified = true; });
     } catch (exception) {
-      if (mounted) setState(() => error = exception.toString());
+      if (mounted) setState(() { error = exception.toString(); serverVerified = false; });
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -454,58 +458,62 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.controller.serverConnected && !loading) return ClubsPage(controller: widget.controller);
     final clubs = _r11List(data['clubs']), mine = _r11Map(data['my_club']);
     if (loading && clubs.isEmpty) return const Center(child: CircularProgressIndicator());
     return RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.fromLTRB(14,14,14,100), children: [
-      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), gradient: const LinearGradient(colors: [Color(0xFF132D22), _r11Deep]), border: Border.all(color: _r11Gold.withValues(alpha: .18))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('CLUBS 2.0 • R11', style: TextStyle(color: _r11Gold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),const SizedBox(height: 8),Text(ar ? 'راية واحدة، مجلس واحد.' : 'One banner. One majlis.', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),Text(ar ? 'فعاليات النادي، الحضور، الإعلانات، الدوري والنشاط في مكان واحد.' : 'Club events, attendance, announcements, league and activity in one place.', style: const TextStyle(color: Colors.white60, height: 1.5)),if (mine.isEmpty) ...[const SizedBox(height: 14),FilledButton.icon(onPressed: _createClub, icon: const Icon(Icons.add_business_outlined), label: Text(ar ? 'أسّس ناديك' : 'Found your club'))]])),
-      if (error != null) Padding(padding: const EdgeInsets.only(top: 12), child: _R11Notice(text: error!, icon: Icons.cloud_off_outlined)),
+      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), gradient: const LinearGradient(colors: [Color(0xFF132D22), _r11Deep]), border: Border.all(color: _r11Gold.withValues(alpha: .18))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'أندية ورقنا' : 'WARQNAA CLUBS', style: TextStyle(color: _r11Gold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),const SizedBox(height: 8),Text(ar ? 'راية واحدة، مجلس واحد.' : 'One banner. One majlis.', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),Text(ar ? 'فعاليات النادي، الحضور، الإعلانات، الدوري والنشاط في مكان واحد.' : 'Club events, attendance, announcements, league and activity in one place.', style: const TextStyle(color: Colors.white60, height: 1.5)),if (mine.isEmpty) ...[const SizedBox(height: 14),FilledButton.icon(onPressed: live && !creating && joiningId == null ? _createClub : null, icon: const Icon(Icons.add_business_outlined), label: Text(ar ? 'أسّس ناديك' : 'Found your club'))]])),
+      if (!live) Padding(padding: const EdgeInsets.only(top: 12), child: _R11GlassCard(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        _R11Notice(text: ar ? 'الأندية تحتاج اتصالًا موثّقًا. الانضمام والتأسيس متوقفان حتى تحديث البيانات.' : 'Clubs need a verified connection. Refresh before joining or founding a club.', icon: Icons.cloud_off_outlined),
+        TextButton.icon(onPressed: () async { await widget.controller.reconnectV173(); await _load(); }, icon: const Icon(Icons.refresh), label: Text(ar ? 'إعادة الاتصال' : 'Reconnect')),
+      ]))),
       if (mine.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: InkWell(onTap: () => _openClub(mine), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(accent: _r11Gold, child: ListTile(contentPadding: EdgeInsets.zero, leading: Text(mine['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 36)), title: Text(mine['name']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w900)), subtitle: Text('${_r11Localized(mine['league'], widget.controller.localeCode)} • ${mine['members_count']}/${mine['capacity']}'), trailing: const Icon(Icons.chevron_right))))),
       const SizedBox(height: 16), Text(ar ? 'أندية عالم ورقنا' : 'Warqnaa clubs', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),const SizedBox(height: 9),
-      ...clubs.map((club) => Padding(
-        padding: const EdgeInsets.only(bottom: 9),
-        child: InkWell(onTap: () => _openClub(club), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(child: Row(children: [
-          Text(club['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 34)),
-          const SizedBox(width: 11),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(club['name']?.toString() ?? 'Club', style: const TextStyle(fontWeight: FontWeight.w900)),
-            Text('${_r11Localized(club['league'], widget.controller.localeCode)} • ${club['members_count']}/${club['capacity']} • ${club['weekly_points']} pts', style: const TextStyle(color: Colors.white54, fontSize: 9)),
-          ])),
-          FilledButton.tonal(
-            onPressed: club['membership'] != null || mine.isNotEmpty ? null : () => _join(club),
-            child: Text(club['membership'] != null ? '✓' : (ar ? 'انضم' : 'Join')),
-          ),
-        ])))),
-      ),
+      R21ClubDirectory(clubs: clubs, locale: widget.controller.localeCode, allowJoin: live && mine.isEmpty && !creating, busyClubId: joiningId, onOpen: _openClub, onJoin: _join),
     ]));
   }
 
-  Future<void> _join(Map<String, dynamic> club) async { final id = int.tryParse(club['id']?.toString() ?? ''); if (id == null) return; try { final response = await widget.controller.api.joinClubWorldR11(id); if (mounted) showToast(context, response['message']?.toString() ?? 'Done'); await _load(); } catch (e) { if (mounted) showToast(context, e.toString()); } }
+  Future<void> _join(Map<String, dynamic> club) async {
+    final id = int.tryParse(club['id']?.toString() ?? '');
+    if (!live || joiningId != null || creating || id == null || club['join_request_pending'] == true) return;
+    setState(() => joiningId = id);
+    try {
+      final response = await widget.controller.api.joinClubWorldR11(id);
+      if (mounted) { showToast(context, response['status'] == 'pending'
+          ? (ar ? 'تم إرسال طلبك. سيظهر هنا حتى يراجعه النادي.' : 'Request sent. Its status stays here until the club reviews it.')
+          : (ar ? 'أهلًا بك في النادي.' : 'Welcome to the club.')); }
+      await _load();
+    } catch (e) { if (mounted) showToast(context, ar ? 'تعذر الانضمام. حدّث البيانات وحاول مجددًا.' : 'Unable to join. Refresh and try again.'); }
+    finally { if (mounted) setState(() => joiningId = null); }
+  }
 
   Future<void> _createClub() async {
+    if (!live || creating || joiningId != null) return;
     final name = TextEditingController(), description = TextEditingController();
     var visibility = 'public';
     final submitted = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setDialogState) => AlertDialog(
       title: Text(ar ? '🛡️ تأسيس نادي' : '🛡️ Found a club'),
-      content: SizedBox(width: 500, child: Column(mainAxisSize: MainAxisSize.min, children: [
+      content: SizedBox(width: 500, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: name, maxLength: 120, decoration: InputDecoration(labelText: ar ? 'اسم النادي' : 'Club name')),
         TextField(controller: description, maxLength: 1000, minLines: 2, maxLines: 4, decoration: InputDecoration(labelText: ar ? 'الوصف' : 'Description')),
-        DropdownButtonFormField<String>(initialValue: visibility, decoration: InputDecoration(labelText: ar ? 'نوع الانضمام' : 'Joining'), items: const [DropdownMenuItem(value:'public',child:Text('Public')),DropdownMenuItem(value:'request',child:Text('By request')),DropdownMenuItem(value:'private',child:Text('Private'))], onChanged: (value) => setDialogState(() => visibility = value ?? visibility)),
+        DropdownButtonFormField<String>(initialValue: visibility, decoration: InputDecoration(labelText: ar ? 'نوع الانضمام' : 'Joining'), items: [DropdownMenuItem(value:'public',child:Text(ar ? 'انضمام مباشر' : 'Public')),DropdownMenuItem(value:'request',child:Text(ar ? 'بطلب وموافقة' : 'By request')),DropdownMenuItem(value:'private',child:Text(ar ? 'خاص' : 'Private'))], onChanged: (value) => setDialogState(() => visibility = value ?? visibility)),
         const SizedBox(height: 8), Text(ar ? 'يتطلب عضوية الباشا و5,000 توكن.' : 'Requires Pasha membership and 5,000 tokens.', style: const TextStyle(fontSize: 10, color: _r11Gold)),
-      ])),
+      ]))),
       actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(ar ? 'إلغاء' : 'Cancel')),FilledButton(onPressed: () => Navigator.pop(dialogContext, name.text.trim().length >= 3), child: Text(ar ? 'تأسيس' : 'Create'))],
     )));
     final clubName = name.text.trim(), clubDescription = description.text.trim();
     name.dispose(); description.dispose();
-    if (submitted != true || clubName.length < 3) return;
+    if (submitted != true || clubName.length < 3 || !mounted || !live || creating) return;
+    setState(() => creating = true);
     try {
-      final response = await widget.controller.api.createClubWorldR11(name: clubName, description: clubDescription, visibility: visibility);
-      if (mounted) showToast(context, response['message']?.toString() ?? (ar ? 'تم تأسيس النادي.' : 'Club created.'));
+      await widget.controller.api.createClubWorldR11(name: clubName, description: clubDescription, visibility: visibility);
+      if (mounted) showToast(context, ar ? 'تم تأسيس النادي.' : 'Club created.');
       await _load();
     } catch (exception) { if (mounted) showToast(context, exception.toString()); }
+    finally { if (mounted) setState(() => creating = false); }
   }
 
   Future<void> _openClub(Map<String, dynamic> seed) async {
+    if (!live) return;
     final id = int.tryParse(seed['id']?.toString() ?? '');
     if (id == null) return;
     try {
@@ -548,6 +556,90 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
 
   Future<void> _respondRequest(int requestId, String status, BuildContext sheetContext) async {
     try { await widget.controller.api.respondClubJoinRequestR11(requestId, status); if (sheetContext.mounted) Navigator.pop(sheetContext); await _load(); } catch (exception) { if (mounted) showToast(context, exception.toString()); }
+  }
+}
+
+/// Server-supplied discovery only; callbacks retain the authenticated API path.
+class R21ClubDirectory extends StatefulWidget {
+  const R21ClubDirectory({super.key, required this.clubs, required this.locale,
+    required this.allowJoin, required this.onOpen, required this.onJoin, this.busyClubId});
+  final List<Map<String, dynamic>> clubs;
+  final String locale;
+  final bool allowJoin;
+  final int? busyClubId;
+  final ValueChanged<Map<String, dynamic>> onOpen, onJoin;
+  @override State<R21ClubDirectory> createState() => _R21ClubDirectoryState();
+}
+
+class _R21ClubDirectoryState extends State<R21ClubDirectory> {
+  String query = '';
+  bool availableOnly = false;
+  bool get ar => widget.locale == 'ar';
+  bool available(Map<String, dynamic> club) => club['visibility'] != 'private'
+      && _r12Int(club['members_count']) < _r12Int(club['capacity'])
+      && club['membership'] == null && club['join_request_pending'] != true;
+
+  @override Widget build(BuildContext context) {
+    final filtered = widget.clubs.where((club) {
+      final searchable = '${club['name']} ${club['description']} ${_r11Localized(club['league'], widget.locale)}'.toLowerCase();
+      return searchable.contains(query.trim().toLowerCase()) && (!availableOnly || available(club));
+    }).toList();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TextField(key: const ValueKey('r21-club-search'), onChanged: (value) => setState(() => query = value),
+        decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded),
+          labelText: ar ? 'ابحث عن ناديك' : 'Find your club', hintText: ar ? 'الاسم أو الدوري' : 'Name or league')),
+      const SizedBox(height: 8),
+      Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        FilterChip(key: const ValueKey('r21-club-available'), selected: availableOnly,
+          onSelected: (value) => setState(() => availableOnly = value),
+          label: Text(ar ? 'يقبل أعضاء' : 'Available spots')),
+        Text(ar ? '${filtered.length} نادي' : '${filtered.length} clubs', style: const TextStyle(color: Colors.white60)),
+      ]),
+      const SizedBox(height: 12),
+      if (filtered.isEmpty) _R11Notice(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
+      else LayoutBuilder(builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1000 ? 3 : constraints.maxWidth >= 650 ? 2 : 1;
+        final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
+        return Wrap(spacing: 12, runSpacing: 12, children: filtered.map((club) {
+          final id = _r12Int(club['id']), count = _r12Int(club['members_count']), capacity = _r12Int(club['capacity']);
+          final pending = club['join_request_pending'] == true;
+          final member = club['membership'] != null;
+          final full = capacity <= count;
+          final label = member ? (ar ? 'ناديك' : 'Your club') : pending ? (ar ? 'الطلب قيد المراجعة' : 'Request pending')
+              : full ? (ar ? 'مكتمل' : 'Full') : club['visibility'] == 'request' ? (ar ? 'طلب الانضمام' : 'Request to join') : (ar ? 'انضم' : 'Join');
+          return SizedBox(width: width, child: Material(color: Colors.transparent, child: InkWell(
+            key: ValueKey('r21-club-$id'), borderRadius: BorderRadius.circular(24), onTap: () => widget.onOpen(club),
+            child: Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24), border: Border.all(color: _r11Gold.withValues(alpha: member ? .45 : .18)),
+              gradient: const LinearGradient(begin: AlignmentDirectional.topStart, end: AlignmentDirectional.bottomEnd,
+                colors: [Color(0xFF173C2B), Color(0xFF0B1F18)])),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(children: [const Icon(Icons.shield_rounded, size: 38, color: _r11Gold), const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(club['name']?.toString() ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                    Text(_r11Localized(club['league'], widget.locale), style: const TextStyle(color: _r11Gold)),
+                  ]))]),
+                const SizedBox(height: 12),
+                Text(club['description']?.toString() ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, height: 1.5)),
+                const SizedBox(height: 12),
+                Wrap(spacing: 12, runSpacing: 6, children: [
+                  Text(ar ? '$count / $capacity عضو' : '$count / $capacity members'),
+                  Text(ar ? '${club['weekly_points'] ?? 0} نقطة أسبوعية' : '${club['weekly_points'] ?? 0} weekly points', style: const TextStyle(color: _r11Mint)),
+                ]),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(value: capacity > 0 ? (count / capacity).clamp(0.0, 1.0).toDouble() : 0,
+                  color: _r11Gold, backgroundColor: Colors.white10, borderRadius: BorderRadius.circular(8)),
+                const SizedBox(height: 16),
+                FilledButton.tonalIcon(key: ValueKey('r21-club-join-$id'),
+                  onPressed: widget.allowJoin && widget.busyClubId == null && available(club) ? () => widget.onJoin(club) : null,
+                  icon: Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
+                  label: Text(label)),
+              ])),
+          )));
+        }).toList());
+      }),
+    ]);
   }
 }
 

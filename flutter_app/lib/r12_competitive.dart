@@ -37,6 +37,10 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   List<Map<String, dynamic>> history = <Map<String, dynamic>>[];
   Timer? queueTimer;
   bool loading = true;
+  bool serverVerified = false;
+  bool cupBusy = false;
+  bool rewardBusy = false;
+  bool get live => serverVerified && widget.controller.serverConnected && data['enabled'] == true;
   String? error;
 
   bool get ar => widget.controller.localeCode == 'ar';
@@ -50,6 +54,8 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   Future<void> _load({bool quiet = false}) async {
     if (!mounted) return;
+    queueTimer?.cancel();
+    serverVerified = false;
     if (!quiet && mounted) setState(() { loading = true; error = null; });
     try {
       if (widget.controller.serverConnected) {
@@ -62,6 +68,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
         data = _r12Map(dashboard['competitive']);
         leaders = _r12List(_r12Map(ladder['leaderboard'])['rows']);
         history = _r12List(matches['matches']);
+        serverVerified = true;
       } else {
         data = _offlineCompetitive(); leaders = _offlineLeaders(); history = const <Map<String, dynamic>>[];
       }
@@ -76,7 +83,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   void _armQueuePolling() {
     queueTimer?.cancel();
-    if (!mounted || !widget.controller.serverConnected || !['waiting','matching'].contains(queue['status'])) return;
+    if (!mounted || !live || !['waiting','matching'].contains(queue['status'])) return;
     queueTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
       try {
         final response = await widget.controller.api.rankedQueueR12(token: queue['token']?.toString());
@@ -89,8 +96,9 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   }
 
   Future<void> _joinQueue() async {
-    if (!widget.controller.serverConnected) {
-      showToast(context, ar ? 'Ranked يحتاج اتصالاً بخادم Laravel.' : 'Ranked requires the Laravel server.');
+    if (loading) return;
+    if (!live) {
+      showToast(context, ar ? 'حدّث الاتصال لبدء المنافسة المصنفة.' : 'Refresh the connection to start Ranked.');
       return;
     }
     final gameOptions = customerGamesR101;
@@ -161,59 +169,76 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
         ),
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted || !live) return;
     try { setState(()=>loading=true); final response=await widget.controller.api.joinRankedQueueR12(game:game,preferredSeats:seats,region:region); data['queue']=_r12Map(response['queue']); if(mounted)showToast(context,ar?'دخلت طابور Ranked.':'Ranked search started.'); _armQueuePolling(); }
     catch(e){if(mounted)showToast(context,e.toString());} finally {if(mounted)setState(()=>loading=false);}
   }
 
   Future<void> _cancelQueue() async {
+    if (!live) return;
     try { await widget.controller.api.cancelRankedQueueR12(token:queue['token']?.toString()); if(mounted)setState(()=>data['queue']=null); queueTimer?.cancel(); }
     catch(e){if(mounted)showToast(context,e.toString());}
   }
 
   Future<void> _enterMatch(Map<String,dynamic> current) async {
+    if (!live) return;
     final code=current['room_code']?.toString()??'', key=current['game']?.toString()??'tarneeb'; if(code.isEmpty)return;
     GameInfo game=gamesCatalog.first; for(final item in gamesCatalog){if(item.id==key){game=item;break;}}
     if(!mounted)return; await openGameRoom(context,widget.controller,game,options:RoomLaunchOptions(roomCode:code,voiceEnabled:false)); await _load(quiet:true);
   }
 
-  Future<void> _claim(int id) async { try{await widget.controller.api.claimCompetitiveRewardR12(id);if(mounted)showToast(context,ar?'تم استلام مكافأة الموسم.':'Season reward claimed.');await _load(quiet:true);}catch(e){if(mounted)showToast(context,e.toString());} }
+  Future<void> _claim(int id) async {
+    if (!live || rewardBusy) return;
+    setState(() => rewardBusy = true);
+    try { await widget.controller.api.claimCompetitiveRewardR12(id); await widget.controller.reconnectV173();
+      if (mounted) showToast(context, ar ? 'تم استلام مكافأة الموسم.' : 'Season reward claimed.');
+      await _load(quiet: true);
+    } catch (e) { if (mounted) showToast(context, e.toString()); }
+    finally { if (mounted) setState(() => rewardBusy = false); }
+  }
 
   @override Widget build(BuildContext context) {
     final tierColor=_r12Color(tier['color']);
-    return Scaffold(backgroundColor:_r12Deep,appBar:AppBar(backgroundColor:_r12Deep,title:const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('♛ Competitive Arena',style:TextStyle(fontWeight:FontWeight.w900)),Text('R12 • BUILD 240',style:TextStyle(fontSize:8,color:_r12Gold,letterSpacing:1.4))]),actions:[IconButton(onPressed:()=>_load(),icon:const Icon(Icons.refresh_rounded))],bottom:TabBar(controller:tabs,isScrollable:true,tabs:[Tab(text:ar?'الساحة':'Arena'),Tab(text:ar?'البطولات':'Cups'),Tab(text:ar?'التصنيف':'Ladder'),Tab(text:ar?'الجوائز':'Rewards')])),
-      body:loading&&data.isEmpty?const Center(child:CircularProgressIndicator()):Container(decoration:const BoxDecoration(gradient:RadialGradient(center:Alignment(1,-1),radius:1.4,colors:[Color(0xFF153D2F),_r12Deep])),child:TabBarView(controller:tabs,children:[_arena(tierColor),_cups(),_ladder(),_rewards()])),
+    return Scaffold(backgroundColor:_r12Deep,appBar:AppBar(backgroundColor:_r12Deep,title:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'ساحة المنافسات' : 'Competitive Arena',style:const TextStyle(fontWeight:FontWeight.w900)),Text(ar ? 'أبطال ورقنا' : 'WARQNAA CHAMPIONS',style:const TextStyle(fontSize:8,color:_r12Gold,letterSpacing:1.4))]),actions:[IconButton(onPressed:() async { if (!widget.controller.serverConnected) await widget.controller.reconnectV173(); await _load(); },icon:const Icon(Icons.refresh_rounded))],bottom:TabBar(controller:tabs,isScrollable:true,tabs:[Tab(text:ar?'الساحة':'Arena'),Tab(text:ar?'البطولات':'Cups'),Tab(text:ar?'التصنيف':'Ladder'),Tab(text:ar?'الجوائز':'Rewards')])),
+      body:loading&&data.isEmpty?const Center(child:CircularProgressIndicator()):Container(decoration:const BoxDecoration(gradient:RadialGradient(center:Alignment(1,-1),radius:1.4,colors:[Color(0xFF153D2F),_r12Deep])),child:Column(children:[if (cupBusy || rewardBusy) Semantics(liveRegion: true, child: Padding(padding: const EdgeInsets.all(12), child: _R12Notice(text: ar ? 'جارٍ تنفيذ طلبك. انتظر تأكيد النتيجة.' : 'Your request is processing. Awaiting confirmation.', color: _r12Mint))),if (!live) Padding(padding:const EdgeInsets.all(12), child:_R12Notice(text:ar ? 'معاينة فقط — حدّث الاتصال قبل التسجيل أو استلام الجوائز.' : 'Preview only — refresh before registration or reward claims.',color:Colors.orangeAccent)),Expanded(child:TabBarView(controller:tabs,children:[_arena(tierColor),_cups(),_ladder(),_rewards()]))])),
     );
   }
 
   Widget _arena(Color tierColor) => RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[
     if(error!=null)_R12Notice(text:ar?'تعذر الاتصال؛ تُعرض معاينة آمنة حتى يعود الخادم.':'Connection unavailable; showing a safe preview.',color:Colors.orangeAccent),
-    Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(borderRadius:BorderRadius.circular(30),gradient:LinearGradient(colors:[tierColor.withValues(alpha:.20),_r12Panel,_r12Deep]),border:Border.all(color:tierColor.withValues(alpha:.3)),boxShadow:[BoxShadow(color:tierColor.withValues(alpha:.1),blurRadius:45)]),child:LayoutBuilder(builder:(context,c){final details=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('SEASON RANK',style:TextStyle(color:_r12Gold,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.5)),Text(_r12Local(tier,widget.controller.localeCode,'Bronze'),style:const TextStyle(fontSize:30,fontWeight:FontWeight.w900)),Text(_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season'),style:const TextStyle(color:Colors.white60)),const SizedBox(height:13),Wrap(spacing:8,runSpacing:8,children:[_R12Metric(label:'WINS',value:'${rating['wins']??0}',color:_r12Mint),_R12Metric(label:'PEAK',value:'${rating['peak']??1000}',color:_r12Gold),_R12Metric(label:'RANK',value:'#${rating['rank']??1}',color:Colors.lightBlueAccent)])]);return c.maxWidth>570?Row(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(width:22),Expanded(child:details)]):Column(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(height:16),details]);})),const SizedBox(height:12),
+    Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(borderRadius:BorderRadius.circular(30),gradient:LinearGradient(colors:[tierColor.withValues(alpha:.20),_r12Panel,_r12Deep]),border:Border.all(color:tierColor.withValues(alpha:.3)),boxShadow:[BoxShadow(color:tierColor.withValues(alpha:.1),blurRadius:45)]),child:LayoutBuilder(builder:(context,c){final details=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'تصنيف الموسم' : 'SEASON RANK',style:const TextStyle(color:_r12Gold,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.5)),Text(_r12Local(tier,widget.controller.localeCode,'Bronze'),style:const TextStyle(fontSize:30,fontWeight:FontWeight.w900)),Text(_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season'),style:const TextStyle(color:Colors.white60)),const SizedBox(height:13),Wrap(spacing:8,runSpacing:8,children:[_R12Metric(label:ar?'الفوز':'WINS',value:'${rating['wins']??0}',color:_r12Mint),_R12Metric(label:ar?'الأعلى':'PEAK',value:'${rating['peak']??1000}',color:_r12Gold),_R12Metric(label:ar?'الترتيب':'RANK',value:'#${rating['rank']??1}',color:Colors.lightBlueAccent)])]);return c.maxWidth>570?Row(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(width:22),Expanded(child:details)]):Column(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(height:16),details]);})),const SizedBox(height:12),
     _queueCard(),const SizedBox(height:12),
-    const _R12Notice(text:'🛡️ Every move, winner and MMR delta is verified on the server. Suspicious results pause for review before rating or rewards.',color:_r12Mint),
+    _R12Notice(text:ar ? 'كل حركة ونتيجة وتصنيف تخضع للتحقق. النتائج المشبوهة تنتظر المراجعة قبل اعتماد الجوائز.' : 'Moves, results and rating are verified. Suspicious results await review before rewards.',color:_r12Mint),
     const SizedBox(height:16),Text(ar?'آخر المواجهات':'Recent battles',style:const TextStyle(fontSize:19,fontWeight:FontWeight.w900)),const SizedBox(height:8),
     if(history.isEmpty)_R12Empty(text:ar?'ستظهر مبارياتك المصنفة هنا.':'Your Ranked history will appear here.') else ...history.take(8).map((match){final events=_r12List(match['rating_events']);final overall=events.where((e)=>e['scope']=='overall').toList();final delta=overall.isEmpty?0:_r12Int(overall.first['delta']);return Padding(padding:const EdgeInsets.only(bottom:8),child:_R12Glass(child:ListTile(contentPadding:EdgeInsets.zero,leading:CircleAvatar(backgroundColor:(delta>=0?_r12Mint:Colors.redAccent).withValues(alpha:.12),child:Text(delta>=0?'↗':'↘',style:TextStyle(color:delta>=0?_r12Mint:Colors.redAccent))),title:Text('${match['game']??'Game'} • ${match['mode']??'ranked'}',style:const TextStyle(fontWeight:FontWeight.w900)),subtitle:Text('${match['status']??''} • ${match['room_code']??'—'}',style:const TextStyle(fontSize:9)),trailing:Text('${delta>=0?'+':''}$delta',style:TextStyle(fontSize:17,fontWeight:FontWeight.w900,color:delta>=0?_r12Mint:Colors.redAccent)))));}),
   ]));
 
   Widget _queueCard() {
-    if(queue.isEmpty||!['waiting','matching','matched'].contains(queue['status'])) return _R12Glass(accent:_r12Gold,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Row(children:[const Icon(Icons.sports_mma_rounded,color:_r12Gold,size:32),const SizedBox(width:11),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar?'مواجهة Ranked':'Ranked battle',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(ar?'خصوم مناسبون، لا بوتات، ولا نتيجة من العميل.':'Matched opponents, no bots, no client-trusted result.',style:const TextStyle(color:Colors.white54,fontSize:10))]))]),const SizedBox(height:13),FilledButton.icon(onPressed:_joinQueue,icon:const Icon(Icons.radar),label:Text(ar?'ابحث عن منافسين':'Find opponents'))]));
+    if(queue.isEmpty||!['waiting','matching','matched'].contains(queue['status'])) return _R12Glass(accent:_r12Gold,child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Row(children:[const Icon(Icons.sports_mma_rounded,color:_r12Gold,size:32),const SizedBox(width:11),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar?'مواجهة Ranked':'Ranked battle',style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text(ar?'خصوم مناسبون، لا بوتات، ولا نتيجة من العميل.':'Matched opponents, no bots, no client-trusted result.',style:const TextStyle(color:Colors.white54,fontSize:10))]))]),const SizedBox(height:13),FilledButton.icon(onPressed:live && !loading ? _joinQueue : null,icon:const Icon(Icons.radar),label:Text(ar?'ابحث عن منافسين':'Find opponents'))]));
     final matched=queue['status']=='matched',code=queue['room_code']?.toString()??'';
-    return _R12Glass(accent:_r12Mint,child:Column(children:[Row(children:[const _R12Radar(),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(matched?(ar?'وجدنا منافستك!':'Match found!'):(ar?'جارٍ البحث…':'Searching…'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text('${queue['game']} • ${queue['region']} • ±${queue['search_window']??100} MMR',style:const TextStyle(color:_r12Mint,fontSize:9))]))]),const SizedBox(height:12),Row(children:[if(matched&&code.isNotEmpty)Expanded(child:FilledButton(onPressed:()=>_enterMatch(queue),child:Text(ar?'ادخل الآن':'Enter now')))else Expanded(child:OutlinedButton(onPressed:_cancelQueue,child:Text(ar?'إلغاء البحث':'Cancel search')))])]));
+    return _R12Glass(accent:_r12Mint,child:Column(children:[Row(children:[const _R12Radar(),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(matched?(ar?'وجدنا منافستك!':'Match found!'):(ar?'جارٍ البحث…':'Searching…'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.w900)),Text('${queue['game']} • ${queue['region']} • ±${queue['search_window']??100} MMR',style:const TextStyle(color:_r12Mint,fontSize:9))]))]),const SizedBox(height:12),Row(children:[if(matched&&code.isNotEmpty)Expanded(child:FilledButton(onPressed:live ? ()=>_enterMatch(queue) : null,child:Text(ar?'ادخل الآن':'Enter now')))else Expanded(child:OutlinedButton(onPressed:live ? _cancelQueue : null,child:Text(ar?'إلغاء البحث':'Cancel search')))])]));
   }
 
-  Widget _cups() { final cups=_r12List(data['tournaments']); return RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[_R12SectionHero(icon:'♜',eyebrow:'LEAGUES • CUPS • CHAMPIONSHIPS',title:ar?'طريقك إلى الكأس':'Your road to the cup',subtitle:ar?'عالمي، أندية، ودول — جداول خادمية وجائزة نهائية موثقة.':'Global, club and country brackets with verified final payouts.'),const SizedBox(height:12),if(cups.isEmpty)_R12Empty(text:ar?'لا توجد بطولة مفتوحة الآن.':'No open championship right now.')else ...cups.map((cup)=>Padding(padding:const EdgeInsets.only(bottom:10),child:_R12CupCard(cup:cup,locale:widget.controller.localeCode,onTap:()=>_openCup(cup))))])); }
+  Widget _cups() => RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.all(13), children: [
+    _R12SectionHero(icon:'♜',eyebrow:ar ? 'الدوريات • الكؤوس • البطولات' : 'LEAGUES • CUPS • CHAMPIONSHIPS',
+      title:ar ? 'طريقك إلى الكأس' : 'Your road to the cup',
+      subtitle:ar ? 'اختر بطولة تناسبك. الرسوم والتسجيل والنتائج معتمدة من الخادم.' : 'Find your championship. Fees, registration and results are verified.'),
+    const SizedBox(height:12), R21TournamentDirectory(cups:_r12List(data['tournaments']),locale:widget.controller.localeCode,onOpen:_openCup),
+  ]));
 
   Future<void> _openCup(Map<String, dynamic> cup) async {
+    if (cupBusy) return;
     Map<String, dynamic> details = cup;
     final id = _r12Int(cup['id']);
 
-    if (widget.controller.serverConnected && id > 0) {
+    if (live && id > 0) {
       try {
         final response = await widget.controller.api.competitiveTournamentR12(id);
         details = _r12Map(response['tournament']);
       } catch (error) {
         if (!mounted) return;
-        showToast(context, error.toString());
+        showToast(context, ar ? 'تعذر تحديث البطولة. حاول مجددًا.' : 'Unable to refresh the championship. Try again.');
+        return;
       }
     }
 
@@ -238,33 +263,25 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
             ),
             Text(
-              '${tournament['format'] ?? 'single_elimination'} • ${tournament['scope'] ?? 'global'} • 🪙 ${tournament['prize_pool'] ?? 0}',
+              '${r21CompetitiveLabel(widget.controller.localeCode, tournament['format']?.toString() ?? 'single_elimination')} • ${r21CompetitiveLabel(widget.controller.localeCode, tournament['scope']?.toString() ?? 'global')}',
               style: const TextStyle(color: _r12Gold),
             ),
             const SizedBox(height: 13),
+            Text(ar ? 'رسوم الدخول: ${tournament['entry_fee'] ?? 0} توكن • مجموع الجوائز: ${tournament['prize_pool'] ?? 0}' : 'Entry: ${tournament['entry_fee'] ?? 0} tokens • Prize pool: ${tournament['prize_pool'] ?? 0}', style: const TextStyle(color: _r12Mint)),
+            const SizedBox(height: 8),
+            Text(ar ? 'المشاركون: ${tournament['players'] ?? 0} / ${tournament['max_players'] ?? 0}' : 'Entrants: ${tournament['players'] ?? 0} / ${tournament['max_players'] ?? 0}'),
+            const SizedBox(height: 13),
             if (rounds.isEmpty)
-              const _R12Empty(text: 'Bracket locks when registration reaches capacity.')
+              _R12Empty(text: ar ? 'يُعتمد جدول المباريات بعد اكتمال المشاركين.' : 'The bracket locks when registration reaches capacity.')
             else
               ...rounds.map((round) => _R12BracketRound(round: round, locale: widget.controller.localeCode)),
             const SizedBox(height: 13),
-            if (tournament['registered'] != true && tournament['status'] == 'open')
-              FilledButton.icon(
-                onPressed: widget.controller.serverConnected
-                    ? () async {
-                        try {
-                          await widget.controller.api.joinCompetitiveTournamentR12(id);
-                          if (sheetContext.mounted) Navigator.pop(sheetContext);
-                          if (!mounted) return;
-                          showToast(context, ar ? 'تم التسجيل في البطولة.' : 'Tournament registration complete.');
-                          await _load(quiet: true);
-                        } catch (error) {
-                          if (!mounted) return;
-                          showToast(context, error.toString());
-                        }
-                      }
-                    : null,
-                icon: const Icon(Icons.how_to_reg),
-                label: Text(ar ? 'سجّل في البطولة' : 'Register'),
+            if (tournament['status'] == 'open')
+              FilledButton.icon(key: const ValueKey('r21-cup-register'),
+                onPressed: live && id > 0 && !cupBusy && (tournament['registered'] == true || _r12Int(tournament['players']) < _r12Int(tournament['max_players']))
+                    ? () { if (sheetContext.mounted) Navigator.pop(sheetContext); unawaited(_submitCup(tournament)); } : null,
+                icon: Icon(tournament['registered'] == true ? Icons.logout_rounded : Icons.how_to_reg),
+                label: Text(tournament['registered'] == true ? (ar ? 'إلغاء التسجيل' : 'Withdraw') : (ar ? 'سجّل في البطولة' : 'Register')),
               ),
           ],
         ),
@@ -272,7 +289,40 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
     );
   }
 
-  Widget _ladder() => RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[_R12SectionHero(icon:'♛',eyebrow:'GLOBAL RANKED LADDER',title:ar?'صالة المتصدرين':'Hall of contenders',subtitle:_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season')),const SizedBox(height:10),...leaders.asMap().entries.map((entry)=>_R12LeaderRow(row:entry.value,rank:entry.key+1,locale:widget.controller.localeCode,isMe:_r12Int(entry.value['user_id'])==(widget.controller.currentUserId??-1))) ]));
+  Future<void> _submitCup(Map<String, dynamic> tournament) async {
+    if (!live || cupBusy) return;
+    setState(() => cupBusy = true);
+    final leaving = tournament['registered'] == true;
+    final fee = _r12Int(tournament['entry_fee']);
+    try {
+      final accepted = await showDialog<bool>(context: context, builder: (dialog) => AlertDialog(
+        title: Text(leaving ? (ar ? 'إلغاء التسجيل؟' : 'Withdraw registration?') : (ar ? 'تأكيد دخول البطولة' : 'Confirm entry')),
+        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(_r12Local(tournament['name'], widget.controller.localeCode)), const SizedBox(height: 12),
+          Text(leaving
+              ? (ar ? 'لن تُعاد الرسوم أو التذكرة. يُقفل الانسحاب عند اعتماد الجدول، والعودة تخضع لحدود البطولة.' : 'Fees and tickets are not refunded. Withdrawal locks once the bracket is built; return limits apply.')
+              : (ar ? 'رسوم الدخول: $fee توكن. تُستخدم تذكرة مؤهلة أولًا إن توفرت؛ وإلا تُخصم الرسوم من رصيدك.' : 'Entry fee: $fee tokens. An eligible ticket is used first when available; otherwise tokens are charged.')),
+          const SizedBox(height: 8), Text(ar ? 'الجوائز تُصرف بعد اعتماد النتيجة النهائية.' : 'Prizes are paid only after the verified final result.'),
+        ])), actions: [TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(ar ? 'إلغاء' : 'Cancel')),
+          FilledButton(key: const ValueKey('r21-cup-confirm'), onPressed: () => Navigator.pop(dialog, true), child: Text(ar ? 'تأكيد' : 'Confirm'))],
+      ));
+      if (accepted != true || !mounted || !live) return;
+      final id = _r12Int(tournament['id']);
+      if (leaving) { await widget.controller.api.leaveCompetitiveTournamentR12(id); }
+      else { await widget.controller.api.joinCompetitiveTournamentR12(id, expectedEntryFee: fee); }
+      await widget.controller.reconnectV173();
+      if (mounted) showToast(context, leaving ? (ar ? 'تم إلغاء التسجيل.' : 'Registration withdrawn.') : (ar ? 'تم التسجيل في البطولة.' : 'Tournament registration complete.'));
+      await _load(quiet: true);
+    } catch (e) {
+      if (!mounted) return;
+      showToast(context, e is ApiException && e.statusCode == 409
+          ? (ar ? 'تغيّرت تفاصيل البطولة. راجعها قبل التأكيد مجددًا.' : 'Championship details changed. Review them before confirming again.')
+          : (ar ? 'تعذر إتمام الطلب. حدّث البطولة للتحقق من حالته.' : 'Unable to complete the request. Refresh to check its status.'));
+      await _load(quiet: true);
+    } finally { if (mounted) setState(() => cupBusy = false); }
+  }
+
+  Widget _ladder() => RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[_R12SectionHero(icon:'♛',eyebrow:ar?'التصنيف العالمي':'GLOBAL RANKED LADDER',title:ar?'صالة المتصدرين':'Hall of contenders',subtitle:_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season')),const SizedBox(height:10),...leaders.asMap().entries.map((entry)=>_R12LeaderRow(row:entry.value,rank:entry.key+1,locale:widget.controller.localeCode,isMe:_r12Int(entry.value['user_id'])==(widget.controller.currentUserId??-1))) ]));
 
   Widget _rewards() {
     final claims = _r12List(data['rewards']);
@@ -284,7 +334,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
         children: [
           _R12SectionHero(
             icon: '✦',
-            eyebrow: 'SEASON REWARD VAULT',
+            eyebrow: ar ? 'خزينة جوائز الموسم' : 'SEASON REWARD VAULT',
             title: ar ? 'جوائز تستحقها' : 'Rewards you earn',
             subtitle: ar
                 ? 'لا تُصرف إلا بعد إغلاق الموسم واعتماد التصنيف النهائي.'
@@ -307,8 +357,8 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
                     subtitle: Text('🪙 ${claim['tokens']} • ${claim['xp']} XP'),
                     trailing: claim['status'] == 'pending'
                         ? FilledButton(
-                            onPressed: () => _claim(_r12Int(claim['id'])),
-                            child: const Text('CLAIM'),
+                            onPressed: live && !rewardBusy ? () => _claim(_r12Int(claim['id'])) : null,
+                            child: Text(ar ? 'استلام' : 'Claim'),
                           )
                         : const Icon(Icons.verified, color: _r12Mint),
                   ),
@@ -347,6 +397,112 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   Map<String,dynamic> _offlineCompetitive()=> <String,dynamic>{'enabled':true,'release':warqnaaR12Release,'season':<String,dynamic>{'key':'r12_preview','name':<String,dynamic>{'ar':'موسم أبطال ورقنا','en':'Warqnaa Champions Season'},'placement_games':10},'rating':<String,dynamic>{'rating':1248,'peak':1310,'rank':37,'games':28,'wins':18,'losses':10,'streak':3,'placement_complete':true,'tier':<String,dynamic>{'key':'gold','ar':'ذهبي','en':'Gold','color':'#F5C85B','icon':'✦'}},'queue':null,'tiers':<Map<String,dynamic>>[{'key':'bronze','ar':'برونزي','en':'Bronze','min':0,'color':'#B7794B','icon':'◆'},{'key':'silver','ar':'فضي','en':'Silver','min':900,'color':'#C7D2E0','icon':'◇'},{'key':'gold','ar':'ذهبي','en':'Gold','min':1100,'color':'#F5C85B','icon':'✦'},{'key':'platinum','ar':'بلاتيني','en':'Platinum','min':1300,'color':'#67E8F9','icon':'✧'},{'key':'diamond','ar':'ماسي','en':'Diamond','min':1500,'color':'#7DD3FC','icon':'◈'},{'key':'master','ar':'ماستر','en':'Master','min':1750,'color':'#C084FC','icon':'♛'},{'key':'grandmaster','ar':'جراند ماستر','en':'Grandmaster','min':2000,'color':'#FB7185','icon':'♚'},{'key':'legend','ar':'أسطورة ورقنا','en':'Warqnaa Legend','min':2300,'color':'#FDE68A','icon':'★'}],'tournaments':<Map<String,dynamic>>[{'id':1,'key':'champions','name':{'ar':'بطولة الأبطال','en':'Champions Cup'},'game':'tarneeb','format':'single_elimination','scope':'global','players':24,'max_players':32,'prize_pool':50000,'status':'open'},{'id':2,'key':'clubs_war','name':{'ar':'حرب الأندية','en':'Club Championship'},'game':'tarneeb','format':'group_playoffs','scope':'club','players':20,'max_players':32,'prize_pool':200000,'status':'open'},{'id':3,'key':'country_cup','name':{'ar':'كأس الدول','en':'Nations Cup'},'game':'trix','format':'league_playoffs','scope':'country','players':48,'max_players':64,'prize_pool':350000,'status':'open'}],'rewards':<Map<String,dynamic>>[]};
   List<Map<String,dynamic>> _offlineLeaders()=>List.generate(14,(i)=><String,dynamic>{'rank':i+1,'user_id':i+1,'display_name':['Adnan','Janan','Kenan','Shahd','Raad','Samer','Lina'][i%7],'country_code':['PS','JO','SA','AE'][i%4],'club':'Warqnaa Elite','rating':2180-(i*67),'wins':52-i*2,'losses':12+i,'streak':i%5,'tier':{'ar':i<3?'جراند ماستر':'ماستر','en':i<3?'Grandmaster':'Master','icon':i<3?'♚':'♛','color':i<3?'#FB7185':'#C084FC'}});
+}
+
+String r21CompetitiveLabel(String locale, String key) {
+  const labels = <String, (String, String)>{
+    'all': ('الكل', 'All'), 'global': ('عالمي', 'Global'), 'club': ('الأندية', 'Clubs'), 'country': ('الدول', 'Countries'),
+    'single_elimination': ('خروج المغلوب', 'Knockout'), 'league_playoffs': ('دوري وتصفيات', 'League playoffs'),
+    'group_playoffs': ('مجموعات وتصفيات', 'Group playoffs'), 'open': ('التسجيل مفتوح', 'Registration open'),
+    'running': ('جارية', 'Live'), 'finished': ('منتهية', 'Finished'),
+  };
+  final pair = labels[key];
+  return pair == null ? key : locale == 'ar' ? pair.$1 : pair.$2;
+}
+
+bool r21CupOpen(Map<String, dynamic> cup) {
+  final closes = DateTime.tryParse(cup['registration_closes_at']?.toString() ?? '');
+  return cup['status'] == 'open' && _r12Int(cup['players']) < _r12Int(cup['max_players'])
+      && (closes == null || closes.isAfter(DateTime.now()));
+}
+
+class R21TournamentDirectory extends StatefulWidget {
+  const R21TournamentDirectory({super.key, required this.cups, required this.locale, required this.onOpen});
+  final List<Map<String, dynamic>> cups;
+  final String locale;
+  final ValueChanged<Map<String, dynamic>> onOpen;
+  @override State<R21TournamentDirectory> createState() => _R21TournamentDirectoryState();
+}
+
+class _R21TournamentDirectoryState extends State<R21TournamentDirectory> {
+  String query = '', scope = 'all', filter = 'all';
+  bool get ar => widget.locale == 'ar';
+  @override Widget build(BuildContext context) {
+    final cups = widget.cups.where((cup) {
+      final searchable = '${_r12Local(cup['name'], widget.locale)} ${L.t(widget.locale, cup['game']?.toString() ?? '')}'.toLowerCase();
+      return searchable.contains(query.trim().toLowerCase()) && (scope == 'all' || cup['scope'] == scope)
+          && (filter == 'all' || (filter == 'open' ? r21CupOpen(cup) : cup['registered'] == true));
+    }).toList();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TextField(key: const ValueKey('r21-cup-search'), onChanged: (value) => setState(() => query = value),
+        decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded), labelText: ar ? 'ابحث عن بطولة أو لعبة' : 'Find a championship or game')),
+      const SizedBox(height: 12),
+      DropdownButtonFormField<String>(key: const ValueKey('r21-cup-scope'), initialValue: scope,
+        decoration: InputDecoration(labelText: ar ? 'نطاق البطولة' : 'Championship scope'),
+        items: ['all', 'global', 'club', 'country'].map((key) => DropdownMenuItem(value: key,
+          child: Text(r21CompetitiveLabel(widget.locale, key)))).toList(),
+        onChanged: (value) => setState(() => scope = value ?? 'all')),
+      const SizedBox(height: 10),
+      Wrap(spacing: 8, runSpacing: 8, children: ['all', 'open', 'mine'].map((key) => ChoiceChip(
+        key: ValueKey('r21-cup-filter-$key'), selected: filter == key, onSelected: (_) => setState(() => filter = key),
+        label: Text(key == 'mine' ? (ar ? 'تسجيلاتي' : 'My entries') : r21CompetitiveLabel(widget.locale, key)),
+      )).toList()),
+      const SizedBox(height: 10),
+      Text(ar ? '${cups.length} بطولة' : '${cups.length} championships', style: const TextStyle(color: Colors.white60)),
+      const SizedBox(height: 12),
+      if (cups.isEmpty) _R12Empty(text: ar ? 'لا توجد بطولات بهذه الخيارات. جرّب بحثًا آخر.' : 'No championships match. Try another search.')
+      else LayoutBuilder(builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1100 ? 3 : constraints.maxWidth >= 700 ? 2 : 1;
+        final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
+        return Wrap(spacing: 12, runSpacing: 12, children: cups.map((cup) => SizedBox(width: width,
+          child: _R12CupCard(cup: cup, locale: widget.locale, onTap: () => widget.onOpen(cup)),
+        )).toList());
+      }),
+    ]);
+  }
+}
+
+class R21TournamentCard extends StatelessWidget {
+  const R21TournamentCard({super.key, required this.cup, required this.locale, required this.onTap});
+  final Map<String, dynamic> cup;
+  final String locale;
+  final VoidCallback onTap;
+  @override Widget build(BuildContext context) {
+    final ar = locale == 'ar', count = _r12Int(cup['players']), capacity = _r12Int(cup['max_players']);
+    final start = DateTime.tryParse(cup['starts_at']?.toString() ?? '')?.toLocal();
+    return Material(color: Colors.transparent, child: InkWell(key: ValueKey('r21-cup-${cup['id']}'), onTap: onTap,
+      borderRadius: BorderRadius.circular(26), child: Container(padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(26), border: Border.all(color: _r12Gold.withValues(alpha: .27)),
+          gradient: const LinearGradient(begin: AlignmentDirectional.topStart, end: AlignmentDirectional.bottomEnd,
+            colors: [Color(0xFF283927), _r12Panel, _r12Deep])),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [const Icon(Icons.emoji_events_rounded, color: _r12Gold, size: 44), const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(r21CompetitiveLabel(locale, cup['scope']?.toString() ?? 'global'), style: const TextStyle(color: _r12Mint)),
+              Text(_r12Local(cup['name'], locale), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+            ]))]), const SizedBox(height: 14),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            Chip(label: Text(L.t(locale, cup['game']?.toString() ?? ''))),
+            Chip(label: Text(r21CompetitiveLabel(locale, cup['format']?.toString() ?? 'single_elimination'))),
+            if (cup['registered'] == true) Chip(avatar: const Icon(Icons.verified_rounded, size: 18), label: Text(ar ? 'مسجل' : 'Registered')),
+          ]), const SizedBox(height: 12),
+          Text(ar ? 'مجموع الجوائز' : 'Prize pool', style: const TextStyle(color: Colors.white60)),
+          Text('${cup['prize_pool'] ?? 0}', style: const TextStyle(color: _r12Gold, fontSize: 30, fontWeight: FontWeight.w900)),
+          Text(ar ? 'رسوم الدخول: ${cup['entry_fee'] ?? 0} توكن' : 'Entry fee: ${cup['entry_fee'] ?? 0} tokens'),
+          const SizedBox(height: 12),
+          Text(ar ? '$count / $capacity مشارك' : '$count / $capacity entrants', style: const TextStyle(color: _r12Mint)),
+          const SizedBox(height: 6), LinearProgressIndicator(value: capacity > 0 ? (count / capacity).clamp(0.0, 1.0).toDouble() : 0,
+            color: _r12Gold, backgroundColor: Colors.white10, borderRadius: BorderRadius.circular(8)),
+          if (start != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(
+            '${MaterialLocalizations.of(context).formatShortDate(start)} • ${TimeOfDay.fromDateTime(start).format(context)}', style: const TextStyle(color: Colors.white60))),
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            Text(r21CompetitiveLabel(locale, cup['status']?.toString() ?? ''), style: const TextStyle(color: _r12Gold)),
+            TextButton.icon(onPressed: onTap, icon: const Icon(Icons.arrow_forward_rounded), label: Text(ar ? 'التفاصيل والجدول' : 'Details and bracket')),
+          ]),
+        ]),
+      )));
+  }
 }
 
 class R12AdminCompetitivePanel extends StatefulWidget { const R12AdminCompetitivePanel({super.key,required this.controller}); final AppController controller; @override State<R12AdminCompetitivePanel> createState()=>_R12AdminCompetitivePanelState(); }
@@ -675,7 +831,14 @@ class _R12Empty extends StatelessWidget { const _R12Empty({required this.text});
 class _R12Radar extends StatefulWidget { const _R12Radar();@override State<_R12Radar> createState()=>_R12RadarState();}
 class _R12RadarState extends State<_R12Radar> with SingleTickerProviderStateMixin {late final AnimationController c;@override void initState(){super.initState();c=AnimationController(vsync:this,duration:const Duration(seconds:2))..repeat();}@override void dispose(){c.dispose();super.dispose();}@override Widget build(BuildContext context)=>RotationTransition(turns:c,child:Container(width:58,height:58,decoration:BoxDecoration(shape:BoxShape.circle,border:Border.all(color:_r12Mint.withValues(alpha:.5)),gradient:SweepGradient(colors:[_r12Mint.withValues(alpha:.5),Colors.transparent,Colors.transparent])),child:const Center(child:Text('W',style:TextStyle(color:_r12Gold,fontWeight:FontWeight.w900)))));}
 class _R12SectionHero extends StatelessWidget { const _R12SectionHero({required this.icon,required this.eyebrow,required this.title,required this.subtitle});final String icon,eyebrow,title,subtitle;@override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(borderRadius:BorderRadius.circular(27),gradient:const LinearGradient(colors:[Color(0xFF17372B),_r12Deep]),border:Border.all(color:_r12Gold.withValues(alpha:.18))),child:Row(children:[Text(icon,style:const TextStyle(fontSize:49,color:_r12Gold)),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(eyebrow,style:const TextStyle(color:_r12Gold,fontSize:8,fontWeight:FontWeight.w900,letterSpacing:1.1)),Text(title,style:const TextStyle(fontSize:22,fontWeight:FontWeight.w900)),Text(subtitle,style:const TextStyle(color:Colors.white54,fontSize:10,height:1.4))]))]));}
-class _R12CupCard extends StatelessWidget { const _R12CupCard({required this.cup,required this.locale,required this.onTap});final Map<String,dynamic> cup;final String locale;final VoidCallback onTap;@override Widget build(BuildContext context)=>_R12Glass(accent:_r12Gold,child:InkWell(onTap:onTap,borderRadius:BorderRadius.circular(16),child:Row(children:[Container(width:70,height:82,decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),gradient:const RadialGradient(colors:[Color(0x557DE6B4),Color(0x11000000)])),child:const Center(child:Text('♜',style:TextStyle(fontSize:43,color:_r12Gold)))),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Wrap(spacing:5,children:[Chip(label:Text('${cup['scope']??'global'}',style:const TextStyle(fontSize:7))),Chip(label:Text('${cup['format']??'cup'}',style:const TextStyle(fontSize:7)))]),Text(_r12Local(cup['name'],locale,cup['key']?.toString()??'Cup'),style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900)),Text('${cup['game']??'Game'} • ${cup['players']??0}/${cup['max_players']??0}',style:const TextStyle(fontSize:9,color:Colors.white54)),Text('🪙 ${cup['prize_pool']??0}',style:const TextStyle(color:_r12Gold,fontWeight:FontWeight.w900))])),const Icon(Icons.chevron_right)])));}
+class _R12CupCard extends StatelessWidget {
+  const _R12CupCard({required this.cup, required this.locale, required this.onTap});
+  final Map<String, dynamic> cup;
+  final String locale;
+  final VoidCallback onTap;
+  @override Widget build(BuildContext context) => R21TournamentCard(cup: cup, locale: locale, onTap: onTap);
+}
+
 class _R12LeaderRow extends StatelessWidget { const _R12LeaderRow({required this.row,required this.rank,required this.locale,required this.isMe});final Map<String,dynamic> row;final int rank;final String locale;final bool isMe;@override Widget build(BuildContext context){final tier=_r12Map(row['tier']),color=_r12Color(tier['color']);return Container(margin:const EdgeInsets.only(bottom:7),padding:const EdgeInsets.all(11),decoration:BoxDecoration(color:isMe?_r12Gold.withValues(alpha:.08):Colors.white.withValues(alpha:.035),borderRadius:BorderRadius.circular(18),border:Border.all(color:isMe?_r12Gold.withValues(alpha:.3):Colors.white.withValues(alpha:.06))),child:Row(children:[SizedBox(width:31,child:Text('#$rank',style:TextStyle(fontWeight:FontWeight.w900,color:rank<=3?_r12Gold:Colors.white54))),CircleAvatar(radius:20,backgroundColor:color.withValues(alpha:.14),backgroundImage:(row['avatar']?.toString()??'').startsWith('http')?NetworkImage(row['avatar'].toString()):null,child:(row['avatar']?.toString()??'').startsWith('http')?null:Text((row['display_name']?.toString()??row['username']?.toString()??'?').substring(0,1))),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(row['display_name']?.toString()??row['username']?.toString()??'Player',style:const TextStyle(fontWeight:FontWeight.w900)),Text('${row['country_code']??'--'} • ${row['club']??'Warqnaa'}',style:const TextStyle(fontSize:8,color:Colors.white54))])),Column(crossAxisAlignment:CrossAxisAlignment.end,children:[Text('${row['rating']??1000}',style:TextStyle(color:color,fontWeight:FontWeight.w900,fontSize:17)),Text('${tier['icon']??'◆'} ${_r12Local(tier,locale,tier['key']?.toString()??'')}',style:const TextStyle(fontSize:8,color:Colors.white54))]) ]));}}
 class _R12BracketRound extends StatelessWidget {
   const _R12BracketRound({required this.round, required this.locale});

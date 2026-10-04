@@ -1,0 +1,43 @@
+name: R21 Clubs and Tournament Gate
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/r21-*']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: r21-community-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  community:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Check cumulative community and authority contract
+        run: |
+          python3 tools/test_r21_community_contract.py
+          python3 tools/check_git_privacy_v304.py
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          channel: stable
+          cache: true
+      - name: Resolve and analyze
+        working-directory: flutter_app
+        run: |
+          flutter pub get
+          flutter analyze
+      - name: Community, premium and responsive regression
+        working-directory: flutter_app
+        run: |
+          flutter test test/r21_community_test.dart
+          flutter test test/r20_store_collections_test.dart
+          flutter test test/r20_premium_accessibility_test.dart
+          flutter test test/r65_responsive_test.dart

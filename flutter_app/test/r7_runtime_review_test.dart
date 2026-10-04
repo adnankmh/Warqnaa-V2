@@ -148,6 +148,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       AppSounds.enabled = false;
       final controller = AppController()..customApiUrl = runtimeUrl;
+      var reviewClubs = <Map<String, dynamic>>[];
+      var reviewCups = <Map<String, dynamic>>[];
       controller.api.updateBaseUrl(runtimeUrl);
       addTearDown(() { controller.connectivityTimerV173?.cancel(); controller.dispose(); });
       await tester.runAsync(() async {
@@ -162,6 +164,11 @@ void main() {
         expect(controller.level, int.parse(const String.fromEnvironment('R7_PLAYER_LEVEL')));
         expect(controller.selectedTable, 'v305_table_emerald_royal');
         expect(controller.selectedCardBack, 'v305_cardback_emerald_royal');
+        final clubs = await controller.api.clubsWorldR11();
+        final competitive = await controller.api.competitiveR12();
+        reviewClubs = (clubs['clubs'] as List).map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        reviewCups = ((competitive['competitive'] as Map)['tournaments'] as List).map((item) => Map<String, dynamic>.from(item as Map)).where((cup) => cup['key'].toString().startsWith('r21_review_')).toList();
+        expect(reviewClubs, isNotEmpty); expect(reviewCups, hasLength(3));
       });
       controller.localeCode = locale;
       addTearDown(tester.view.resetPhysicalSize);
@@ -177,6 +184,8 @@ void main() {
           ('store', Scaffold(body: StorePage(controller: controller))),
           ('store-collections', Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: R20StoreCollections(controller: controller)))),
           ('social', Scaffold(body: R61SocialHubPage(controller: controller))),
+          ('r21-clubs', Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: R21ClubDirectory(clubs: reviewClubs, locale: locale, allowJoin: false, onOpen: (_) {}, onJoin: (_) {})))),
+          ('r21-cups', Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: R21TournamentDirectory(cups: reviewCups, locale: locale, onOpen: (_) {})))),
           ('table', TarneebRoomPage(controller: controller, game: gamesCatalog.firstWhere((game) => game.id == 'tarneeb'))),
         ]) {
           final key = GlobalKey();

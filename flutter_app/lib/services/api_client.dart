@@ -300,7 +300,8 @@ class WarqnaApiClient {
   }
   Future<Map<String, dynamic>> competitiveHistoryR12() => get('/competitive/history');
   Future<Map<String, dynamic>> competitiveTournamentR12(int id) => get('/competitive/tournaments/$id');
-  Future<Map<String, dynamic>> joinCompetitiveTournamentR12(int id) => post('/competitive/tournaments/$id/join', const {});
+  Future<Map<String, dynamic>> joinCompetitiveTournamentR12(int id, {int? expectedEntryFee}) =>
+      post('/competitive/tournaments/$id/join', {if (expectedEntryFee != null) 'expected_entry_fee': expectedEntryFee});
   Future<Map<String, dynamic>> leaveCompetitiveTournamentR12(int id) => delete('/competitive/tournaments/$id/leave');
   Future<Map<String, dynamic>> claimCompetitiveRewardR12(int id) => post('/competitive/rewards/$id/claim', const {});
   Future<Map<String, dynamic>> adminDashboard() => get('/admin/dashboard');

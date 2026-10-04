@@ -366,6 +366,45 @@ class V240CompetitiveArenaTest extends TestCase
         $this->assertNotNull($previous->fresh()->finalized_at);
     }
 
+    public function test_r21_stale_fee_consent_never_consumes_a_ticket_or_wallet(): void
+    {
+        $admin=$this->player('r21_fee_admin',true); $player=$this->player('r21_fee_player');
+        $game=$this->game('basra',2,false); $season=app(CompetitiveSeasonService::class)->activeSeason();
+        $player->wallet()->update(['tokens'=>1000]);
+        $ticket=CompetitionTicket::create(['user_id'=>$player->id,'denomination'=>500,'quantity'=>1,'total_used'=>0]);
+        $cup=Tournament::create([
+            'creator_id'=>$admin->id,'season_id'=>$season->id,'game_id'=>$game->id,'key'=>'r21_fee_consent',
+            'name'=>['ar'=>'كأس الموافقة','en'=>'Consent Cup'],'stages'=>1,'rounds'=>1,'seats_per_match'=>2,
+            'max_players'=>2,'entry_fee'=>500,'prize_pool'=>0,'status'=>'open','format'=>'single_elimination',
+            'scope'=>'global','starts_at'=>now()->addHour(),'registration_closes_at'=>now()->addMinutes(45),
+            'auto_accept'=>true,'random_seating'=>false,'chat_enabled'=>true,'turn_seconds'=>10,'bracket'=>['messages'=>[]],
+        ]);
+        // A route-bound model can hold an earlier quote while the service sees the new price.
+        try {
+            app(CompetitionService::class)->join($player,$cup->key,400,400);
+            $this->fail('Stale route quote should be rejected before the legacy fee check.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $error) {
+            $this->assertSame(409,$error->getStatusCode());
+        }
+        $token=$player->createToken('r21-consent')->plainTextToken;
+        foreach ([0, 400, 600] as $staleFee) {
+            $this->withToken($token)->postJson("/api/mobile/v1/competitive/tournaments/{$cup->id}/join",[
+                'expected_entry_fee'=>$staleFee,
+            ])->assertStatus(409);
+            $this->assertSame(1000,(int)$player->wallet()->value('tokens'));
+            $this->assertSame(1,(int)$ticket->fresh()->quantity);
+            $this->assertSame(0,$cup->entries()->count());
+        }
+        $this->withToken($token)->postJson("/api/mobile/v1/competitive/tournaments/{$cup->id}/join",[
+            'expected_entry_fee'=>500,
+        ])->assertCreated()->assertJsonPath('entry_mode','ticket');
+        $this->assertSame(1000,(int)$player->wallet()->value('tokens'));
+        $this->assertSame(0,(int)$ticket->fresh()->quantity);
+        $this->assertSame(1,$cup->entries()->count());
+        $this->withToken($token)->getJson('/api/mobile/v1/competitive')
+            ->assertOk()->assertJsonPath('competitive.tournaments.0.registered',true);
+    }
+
     /** @return array{0:CompetitiveMatch,1:Room,2:User,3:User} */
     private function rankedMatch(): array
     {
