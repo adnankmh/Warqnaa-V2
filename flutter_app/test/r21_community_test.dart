@@ -20,17 +20,19 @@ final cups = <Map<String, dynamic>>[
 Widget app(String locale, Widget child) => MaterialApp(locale: Locale(locale),
   supportedLocales: const [Locale('ar'), Locale('en')], localizationsDelegates: GlobalMaterialLocalizations.delegates,
   theme: r101Theme('midnight_cyan', '#25e4df', localeCode: locale),
-  home: child is R12CompetitiveArenaPage ? child : Scaffold(body: SingleChildScrollView(padding: const EdgeInsets.all(12), child: child)));
+  home: child is R12CompetitiveArenaPage ? child : Scaffold(body: child is R11ClubsWorldPage ? child : SingleChildScrollView(padding: const EdgeInsets.all(12), child: child)));
 
 class FakeApi extends WarqnaApiClient {
   bool failDetails = false;
   int joins = 0;
+  int detailsCalls = 0;
   int? acceptedFee;
   final pendingJoin = Completer<Map<String, dynamic>>();
   @override Future<Map<String, dynamic>> competitiveR12() async => {'competitive': {'enabled': true, 'tournaments': cups, 'rating': {}, 'season': {}, 'tiers': [], 'rewards': []}};
   @override Future<Map<String, dynamic>> competitiveLeaderboardR12({String? game, String? country, int? clubId, int limit = 100}) async => {'leaderboard': {'rows': []}};
   @override Future<Map<String, dynamic>> competitiveHistoryR12() async => {'matches': []};
   @override Future<Map<String, dynamic>> competitiveTournamentR12(int id) async {
+    detailsCalls++;
     if (failDetails) throw const ApiException('Unavailable', statusCode: 503);
     return {'tournament': {...cups.first, 'registered': false}};
   }
@@ -78,25 +80,25 @@ void main() {
     await tester.pumpWidget(app('en', R12CompetitiveArenaPage(controller: controller)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cups')); await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('r21-cup-1')));
-    await tester.tap(find.byKey(const ValueKey('r21-cup-1'))); await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Warqnaa Cup'));
+    await tester.tap(find.text('Warqnaa Cup')); await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('r21-cup-register')), findsNothing);
-    expect(api.joins, 0);
+    expect(api.joins, 0); expect(api.detailsCalls, 1);
   });
   testWidgets('R21 confirmation sends accepted fee once and guards repeated taps', (tester) async {
     final api = FakeApi(); final controller = FakeController(api)..serverConnected = true..localeCode = 'en';
     addTearDown(controller.dispose);
     await tester.pumpWidget(app('en', R12CompetitiveArenaPage(controller: controller)));
     await tester.pumpAndSettle(); await tester.tap(find.text('Cups')); await tester.pumpAndSettle();
-    await tester.ensureVisible(find.byKey(const ValueKey('r21-cup-1')));
-    await tester.tap(find.byKey(const ValueKey('r21-cup-1'))); await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Warqnaa Cup'));
+    await tester.tap(find.text('Warqnaa Cup')); await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const ValueKey('r21-cup-register')));
     await tester.tap(find.byKey(const ValueKey('r21-cup-register'))); await tester.pumpAndSettle();
     expect(api.joins, 0);
     expect(find.textContaining('Entry fee: 500 tokens'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('r21-cup-confirm'))); await tester.pumpAndSettle();
     expect(api.joins, 1); expect(api.acceptedFee, 500);
-    await tester.tap(find.byKey(const ValueKey('r21-cup-1'))); await tester.pump();
+    await tester.tap(find.text('Warqnaa Cup')); await tester.pump();
     expect(find.byKey(const ValueKey('r21-cup-register')), findsNothing); expect(api.joins, 1);
     api.pendingJoin.complete({'ok': true}); await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
