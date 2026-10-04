@@ -501,34 +501,7 @@ class R61ProfilePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 30),
         children: <Widget>[
-          ProfileCover(
-            coverId: controller.selectedCover,
-            height: 245,
-            colors: b304ProfileGradient(controller),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
-                  InkWell(
-                    onTap: () => showAvatarPicker(context, controller),
-                    borderRadius: BorderRadius.circular(80),
-                    child: AccountAvatar(controller: controller, size: 112),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                    Row(children: <Widget>[
-                      Flexible(child: Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: colorFromHex(controller.selectedNameColor)))),
-                      if (controller.isAdmin) const Padding(padding: EdgeInsetsDirectional.only(start: 6), child: Icon(Icons.verified_rounded, color: Color(0xffffcf58), size: 20)),
-                    ]),
-                    Text('@${controller.username} • ${controller.countryFlag} ${controller.countryName}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 7),
-                    R5RuntimeBadge(controller: controller),
-                  ])),
-                ]),
-              ),
-            ),
-          ),
+          R19PashaProfileHero(controller: controller),
           const SizedBox(height: 12),
           Row(children: <Widget>[
             Expanded(child: ProfileMetric(value: '${controller.level}', label: ar ? 'المستوى' : 'Level')),

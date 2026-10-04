@@ -63,13 +63,13 @@ class User extends Authenticatable
         return !empty($permissions['all']) || !empty($permissions[$permission]);
     }
 
-    private const PRIMARY_ADMIN_DISPLAY_BALANCE = '1000000';
+    private const PRIMARY_ADMIN_DISPLAY_BALANCE = '99999999999999999';
     // Historical compatibility marker kept for cumulative release contracts: 100000000000000000000000000000000
 
     public function displayTokenBalance(): string
     {
-        // R17: keep the primary-admin economy server-unlimited while exposing a clean
-        // ceremonial 1,000,000-token balance in player-facing surfaces.
+        // Primary admin keeps the protected non-depleting backend reserve while
+        // player-facing wallet surfaces expose the requested high ceremonial balance.
         if ($this->isPrimaryAdmin()) return self::PRIMARY_ADMIN_DISPLAY_BALANCE;
         return (string)($this->wallet?->tokens ?? 0);
     }

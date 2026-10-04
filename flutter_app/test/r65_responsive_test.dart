@@ -119,19 +119,27 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
         expect(tester.takeException(), isNull);
         if (locale == 'en') {
-          final storeScroll = find.byType(Scrollable).first;
-          await tester.scrollUntilVisible(
-            find.textContaining('Level progress'),
-            250,
-            scrollable: storeScroll,
-          );
+          final storeScroll = find.byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+            description: 'outer vertical StorePage scrollable',
+          ).first;
+          Future<void> buildLazyStoreSection(Finder target) async {
+            for (var attempt = 0; attempt < 20 && target.evaluate().isEmpty; attempt += 1) {
+              await tester.drag(storeScroll, const Offset(0, -250));
+              await tester.pump(const Duration(milliseconds: 120));
+            }
+          }
+
+          // The R19 commerce and booster content makes the outer store list
+          // longer, so build lazy sections incrementally before asserting
+          // their translated copy. A fixed pump avoids waiting forever on
+          // the intentional looping booster previews farther down the grid.
+          await buildLazyStoreSection(find.textContaining('Level progress'));
           expect(find.textContaining('Level progress'), findsOneWidget);
           expect(find.textContaining('تقدم المستوى'), findsNothing);
-          await tester.scrollUntilVisible(
-            find.textContaining('premium items'),
-            250,
-            scrollable: storeScroll,
-          );
+          await buildLazyStoreSection(find.textContaining('premium items'));
           expect(find.textContaining('premium items'), findsOneWidget);
           expect(tester.takeException(), isNull);
         }
