@@ -21,6 +21,8 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: R20 premium experience contract
         run: python3 tools/test_r20_premium_experience_contract.py --json "$RUNNER_TEMP/r20-premium.json"
       - name: Git privacy gate
@@ -47,6 +49,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.44.0'
@@ -78,6 +82,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Require stable profile metric icons before R20 merge
         run: |
           python3 - <<'PY'
