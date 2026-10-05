@@ -385,7 +385,11 @@ class B307QuickAction extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
               border: B307SkyLuxury.border(alpha: .31),
             ),
-            child: const SizedBox.shrink(),
+            child: Column(children: <Widget>[
+              Icon(icon, size: 20, color: B307SkyLuxury.goldSoft),
+              const SizedBox(height: 5),
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w800)),
+            ]),
           ),
         ),
       );
