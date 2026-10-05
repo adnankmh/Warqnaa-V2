@@ -32,10 +32,19 @@ class MatchLifecycleService
     public function disconnect(Room $room, User $user, string $reason = 'network'): RoomPlayer
     {
         $player = $room->players()->where('user_id', $user->id)->firstOrFail();
+
+        // Disconnect is intentionally idempotent. Mobile clients can retry this
+        // request after a transport failure; a retry must not extend the
+        // reconnect/abandonment window or duplicate lifecycle audit events.
+        if (!$player->connected && $player->disconnected_at !== null) {
+            return $player;
+        }
+
+        $now = now();
         $player->forceFill([
             'connected' => false,
-            'disconnected_at' => now(),
-            'afk_since' => $player->afk_since ?: now(),
+            'disconnected_at' => $now,
+            'afk_since' => $player->afk_since ?: $now,
         ])->save();
         $this->event($room, $user, 'player.disconnected', 1, ['seat'=>$player->seat,'reason'=>$reason]);
         return $player;
@@ -56,7 +65,11 @@ class MatchLifecycleService
                 }
                 if (!$player->connected && $player->disconnected_at && $player->disconnected_at->lt($now->copy()->subSeconds(self::ABANDONED_SECONDS))) {
                     $state=(array)($room->state ?? []);
-                    $expired=array_values(array_unique(array_merge(array_map('intval',(array)($state['expired_user_ids'] ?? [])),[(int)$player->user_id])));
+                    $expired=array_map('intval',(array)($state['expired_user_ids'] ?? []));
+                    if (in_array((int)$player->user_id, $expired, true)) {
+                        continue;
+                    }
+                    $expired=array_values(array_unique(array_merge($expired,[(int)$player->user_id])));
                     $state['expired_user_ids']=$expired;
                     $state['last_abandoned_at']=$now->toIso8601String();
                     $room->state=$state;$room->save();
