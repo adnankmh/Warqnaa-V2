@@ -1,0 +1,34 @@
+name: R23 Security Economy Gate
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/r23-*']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: r23-security-economy-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+jobs:
+  security-economy-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+      - name: Verify cumulative security economy and authority contracts
+        run: |
+          python3 tools/test_r23_security_economy_contract.py
+          python3 tools/test_r22_multiplayer_resilience_contract.py
+          python3 tools/test_r21_community_contract.py
+          python3 tools/test_r20_premium_experience_contract.py
+          python3 tools/check_git_privacy_v304.py
+      - name: Verify workflow and repository syntax
+        run: |
+          python3 -m py_compile tools/test_r23_security_economy_contract.py
+          git diff --check HEAD^

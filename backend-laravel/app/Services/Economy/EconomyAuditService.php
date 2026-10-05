@@ -14,23 +14,51 @@ class EconomyAuditService
         $recentCount = WalletTransaction::where('user_id',$transaction->user_id)->where('created_at','>=',now()->subMinutes(5))->count();
         $risk = 0;
         $reasons = [];
+
         if ($amount >= 1000000) { $risk += 45; $reasons[]='high_value'; }
         elseif ($amount >= 100000) { $risk += 25; $reasons[]='elevated_value'; }
         if ($recentCount >= 12) { $risk += 35; $reasons[]='burst_velocity'; }
         elseif ($recentCount >= 6) { $risk += 15; $reasons[]='velocity'; }
         if ($transaction->counterparty_id && (int)$transaction->counterparty_id === (int)$transaction->user_id) { $risk += 50; $reasons[]='self_counterparty'; }
+
         if ($transaction->type === 'transfer_sent') {
             $principal = max(0, $amount - $fee);
             $feePercent = max(0, min(100, (int)($meta['fee_percent'] ?? 10)));
             $expectedFee = (int)ceil($principal * ($feePercent / 100));
             if ($fee !== $expectedFee) { $risk += 55; $reasons[]='transfer_fee_mismatch'; }
             if ($feePercent !== 10) { $risk += 20; $reasons[]='nonstandard_transfer_fee'; }
+            if (!$transaction->counterparty_id) { $risk += 45; $reasons[]='missing_transfer_counterparty'; }
         }
+
+        if ($amount === 0 && $fee > 0) { $risk += 45; $reasons[]='fee_without_amount'; }
+        if ($fee > $amount && $amount > 0) { $risk += 40; $reasons[]='fee_exceeds_amount'; }
+
+        $idempotencyKey = trim((string)($meta['idempotency_key'] ?? $meta['request_id'] ?? ''));
+        if ($idempotencyKey !== '') {
+            $duplicateCount = WalletTransaction::where('user_id',$transaction->user_id)
+                ->where('id','<>',$transaction->id)
+                ->where('created_at','>=',now()->subDay())
+                ->get(['meta'])
+                ->filter(function ($candidate) use ($idempotencyKey) {
+                    $candidateMeta = is_array($candidate->meta) ? $candidate->meta : [];
+                    $candidateKey = trim((string)($candidateMeta['idempotency_key'] ?? $candidateMeta['request_id'] ?? ''));
+                    return $candidateKey !== '' && hash_equals($idempotencyKey, $candidateKey);
+                })->count();
+            if ($duplicateCount > 0) { $risk += 70; $reasons[]='duplicate_idempotency_key'; }
+        }
+
         $risk = min(100, $risk);
         if ($risk < 20) return null;
         return EconomyAuditEvent::updateOrCreate(
             ['wallet_transaction_id'=>$transaction->id],
-            ['user_id'=>$transaction->user_id,'type'=>'transaction.risk','risk_score'=>$risk,'status'=>'open','payload'=>['reasons'=>$reasons,'amount'=>$amount,'fee'=>$fee,'recent_5m'=>$recentCount,'transaction_type'=>$transaction->type]]
+            ['user_id'=>$transaction->user_id,'type'=>'transaction.risk','risk_score'=>$risk,'status'=>'open','payload'=>[
+                'reasons'=>array_values(array_unique($reasons)),
+                'amount'=>$amount,
+                'fee'=>$fee,
+                'recent_5m'=>$recentCount,
+                'transaction_type'=>$transaction->type,
+                'has_idempotency_key'=>$idempotencyKey !== '',
+            ]]
         );
     }
 
