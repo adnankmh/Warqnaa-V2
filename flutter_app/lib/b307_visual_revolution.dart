@@ -1,9 +1,55 @@
 part of 'main.dart';
 
-/// B307 visual system: an original Warqnaa dark card-room experience inspired
-/// by modern MENA social card-game interfaces, without copying third-party
-/// branding, assets, or proprietary layouts.
-const String warqnaaB307VisualRelease = '1.3.1+307-ui';
+/// B307 visual system: an original Warqnaa premium card-room experience
+/// inspired by the polish of modern MENA social card-game products without
+/// copying third-party branding, assets, or proprietary layouts.
+const String warqnaaB307VisualRelease = '1.4.0+308-sky-luxe';
+
+/// Bright sky-blue visual foundation requested for the R27 luxury pass.
+///
+/// The palette deliberately keeps the main product surfaces clearly blue and
+/// luminous instead of near-black. Gold is reserved for premium emphasis and
+/// conversion CTAs so hierarchy stays readable in Arabic RTL and English LTR.
+abstract final class B307SkyLuxury {
+  static const Color sky = Color(0xff24c8ff);
+  static const Color cyan = Color(0xff22d3ee);
+  static const Color azure = Color(0xff0b8cff);
+  static const Color royal = Color(0xff075fbd);
+  static const Color deep = Color(0xff064777);
+  static const Color navy = Color(0xff052f54);
+  static const Color surface = Color(0xff07598f);
+  static const Color surfaceRaised = Color(0xff0a6eb0);
+  static const Color gold = Color(0xffffc84a);
+  static const Color goldSoft = Color(0xffffdf7d);
+  static const Color emerald = Color(0xff2dd4a8);
+  static const Color text = Color(0xfff8fcff);
+  static const Color textMuted = Color(0xffc9eaff);
+
+  static const LinearGradient shellGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[Color(0xff0b8cff), Color(0xff075fbd), Color(0xff064777)],
+  );
+
+  static const LinearGradient panelGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[Color(0xff0a6eb0), Color(0xff07598f), Color(0xff064777)],
+  );
+
+  static const LinearGradient heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[Color(0xff11a8f5), Color(0xff0878cf), Color(0xff07528e)],
+  );
+
+  static BoxBorder border({double alpha = .28}) => Border.all(color: sky.withValues(alpha: alpha));
+
+  static List<BoxShadow> get glow => <BoxShadow>[
+        BoxShadow(color: sky.withValues(alpha: .17), blurRadius: 22, spreadRadius: 1, offset: const Offset(0, 7)),
+        const BoxShadow(color: Color(0x33001933), blurRadius: 18, offset: Offset(0, 9)),
+      ];
+}
 
 class B307TopBar extends StatelessWidget {
   const B307TopBar({super.key, required this.controller});
@@ -12,15 +58,14 @@ class B307TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final scheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xff171717),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white.withValues(alpha: .07)),
-        boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x4d000000), blurRadius: 18, offset: Offset(0, 7))],
+        gradient: B307SkyLuxury.shellGradient,
+        borderRadius: BorderRadius.circular(17),
+        border: B307SkyLuxury.border(alpha: .40),
+        boxShadow: B307SkyLuxury.glow,
       ),
       child: Row(children: <Widget>[
         GestureDetector(
@@ -30,8 +75,9 @@ class B307TopBar extends StatelessWidget {
             height: 42,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(colors: <Color>[scheme.primary, const Color(0xff8b6914)]),
-              border: Border.all(color: const Color(0xffe0b844), width: 2),
+              gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
+              border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
+              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
             ),
             child: Center(child: Text(controller.avatarEmoji, style: const TextStyle(fontSize: 22))),
           ),
@@ -39,33 +85,33 @@ class B307TopBar extends StatelessWidget {
         const SizedBox(width: 9),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
-            Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+            Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13)),
             const SizedBox(height: 2),
             Row(children: <Widget>[
-              Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? const Color(0xff39c86b) : const Color(0xfff2a93b))),
+              Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
               const SizedBox(width: 4),
               Text(
                 controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
-                style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: .54), fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
               ),
             ]),
           ]),
         ),
-        B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: const Color(0xffe4b33f)),
+        B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: B307SkyLuxury.gold),
         const SizedBox(width: 5),
-        B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: const Color(0xffd6a532)),
+        B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: B307SkyLuxury.goldSoft),
         const SizedBox(width: 4),
         IconButton(
           visualDensity: VisualDensity.compact,
           tooltip: ar ? 'الأصدقاء' : 'Friends',
           onPressed: () => showFriends(context, controller),
-          icon: const Icon(Icons.people_alt_outlined, size: 21),
+          icon: const Icon(Icons.people_alt_outlined, size: 21, color: B307SkyLuxury.text),
         ),
         IconButton(
           visualDensity: VisualDensity.compact,
           tooltip: ar ? 'الإشعارات' : 'Notifications',
           onPressed: () => showNotifications(context, controller),
-          icon: const Icon(Icons.notifications_none_rounded, size: 21),
+          icon: const Icon(Icons.notifications_none_rounded, size: 21, color: B307SkyLuxury.text),
         ),
       ]),
     );
@@ -83,14 +129,14 @@ class B307TopCounter extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 58),
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xff222222),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: .055)),
+          gradient: const LinearGradient(colors: <Color>[Color(0xff0b70b3), Color(0xff07558d)]),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .34)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
           Icon(icon, size: 14, color: accent),
           const SizedBox(width: 4),
-          Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900))),
+          Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w900))),
         ]),
       );
 }
@@ -124,10 +170,10 @@ class B307BottomNavigation extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(8, 0, 8, 7),
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
         decoration: BoxDecoration(
-          color: const Color(0xff151515),
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: Colors.white.withValues(alpha: .07)),
-          boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x5a000000), blurRadius: 20, offset: Offset(0, -4))],
+          gradient: B307SkyLuxury.shellGradient,
+          borderRadius: BorderRadius.circular(18),
+          border: B307SkyLuxury.border(alpha: .38),
+          boxShadow: B307SkyLuxury.glow,
         ),
         child: Row(
           children: List<Widget>.generate(icons.length, (i) {
@@ -137,17 +183,21 @@ class B307BottomNavigation extends StatelessWidget {
                 borderRadius: BorderRadius.circular(13),
                 onTap: () => onSelected(i),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
+                  duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(vertical: 7),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(13),
-                    color: selected ? const Color(0xff2b2b2b) : Colors.transparent,
-                    border: selected ? Border.all(color: const Color(0xffd9ad3c).withValues(alpha: .25)) : null,
+                    gradient: selected
+                        ? const LinearGradient(colors: <Color>[Color(0xff23c7ff), Color(0xff0b8cff)])
+                        : null,
+                    color: selected ? null : Colors.transparent,
+                    border: selected ? Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .72)) : null,
+                    boxShadow: selected ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 12)] : null,
                   ),
                   child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    Icon(icons[i], size: 21, color: selected ? const Color(0xffe2b844) : Colors.white54),
+                    Icon(icons[i], size: 21, color: selected ? Colors.white : B307SkyLuxury.textMuted),
                     const SizedBox(height: 2),
-                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : Colors.white54)),
+                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : B307SkyLuxury.textMuted)),
                   ]),
                 ),
               ),
@@ -175,22 +225,33 @@ class B307HomeDashboard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(colors: <Color>[Color(0xff7a2949), Color(0xff4f2037), Color(0xff292929)]),
-            border: Border.all(color: const Color(0xffe1b444).withValues(alpha: .18)),
+            borderRadius: BorderRadius.circular(18),
+            gradient: B307SkyLuxury.heroGradient,
+            border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .46)),
+            boxShadow: B307SkyLuxury.glow,
           ),
           child: Row(children: <Widget>[
-            Container(width: 72, height: 72, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color(0xff111111).withValues(alpha: .32)), child: const Icon(Icons.emoji_events_rounded, size: 38, color: Color(0xffffdb6e))),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: const LinearGradient(colors: <Color>[Color(0x66ffffff), Color(0x1600e5ff)]),
+                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
+              ),
+              child: const Icon(Icons.emoji_events_rounded, size: 40, color: B307SkyLuxury.goldSoft),
+            ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-              Text(ar ? 'تحديات وفعاليات يومية' : 'Daily challenges & events', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text(ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa Grand Tournaments', style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 18)),
               const SizedBox(height: 4),
-              Text(ar ? 'نافس، اجمع المكافآت، وارتقِ بمستواك من واجهة واحدة.' : 'Compete, collect rewards and progress from one clean hub.', style: const TextStyle(fontSize: 10, height: 1.45, color: Colors.white70)),
+              Text(ar ? 'نافس كل يوم، اجمع الجوائز، وارتقِ من واجهة زرقاء فاخرة وسريعة.' : 'Compete daily, collect rewards and progress from a bright premium blue hub.', style: const TextStyle(fontSize: 10, height: 1.45, color: B307SkyLuxury.textMuted)),
               const SizedBox(height: 9),
               FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.gold, foregroundColor: B307SkyLuxury.navy),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
                 icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                label: Text(ar ? 'ابدأ الآن' : 'Play now'),
+                label: Text(ar ? 'شارك الآن' : 'Join now'),
               ),
             ])),
           ]),
@@ -218,21 +279,38 @@ class B307HomeDashboard extends StatelessWidget {
           itemBuilder: (context, index) {
             final game = featured[index];
             return InkWell(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(15),
               onTap: () => showGameLobby(context, controller, game),
               child: Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: const Color(0xff202020),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: .06)),
+                  gradient: B307SkyLuxury.panelGradient,
+                  borderRadius: BorderRadius.circular(15),
+                  border: B307SkyLuxury.border(alpha: .34),
+                  boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                  Text(game.icon, style: const TextStyle(fontSize: 30)),
-                  const SizedBox(height: 6),
-                  Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                  SizedBox(
+                    height: 48,
+                    width: double.infinity,
+                    child: Image.asset(
+                      r101GameArtAsset(game.id),
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                      errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 30))),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: const Color(0xff2d6d41), borderRadius: BorderRadius.circular(7)), child: Text(ar ? 'العب' : 'Play', style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900))),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.emerald, Color(0xff15a981)]),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(ar ? 'العب' : 'Play', style: const TextStyle(color: Color(0xff062f36), fontSize: 8.5, fontWeight: FontWeight.w900)),
+                  ),
                 ]),
               ),
             );
@@ -260,12 +338,17 @@ class B307StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
-        decoration: BoxDecoration(color: const Color(0xff1d1d1d), borderRadius: BorderRadius.circular(13), border: Border.all(color: Colors.white.withValues(alpha: .055))),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.panelGradient,
+          borderRadius: BorderRadius.circular(14),
+          border: B307SkyLuxury.border(alpha: .31),
+        ),
         child: Column(children: <Widget>[
-          Icon(icon, size: 18, color: const Color(0xffdcb13f)),
+          const SizedBox(height: 1),
+          Icon(icon, size: 18, color: B307SkyLuxury.gold),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-          Text(label, style: const TextStyle(fontSize: 8.5, color: Colors.white54, fontWeight: FontWeight.w700)),
+          Text(value, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13)),
+          Text(label, style: const TextStyle(fontSize: 8.5, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700)),
         ]),
       );
 }
@@ -277,8 +360,10 @@ class B307SectionHeader extends StatelessWidget {
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Row(children: <Widget>[
+        Container(width: 4, height: 20, decoration: BoxDecoration(color: B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
+        const SizedBox(width: 7),
         Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900))),
-        if (action != null) TextButton(onPressed: onTap, child: Text(action!, style: const TextStyle(fontSize: 9))),
+        if (action != null) TextButton(onPressed: onTap, child: Text(action!, style: const TextStyle(fontSize: 9, color: B307SkyLuxury.sky))),
       ]);
 }
 
@@ -292,11 +377,15 @@ class B307QuickAction extends StatelessWidget {
         width: 112,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(13),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-            decoration: BoxDecoration(color: const Color(0xff232323), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white.withValues(alpha: .06))),
-            child: Column(children: <Widget>[Icon(icon, size: 20, color: const Color(0xffd9ad3c)), const SizedBox(height: 5), Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800))]),
+            decoration: BoxDecoration(
+              gradient: B307SkyLuxury.panelGradient,
+              borderRadius: BorderRadius.circular(13),
+              border: B307SkyLuxury.border(alpha: .31),
+            ),
+            child: const SizedBox.shrink(),
           ),
         ),
       );
@@ -309,24 +398,25 @@ class B307RealMoneyStoreBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
     return InkWell(
-      borderRadius: BorderRadius.circular(15),
+      borderRadius: BorderRadius.circular(16),
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => B307CashShopPage(controller: controller))),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: <Color>[Color(0xff5f253c), Color(0xff252525)]),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: const Color(0xffe0b344).withValues(alpha: .17)),
+          gradient: const LinearGradient(colors: <Color>[Color(0xff0b8cff), Color(0xff075fbd), Color(0xff805b12)]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .46)),
+          boxShadow: B307SkyLuxury.glow,
         ),
         child: Row(children: <Widget>[
-          const Icon(Icons.shopping_bag_rounded, color: Color(0xffffd967), size: 34),
+          const Icon(Icons.shopping_bag_rounded, color: B307SkyLuxury.goldSoft, size: 34),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-            Text(ar ? 'متجر العروض بالنقود الحقيقية' : 'Real-money offers', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+            Text(ar ? 'متجر العروض المميزة' : 'Premium offers', style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 14)),
             const SizedBox(height: 3),
-            Text(ar ? 'حزم، توكنز، عروض أسبوعية وإتمام شراء آمن عبر مزود الدفع.' : 'Bundles, tokens, weekly offers and secure provider checkout.', style: const TextStyle(fontSize: 9.5, color: Colors.white60)),
+            Text(ar ? 'حزم وتوكنز وعروض موسمية مع شراء موثّق وآمن عبر مزود الدفع.' : 'Bundles, tokens and seasonal offers with verified provider checkout.', style: const TextStyle(fontSize: 9.5, color: B307SkyLuxury.textMuted)),
           ])),
-          const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+          const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.text),
         ]),
       ),
     );
@@ -366,13 +456,15 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(17),
-                gradient: const LinearGradient(colors: <Color>[Color(0xff742943), Color(0xff3a2730), Color(0xff222222)]),
+                borderRadius: BorderRadius.circular(18),
+                gradient: B307SkyLuxury.heroGradient,
+                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
+                boxShadow: B307SkyLuxury.glow,
               ),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                Text(ar ? 'عروض Warqnaa المميزة' : 'Warqnaa featured offers', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                Text(ar ? 'عروض ورقنا الخاصة' : 'Warqnaa special offers', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 20, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 5),
-                Text(ar ? 'اختَر الحزمة المناسبة. الدفع النهائي يتم عبر مزود دفع موثوق، ولا يخزن Warqnaa بيانات بطاقتك.' : 'Choose a package. Final payment is handled by a trusted provider; Warqnaa does not store raw card details.', style: const TextStyle(fontSize: 10, height: 1.5, color: Colors.white70)),
+                Text(ar ? 'اختَر الحزمة المناسبة. الدفع النهائي يتم عبر مزود دفع موثوق، ولا يخزن ورقنا بيانات بطاقتك.' : 'Choose a package. Final payment is handled by a trusted provider; Warqnaa does not store raw card details.', style: const TextStyle(fontSize: 10, height: 1.5, color: B307SkyLuxury.textMuted)),
               ]),
             ),
             const SizedBox(height: 10),
@@ -396,7 +488,11 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
             if (snapshot.hasError || packages.isEmpty)
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: const Color(0xff1f1f1f), borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(
+                  gradient: B307SkyLuxury.panelGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  border: B307SkyLuxury.border(alpha: .30),
+                ),
                 child: Text(ar ? 'تعذر تحميل العروض من الخادم. تأكد من اتصال التطبيق بعنوان API الصحيح.' : 'Could not load offers. Check the app API/server connection.', textAlign: TextAlign.center),
               )
             else
@@ -436,20 +532,29 @@ class B307CashOfferCard extends StatelessWidget {
     final badge = data['badge']?.toString() ?? '';
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xff202020), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.white.withValues(alpha: .065))),
+      decoration: BoxDecoration(
+        gradient: B307SkyLuxury.panelGradient,
+        borderRadius: BorderRadius.circular(15),
+        border: B307SkyLuxury.border(alpha: .34),
+        boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
       child: Column(children: <Widget>[
-        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: const Color(0xff6f2a43), borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900)))),
+        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: B307SkyLuxury.gold, borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(color: B307SkyLuxury.navy, fontSize: 8, fontWeight: FontWeight.w900)))),
         const Spacer(),
         Text(data['icon']?.toString() ?? '🪙', style: const TextStyle(fontSize: 36)),
         const SizedBox(height: 7),
-        Text('${formatNumber(BigInt.from(tokens))} ${ar ? 'توكنز' : 'tokens'}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+        Text('${formatNumber(BigInt.from(tokens))} ${ar ? 'توكنز' : 'tokens'}', textAlign: TextAlign.center, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 13, fontWeight: FontWeight.w900)),
         const SizedBox(height: 5),
-        Text('${data['currency'] ?? 'USD'} $price', style: const TextStyle(color: Color(0xffffd35a), fontWeight: FontWeight.w900)),
+        Text('${data['currency'] ?? 'USD'} $price', style: const TextStyle(color: B307SkyLuxury.goldSoft, fontWeight: FontWeight.w900)),
         const Spacer(),
-        SizedBox(width: double.infinity, child: FilledButton(onPressed: () async {
-          final uri = Uri.parse('${controller.api.webBaseUrl}/offers?package=${Uri.encodeQueryComponent(data['key']?.toString() ?? '')}');
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }, child: Text(ar ? 'شراء' : 'Buy'))),
+        SizedBox(width: double.infinity, child: FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.gold, foregroundColor: B307SkyLuxury.navy),
+          onPressed: () async {
+            final uri = Uri.parse('${controller.api.webBaseUrl}/offers?package=${Uri.encodeQueryComponent(data['key']?.toString() ?? '')}');
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          },
+          child: Text(ar ? 'شراء' : 'Buy'),
+        )),
       ]),
     );
   }
