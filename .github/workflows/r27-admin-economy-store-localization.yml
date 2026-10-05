@@ -24,6 +24,8 @@ jobs:
           python-version: '3.12'
       - name: R27 closure contract
         run: python3 tools/test_r27_admin_economy_store_localization_contract.py
+      - name: R27 sky-blue luxury visual contract
+        run: python3 tools/test_r27_sky_luxury_visual_contract.py
       - name: R26 game matrix contract
         run: python3 tools/test_r26_game_matrix_contract.py
       - name: R25 resilience contract
