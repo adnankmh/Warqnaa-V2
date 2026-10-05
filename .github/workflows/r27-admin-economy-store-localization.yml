@@ -1,0 +1,46 @@
+name: R27 Admin Economy Store Localization Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r27-closure-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: R27 closure contract
+        run: python3 tools/test_r27_admin_economy_store_localization_contract.py
+      - name: R26 game matrix contract
+        run: python3 tools/test_r26_game_matrix_contract.py
+      - name: R25 resilience contract
+        run: python3 tools/test_r25_resilience_release_contract.py
+      - name: R24 observability contract
+        run: python3 tools/test_r24_production_observability_contract.py
+      - name: R23 security/economy contract
+        run: python3 tools/test_r23_security_economy_contract.py
+      - name: R22 multiplayer resilience contract
+        run: python3 tools/test_r22_multiplayer_resilience_contract.py
+      - name: R21 community contract
+        run: python3 tools/test_r21_community_contract.py
+      - name: R20 premium experience contract
+        run: python3 tools/test_r20_premium_experience_contract.py
+      - name: Privacy / no-secrets guard
+        run: python3 tools/check_git_privacy_v304.py
+      - name: Compile Python contracts
+        run: python3 -m compileall -q tools
+      - name: Diff hygiene
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}..HEAD
