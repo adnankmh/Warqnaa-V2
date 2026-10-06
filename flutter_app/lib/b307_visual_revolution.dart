@@ -610,6 +610,53 @@ class B307HomeDashboard extends StatelessWidget {
   }
 }
 
+class B307PageHero extends StatelessWidget {
+  const B307PageHero({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        key: ValueKey<String>('r28-sky-page-${title.hashCode}'),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.heroGradient,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .38)),
+          boxShadow: B307SkyLuxury.glow,
+        ),
+        child: Row(children: <Widget>[
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: B307SkyLuxury.cyan.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .42)),
+            ),
+            child: Icon(icon, color: B307SkyLuxury.goldSoft, size: 25),
+          ),
+          const SizedBox(width: 11),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 16, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 3),
+            Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, height: 1.35, fontWeight: FontWeight.w700)),
+          ])),
+          if (trailing != null) ...<Widget>[const SizedBox(width: 8), trailing!],
+        ]),
+      );
+}
+
 class B307WorldTile extends StatelessWidget {
   const B307WorldTile({
     super.key,
