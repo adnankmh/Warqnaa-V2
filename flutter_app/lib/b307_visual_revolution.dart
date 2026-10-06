@@ -683,6 +683,118 @@ class B307WorldTile extends StatelessWidget {
       );
 }
 
+class B307TarneebHud extends StatelessWidget {
+  const B307TarneebHud({
+    super.key,
+    required this.weLabel,
+    required this.theyLabel,
+    required this.weScore,
+    required this.theyScore,
+    required this.roundLabel,
+    required this.trickScore,
+    required this.xpMultiplier,
+    required this.connected,
+  });
+
+  final String weLabel;
+  final String theyLabel;
+  final int weScore;
+  final int theyScore;
+  final String roundLabel;
+  final String trickScore;
+  final double xpMultiplier;
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget score(String label, int value, CrossAxisAlignment alignment) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: B307SkyLuxury.panelGradient,
+              borderRadius: BorderRadius.circular(14),
+              border: B307SkyLuxury.border(alpha: .34),
+            ),
+            child: Column(
+              crossAxisAlignment: alignment,
+              children: <Widget>[
+                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.5, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text('$value', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 18, fontWeight: FontWeight.w900, height: 1)),
+              ],
+            ),
+          ),
+        );
+
+    return Container(
+      key: const ValueKey('r28-sky-tarneeb-hud'),
+      margin: const EdgeInsets.fromLTRB(10, 4, 10, 3),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        gradient: B307SkyLuxury.shellGradient,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .44)),
+        boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
+      ),
+      child: Row(children: <Widget>[
+        score(weLabel, weScore, CrossAxisAlignment.start),
+        const SizedBox(width: 6),
+        Flexible(
+          flex: 2,
+          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+            Text(roundLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 9.5, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 2),
+            Text(trickScore, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 4,
+              runSpacing: 3,
+              children: <Widget>[
+                _B307HudBadge(
+                  icon: connected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+                  label: connected ? 'LIVE' : 'LOCAL',
+                  accent: connected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+                ),
+                if (xpMultiplier > 1.0)
+                  _B307HudBadge(
+                    icon: Icons.bolt_rounded,
+                    label: 'x${xpMultiplier.toStringAsFixed(xpMultiplier % 1 == 0 ? 0 : 1)} XP',
+                    accent: B307SkyLuxury.gold,
+                  ),
+              ],
+            ),
+          ]),
+        ),
+        const SizedBox(width: 6),
+        score(theyLabel, theyScore, CrossAxisAlignment.end),
+      ]),
+    );
+  }
+}
+
+class _B307HudBadge extends StatelessWidget {
+  const _B307HudBadge({required this.icon, required this.label, required this.accent});
+  final IconData icon;
+  final String label;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: .14),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: accent.withValues(alpha: .48)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Icon(icon, size: 9, color: accent),
+          const SizedBox(width: 2),
+          Text(label, style: TextStyle(color: accent, fontSize: 7.5, fontWeight: FontWeight.w900)),
+        ]),
+      );
+}
+
 class B307StatCard extends StatelessWidget {
   const B307StatCard({super.key, required this.icon, required this.label, required this.value});
   final IconData icon;
