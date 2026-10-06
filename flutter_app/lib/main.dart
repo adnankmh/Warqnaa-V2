@@ -6538,6 +6538,56 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     await _action(action, {'card':card,'tile':card});
   }
 
+  String _rawCardSuit(String raw) {
+    if (raw.startsWith('JOKER')) return 'J';
+    final cleaned = raw.replaceAll('_', '');
+    if (cleaned.isEmpty) return '';
+    final suit = cleaned.substring(cleaned.length - 1).toUpperCase();
+    return const <String>{'C', 'D', 'S', 'H'}.contains(suit) ? suit : '';
+  }
+
+  String _rawCardRank(String raw) {
+    if (raw.startsWith('JOKER')) return 'JOKER';
+    final cleaned = raw.replaceAll('_', '');
+    return cleaned.length < 2 ? cleaned : cleaned.substring(0, cleaned.length - 1).toUpperCase();
+  }
+
+  int _rawRankIndex(String raw) {
+    const ranks = <String>['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    return ranks.indexOf(_rawCardRank(raw));
+  }
+
+  Color? _rummyGroupingAccent(int index) {
+    if (!(widget.game.id.contains('hand') || widget.game.id == 'banakil')) return null;
+    if (index < 0 || index >= hand.length) return null;
+    final current = hand[index];
+    if (current.startsWith('JOKER')) return const Color(0xffc084fc);
+
+    bool compatible(String other) {
+      if (other.startsWith('JOKER')) return true;
+      if (_rawCardRank(other) == _rawCardRank(current)) return true;
+      if (_rawCardSuit(other) != _rawCardSuit(current)) return false;
+      final a = _rawRankIndex(other);
+      final b = _rawRankIndex(current);
+      return a >= 0 && b >= 0 && (a - b).abs() <= 2;
+    }
+
+    final grouped = (index > 0 && compatible(hand[index - 1])) ||
+        (index + 1 < hand.length && compatible(hand[index + 1]));
+    if (!grouped) return null;
+
+    final sameRank = (index > 0 && _rawCardRank(hand[index - 1]) == _rawCardRank(current)) ||
+        (index + 1 < hand.length && _rawCardRank(hand[index + 1]) == _rawCardRank(current));
+    if (sameRank) return B307SkyLuxury.goldSoft;
+    return switch (_rawCardSuit(current)) {
+      'H' => const Color(0xffff6b8a),
+      'D' => const Color(0xffffc857),
+      'C' => B307SkyLuxury.cyan,
+      'S' => const Color(0xff8bb8ff),
+      _ => B307SkyLuxury.sky,
+    };
+  }
+
   Widget _serverHand() {
     if (hand.isEmpty) return const SizedBox(height: 55);
     final reorderable = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
@@ -6556,17 +6606,27 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                             onTap: () => setState(() => selectedCard = selectedCard == hand[index] ? null : hand[index]),
                             onDoubleTap: () => _quickPlayCard(hand[index]),
                             onVerticalDragEnd: (details) { if ((details.primaryVelocity ?? 0) < -180) _quickPlayCard(hand[index]); },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 120),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(7),
-                                boxShadow: candidate.isEmpty ? const [] : [BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: .7), blurRadius: 10, spreadRadius: 1)],
-                              ),
-                              child: Opacity(
+                            child: Builder(builder: (context) {
+                              final groupAccent = _rummyGroupingAccent(index);
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 120),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(7),
+                                  border: groupAccent == null
+                                      ? null
+                                      : Border.all(color: groupAccent.withValues(alpha: .82), width: 1.4),
+                                  boxShadow: candidate.isNotEmpty
+                                      ? <BoxShadow>[BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: .7), blurRadius: 10, spreadRadius: 1)]
+                                      : groupAccent == null
+                                          ? const <BoxShadow>[]
+                                          : <BoxShadow>[BoxShadow(color: groupAccent.withValues(alpha: .30), blurRadius: 9, spreadRadius: .4)],
+                                ),
+                                child: Opacity(
                                 opacity: legal.isNotEmpty && !legal.contains(hand[index]) ? .42 : 1,
-                                child: PlayingCard(label: _cardLabel(hand[index]), width: cardWidth, height: cardHeight, selected: selectedCard == hand[index]),
-                              ),
-                            ),
+                                  child: PlayingCard(label: _cardLabel(hand[index]), width: cardWidth, height: cardHeight, selected: selectedCard == hand[index]),
+                                ),
+                              );
+                            }),
                           ),
                         );
                         if (!reorderable) return card;
@@ -6650,7 +6710,22 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_deck'), child: Text(_roomText('سحب من الرزمة', 'Draw from deck'))));
     }
     if (types.contains('draw_discard')) {
-      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('draw_discard'), child: Text(_roomText('سحب المكشوف', 'Take discard'))));
+      widgets.add(OutlinedButton.icon(
+        onPressed: sending ? null : () => _action('draw_discard'),
+        icon: const Icon(Icons.local_fire_department_outlined, size: 17),
+        label: Text(widget.game.id == 'banakil' ? _roomText('سحب ورقة من النار', 'Take top discard') : _roomText('سحب المكشوف', 'Take discard')),
+      ));
+    }
+    final discardStackAction = availableActions.cast<Map<String, dynamic>?>().firstWhere(
+          (item) => item?['type']?.toString() == 'draw_discard_stack',
+          orElse: () => null,
+        );
+    if (discardStackAction != null) {
+      widgets.add(OutlinedButton.icon(
+        onPressed: sending ? null : () => _chooseBanakilDiscardStack(discardStackAction),
+        icon: const Icon(Icons.layers_rounded, size: 17),
+        label: Text(_roomText('سحب عدة أوراق من النار', 'Take discard stack')),
+      ));
     }
     if (types.contains('draw_stock')) {
       widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _action('draw_stock'), child: Text(_roomText('سحب ورقة', 'Draw a card'))));
@@ -6712,6 +6787,36 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         ),
       ),
     );
+  }
+
+  Future<void> _chooseBanakilDiscardStack(Map<String, dynamic> action) async {
+    final maxCount = int.tryParse(action['max_count']?.toString() ?? '') ?? 0;
+    if (maxCount < 2) return;
+    final count = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_roomText('كم ورقة تريد أخذها من النار؟', 'How many discard cards do you want?')),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360, maxHeight: 320),
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (var value = 2; value <= maxCount; value++)
+                  FilledButton.tonal(
+                    onPressed: () => Navigator.pop(dialogContext, value),
+                    child: Text('$value'),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (count != null) {
+      await _action('draw_discard_stack', <String, dynamic>{'count': count});
+    }
   }
 
   Future<void> _chooseServerBid(List<int> values) async {
