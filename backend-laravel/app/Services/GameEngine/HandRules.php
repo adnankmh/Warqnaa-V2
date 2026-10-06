@@ -122,14 +122,18 @@ class HandRules extends AbstractCardRules
             if (!empty($state['deck'])) {
                 $state['hands'][$playerId][] = array_shift($state['deck']);
             }
-            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            if (empty($state['manual_hand_order'][$playerId])) {
+                $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            }
             $state['drew_this_turn'][$playerId] = true;
             $state['messages'][] = $this->labelPlayer($playerId).' سحب من الدك.';
         }
 
         if ($action === 'draw_discard') {
             $state['hands'][$playerId][] = array_pop($state['discard']);
-            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            if (empty($state['manual_hand_order'][$playerId])) {
+                $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            }
             $state['drew_this_turn'][$playerId] = true;
             $state['messages'][] = $this->labelPlayer($playerId).' سحب من الرمي.';
         }
@@ -251,7 +255,7 @@ class HandRules extends AbstractCardRules
             }
         }
 
-        $groups = $this->nonOverlappingMeldCandidates($candidates);
+        $groups = $this->nonOverlappingMeldCandidates($candidates, $hand);
         if (count($groups) >= 2 && $this->validate($state, $playerId, 'meld_many', ['groups' => $groups])) {
             $actions[] = ['type' => 'meld_many', 'groups' => $groups];
         }
@@ -327,30 +331,36 @@ class HandRules extends AbstractCardRules
         return array_values($unique);
     }
 
-    /** @param array<int,array<int,string>> $candidates @return array<int,array<int,string>> */
-    protected function nonOverlappingMeldCandidates(array $candidates): array
+    /**
+     * @param array<int,array<int,string>> $candidates
+     * @param array<int,string> $hand
+     * @return array<int,array<int,string>>
+     */
+    protected function nonOverlappingMeldCandidates(array $candidates, array $hand): array
     {
         usort($candidates, fn ($a, $b) => count($b) <=> count($a));
+        $available = array_count_values(array_map('strval', $hand));
         $used = [];
         $groups = [];
+
         foreach ($candidates as $candidate) {
-            $available = $used;
-            $ok = true;
-            foreach ($candidate as $card) {
-                $available[$card] = ($available[$card] ?? 0) + 1;
-                $owned = 0;
-                foreach ($groups as $group) {
-                    $owned += count(array_filter($group, fn ($value) => $value === $card));
-                }
-                $owned += count(array_filter($candidate, fn ($value) => $value === $card));
-                if ($owned > 2) {
-                    $ok = false;
+            $candidateCounts = array_count_values(array_map('strval', $candidate));
+            $fits = true;
+            foreach ($candidateCounts as $card => $count) {
+                if (($used[$card] ?? 0) + $count > ($available[$card] ?? 0)) {
+                    $fits = false;
                     break;
                 }
             }
-            if ($ok) $groups[] = $candidate;
+            if (!$fits) continue;
+
+            $groups[] = array_values($candidate);
+            foreach ($candidateCounts as $card => $count) {
+                $used[$card] = ($used[$card] ?? 0) + $count;
+            }
             if (count($groups) >= 4) break;
         }
+
         return $groups;
     }
 
