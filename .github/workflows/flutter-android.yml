@@ -34,18 +34,6 @@ jobs:
         id: release
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
-      - name: Record exact-stage Android provenance
-        run: |
-          mkdir -p build-meta
-          {
-            echo "workflow=Build Android APK and AAB"
-            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
-            echo "ref=${{ github.ref }}"
-            echo "run_id=${{ github.run_id }}"
-            echo "release_version=${{ steps.release.outputs.version }}"
-            echo "release_build=${{ steps.release.outputs.build }}"
-          } > build-meta/android-stage-manifest.txt
-
       - name: Validate source package and reject merge markers
         run: |
           python3 tools/validate_release.py
@@ -327,6 +315,18 @@ jobs:
           sha256sum "$APK" > "$APK.sha256"
           sha256sum "$AAB" > "$AAB.sha256"
 
+      - name: Record exact-stage Android provenance
+        run: |
+          mkdir -p flutter_app/build/stage-meta
+          {
+            echo "workflow=Build Android APK and AAB"
+            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "ref=${{ github.ref }}"
+            echo "run_id=${{ github.run_id }}"
+            echo "release_version=${{ steps.release.outputs.version }}"
+            echo "release_build=${{ steps.release.outputs.build }}"
+          } > flutter_app/build/stage-meta/android-stage-manifest.txt
+
       - name: Upload launch-safe APK and Play AAB
         uses: actions/upload-artifact@v6
         with:
@@ -339,4 +339,4 @@ jobs:
             flutter_app/build/app/outputs/bundle/release/app-release.aab
             flutter_app/build/app/outputs/bundle/release/app-release.aab.sha256
             flutter_app/build/symbols/**
-            build-meta/android-stage-manifest.txt
+            flutter_app/build/stage-meta/android-stage-manifest.txt
