@@ -66,18 +66,6 @@ jobs:
         id: release
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
-      - name: Record exact-stage Web provenance
-        run: |
-          mkdir -p build-meta
-          {
-            echo "workflow=Build and deploy Flutter Web"
-            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
-            echo "ref=${{ github.ref }}"
-            echo "run_id=${{ github.run_id }}"
-            echo "release_version=${{ steps.release.outputs.version }}"
-            echo "release_build=${{ steps.release.outputs.build }}"
-          } > build-meta/web-stage-manifest.txt
-
       - name: Validate source package and reject merge markers
         run: |
           python3 tools/validate_release.py
@@ -182,13 +170,25 @@ jobs:
           fi
           flutter build web --release --base-href "$BASE_HREF" "${EXTRA_ARGS[@]}"
 
+      - name: Record exact-stage Web provenance
+        run: |
+          mkdir -p flutter_app/build/stage-meta
+          {
+            echo "workflow=Build and deploy Flutter Web"
+            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "ref=${{ github.ref }}"
+            echo "run_id=${{ github.run_id }}"
+            echo "release_version=${{ steps.release.outputs.version }}"
+            echo "release_build=${{ steps.release.outputs.build }}"
+          } > flutter_app/build/stage-meta/web-stage-manifest.txt
+
       - name: Upload Flutter Web build artifact
         uses: actions/upload-artifact@v6
         with:
           name: warqnaa-flutter-web-v${{ steps.release.outputs.build }}
           path: |
             flutter_app/build/web
-            build-meta/web-stage-manifest.txt
+            flutter_app/build/stage-meta/web-stage-manifest.txt
           if-no-files-found: error
           retention-days: 14
 
