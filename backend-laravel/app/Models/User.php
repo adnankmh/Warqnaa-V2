@@ -49,6 +49,7 @@ class User extends Authenticatable
     public function competitiveRatings(){ return $this->hasMany(CompetitiveRating::class); }
     public function rankedQueueEntries(){ return $this->hasMany(RankedQueueEntry::class); }
     public function seasonRewardClaims(){ return $this->hasMany(SeasonRewardClaim::class); }
+    public function competitionAppeals(){ return $this->hasMany(CompetitionAppeal::class); }
 
     public function isPrimaryAdmin(): bool
     {
