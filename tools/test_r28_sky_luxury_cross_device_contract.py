@@ -44,6 +44,12 @@ def main() -> None:
     # The first visual closure increment must not remove R27 game art or store.
     require(visual, "r101GameArtAsset(game.id)", "real shipped game art")
     require(visual, "B307CashShopPage", "real-money store surface")
+    require(visual, "r28-sky-world-grid", "sky-luxury world showcase grid")
+    require(visual, "class B307WorldTile", "reusable premium world tile")
+    require(visual, "R12CompetitiveArenaPage", "tournament destination")
+    require(visual, "ClubsPage(controller: controller)", "club destination")
+    require(visual, "showProfile(context, controller)", "profile customization destination")
+    require(visual, "تخصيص الملف", "Arabic profile studio copy")
 
     print("R28 sky-luxury cross-device shell contract: PASS")
 
