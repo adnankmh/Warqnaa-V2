@@ -3565,7 +3565,7 @@ class _HomeShellState extends State<HomeShell> {
         return Scaffold(
           body: SafeArea(
             child: Row(children: [
-              R61DesktopNavigation(controller: widget.controller, selectedIndex: index, onSelected: (value) => setState(() => index = value)),
+              B307DesktopNavigation(controller: widget.controller, selectedIndex: index, onSelected: (value) => setState(() => index = value)),
               Expanded(child: mainContent),
             ]),
           ),
@@ -3573,7 +3573,7 @@ class _HomeShellState extends State<HomeShell> {
       }
       return Scaffold(
         body: SafeArea(bottom: false, child: mainContent),
-        bottomNavigationBar: R61BottomNavigation(
+        bottomNavigationBar: B307BottomNavigation(
           controller: widget.controller,
           selectedIndex: index,
           onSelected: (value) => setState(() => index = value),
@@ -3587,7 +3587,7 @@ class PremiumTopBar extends StatelessWidget {
   final AppController controller;
   const PremiumTopBar({super.key, required this.controller});
   @override
-  Widget build(BuildContext context) => R61TopBar(controller: controller);
+  Widget build(BuildContext context) => B307TopBar(controller: controller);
 }
 
 class HomePage extends StatelessWidget {
@@ -3597,7 +3597,7 @@ class HomePage extends StatelessWidget {
   const HomePage({super.key, required this.controller, required this.onTab});
 
   @override
-  Widget build(BuildContext context) => R61HomeDashboard(controller: controller, onTab: onTab);
+  Widget build(BuildContext context) => B307HomeDashboard(controller: controller, onTab: onTab);
 }
 
 Future<void> showHomeGamesSelector(BuildContext context, AppController controller) async {
