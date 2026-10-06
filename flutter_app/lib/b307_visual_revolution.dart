@@ -511,6 +511,57 @@ class B307HomeDashboard extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 12),
+        B307SectionHeader(
+          title: ar ? 'عالم ورقنا' : 'Warqnaa world',
+          action: ar ? 'استكشف' : 'Explore',
+          onTap: () => onTab(3),
+        ),
+        const SizedBox(height: 7),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760 ? 4 : 2;
+            return GridView.count(
+              key: const ValueKey('r28-sky-world-grid'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: columns,
+              crossAxisSpacing: 7,
+              mainAxisSpacing: 7,
+              childAspectRatio: constraints.maxWidth >= 760 ? 1.42 : 1.18,
+              children: <Widget>[
+                B307WorldTile(
+                  icon: Icons.emoji_events_rounded,
+                  title: ar ? 'البطولات' : 'Tournaments',
+                  subtitle: ar ? 'يومية وأسبوعية وكبرى' : 'Daily, weekly and grand',
+                  accent: B307SkyLuxury.gold,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
+                ),
+                B307WorldTile(
+                  icon: Icons.shield_rounded,
+                  title: ar ? 'الأندية' : 'Clubs',
+                  subtitle: ar ? 'فرق، دوريات ومجتمع' : 'Teams, leagues and community',
+                  accent: B307SkyLuxury.emerald,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClubsPage(controller: controller))),
+                ),
+                B307WorldTile(
+                  icon: Icons.face_retouching_natural_rounded,
+                  title: ar ? 'تخصيص الملف' : 'Profile studio',
+                  subtitle: ar ? 'إطار، غلاف، لون وباشا' : 'Frame, cover, color and Pasha',
+                  accent: B307SkyLuxury.cyan,
+                  onTap: () => showProfile(context, controller),
+                ),
+                B307WorldTile(
+                  icon: Icons.forum_rounded,
+                  title: ar ? 'المجتمع' : 'Social',
+                  subtitle: ar ? 'أصدقاء، دعوات وتفاعل' : 'Friends, invites and reactions',
+                  accent: B307SkyLuxury.sky,
+                  onTap: () => onTab(3),
+                ),
+              ],
+            );
+          },
+        ),
         const SizedBox(height: 10),
         B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),
         const SizedBox(height: 7),
@@ -530,6 +581,79 @@ class B307HomeDashboard extends StatelessWidget {
       ],
     );
   }
+}
+
+class B307WorldTile extends StatelessWidget {
+  const B307WorldTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: title,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(17),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xff0b78c4), Color(0xff07588f)],
+              ),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: accent.withValues(alpha: .52)),
+              boxShadow: <BoxShadow>[
+                BoxShadow(color: accent.withValues(alpha: .14), blurRadius: 14, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 38,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: accent.withValues(alpha: .15),
+                    border: Border.all(color: accent.withValues(alpha: .46)),
+                  ),
+                  child: Icon(icon, color: accent, size: 22),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 11.5),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700, fontSize: 8.8, height: 1.25),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
 }
 
 class B307StatCard extends StatelessWidget {
