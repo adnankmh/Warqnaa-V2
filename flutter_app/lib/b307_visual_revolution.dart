@@ -519,6 +519,13 @@ class B307HomeDashboard extends StatelessWidget {
           B307QuickAction(icon: Icons.credit_card_rounded, label: ar ? 'العروض النقدية' : 'Cash offers', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => B307CashShopPage(controller: controller)))),
           B307QuickAction(icon: Icons.people_alt_outlined, label: ar ? 'الأصدقاء' : 'Friends', onTap: () => showFriends(context, controller)),
           B307QuickAction(icon: Icons.account_balance_wallet_outlined, label: ar ? 'المحفظة' : 'Wallet', onTap: () => showWallet(context, controller)),
+          if (controller.isLocalAdmin)
+            B307QuickAction(
+              key: const ValueKey('r9-open-studio'),
+              icon: Icons.design_services_rounded,
+              label: ar ? 'استوديو Adnan' : 'Adnan studio',
+              onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))),
+            ),
         ]),
       ],
     );

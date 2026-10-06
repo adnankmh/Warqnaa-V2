@@ -75,7 +75,7 @@ void main() {
       await tester.pumpWidget(loginHost(controller));
       final entry = find.byKey(const ValueKey('r9-local-admin-login'));
       await tester.ensureVisible(entry); await tester.tap(entry);
-      for (var i = 0; i < 40 && find.byType(R8HomeLobby).evaluate().isEmpty; i++) { await tester.pump(const Duration(milliseconds: 50)); }
+      for (var i = 0; i < 40 && find.byType(B307HomeDashboard).evaluate().isEmpty; i++) { await tester.pump(const Duration(milliseconds: 50)); }
       expect(controller.isLocalAdmin, isTrue);
       final open = find.byKey(const ValueKey('r9-open-studio'));
       await tester.ensureVisible(open); await tester.tap(open); await tester.pumpAndSettle();

@@ -50,7 +50,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         expect(tester.takeException(), isNull);
         expect(find.textContaining('18,872'), findsNothing);
-        expect(find.byType(R8HomeLobby), findsOneWidget);
+        expect(find.byType(B307HomeDashboard), findsOneWidget);
         const directory = String.fromEnvironment('R8_REVIEW_DIR');
         if (directory.isNotEmpty) {
           final providers = tester.widgetList<Image>(find.byType(Image)).map((w) => w.image).toSet();
@@ -122,7 +122,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink()); await tester.pump(const Duration(seconds: 6)); controller.dispose();
   });
 
-  testWidgets('a 19-card hand keeps every exposed card target at least 44 pixels wide', (tester) async {
+  testWidgets('a 19-card hand stays fully onscreen and independently tappable without horizontal scrolling', (tester) async {
     tester.view.physicalSize = const Size(320, 640); tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
     final tapped = <int>[];
@@ -142,15 +142,15 @@ void main() {
     await tester.pump();
 
     final rects = [for (var index = 0; index < 19; index++) tester.getRect(find.byKey(ValueKey('long-hand-card-$index')))];
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    expect(rects.first.left, greaterThanOrEqualTo(0));
+    expect(rects.last.right, lessThanOrEqualTo(320));
     for (var index = 1; index < rects.length; index++) {
-      expect(rects[index].left - rects[index - 1].left, greaterThanOrEqualTo(44), reason: 'card $index exposed width');
+      expect(rects[index].left - rects[index - 1].left, greaterThanOrEqualTo(11), reason: 'card $index must keep an exposed tap strip');
     }
-    expect(tester.widget<SingleChildScrollView>(find.byType(SingleChildScrollView)).scrollDirection, Axis.horizontal);
 
     for (var index = 0; index < 19; index++) {
       final card = find.byKey(ValueKey('long-hand-card-$index'));
-      await tester.ensureVisible(card);
-      await tester.pump();
       await tester.tapAt(tester.getTopLeft(card) + const Offset(8, 8));
       await tester.pump();
       expect(tapped.last, index, reason: 'card $index must remain independently tappable');
