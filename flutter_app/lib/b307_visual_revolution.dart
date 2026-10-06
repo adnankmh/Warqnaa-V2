@@ -209,6 +209,186 @@ class B307BottomNavigation extends StatelessWidget {
   }
 }
 
+class B307DesktopNavigation extends StatelessWidget {
+  const B307DesktopNavigation({
+    super.key,
+    required this.controller,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final AppController controller;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final destinations = <({IconData icon, String ar, String en})>[
+      (icon: Icons.storefront_outlined, ar: 'المتجر', en: 'Store'),
+      (icon: Icons.style_outlined, ar: 'الألعاب', en: 'Games'),
+      (icon: Icons.home_rounded, ar: 'الرئيسية', en: 'Home'),
+      (icon: Icons.groups_2_outlined, ar: 'المجتمع', en: 'Social'),
+      (icon: Icons.emoji_events_outlined, ar: 'البطولات', en: 'Events'),
+    ];
+
+    return SafeArea(
+      right: false,
+      child: Container(
+        key: const Key('r28-sky-desktop-navigation'),
+        width: 220,
+        margin: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.shellGradient,
+          borderRadius: BorderRadius.circular(24),
+          border: B307SkyLuxury.border(alpha: .42),
+          boxShadow: B307SkyLuxury.glow,
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: <Color>[Color(0xff18b9ff), Color(0xff0b79d0)],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .48)),
+            ),
+            child: Row(children: <Widget>[
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
+                  border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  const Text('WARQNAA', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: .9)),
+                  Text(ar ? 'مجتمع ألعاب الورق' : 'Social card games', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 16),
+          for (var i = 0; i < destinations.length; i++) ...<Widget>[
+            _B307DesktopDestination(
+              icon: destinations[i].icon,
+              label: ar ? destinations[i].ar : destinations[i].en,
+              selected: selectedIndex == i,
+              onTap: () => onSelected(i),
+            ),
+            if (i != destinations.length - 1) const SizedBox(height: 7),
+          ],
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .09),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .26)),
+            ),
+            child: Row(children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: B307SkyLuxury.navy.withValues(alpha: .52),
+                  border: Border.all(color: B307SkyLuxury.gold.withValues(alpha: .65)),
+                ),
+                child: Text(controller.avatarEmoji, style: const TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
+                  Text(ar ? 'المستوى ${controller.level}' : 'Level ${controller.level}', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+              IconButton(
+                tooltip: ar ? 'الإعدادات' : 'Settings',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => showSettings(context, controller),
+                icon: const Icon(Icons.settings_outlined, size: 19, color: B307SkyLuxury.goldSoft),
+              ),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _B307DesktopDestination extends StatelessWidget {
+  const _B307DesktopDestination({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: selected
+                  ? const LinearGradient(colors: <Color>[Color(0xff22c8ff), Color(0xff0b85e0)])
+                  : null,
+              color: selected ? null : Colors.white.withValues(alpha: .055),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected
+                    ? B307SkyLuxury.sky.withValues(alpha: .65)
+                    : B307SkyLuxury.sky.withValues(alpha: .16),
+              ),
+              boxShadow: selected
+                  ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .22), blurRadius: 14)]
+                  : const <BoxShadow>[],
+            ),
+            child: Row(children: <Widget>[
+              Icon(icon, color: selected ? Colors.white : B307SkyLuxury.textMuted, size: 21),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? Colors.white : B307SkyLuxury.textMuted,
+                    fontSize: 11.5,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (selected) const Icon(Icons.chevron_right_rounded, size: 18, color: B307SkyLuxury.goldSoft),
+            ]),
+          ),
+        ),
+      );
+}
+
 class B307HomeDashboard extends StatelessWidget {
   const B307HomeDashboard({super.key, required this.controller, required this.onTab});
   final AppController controller;
