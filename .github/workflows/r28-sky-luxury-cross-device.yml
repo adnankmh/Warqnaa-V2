@@ -24,6 +24,8 @@ jobs:
           python-version: '3.12'
       - name: R28 sky-luxury cross-device contract
         run: python3 tools/test_r28_sky_luxury_cross_device_contract.py
+      - name: R28 Hand Banakil and competition integrity contract
+        run: python3 tools/test_r28_hand_banakil_competition_contract.py
       - name: R27 sky-luxury visual contract
         run: python3 tools/test_r27_sky_luxury_visual_contract.py
       - name: R27 admin/economy/store/localization contract
