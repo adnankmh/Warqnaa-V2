@@ -5,11 +5,29 @@ These checks establish reachability, not runtime or visual correctness.
 import re
 
 
-def r61_home_is_wired(main: str, home: str, lobby: str = '') -> bool:
-    base = all((
+def r61_home_is_wired(main: str, home: str, lobby: str = '', visual: str = '') -> bool:
+    # R6.1 remains a compiled historical capability foundation, while newer
+    # releases may deliberately route Home through a tested successor surface.
+    foundation = all((
         "part 'r6_1_world_class.dart';" in main,
-        bool(re.search(r'=>\s*R61HomeDashboard\(controller:\s*controller,\s*onTab:\s*onTab\)', main)),
         'class R61HomeDashboard extends StatelessWidget' in home,
+    ))
+
+    if 'B307HomeDashboard(controller: controller, onTab: onTab)' in main:
+        return foundation and all((
+            "part 'b307_visual_revolution.dart';" in main,
+            'class B307HomeDashboard extends StatelessWidget' in visual,
+            'B307HomeDashboard(controller: controller, onTab: onTab)' in main,
+            "controller.localeCode == 'ar'" in visual,
+            'onTab(1)' in visual,
+            'showGameLobby(context, controller, game)' in visual,
+            'r101GameArtAsset(game.id)' in visual,
+            'B307SkyLuxury.heroGradient' in visual,
+        ))
+
+    base = foundation and bool(re.search(
+        r'=>\s*R61HomeDashboard\(controller:\s*controller,\s*onTab:\s*onTab\)',
+        main,
     ))
     if "part 'r8_play_experience.dart';" in main:
         return base and all((
