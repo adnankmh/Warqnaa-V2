@@ -50,6 +50,11 @@ def main() -> None:
     require(visual, "ClubsPage(controller: controller)", "club destination")
     require(visual, "showProfile(context, controller)", "profile customization destination")
     require(visual, "تخصيص الملف", "Arabic profile studio copy")
+    require(visual, "class B307TarneebHud", "sky-luxury in-game Tarneeb HUD")
+    require(visual, "r28-sky-tarneeb-hud", "Tarneeb HUD review key")
+    require(main_dart, "B307TarneebHud(", "Tarneeb HUD activation on real table")
+    require(main_dart, "r28-sky-room-tools", "sky-luxury room tools activation")
+    require(main_dart, "B307SkyLuxury.emerald", "premium green play action")
 
     print("R28 sky-luxury cross-device shell contract: PASS")
 
