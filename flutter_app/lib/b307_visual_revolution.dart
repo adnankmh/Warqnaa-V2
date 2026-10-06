@@ -58,63 +58,78 @@ class B307TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        gradient: B307SkyLuxury.shellGradient,
-        borderRadius: BorderRadius.circular(17),
-        border: B307SkyLuxury.border(alpha: .40),
-        boxShadow: B307SkyLuxury.glow,
-      ),
-      child: Row(children: <Widget>[
-        GestureDetector(
-          onTap: () => showProfile(context, controller),
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
-              border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
-              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
-            ),
-            child: Center(child: Text(controller.avatarEmoji, style: const TextStyle(fontSize: 22))),
-          ),
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 390;
+      final avatarSize = compact ? 36.0 : 42.0;
+      return Container(
+        margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 10, vertical: 7),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.shellGradient,
+          borderRadius: BorderRadius.circular(17),
+          border: B307SkyLuxury.border(alpha: .40),
+          boxShadow: B307SkyLuxury.glow,
         ),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
-            Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13)),
-            const SizedBox(height: 2),
-            Row(children: <Widget>[
-              Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
-              const SizedBox(width: 4),
-              Text(
-                controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
-                style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
+        child: Row(children: <Widget>[
+          GestureDetector(
+            onTap: () => showProfile(context, controller),
+            child: Container(
+              width: avatarSize,
+              height: avatarSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
+                border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
+                boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
               ),
+              child: Center(child: Text(controller.avatarEmoji, style: TextStyle(fontSize: compact ? 19 : 22))),
+            ),
+          ),
+          SizedBox(width: compact ? 6 : 9),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: compact ? 11.5 : 13)),
+              const SizedBox(height: 2),
+              Row(children: <Widget>[
+                Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ]),
             ]),
-          ]),
-        ),
-        B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: B307SkyLuxury.gold),
-        const SizedBox(width: 5),
-        B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: B307SkyLuxury.goldSoft),
-        const SizedBox(width: 4),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          tooltip: ar ? 'الأصدقاء' : 'Friends',
-          onPressed: () => showFriends(context, controller),
-          icon: const Icon(Icons.people_alt_outlined, size: 21, color: B307SkyLuxury.text),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          tooltip: ar ? 'الإشعارات' : 'Notifications',
-          onPressed: () => showNotifications(context, controller),
-          icon: const Icon(Icons.notifications_none_rounded, size: 21, color: B307SkyLuxury.text),
-        ),
-      ]),
-    );
+          ),
+          if (!compact) ...<Widget>[
+            B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: B307SkyLuxury.gold),
+            const SizedBox(width: 5),
+          ],
+          B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: B307SkyLuxury.goldSoft),
+          SizedBox(width: compact ? 2 : 4),
+          if (!compact)
+            IconButton(
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              tooltip: ar ? 'الأصدقاء' : 'Friends',
+              onPressed: () => showFriends(context, controller),
+              icon: const Icon(Icons.people_alt_outlined, size: 21, color: B307SkyLuxury.text),
+            ),
+          IconButton(
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            tooltip: ar ? 'الإشعارات' : 'Notifications',
+            onPressed: () => showNotifications(context, controller),
+            icon: const Icon(Icons.notifications_none_rounded, size: 21, color: B307SkyLuxury.text),
+          ),
+        ]),
+      );
+    });
   }
 }
 
@@ -455,7 +470,7 @@ class B307HomeDashboard extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: featured.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .90),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .78),
           itemBuilder: (context, index) {
             final game = featured[index];
             return InkWell(

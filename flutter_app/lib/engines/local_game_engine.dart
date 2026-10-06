@@ -228,10 +228,10 @@ class LocalGameSession {
   }
 
   void _balancePremiumHands() {
-    // Local/offline casual mode may shape the deal for engagement, but it must
-    // remain symmetric: no username, seat, Pasha status, purchase or level is
-    // ever favored. Ranked/competition rooms stay server-authoritative and do
-    // not use this local shaper.
+    // Local/offline casual mode may shape a more engaging opening deal, but
+    // every seat is evaluated by the same card-quality metrics. Account identity,
+    // entitlements and commercial state never participate. Ranked/competition
+    // rooms remain server-authoritative and never use this local shaper.
     if (!(gameId == 'tarneeb' || _isSyrianTarneeb || _isTarneeb400)) return;
     // Historical contract anchor: every seat should reach at least two
     // playable honors when a suitable symmetric casual deal is available.
@@ -239,7 +239,7 @@ class LocalGameSession {
 
     List<List<String>>? best;
     var bestScore = -1 << 30;
-    for (var attempt = 0; attempt < 320; attempt++) {
+    for (var attempt = 0; attempt < 512; attempt++) {
       final cards = _makeDeck();
       final candidate = List<List<String>>.generate(4, (_) => <String>[]);
       for (var card = 0; card < 13; card++) {
@@ -263,14 +263,21 @@ class LocalGameSession {
           honors[seat] * 4 + controls[seat] * 2 + shapes[seat],
       ]);
 
-      // Rotate several symmetrical deal scenarios instead of optimizing one
-      // fixed pattern. This creates variety while keeping all seats comparable.
-      final scenario = attempt % 4;
+      // Rotate a broad set of symmetric table scenarios instead of optimizing
+      // one fixed pattern. Each scenario scores the whole table, never a person.
+      final totalHonor = honors.fold<int>(0, (sum, value) => sum + value);
+      final totalControl = controls.fold<int>(0, (sum, value) => sum + value);
+      final totalShape = shapes.fold<int>(0, (sum, value) => sum + value);
+      final scenario = attempt % 8;
       final scenarioBonus = switch (scenario) {
-        0 => minHonor * 28, // honor-rich
-        1 => minShape * 22, // long-suit / bid-ready
-        2 => minControl * 16, // aces/kings/control
-        _ => strongSeats * 24, // mixed competitive table
+        0 => minHonor * 28, // honor-rich across the table
+        1 => minShape * 22, // long-suit / bid-ready table
+        2 => minControl * 16, // aces/kings/control table
+        3 => strongSeats * 24, // mixed competitive table
+        4 => totalHonor * 7 - spread * 2, // many playable honors
+        5 => totalShape * 5 + minShape * 10, // multiple bidding shapes
+        6 => totalControl * 4 + minControl * 10, // broad control strength
+        _ => minHonor * 14 + minShape * 11 + minControl * 8 + strongSeats * 18, // hybrid
       };
       final score =
           minHonor * 90 +
@@ -378,7 +385,7 @@ class LocalGameSession {
     List<String>? bestDeck;
     var bestScore = -1 << 30;
 
-    for (var attempt = 0; attempt < 240; attempt++) {
+    for (var attempt = 0; attempt < 480; attempt++) {
       final cards = _makeDeck(copies: 2, jokers: true);
       final candidate = List<List<String>>.generate(playerCount, (_) => <String>[]);
       for (var card = 0; card < cardsEach; card++) {
@@ -390,12 +397,23 @@ class LocalGameSession {
       final minimum = qualities.reduce(min);
       final strongSeats = qualities.where((value) => value >= 18).length;
       final spread = _qualitySpread(qualities);
-      final scenario = attempt % 4;
+      final totalNearRuns = candidate.fold<int>(0, (sum, hand) => sum + _nearRunQuality(hand));
+      final totalPairs = candidate.fold<int>(0, (sum, hand) => sum + _pairQuality(hand));
+      final totalMelds = candidate.fold<int>(
+        0,
+        (sum, hand) => sum + _nonOverlappingMelds(_meldSuggestions(hand)).length,
+      );
+      final totalQuality = qualities.fold<int>(0, (sum, value) => sum + value);
+      final scenario = attempt % 8;
       final scenarioBonus = switch (scenario) {
-        0 => minimum * 18,
-        1 => strongSeats * 28,
-        2 => candidate.fold<int>(0, (sum, hand) => sum + _nearRunQuality(hand)) * 3,
-        _ => candidate.fold<int>(0, (sum, hand) => sum + _pairQuality(hand)) * 3,
+        0 => minimum * 18, // raise the weakest opening hand
+        1 => strongSeats * 28, // maximize the number of playable seats
+        2 => totalNearRuns * 3, // run-rich table
+        3 => totalPairs * 3, // set/pair-rich table
+        4 => totalMelds * 16, // ready-meld table
+        5 => (totalNearRuns + totalPairs) * 2 + minimum * 10, // mixed rummy shape
+        6 => strongSeats * 20 + minimum * 14 - spread * 2, // close competitive table
+        _ => totalQuality * 2 + minimum * 12, // broad hybrid quality
       };
       final score = minimum * 75 + strongSeats * 48 + scenarioBonus - spread * 5;
       if (score > bestScore) {

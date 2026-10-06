@@ -46,21 +46,25 @@ void main() {
         await tester.pumpWidget(app(HomeShell(controller: controller), locale));
         await tester.pump(const Duration(milliseconds: 300));
         expect(tester.takeException(), isNull);
-        expect(find.byType(R61HomeDashboard), findsOneWidget);
+        expect(find.byType(B307HomeDashboard), findsOneWidget);
         expect(
           Directionality.of(tester.element(find.byType(HomeShell))),
           locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
         );
 
+        final desktopNavigation = kIsWeb && size.width >= 1024;
         final navigation = find.byType(
-          kIsWeb && size.width >= 1024
-              ? R61DesktopNavigation
-              : R61BottomNavigation,
+          desktopNavigation ? B307DesktopNavigation : B307BottomNavigation,
         );
         for (final destination in <(String, Type)>[
           (locale == 'ar' ? 'الألعاب' : 'Games', R64PlayHubPage),
-          (locale == 'ar' ? 'المجتمع' : 'Social', R61SocialHubPage),
-          (locale == 'ar' ? 'المنافسات' : 'Events', R12CompetitiveArenaPage),
+          (
+            locale == 'ar'
+                ? (desktopNavigation ? 'المجتمع' : 'الأصدقاء')
+                : 'Social',
+            R61SocialHubPage,
+          ),
+          (locale == 'ar' ? 'البطولات' : 'Events', R12CompetitiveArenaPage),
         ]) {
           await tester.tap(
             find.descendant(
