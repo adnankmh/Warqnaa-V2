@@ -78,7 +78,10 @@ void main() {
       for (var i = 0; i < 40 && find.byType(B307HomeDashboard).evaluate().isEmpty; i++) { await tester.pump(const Duration(milliseconds: 50)); }
       expect(controller.isLocalAdmin, isTrue);
       final open = find.byKey(const ValueKey('r9-open-studio'));
-      await tester.ensureVisible(open); await tester.tap(open); await tester.pumpAndSettle();
+      expect(open, findsOneWidget);
+      await tester.scrollUntilVisible(open, 120, scrollable: find.byType(Scrollable).first);
+      await tester.pump();
+      await tester.tap(open); await tester.pumpAndSettle();
       expect(find.byType(R9LocalStudio), findsOneWidget);
       final before = controller.tableAmbientEffects;
       await tester.ensureVisible(find.byKey(const ValueKey('r9-studio-effects')));

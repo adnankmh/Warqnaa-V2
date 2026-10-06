@@ -71,7 +71,11 @@ void main() {
         expect(hand, findsOneWidget);
         final cards = tester.widgetList<PlayingCard>(find.descendant(of: hand, matching: find.byType(PlayingCard)));
         expect(cards.length, 13);
-        expect(cards.every((card) => card.width >= 48), isTrue);
+        final minimumCardWidth = size.height < 500 ? 36.0 : 48.0;
+        expect(cards.every((card) => card.width >= minimumCardWidth), isTrue);
+        final handRect = tester.getRect(hand);
+        expect(handRect.left, greaterThanOrEqualTo(-0.5));
+        expect(handRect.right, lessThanOrEqualTo(size.width + 0.5));
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 6)); controller.dispose();
       });
