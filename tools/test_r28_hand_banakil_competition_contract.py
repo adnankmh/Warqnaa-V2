@@ -50,7 +50,7 @@ def main() -> None:
     require(local_engine, "deal_fairness': 'symmetric_all_seats'", "symmetric deal fairness")
     require(local_engine, "_balancePremiumHands", "trick-game balanced deal scenarios")
     require(local_engine, "_balanceCasualRummyHands", "Hand/Banakil balanced deal scenarios")
-    require(local_engine, "final scenario = attempt % 4", "multiple rotating deal scenarios")
+    require(local_engine, "final scenario = attempt % 8", "eight rotating deal scenarios")
     trick_deal_block = local_engine[
         local_engine.index("void _balancePremiumHands"):
         local_engine.index("int _playableHonorQuality")
