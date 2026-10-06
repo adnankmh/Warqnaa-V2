@@ -51,9 +51,19 @@ def main() -> None:
     require(local_engine, "_balancePremiumHands", "trick-game balanced deal scenarios")
     require(local_engine, "_balanceCasualRummyHands", "Hand/Banakil balanced deal scenarios")
     require(local_engine, "final scenario = attempt % 4", "multiple rotating deal scenarios")
-    for forbidden in ("displayName", "username", "vipDays", "pasha", "purchase", "wallet"):
-        # The local engine itself must not use identity/economy inputs to shape a hand.
-        forbid(local_engine, forbidden, f"deal favoritism input {forbidden}")
+    trick_deal_block = local_engine[
+        local_engine.index("void _balancePremiumHands"):
+        local_engine.index("int _playableHonorQuality")
+    ]
+    rummy_deal_block = local_engine[
+        local_engine.index("void _balanceCasualRummyHands"):
+        local_engine.index("void _setupBasra")
+    ]
+    deal_shaping = trick_deal_block + rummy_deal_block
+    for forbidden in ("displayName", "username", "vipDays", "pasha", "purchase", "wallet", "humanName"):
+        # Identity/economy fields may exist elsewhere in the local engine for
+        # display, but they must never participate in deal-shaping functions.
+        forbid(deal_shaping, forbidden, f"deal favoritism input {forbidden}")
 
     # Manual order and multi-meld suggestions are server validated.
     require(hand_rules, "$action === 'organize'", "server-authoritative manual order")
