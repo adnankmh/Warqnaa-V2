@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{CompetitionAppeal, CompetitiveMatch, Game, Tournament};
 use App\Services\Competitive\{CompetitiveMatchmakingService, CompetitiveSeasonService};
 use App\Services\WarqnaPro\CompetitionService;
+use App\Support\AuthenticatedActor;
 use Illuminate\Http\Request;
 
 class MobileCompetitiveController extends Controller
@@ -80,8 +81,9 @@ class MobileCompetitiveController extends Controller
 
     public function appeals(Request $request)
     {
+        $actor = AuthenticatedActor::resolve($request);
         $appeals = CompetitionAppeal::with(['match.game', 'match.room', 'tournament'])
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $actor->id)
             ->latest('submitted_at')
             ->limit(50)
             ->get();
@@ -107,7 +109,8 @@ class MobileCompetitiveController extends Controller
 
     public function submitAppeal(Request $request, CompetitiveMatch $match)
     {
-        $userId = (int) $request->user()->id;
+        $actor = AuthenticatedActor::resolve($request);
+        $userId = (int) $actor->id;
         $participants = array_values(array_unique(array_map('intval', (array) $match->participant_ids)));
         abort_unless(in_array($userId, $participants, true), 403, 'يمكن فقط للاعب شارك في المباراة تقديم اعتراض عليها.');
         abort_if(in_array($match->status, ['voided', 'cancelled'], true), 422, 'هذه المباراة ملغاة ولا تقبل اعتراضًا جديدًا.');
