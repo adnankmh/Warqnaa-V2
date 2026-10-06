@@ -228,14 +228,15 @@ class LocalGameSession {
   }
 
   void _balancePremiumHands() {
-    // The no-fresh policy is deliberately symmetric: the entire Tarneeb deal
-    // is retried until every seat reaches the same minimum playable-honor
-    // quality. No username, seat, Pasha status, purchase or level is favored.
+    // Local/offline casual mode may shape the deal for engagement, but it must
+    // remain symmetric: no username, seat, Pasha status, purchase or level is
+    // ever favored. Ranked/competition rooms stay server-authoritative and do
+    // not use this local shaper.
     if (!(gameId == 'tarneeb' || _isSyrianTarneeb || _isTarneeb400)) return;
-    const minimumQuality = 2;
-    var bestMinimum = -1;
+
     List<List<String>>? best;
-    for (var attempt = 0; attempt < 160; attempt++) {
+    var bestScore = -1 << 30;
+    for (var attempt = 0; attempt < 320; attempt++) {
       final cards = _makeDeck();
       final candidate = List<List<String>>.generate(4, (_) => <String>[]);
       for (var card = 0; card < 13; card++) {
@@ -243,17 +244,49 @@ class LocalGameSession {
           candidate[seat].add(cards.removeLast());
         }
       }
-      final qualities = candidate.map(_playableHonorQuality).toList(growable: false);
-      final minQuality = qualities.reduce(min);
-      if (minQuality > bestMinimum) {
-        bestMinimum = minQuality;
+
+      final honors = candidate.map(_playableHonorQuality).toList(growable: false);
+      final controls = candidate.map(_controlQuality).toList(growable: false);
+      final shapes = candidate.map(_bidShapeQuality).toList(growable: false);
+      final minHonor = honors.reduce(min);
+      final minControl = controls.reduce(min);
+      final minShape = shapes.reduce(min);
+      final strongSeats = <int>[
+        for (var seat = 0; seat < 4; seat++)
+          if (honors[seat] >= 2 || controls[seat] >= 8 || shapes[seat] >= 8) seat,
+      ].length;
+      final spread = _qualitySpread(<int>[
+        for (var seat = 0; seat < 4; seat++)
+          honors[seat] * 4 + controls[seat] * 2 + shapes[seat],
+      ]);
+
+      // Rotate several symmetrical deal scenarios instead of optimizing one
+      // fixed pattern. This creates variety while keeping all seats comparable.
+      final scenario = attempt % 4;
+      final scenarioBonus = switch (scenario) {
+        0 => minHonor * 28, // honor-rich
+        1 => minShape * 22, // long-suit / bid-ready
+        2 => minControl * 16, // aces/kings/control
+        _ => strongSeats * 24, // mixed competitive table
+      };
+      final score =
+          minHonor * 90 +
+          minControl * 24 +
+          minShape * 20 +
+          strongSeats * 55 +
+          scenarioBonus -
+          spread * 7;
+
+      if (score > bestScore) {
+        bestScore = score;
         best = candidate.map((hand) => List<String>.from(hand)).toList(growable: false);
       }
-      if (minQuality >= minimumQuality) {
+      if (minHonor >= 2 && minControl >= 6 && strongSeats >= 3 && spread <= 12) {
         best = candidate;
         break;
       }
     }
+
     if (best == null) return;
     for (var seat = 0; seat < 4; seat++) {
       _hands[seat]
@@ -261,6 +294,40 @@ class LocalGameSession {
         ..addAll(best[seat]);
     }
     _deck.clear();
+  }
+
+  int _qualitySpread(List<int> values) {
+    if (values.isEmpty) return 0;
+    return values.reduce(max) - values.reduce(min);
+  }
+
+  int _controlQuality(List<String> hand) {
+    var quality = 0;
+    for (final suit in _suits) {
+      final suited = hand.where((card) => !card.startsWith('JOKER') && _cardSuit(card) == suit).toList();
+      final ranks = suited.map(_cardRank).toSet();
+      if (ranks.contains('A')) quality += 4;
+      if (ranks.contains('K') && suited.length >= 2) quality += 3;
+      if (ranks.contains('Q') && suited.length >= 3) quality += 2;
+      if (ranks.contains('J') && suited.length >= 4) quality += 1;
+      if (suited.length >= 5) quality += suited.length - 4;
+    }
+    return quality;
+  }
+
+  int _bidShapeQuality(List<String> hand) {
+    var bestSuit = 0;
+    var honors = 0;
+    for (final suit in _suits) {
+      final suited = hand.where((card) => !card.startsWith('JOKER') && _cardSuit(card) == suit).toList();
+      bestSuit = max(bestSuit, suited.length);
+      for (final card in suited) {
+        final rank = _cardRank(card);
+        if (rank == 'A' || rank == 'K') honors += 2;
+        if (rank == 'Q' || rank == 'J') honors += 1;
+      }
+    }
+    return bestSuit + honors;
   }
 
   int _playableHonorQuality(List<String> hand) {
@@ -283,11 +350,7 @@ class LocalGameSession {
       _hands.add(<String>[]);
     }
     final cardsEach = gameId == 'banakil' ? 18 : 14;
-    for (var card = 0; card < cardsEach; card++) {
-      for (var seat = 0; seat < playerCount; seat++) {
-        _hands[seat].add(_deck.removeLast());
-      }
-    }
+    _balanceCasualRummyHands(cardsEach);
     // The starter gets one extra card and begins by discarding. Banakil uses 18+19,
     // while Hand uses 14+15. The following turns return to draw -> meld -> discard.
     _hands[0].add(_deck.removeLast());
@@ -302,6 +365,104 @@ class LocalGameSession {
     for (final hand in _hands) {
       _sortHand(hand);
     }
+  }
+
+  void _balanceCasualRummyHands(int cardsEach) {
+    // Like the trick-game shaper, this is local/offline only and treats every
+    // seat symmetrically. It prefers tables where most players begin with
+    // useful pairs/runs/meld potential instead of one seat receiving a jackpot.
+    List<List<String>>? bestHands;
+    List<String>? bestDeck;
+    var bestScore = -1 << 30;
+
+    for (var attempt = 0; attempt < 240; attempt++) {
+      final cards = _makeDeck(copies: 2, jokers: true);
+      final candidate = List<List<String>>.generate(playerCount, (_) => <String>[]);
+      for (var card = 0; card < cardsEach; card++) {
+        for (var seat = 0; seat < playerCount; seat++) {
+          candidate[seat].add(cards.removeLast());
+        }
+      }
+      final qualities = candidate.map(_rummyDealQuality).toList(growable: false);
+      final minimum = qualities.reduce(min);
+      final strongSeats = qualities.where((value) => value >= 18).length;
+      final spread = _qualitySpread(qualities);
+      final scenario = attempt % 4;
+      final scenarioBonus = switch (scenario) {
+        0 => minimum * 18,
+        1 => strongSeats * 28,
+        2 => candidate.fold<int>(0, (sum, hand) => sum + _nearRunQuality(hand)) * 3,
+        _ => candidate.fold<int>(0, (sum, hand) => sum + _pairQuality(hand)) * 3,
+      };
+      final score = minimum * 75 + strongSeats * 48 + scenarioBonus - spread * 5;
+      if (score > bestScore) {
+        bestScore = score;
+        bestHands = candidate.map((hand) => List<String>.from(hand)).toList(growable: false);
+        bestDeck = List<String>.from(cards);
+      }
+      if (strongSeats >= max(1, playerCount - 1) && minimum >= 14 && spread <= 18) {
+        bestHands = candidate;
+        bestDeck = cards;
+        break;
+      }
+    }
+
+    if (bestHands == null || bestDeck == null) {
+      for (var card = 0; card < cardsEach; card++) {
+        for (var seat = 0; seat < playerCount; seat++) {
+          _hands[seat].add(_deck.removeLast());
+        }
+      }
+      return;
+    }
+    for (var seat = 0; seat < playerCount; seat++) {
+      _hands[seat]
+        ..clear()
+        ..addAll(bestHands[seat]);
+    }
+    _deck
+      ..clear()
+      ..addAll(bestDeck);
+  }
+
+  int _rummyDealQuality(List<String> hand) {
+    final melds = _meldSuggestions(hand);
+    final nonOverlapping = _nonOverlappingMelds(melds);
+    final meldPoints = nonOverlapping.fold<int>(0, (sum, meld) => sum + _rummyPoints(meld));
+    final jokers = hand.where((card) => card.startsWith('JOKER')).length;
+    return nonOverlapping.length * 6 +
+        min(18, meldPoints ~/ 6) +
+        _pairQuality(hand) +
+        _nearRunQuality(hand) +
+        jokers * 3;
+  }
+
+  int _pairQuality(List<String> hand) {
+    final counts = <String, int>{};
+    for (final card in hand.where((card) => !card.startsWith('JOKER'))) {
+      final rank = _cardRank(card);
+      counts[rank] = (counts[rank] ?? 0) + 1;
+    }
+    return counts.values.fold<int>(0, (sum, count) => sum + (count >= 2 ? min(3, count - 1) : 0));
+  }
+
+  int _nearRunQuality(List<String> hand) {
+    var quality = 0;
+    for (final suit in _suits) {
+      final values = hand
+          .where((card) => !card.startsWith('JOKER') && _cardSuit(card) == suit)
+          .map((card) => _standardRanks.indexOf(_cardRank(card)))
+          .where((value) => value >= 0)
+          .toSet()
+          .toList()
+        ..sort();
+      for (var i = 1; i < values.length; i++) {
+        final gap = values[i] - values[i - 1];
+        if (gap == 1) quality += 2;
+        if (gap == 2) quality += 1;
+      }
+    }
+    return quality;
   }
 
   void _setupBasra() {
@@ -376,6 +537,8 @@ class LocalGameSession {
       'game_over': gameOver,
       'winner': winnerKey,
       'deck_count': _deck.length,
+      'deal_policy': 'balanced_casual_local',
+      'deal_fairness': 'symmetric_all_seats',
       'discard_top': _discard.isEmpty ? null : _discard.last,
       'melds': _melds.map((e) => List<String>.from(e)).toList(),
       'meld_owners': List<int>.from(_meldOwners),
@@ -403,6 +566,8 @@ class LocalGameSession {
         return <Map<String, dynamic>>[
           <String, dynamic>{'type': 'draw_deck'},
           if (_discard.isNotEmpty) <String, dynamic>{'type': 'draw_discard'},
+          if (gameId == 'banakil' && _discard.length >= 2)
+            <String, dynamic>{'type': 'draw_discard_stack', 'max_count': _discard.length},
           <String, dynamic>{'type': 'organize'},
         ];
       }
@@ -1193,6 +1358,16 @@ class LocalGameSession {
         _hands[0].add(_deck.removeLast());
       } else if (action == 'draw_discard' && _discard.isNotEmpty) {
         _hands[0].add(_discard.removeLast());
+      } else if (action == 'draw_discard_stack' && gameId == 'banakil' && _discard.length >= 2) {
+        final requested = int.tryParse(payload['count']?.toString() ?? '') ?? 0;
+        if (requested < 2 || requested > _discard.length) {
+          throw StateError(_t('اختر عددًا صحيحًا من أوراق النار المتاحة.', 'Choose a valid number of discard-pile cards.'));
+        }
+        final start = _discard.length - requested;
+        final picked = _discard.sublist(start);
+        _discard.removeRange(start, _discard.length);
+        _hands[0].addAll(picked);
+        _messages.add(_t('$humanName سحب $requested أوراق من النار.', '$humanName took $requested cards from the discard pile.'));
       } else {
         throw StateError(_t('يجب السحب أولاً.', 'You must draw first.'));
       }
