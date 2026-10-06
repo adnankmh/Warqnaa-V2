@@ -233,6 +233,9 @@ class LocalGameSession {
     // ever favored. Ranked/competition rooms stay server-authoritative and do
     // not use this local shaper.
     if (!(gameId == 'tarneeb' || _isSyrianTarneeb || _isTarneeb400)) return;
+    // Historical contract anchor: every seat should reach at least two
+    // playable honors when a suitable symmetric casual deal is available.
+    const minimumQuality = 2;
 
     List<List<String>>? best;
     var bestScore = -1 << 30;
@@ -281,7 +284,7 @@ class LocalGameSession {
         bestScore = score;
         best = candidate.map((hand) => List<String>.from(hand)).toList(growable: false);
       }
-      if (minHonor >= 2 && minControl >= 6 && strongSeats >= 3 && spread <= 12) {
+      if (minHonor >= minimumQuality && minControl >= 6 && strongSeats >= 3 && spread <= 12) {
         best = candidate;
         break;
       }
@@ -431,7 +434,7 @@ class LocalGameSession {
     final meldPoints = nonOverlapping.fold<int>(0, (sum, meld) => sum + _rummyPoints(meld));
     final jokers = hand.where((card) => card.startsWith('JOKER')).length;
     return nonOverlapping.length * 6 +
-        min(18, meldPoints ~/ 6) +
+        min(18, meldPoints ~/ 6).toInt() +
         _pairQuality(hand) +
         _nearRunQuality(hand) +
         jokers * 3;
@@ -443,7 +446,7 @@ class LocalGameSession {
       final rank = _cardRank(card);
       counts[rank] = (counts[rank] ?? 0) + 1;
     }
-    return counts.values.fold<int>(0, (sum, count) => sum + (count >= 2 ? min(3, count - 1) : 0));
+    return counts.values.fold<int>(0, (sum, count) => sum + (count >= 2 ? min(3, count - 1).toInt() : 0));
   }
 
   int _nearRunQuality(List<String> hand) {
