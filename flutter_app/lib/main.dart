@@ -4666,11 +4666,15 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     ];
     final children=items.map((item)=>Container(
       padding:EdgeInsets.symmetric(horizontal:compact?7:12,vertical:compact?4:8),
-      decoration:BoxDecoration(color:Colors.white.withValues(alpha:.06),borderRadius:BorderRadius.circular(compact?11:16),border:Border.all(color:Colors.white.withValues(alpha:.08))),
+      decoration:BoxDecoration(
+        gradient:B307SkyLuxury.panelGradient,
+        borderRadius:BorderRadius.circular(compact?11:16),
+        border:Border.all(color:B307SkyLuxury.sky.withValues(alpha:.24)),
+      ),
       child:Column(mainAxisSize:MainAxisSize.min,children:[
-        Text(item['title']!,style:TextStyle(fontSize:compact?7:10,color:Colors.white.withValues(alpha:.72),fontWeight:FontWeight.w800)),
+        Text(item['title']!,style:TextStyle(fontSize:compact?7:10,color:B307SkyLuxury.textMuted,fontWeight:FontWeight.w800)),
         SizedBox(height:compact?1:3),
-        Text(item['value']!,textAlign:TextAlign.center,style:TextStyle(fontSize:compact?9:13,fontWeight:FontWeight.w900,color:Theme.of(context).colorScheme.primary)),
+        Text(item['value']!,textAlign:TextAlign.center,style:TextStyle(fontSize:compact?9:13,fontWeight:FontWeight.w900,color:B307SkyLuxury.goldSoft)),
       ]),
     )).toList();
     if(compact)return SingleChildScrollView(scrollDirection:Axis.horizontal,child:Row(mainAxisSize:MainAxisSize.min,children:[for(var i=0;i<children.length;i++)...[if(i>0)const SizedBox(width:5),children[i]]]));
@@ -4768,14 +4772,16 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   Widget _gameArea(BuildContext context, {required bool landscape, required bool shortLandscape}) {
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxHeight < 500;
-      final score = Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), child: Row(children: [
-        Expanded(child: ScoreBox(label: _tr('نحن', 'We'), score: engine.scores[0])),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Column(children: [
-          Text(_tr('جولة ${engine.round}', 'Round ${engine.round}'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
-          Text('${engine.roundTricks[0]} : ${engine.roundTricks[1]}', style: const TextStyle(fontSize: 11, color: Color(0xffd9c28c))),
-        ])),
-        Expanded(child: ScoreBox(label: _tr('هم', 'They'), score: engine.scores[1])),
-      ]));
+      final score = B307TarneebHud(
+        weLabel: _tr('نحن', 'We'),
+        theyLabel: _tr('هم', 'They'),
+        weScore: engine.scores[0],
+        theyScore: engine.scores[1],
+        roundLabel: _tr('جولة ${engine.round}', 'Round ${engine.round}'),
+        trickScore: '${engine.roundTricks[0]} : ${engine.roundTricks[1]}',
+        xpMultiplier: widget.controller.activeXpMultiplier,
+        connected: widget.controller.serverConnected,
+      );
       final status = Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3), child: _tableStatusStrip(context, compact: true));
       if (shortLandscape && constraints.maxWidth >= 600) {
         return Row(children: [
@@ -4914,14 +4920,25 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
         onPressed: selectedCode == null ? null : _playSelected,
         icon: const Icon(Icons.style_rounded),
         label: Text(_tr('العب الورقة المختارة', 'Play selected card')),
-        style: FilledButton.styleFrom(backgroundColor: const Color(0xffa8383f), minimumSize: const Size.fromHeight(45)),
+        style: FilledButton.styleFrom(
+          backgroundColor: B307SkyLuxury.emerald,
+          foregroundColor: B307SkyLuxury.navy,
+          minimumSize: const Size.fromHeight(45),
+        ),
       ),
     );
   }
 
   Widget _roomTools(BuildContext context,{bool compactLandscape=false}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+    return Container(
+      key: const ValueKey('r28-sky-room-tools'),
+      margin: const EdgeInsets.fromLTRB(10, 0, 10, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: B307SkyLuxury.panelGradient,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .28)),
+      ),
       child: Column(
         children: [
           Row(
@@ -4959,9 +4976,10 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     return Container(
       margin: const EdgeInsets.all(7),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: .96),
+        gradient: B307SkyLuxury.panelGradient,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: .08)),
+        border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .30)),
+        boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 14)],
       ),
       child: Column(
         children: [
