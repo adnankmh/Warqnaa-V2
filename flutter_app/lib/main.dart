@@ -6088,6 +6088,108 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     _ => _roomText('جولة ${state['round'] ?? 1}', 'Round ${state['round'] ?? 1}'),
   };
 
+  Widget _compactRummyMeldTable() {
+    final rummyFamily = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
+    if (!rummyFamily) return const SizedBox.shrink();
+
+    final raw = state['table_groups'] ?? state['melds'];
+    if (raw is! Map || raw.isEmpty) return const SizedBox.shrink();
+
+    final groups = <List<String>>[];
+    for (final value in raw.values) {
+      if (value is! List) continue;
+      for (final group in value) {
+        if (group is! List || group.isEmpty) continue;
+        groups.add(group.map((card) => card.toString()).toList(growable: false));
+      }
+    }
+    if (groups.isEmpty) return const SizedBox.shrink();
+
+    final visible = groups.take(6).toList(growable: false);
+    final hidden = groups.length - visible.length;
+    return IgnorePointer(
+      child: Semantics(
+        label: _roomText('مجموعات الورق على الطاولة', 'Melds on the table'),
+        child: Container(
+          key: const ValueKey('r28-compact-meld-table'),
+          constraints: const BoxConstraints(maxWidth: 276, maxHeight: 126),
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: B307SkyLuxury.navy.withValues(alpha: .42),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .32)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .12), blurRadius: 14),
+            ],
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: <Widget>[
+              for (var i = 0; i < visible.length; i++)
+                _compactRummyMeldGroup(cards: visible[i], index: i),
+              if (hidden > 0)
+                Container(
+                  height: 38,
+                  constraints: const BoxConstraints(minWidth: 42),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  decoration: BoxDecoration(
+                    color: B307SkyLuxury.surfaceRaised.withValues(alpha: .82),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: B307SkyLuxury.gold.withValues(alpha: .36)),
+                  ),
+                  child: Text(
+                    '+$hidden',
+                    style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 10, fontWeight: FontWeight.w900),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _compactRummyMeldGroup({required List<String> cards, required int index}) {
+    const cardWidth = 22.0;
+    const cardHeight = 32.0;
+    const maxSpan = 74.0;
+    final step = cards.length <= 1
+        ? 0.0
+        : math.min(11.0, math.max(5.5, (maxSpan - cardWidth) / (cards.length - 1))).toDouble();
+    final span = math.min(maxSpan, cardWidth + step * math.max(0, cards.length - 1)).toDouble();
+    return Tooltip(
+      message: _roomText('مجموعة ${index + 1}', 'Meld ${index + 1}'),
+      child: Container(
+        width: span + 8,
+        height: 42,
+        padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .07),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .22)),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            for (var cardIndex = 0; cardIndex < cards.length; cardIndex++)
+              Positioned(
+                left: step * cardIndex,
+                bottom: 0,
+                child: PlayingCard(
+                  label: _cardLabel(cards[cardIndex]),
+                  width: cardWidth,
+                  height: cardHeight,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _engineTable() => LayoutBuilder(builder: (context, board) {
     final players = room?['players'] is List ? room!['players'] as List : const [];
     return Stack(key: const ValueKey('r10-engine-table'), children: [
@@ -6103,6 +6205,14 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           top: math.max(72, (board.maxHeight - 80) / 2), child: seat);
       }),
       ..._trickSeatWidgets(),
+      if (widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle')
+        Positioned.fill(
+          left: 66,
+          right: 66,
+          top: 68,
+          bottom: 68,
+          child: Center(child: _compactRummyMeldTable()),
+        ),
       if (roundXpNoticesV174.isNotEmpty)
         Positioned(top: 8, left: 12, right: 12, child: RoundXpBannerV174(notices: roundXpNoticesV174)),
       if (floatingReaction != null)
