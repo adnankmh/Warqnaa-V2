@@ -459,6 +459,34 @@ class B307HomeDashboard extends StatelessWidget {
           const SizedBox(width: 7),
           Expanded(child: B307StatCard(icon: Icons.military_tech_outlined, label: ar ? 'الفوز' : 'Wins', value: '${controller.wins}')),
         ]),
+        if (controller.isLocalAdmin) ...<Widget>[
+          const SizedBox(height: 9),
+          InkWell(
+            key: const ValueKey('r9-open-studio'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: <Color>[Color(0xff109eea), Color(0xff0874c7)]),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .38)),
+                boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .14), blurRadius: 12, offset: const Offset(0, 5))],
+              ),
+              child: Row(children: <Widget>[
+                const Icon(Icons.design_services_rounded, color: B307SkyLuxury.goldSoft, size: 22),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                    Text(ar ? 'استوديو Adnan' : 'Adnan studio', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
+                    Text(ar ? 'إدارة وتخصيص محلي سريع لهذا الجهاز' : 'Quick local management and customization for this device', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.8, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.text),
+              ]),
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         B307SectionHeader(
           title: ar ? 'ألعابك' : 'Your games',
@@ -572,7 +600,6 @@ class B307HomeDashboard extends StatelessWidget {
           B307QuickAction(icon: Icons.account_balance_wallet_outlined, label: ar ? 'المحفظة' : 'Wallet', onTap: () => showWallet(context, controller)),
           if (controller.isLocalAdmin)
             B307QuickAction(
-              key: const ValueKey('r9-open-studio'),
               icon: Icons.design_services_rounded,
               label: ar ? 'استوديو Adnan' : 'Adnan studio',
               onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))),
