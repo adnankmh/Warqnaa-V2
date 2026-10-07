@@ -284,7 +284,58 @@ class R8TableSeat extends StatelessWidget {
     final seatWidth = compact ? (tight ? 72.0 : 80.0) : (tight ? 84.0 : 96.0);
     final avatarSize = compact ? (tight ? 27.0 : 31.0) : (tight ? 34.0 : 40.0);
     final radius = tight ? 13.0 : 16.0;
-    return Semantics(label: '$name, $detail', button: true, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(radius), child: AnimatedContainer(duration: const Duration(milliseconds: 180), width: seatWidth, padding: EdgeInsets.symmetric(horizontal: tight ? 3 : 5, vertical: tight ? 3 : 5), decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: active ? const [Color(0xff285944), Color(0xff153c2e)] : const [Color(0xf0222f29), Color(0xf0141d19)]), borderRadius: BorderRadius.circular(radius), border: Border.all(color: active ? const Color(0xffffd780) : const Color(0xff56665b), width: active ? 1.8 : .8), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 10, offset: const Offset(0, 5))]), child: Column(mainAxisSize: MainAxisSize.min, children: [SizedBox.square(dimension: avatarSize, child: FittedBox(child: avatar)), const SizedBox(height: 3), Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)), Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: const Color(0xffe0cf9f))), if (active && seconds != null) ...[const SizedBox(height: 4), LinearProgressIndicator(value: (seconds! / math.max(1, turnSeconds)).clamp(0.0, 1.0), minHeight: 3, borderRadius: BorderRadius.circular(3), color: seconds! <= 3 ? Colors.redAccent : const Color(0xffefd18a), backgroundColor: Colors.black26)]]))));
+    return Semantics(
+      label: '$name, $detail',
+      button: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(radius),
+        child: AnimatedContainer(
+          key: ValueKey<String>('r30-seat-$name'),
+          duration: const Duration(milliseconds: 180),
+          width: seatWidth,
+          padding: EdgeInsets.symmetric(horizontal: tight ? 3 : 5, vertical: tight ? 3 : 5),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: active
+                  ? const [B307SkyLuxury.azure, B307SkyLuxury.royal]
+                  : const [Color(0xee07598f), Color(0xee052f54)],
+            ),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: active ? B307SkyLuxury.goldSoft : B307SkyLuxury.sky.withValues(alpha: .28),
+              width: active ? 1.9 : .8,
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: active ? B307SkyLuxury.sky.withValues(alpha: .22) : Colors.black.withValues(alpha: .26),
+                blurRadius: active ? 15 : 9,
+                spreadRadius: active ? .6 : 0,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            SizedBox.square(dimension: avatarSize, child: FittedBox(child: avatar)),
+            const SizedBox(height: 3),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)),
+            Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: B307SkyLuxury.textMuted)),
+            if (active && seconds != null) ...[
+              const SizedBox(height: 4),
+              LinearProgressIndicator(
+                value: (seconds! / math.max(1, turnSeconds)).clamp(0.0, 1.0),
+                minHeight: 3,
+                borderRadius: BorderRadius.circular(3),
+                color: seconds! <= 3 ? Colors.redAccent : B307SkyLuxury.goldSoft,
+                backgroundColor: B307SkyLuxury.navy.withValues(alpha: .52),
+              ),
+            ],
+          ]),
+        ),
+      ),
+    );
   }
 }
 

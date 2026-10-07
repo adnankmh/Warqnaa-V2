@@ -5098,15 +5098,21 @@ class PremiumCardBack extends StatelessWidget {
               : asset == null
                   ? null
                   : DecorationImage(image: AssetImage(asset), fit: BoxFit.cover, filterQuality: FilterQuality.high),
-          border: Border.all(color: c2, width: 1.4),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .35), blurRadius: 5, offset: const Offset(0, 3))],
+          border: Border.all(color: Color.lerp(c2, B307SkyLuxury.cyan, .28)!, width: 1.5),
+          boxShadow: [
+            BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .13), blurRadius: 8, spreadRadius: .3),
+            BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 5, offset: const Offset(0, 3)),
+          ],
         ),
-        child: asset == null && customBytes == null
-            ? CustomPaint(
-                painter: _WarqnaaCardBackPainter(color: c2),
-                child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
-              )
-            : null,
+        child: KeyedSubtree(
+          key: const ValueKey('r30-premium-card-back'),
+          child: asset == null && customBytes == null
+              ? CustomPaint(
+                  painter: _WarqnaaCardBackPainter(color: c2),
+                  child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
+                )
+              : const SizedBox.shrink(),
+        ),
       ),
     );
   }
@@ -5186,17 +5192,39 @@ class WarqnaaTableSurface extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
             gradient: RadialGradient(center: portrait ? const Alignment(0, -.30) : const Alignment(0, -.18), radius: portrait ? 1.12 : 1.02, colors: [Color.lerp(c1, c2, portrait ? .18 : .14)!, c1, dark]),
-            border: Border.all(color: c2, width: portrait ? 4.2 : 5),
+            border: Border.all(color: Color.lerp(c2, B307SkyLuxury.cyan, .20)!, width: portrait ? 4.2 : 5),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: .62), blurRadius: portrait ? 28 : 32, offset: Offset(0, portrait ? 12 : 18)),
-              BoxShadow(color: c2.withValues(alpha: .28), blurRadius: portrait ? 18 : 22, spreadRadius: 2),
+              BoxShadow(color: Colors.black.withValues(alpha: .54), blurRadius: portrait ? 28 : 32, offset: Offset(0, portrait ? 12 : 18)),
+              BoxShadow(color: c2.withValues(alpha: .24), blurRadius: portrait ? 18 : 22, spreadRadius: 2),
+              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .15), blurRadius: portrait ? 16 : 20, spreadRadius: 1),
             ],
           ),
           child: ClipRRect(
+            key: const ValueKey('r30-premium-table-surface'),
             borderRadius: BorderRadius.circular(radius),
             child: Stack(
               children: [
-                Positioned.fill(child: CustomPaint(painter: _WarqnaaTablePatternPainter(color: c2))),
+                Positioned.fill(child: CustomPaint(painter: _WarqnaaTablePatternPainter(color: Color.lerp(c2, B307SkyLuxury.cyan, .14)!))),
+                Positioned(
+                  top: portrait ? 10 : 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      key: const ValueKey('r30-table-brand-badge'),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: B307SkyLuxury.navy.withValues(alpha: .38),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24)),
+                      ),
+                      child: const Text(
+                        'WARQNAA',
+                        style: TextStyle(color: B307SkyLuxury.textMuted, fontSize: 7.5, fontWeight: FontWeight.w900, letterSpacing: 1.4),
+                      ),
+                    ),
+                  ),
+                ),
                 if (customBytes != null || assetImage != null)
                   Center(
                     child: FractionallySizedBox(
@@ -7362,12 +7390,24 @@ class PlayingCard extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xfffffff9), Color(0xffeee7d8)]),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xffffffff), Color(0xfff6fbff), Color(0xffe7f3fb)],
+          ),
           borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()),
-          border: Border.all(color: selected ? Theme.of(context).colorScheme.primary : const Color(0xffc9c0ac), width: selected ? 2.4 : 1.1),
+          border: Border.all(
+            color: selected ? B307SkyLuxury.cyan : const Color(0xffb9ccda),
+            width: selected ? 2.6 : 1.1,
+          ),
           boxShadow: [
-            BoxShadow(color: selected ? Theme.of(context).colorScheme.primary.withValues(alpha: .34) : Colors.black.withValues(alpha: .34), blurRadius: selected ? 17 : 8, offset: const Offset(0, 5)),
-            const BoxShadow(color: Colors.white70, blurRadius: 1, offset: Offset(-1, -1)),
+            BoxShadow(
+              color: selected ? B307SkyLuxury.cyan.withValues(alpha: .42) : Colors.black.withValues(alpha: .28),
+              blurRadius: selected ? 18 : 8,
+              spreadRadius: selected ? 1 : 0,
+              offset: const Offset(0, 5),
+            ),
+            const BoxShadow(color: Colors.white, blurRadius: 1, offset: Offset(-1, -1)),
           ],
         ),
         child: ClipRRect(
@@ -7382,7 +7422,21 @@ class PlayingCard extends StatelessWidget {
                 ),
               ),
               Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
-              if (selected) Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()), gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .18), Colors.transparent]))))),
+              if (selected)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(math.max(7, width * .18).toDouble()),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [B307SkyLuxury.cyan.withValues(alpha: .20), Colors.transparent],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -7550,7 +7604,28 @@ class RoomTool extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton.filledTonal(onPressed: onTap, icon: Icon(icon));
+    return Semantics(
+      button: true,
+      child: InkWell(
+        key: ValueKey<String>('r30-room-tool-${icon.codePoint}'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          width: 42,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: B307SkyLuxury.panelGradient,
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .34)),
+            boxShadow: <BoxShadow>[
+              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 8, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: Icon(icon, color: B307SkyLuxury.goldSoft, size: 19),
+        ),
+      ),
+    );
   }
 }
 
@@ -7748,16 +7823,84 @@ class PremiumListTile extends StatelessWidget {
 }
 
 Future<void> showAvatarPicker(BuildContext context, AppController controller) async {
-  const avatars = <String>['🦁','🦅','🐺','🦊','🐯','🐼','🌙','⭐','👑','👑','🧠','🔥'];
-  await showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('تغيير الصورة الرمزية', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 12),
-    Center(child: AccountAvatar(controller: controller, size: 96)),
-    const SizedBox(height: 13),
-    FilledButton.icon(onPressed: () async { final err = await controller.updateAvatarFromGallery(context); if (context.mounted) showToast(context, err ?? 'تم تحديث الصورة.'); }, icon: const Icon(Icons.photo_library_outlined), label: const Text('اختيار صورة من الجهاز')),
-    const SizedBox(height: 12),
-    Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: avatars.map((emoji) => InkWell(onTap: () async { await controller.chooseAvatarEmoji(emoji); if (context.mounted) Navigator.pop(context); }, borderRadius: BorderRadius.circular(50), child: Container(width: 54, height: 54, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .06), border: Border.all(color: emoji == controller.avatarEmoji ? Theme.of(context).colorScheme.primary : Colors.white12)), child: Text(emoji, style: const TextStyle(fontSize: 28))))).toList()),
-  ]));
+  const avatars = <String>['🦁','🦅','🐺','🦊','🐯','🐼','🌙','⭐','👑','🧠','🔥','💎'];
+  final ar = controller.localeCode == 'ar';
+  await showPremiumSheet(
+    context,
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      B307PageHero(
+        icon: Icons.face_retouching_natural_rounded,
+        title: ar ? 'استوديو الصورة والرمز' : 'Avatar studio',
+        subtitle: ar
+            ? 'اختر صورة من جهازك أو هوية رمزية فاخرة تظهر في الملف والطاولات والمنافسات.'
+            : 'Choose a device photo or a premium identity that appears across profile, tables and competitions.',
+        trailing: const Icon(Icons.auto_awesome_rounded, color: B307SkyLuxury.goldSoft, size: 26),
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: Container(
+          key: const ValueKey('r30-avatar-preview-ring'),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.cyan, B307SkyLuxury.goldSoft, B307SkyLuxury.azure]),
+            boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 24, spreadRadius: 2)],
+          ),
+          child: AccountAvatar(controller: controller, size: 96),
+        ),
+      ),
+      const SizedBox(height: 13),
+      FilledButton.icon(
+        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text),
+        onPressed: () async {
+          final err = await controller.updateAvatarFromGallery(context);
+          if (context.mounted) showToast(context, err ?? (ar ? 'تم تحديث الصورة.' : 'Avatar updated.'));
+        },
+        icon: const Icon(Icons.photo_library_outlined),
+        label: Text(ar ? 'اختيار صورة من الجهاز' : 'Choose photo from device'),
+      ),
+      const SizedBox(height: 12),
+      B307SectionHeader(title: ar ? 'الرموز المميزة' : 'Premium symbols'),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 9,
+        runSpacing: 9,
+        alignment: WrapAlignment.center,
+        children: avatars.map((emoji) {
+          final selected = emoji == controller.avatarEmoji;
+          return Semantics(
+            button: true,
+            selected: selected,
+            label: emoji,
+            child: InkWell(
+              onTap: () async {
+                await controller.chooseAvatarEmoji(emoji);
+                if (context.mounted) Navigator.pop(context);
+              },
+              borderRadius: BorderRadius.circular(50),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 58,
+                height: 58,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: selected
+                      ? const LinearGradient(colors: <Color>[B307SkyLuxury.azure, B307SkyLuxury.royal])
+                      : B307SkyLuxury.panelGradient,
+                  border: Border.all(color: selected ? B307SkyLuxury.goldSoft : B307SkyLuxury.sky.withValues(alpha: .30), width: selected ? 2 : 1),
+                  boxShadow: selected
+                      ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .28), blurRadius: 14)]
+                      : const <BoxShadow>[],
+                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 29)),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ]),
+  );
 }
 
 Future<void> showAvatarPreview(BuildContext context, AppController controller) async {
