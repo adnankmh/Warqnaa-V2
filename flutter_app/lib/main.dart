@@ -8213,19 +8213,25 @@ class ProfileMetric extends StatelessWidget {
 }
 
 void showNotifications(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
   showPremiumSheet(
     context,
     child: StatefulBuilder(
       builder: (context, setLocalState) => Column(
+        key: const ValueKey('r32-premium-notifications'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(child: Text(L.t(controller.localeCode, 'notifications'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
-              TextButton(onPressed: () { controller.markAllRead(); setLocalState(() {}); }, child: const Text('قراءة الكل')),
-            ],
+          B307PageHero(
+            icon: Icons.notifications_active_rounded,
+            title: L.t(controller.localeCode, 'notifications'),
+            subtitle: ar ? 'كل ما يحتاج انتباهك من البطولات والمكافآت والأصدقاء في مكان واحد.' : 'Tournaments, rewards and social updates that need your attention in one place.',
+            trailing: TextButton.icon(
+              onPressed: () { controller.markAllRead(); setLocalState(() {}); },
+              icon: const Icon(Icons.done_all_rounded, size: 17),
+              label: Text(ar ? 'قراءة الكل' : 'Read all'),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           if (controller.notices.isEmpty) const Padding(padding: EdgeInsets.all(30), child: Center(child: Text('لا توجد إشعارات'))),
           ...controller.notices.map((notice) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -8243,19 +8249,44 @@ void showNotifications(BuildContext context, AppController controller) {
 }
 
 void showWallet(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
   showPremiumSheet(
     context,
     child: Column(
+      key: const ValueKey('r32-premium-wallet'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(child: Text(L.t(controller.localeCode, 'transactions'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
-            FilledButton.icon(onPressed: () async { final ok = await controller.reconnectV173(); if (!context.mounted) return; Navigator.pop(context); showToast(context, ok ? 'تم تحديث الرصيد من الخادم.' : 'تعذر تحديث الرصيد.'); }, icon: const Icon(Icons.refresh_rounded), label: const Text('تحديث')),
-          ],
+        B307PageHero(
+          icon: Icons.account_balance_wallet_rounded,
+          title: L.t(controller.localeCode, 'transactions'),
+          subtitle: ar ? 'رصيدك وسجل الحركة مع تحديث موثوق من الخادم عند الاتصال.' : 'Your balance and transaction history with trusted server refresh when connected.',
+          trailing: IconButton(
+            tooltip: ar ? 'تحديث الرصيد' : 'Refresh balance',
+            onPressed: () async {
+              final ok = await controller.reconnectV173();
+              if (!context.mounted) return;
+              Navigator.pop(context);
+              showToast(context, ok ? (ar ? 'تم تحديث الرصيد من الخادم.' : 'Balance refreshed from server.') : (ar ? 'تعذر تحديث الرصيد.' : 'Could not refresh balance.'));
+            },
+            icon: const Icon(Icons.refresh_rounded, color: B307SkyLuxury.cyan),
+          ),
         ),
         const SizedBox(height: 10),
-        PremiumPanel(child: Padding(padding: const EdgeInsets.all(18), child: Center(child: Text('${formatNumber(controller.coins)} 🪙', style: TextStyle(fontSize: 29, color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900))))),
+        Container(
+          key: const ValueKey('r32-wallet-balance-card'),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+          decoration: BoxDecoration(
+            gradient: B307SkyLuxury.heroGradient,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
+            boxShadow: B307SkyLuxury.glow,
+          ),
+          child: Column(children: [
+            Text(ar ? 'الرصيد المتاح' : 'Available balance', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 10, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 5),
+            Text('${formatNumber(controller.coins)} 🪙', style: const TextStyle(fontSize: 30, color: B307SkyLuxury.goldSoft, fontWeight: FontWeight.w900)),
+          ]),
+        ),
         const SizedBox(height: 12),
         PremiumPanel(
           child: Column(
@@ -8322,12 +8353,19 @@ class _RewardedWebPreviewDialogState extends State<RewardedWebPreviewDialog> {
 }
 
 void showRewards(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
   showPremiumSheet(
     context,
     child: Column(
+      key: const ValueKey('r32-premium-rewards'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(L.t(controller.localeCode, 'rewards'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+        B307PageHero(
+          icon: Icons.redeem_rounded,
+          title: L.t(controller.localeCode, 'rewards'),
+          subtitle: ar ? 'مكافآت يومية، تقدم متدرج واستمرارية دخول واضحة بدون إرباك.' : 'Daily rewards, progressive bonuses and login streaks presented clearly.',
+          trailing: const Icon(Icons.auto_awesome_rounded, color: B307SkyLuxury.goldSoft, size: 27),
+        ),
         const SizedBox(height: 10),
         PremiumListTile(icon: '🎁', title: 'المكافأة اليومية', subtitle: '100 توكن + 20 XP • مرة واحدة يومياً', action: FilledButton(onPressed: () async { final claimed = await controller.claimDaily(); if (context.mounted) { Navigator.pop(context); showToast(context, claimed ? 'تم استلام المكافأة' : 'استلمت مكافأة اليوم مسبقاً أو تعذر الاتصال'); } }, child: Text(L.t(controller.localeCode, 'claim')))),
         const SizedBox(height: 8),
@@ -8340,19 +8378,36 @@ void showRewards(BuildContext context, AppController controller) {
 }
 
 void showSettings(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
   bool vibration = true;
   bool autoPlay = true;
   showPremiumSheet(
     context,
     child: StatefulBuilder(
       builder: (context, setLocalState) => Column(
+        key: const ValueKey('r32-premium-settings'),
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(children: [
-            Expanded(child: Text(L.t(controller.localeCode, 'settings'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
-            Chip(label: Text(controller.serverConnected ? 'LIVE API' : 'PWA LOCAL', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900))),
-          ]),
-          const SizedBox(height: 8),
+          B307PageHero(
+            icon: Icons.tune_rounded,
+            title: L.t(controller.localeCode, 'settings'),
+            subtitle: ar ? 'تحكم كامل بتجربة اللعب والمظهر والاتصال والخصوصية من مركز واحد.' : 'Control gameplay, appearance, connectivity and privacy from one premium center.',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: (controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .13),
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: (controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .40)),
+              ),
+              child: Text(
+                controller.serverConnected ? 'LIVE API' : 'PWA LOCAL',
+                style: TextStyle(color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan, fontSize: 8.5, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          B307SectionHeader(title: ar ? 'تجربة اللعب' : 'Gameplay experience'),
+          const SizedBox(height: 5),
           SwitchListTile(value: controller.soundEnabled, onChanged: (v) { controller.toggleSound(v); setLocalState(() {}); }, title: const Text('الأصوات'), subtitle: const Text('أصوات اللعب والإيموجي والتنبيهات')),
           SwitchListTile(value: vibration, onChanged: (v) => setLocalState(() => vibration = v), title: const Text('الاهتزاز'), subtitle: const Text('اهتزاز خفيف عند وصول الدور')),
           SwitchListTile(value: autoPlay, onChanged: (v) => setLocalState(() => autoPlay = v), title: const Text('اللعب التلقائي القانوني'), subtitle: const Text('يتصرف الكمبيوتر عند انتهاء وقت الدور')),
@@ -8360,8 +8415,10 @@ void showSettings(BuildContext context, AppController controller) {
           SwitchListTile(value: controller.tableAmbientEffects, onChanged: (v) { controller.updateNoCodeDesign(ambientEffects: v); setLocalState(() {}); }, title: const Text('مؤثرات الطاولة الهادئة'), subtitle: const Text('إضاءات وحركة خفيفة بدون تشتيت')),
           AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => SwitchListTile(value: R10AssetDelivery.instance.dataSaver, onChanged: (v) async { await R10AssetDelivery.instance.setDataSaver(v); setLocalState(() {}); }, title: Text(controller.localeCode == 'ar' ? 'توفير البيانات' : 'Data Saver'), subtitle: Text(controller.localeCode == 'ar' ? 'صور معاينة أصغر عند استخدام CDN مع بقاء الجودة الكاملة عند إيقافه.' : 'Use smaller CDN previews while keeping full quality when disabled.'))),
           AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => ListTile(leading: const Icon(Icons.cloud_download_outlined), title: Text(controller.localeCode == 'ar' ? 'تسليم الأصول R10' : 'R10 Asset Delivery'), subtitle: Text('${R10AssetDelivery.instance.manifestEntries} assets • ${R10AssetDelivery.instance.ondemandEntries} on-demand • ${R10AssetDelivery.instance.cdnEnabled ? 'CDN' : 'bundled fallback'}'), trailing: IconButton(icon: const Icon(Icons.cleaning_services_outlined), tooltip: controller.localeCode == 'ar' ? 'مسح الذاكرة المؤقتة' : 'Clear memory cache', onPressed: () { R10AssetDelivery.instance.clearMemoryCache(); setLocalState(() {}); }))),
-          const Divider(),
-          ListTile(leading: AccountAvatar(controller: controller, size: 42), title: const Text('الصورة الشخصية'), subtitle: const Text('معاينة وقص قبل الاعتماد'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
+          const SizedBox(height: 6),
+          B307SectionHeader(title: ar ? 'الهوية واللاعب' : 'Identity & player'),
+          const SizedBox(height: 5),
+          ListTile(leading: AccountAvatar(controller: controller, size: 42), title: Text(ar ? 'الصورة الشخصية' : 'Profile picture'), subtitle: Text(ar ? 'معاينة وقص قبل الاعتماد' : 'Preview and crop before applying'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
           ListTile(
             leading: SizedBox(width: 52, height: 38, child: ClipRRect(borderRadius: BorderRadius.circular(10), child: ProfileCover(coverId: controller.selectedCover, colors: b304ProfileGradient(controller), child: const Center(child: Icon(Icons.person, size: 18))))),
             title: Text(L.t(controller.localeCode, 'covers')),
@@ -8385,7 +8442,9 @@ void showSettings(BuildContext context, AppController controller) {
               onChanged: (value) { if (value != null) { controller.changeBotDifficulty(value); setLocalState(() {}); } },
             ),
           ),
-          const Divider(),
+          const SizedBox(height: 6),
+          B307SectionHeader(title: ar ? 'العرض والوصول' : 'Display & accessibility'),
+          const SizedBox(height: 5),
           ListTile(leading:const Icon(Icons.font_download_outlined),title:Text(L.t(controller.localeCode,'font')),subtitle:Text(controller.uiFontFamily),trailing:PopupMenuButton<String>(onSelected:(value){controller.changeFontFamily(value);setLocalState((){});},itemBuilder:(_)=>const [PopupMenuItem(value:'Roboto',child:Text('Roboto')),PopupMenuItem(value:'Arial',child:Text('Arial')),PopupMenuItem(value:'Tahoma',child:Text('Tahoma')),PopupMenuItem(value:'Verdana',child:Text('Verdana')),PopupMenuItem(value:'serif',child:Text('Serif')),PopupMenuItem(value:'monospace',child:Text('Monospace'))])),
           ListTile(leading:const Icon(Icons.format_size),title:Text(L.t(controller.localeCode,'fontSize')),subtitle:Text('${(controller.uiFontScale*100).round()}%'),trailing:Wrap(spacing:4,children:[IconButton.filledTonal(onPressed:(){controller.adjustFontScale(-.08);setLocalState((){});},icon:const Text('A−')),IconButton.filledTonal(onPressed:(){controller.adjustFontScale(.08);setLocalState((){});},icon:const Text('A+'))])),
           ListTile(leading:const Icon(Icons.health_and_safety_outlined),title:Text(L.t(controller.localeCode,'connectionCheck')),subtitle:const Text('الخادم والإنترنت والميكروفون'),trailing:const Icon(Icons.chevron_right),onTap:()=>showConnectionDiagnosticsDialog(context,controller)),
@@ -8400,7 +8459,9 @@ void showSettings(BuildContext context, AppController controller) {
               Navigator.push(context, MaterialPageRoute(builder: (_) => R143AccountSecurityPage(controller: controller)));
             },
           ),
-          const Divider(),
+          const SizedBox(height: 6),
+          B307SectionHeader(title: ar ? 'اللغة والنظام' : 'Language & system'),
+          const SizedBox(height: 5),
           ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => b304ActiveLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(code == 'ar' ? 'العربية' : 'English'))).toList())),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
@@ -8418,8 +8479,17 @@ void showSettings(BuildContext context, AppController controller) {
           const Divider(),
           if (!controller.isAdmin) OutlinedButton.icon(onPressed: () => showCancelAccountDialog(context, controller), icon: const Icon(Icons.person_off_rounded, color: Colors.redAccent), label: Text(L.t(controller.localeCode, 'deleteAccount'), style: const TextStyle(color: Colors.redAccent))),
           if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('بيانات المدير لا تُضمّن داخل التطبيق، وتُدار من مركز أمان الحساب.')),
-          const SizedBox(height: 8),
-          FilledButton(onPressed: () { Navigator.pop(context); showToast(context, 'تم حفظ الإعدادات وتطبيقها على التطبيق.'); }, child: Text(L.t(controller.localeCode, 'save'))),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            key: const ValueKey('r32-settings-save'),
+            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text, minimumSize: const Size.fromHeight(50)),
+            onPressed: () {
+              Navigator.pop(context);
+              showToast(context, ar ? 'تم حفظ الإعدادات وتطبيقها على التطبيق.' : 'Settings saved and applied.');
+            },
+            icon: const Icon(Icons.check_circle_rounded),
+            label: Text(L.t(controller.localeCode, 'save')),
+          ),
         ],
       ),
     ),
