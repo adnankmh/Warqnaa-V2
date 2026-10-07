@@ -1,10 +1,10 @@
 part of 'main.dart';
 
 const String warqnaaR12Release = '0.7.0+240';
-const Color _r12Gold = Color(0xFFF5C85B);
-const Color _r12Mint = Color(0xFF61DDAE);
-const Color _r12Deep = Color(0xFF071A13);
-const Color _r12Panel = Color(0xFF10271F);
+const Color _r12Gold = B307SkyLuxury.goldSoft;
+const Color _r12Mint = B307SkyLuxury.cyan;
+const Color _r12Deep = B307SkyLuxury.navy;
+const Color _r12Panel = B307SkyLuxury.surface;
 
 Map<String, dynamic> _r12Map(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 List<Map<String, dynamic>> _r12List(dynamic value) => value is List ? value.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList() : <Map<String, dynamic>>[];
@@ -199,14 +199,14 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
 
   @override Widget build(BuildContext context) {
     final tierColor=_r12Color(tier['color']);
-    return Scaffold(backgroundColor:_r12Deep,appBar:AppBar(backgroundColor:_r12Deep,title:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'ساحة المنافسات' : 'Competitive Arena',style:const TextStyle(fontWeight:FontWeight.w900)),Text(ar ? 'أبطال ورقنا' : 'WARQNAA CHAMPIONS',style:const TextStyle(fontSize:8,color:_r12Gold,letterSpacing:1.4))]),actions:[IconButton(onPressed:() async { if (!widget.controller.serverConnected) await widget.controller.reconnectV173(); await _load(); },icon:const Icon(Icons.refresh_rounded))],bottom:TabBar(controller:tabs,isScrollable:true,tabs:[Tab(text:ar?'الساحة':'Arena'),Tab(text:ar?'البطولات':'Cups'),Tab(text:ar?'التصنيف':'Ladder'),Tab(text:ar?'الجوائز':'Rewards')])),
-      body:loading&&data.isEmpty?const Center(child:CircularProgressIndicator()):Container(decoration:const BoxDecoration(gradient:RadialGradient(center:Alignment(1,-1),radius:1.4,colors:[Color(0xFF153D2F),_r12Deep])),child:Column(children:[if (cupBusy || rewardBusy) Semantics(liveRegion: true, child: Padding(padding: const EdgeInsets.all(12), child: _R12Notice(text: ar ? 'جارٍ تنفيذ طلبك. انتظر تأكيد النتيجة.' : 'Your request is processing. Awaiting confirmation.', color: _r12Mint))),if (!live) Padding(padding:const EdgeInsets.all(12), child:_R12Notice(text:ar ? 'معاينة فقط — حدّث الاتصال قبل التسجيل أو استلام الجوائز.' : 'Preview only — refresh before registration or reward claims.',color:Colors.orangeAccent)),Expanded(child:TabBarView(controller:tabs,children:[_arena(tierColor),_cups(),_ladder(),_rewards()]))])),
+    return Scaffold(backgroundColor:_r12Deep,appBar:AppBar(backgroundColor:B307SkyLuxury.deep,title:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'ساحة المنافسات' : 'Competitive Arena',style:const TextStyle(fontWeight:FontWeight.w900)),Text(ar ? 'أبطال ورقنا' : 'WARQNAA CHAMPIONS',style:const TextStyle(fontSize:8,color:_r12Gold,letterSpacing:1.4))]),actions:[IconButton(onPressed:() async { if (!widget.controller.serverConnected) await widget.controller.reconnectV173(); await _load(); },icon:const Icon(Icons.refresh_rounded))],bottom:TabBar(controller:tabs,isScrollable:true,tabs:[Tab(text:ar?'الساحة':'Arena'),Tab(text:ar?'البطولات':'Cups'),Tab(text:ar?'التصنيف':'Ladder'),Tab(text:ar?'الجوائز':'Rewards')])),
+      body:loading&&data.isEmpty?const Center(child:CircularProgressIndicator()):Container(key:const ValueKey('r29-sky-competitive-shell'),decoration:const BoxDecoration(gradient:RadialGradient(center:Alignment(1,-1),radius:1.4,colors:[Color(0xFF0B8CFF),B307SkyLuxury.deep,B307SkyLuxury.navy])),child:Column(children:[if (cupBusy || rewardBusy) Semantics(liveRegion: true, child: Padding(padding: const EdgeInsets.all(12), child: _R12Notice(text: ar ? 'جارٍ تنفيذ طلبك. انتظر تأكيد النتيجة.' : 'Your request is processing. Awaiting confirmation.', color: _r12Mint))),if (!live) Padding(padding:const EdgeInsets.all(12), child:_R12Notice(text:ar ? 'معاينة فقط — حدّث الاتصال قبل التسجيل أو استلام الجوائز.' : 'Preview only — refresh before registration or reward claims.',color:Colors.orangeAccent)),Expanded(child:TabBarView(controller:tabs,children:[_arena(tierColor),_cups(),_ladder(),_rewards()]))])),
     );
   }
 
   Widget _arena(Color tierColor) => RefreshIndicator(onRefresh:_load,child:ListView(padding:const EdgeInsets.all(13),children:[
     if(error!=null)_R12Notice(text:ar?'تعذر الاتصال؛ تُعرض معاينة آمنة حتى يعود الخادم.':'Connection unavailable; showing a safe preview.',color:Colors.orangeAccent),
-    Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(borderRadius:BorderRadius.circular(30),gradient:LinearGradient(colors:[tierColor.withValues(alpha:.20),_r12Panel,_r12Deep]),border:Border.all(color:tierColor.withValues(alpha:.3)),boxShadow:[BoxShadow(color:tierColor.withValues(alpha:.1),blurRadius:45)]),child:LayoutBuilder(builder:(context,c){final details=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'تصنيف الموسم' : 'SEASON RANK',style:const TextStyle(color:_r12Gold,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.5)),Text(_r12Local(tier,widget.controller.localeCode,'Bronze'),style:const TextStyle(fontSize:30,fontWeight:FontWeight.w900)),Text(_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season'),style:const TextStyle(color:Colors.white60)),const SizedBox(height:13),Wrap(spacing:8,runSpacing:8,children:[_R12Metric(label:ar?'الفوز':'WINS',value:'${rating['wins']??0}',color:_r12Mint),_R12Metric(label:ar?'الأعلى':'PEAK',value:'${rating['peak']??1000}',color:_r12Gold),_R12Metric(label:ar?'الترتيب':'RANK',value:'#${rating['rank']??1}',color:Colors.lightBlueAccent)])]);return c.maxWidth>570?Row(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(width:22),Expanded(child:details)]):Column(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(height:16),details]);})),const SizedBox(height:12),
+    Container(key:const ValueKey('r29-sky-season-rank'),padding:const EdgeInsets.all(22),decoration:BoxDecoration(borderRadius:BorderRadius.circular(30),gradient:LinearGradient(colors:[tierColor.withValues(alpha:.22),B307SkyLuxury.surfaceRaised,B307SkyLuxury.deep]),border:Border.all(color:B307SkyLuxury.sky.withValues(alpha:.34)),boxShadow:B307SkyLuxury.glow),child:LayoutBuilder(builder:(context,c){final details=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(ar ? 'تصنيف الموسم' : 'SEASON RANK',style:const TextStyle(color:_r12Gold,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.5)),Text(_r12Local(tier,widget.controller.localeCode,'Bronze'),style:const TextStyle(fontSize:30,fontWeight:FontWeight.w900)),Text(_r12Local(season['name'],widget.controller.localeCode,'Warqnaa Season'),style:const TextStyle(color:Colors.white60)),const SizedBox(height:13),Wrap(spacing:8,runSpacing:8,children:[_R12Metric(label:ar?'الفوز':'WINS',value:'${rating['wins']??0}',color:_r12Mint),_R12Metric(label:ar?'الأعلى':'PEAK',value:'${rating['peak']??1000}',color:_r12Gold),_R12Metric(label:ar?'الترتيب':'RANK',value:'#${rating['rank']??1}',color:Colors.lightBlueAccent)])]);return c.maxWidth>570?Row(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(width:22),Expanded(child:details)]):Column(children:[_R12RankEmblem(tier:tier,rating:_r12Int(rating['rating'],1000)),const SizedBox(height:16),details]);})),const SizedBox(height:12),
     _queueCard(),const SizedBox(height:12),
     _R12Notice(text:ar ? 'كل حركة ونتيجة وتصنيف تخضع للتحقق. النتائج المشبوهة تنتظر المراجعة قبل اعتماد الجوائز.' : 'Moves, results and rating are verified. Suspicious results await review before rewards.',color:_r12Mint),
     const SizedBox(height:16),Text(ar?'آخر المواجهات':'Recent battles',style:const TextStyle(fontSize:19,fontWeight:FontWeight.w900)),const SizedBox(height:8),
@@ -220,9 +220,12 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
   }
 
   Widget _cups() => RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.all(13), children: [
-    _R12SectionHero(icon:'♜',eyebrow:ar ? 'الدوريات • الكؤوس • البطولات' : 'LEAGUES • CUPS • CHAMPIONSHIPS',
-      title:ar ? 'طريقك إلى الكأس' : 'Your road to the cup',
-      subtitle:ar ? 'اختر بطولة تناسبك. الرسوم والتسجيل والنتائج معتمدة من الخادم.' : 'Find your championship. Fees, registration and results are verified.'),
+    B307PageHero(
+      icon: Icons.emoji_events_rounded,
+      title: ar ? 'طريقك إلى الكأس' : 'Your road to the cup',
+      subtitle: ar ? 'الدوريات والكؤوس والبطولات برسوم وتسجيل ونتائج موثقة من الخادم.' : 'LEAGUES • CUPS • CHAMPIONSHIPS — server-verified fees, registration and results.',
+      trailing: const Icon(Icons.workspace_premium_rounded, color: B307SkyLuxury.goldSoft, size: 28),
+    ),
     const SizedBox(height:12), R21TournamentDirectory(cups:_r12List(data['tournaments']),locale:widget.controller.localeCode,onOpen:_openCup),
   ]));
 

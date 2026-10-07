@@ -7871,6 +7871,15 @@ void showProfile(BuildContext context, AppController controller) {
     context,
     child: Column(
       children: [
+        B307PageHero(
+          icon: Icons.palette_rounded,
+          title: controller.localeCode == 'ar' ? 'تخصيص الملف الشخصي' : 'Profile customization',
+          subtitle: controller.localeCode == 'ar'
+              ? 'هويتك في ورقنا: الصورة والغلاف والإطار واللون والإنجازات في مساحة واحدة.'
+              : 'Your Warqnaa identity: avatar, cover, frame, color and achievements in one premium space.',
+          trailing: const Icon(Icons.auto_awesome_rounded, color: B307SkyLuxury.goldSoft, size: 27),
+        ),
+        const SizedBox(height: 10),
         ProfileCover(
           coverId: controller.selectedCover,
           height: 205,
@@ -7917,12 +7926,13 @@ void showProfile(BuildContext context, AppController controller) {
         ),
         const SizedBox(height: 12),
         Row(
+          key: const ValueKey('r29-sky-profile-metrics'),
           children: [
-            Expanded(child: ProfileMetric(value: '${controller.winRate.toStringAsFixed(1)}%', label: L.t(controller.localeCode, 'winRate'))),
+            Expanded(child: B307StatCard(icon: Icons.show_chart_rounded, value: '${controller.winRate.toStringAsFixed(1)}%', label: L.t(controller.localeCode, 'winRate'))),
             const SizedBox(width: 7),
-            Expanded(child: ProfileMetric(value: '${controller.gamesPlayed}', label: L.t(controller.localeCode, 'matches'))),
+            Expanded(child: B307StatCard(icon: Icons.style_rounded, value: '${controller.gamesPlayed}', label: L.t(controller.localeCode, 'matches'))),
             const SizedBox(width: 7),
-            Expanded(child: ProfileMetric(value: '${controller.level}', label: 'المستوى')),
+            Expanded(child: B307StatCard(icon: Icons.workspace_premium_rounded, value: '${controller.level}', label: controller.localeCode == 'ar' ? 'المستوى' : 'Level')),
           ],
         ),
         if (controller.activeClub != null) ...[

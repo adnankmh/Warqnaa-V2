@@ -1,0 +1,36 @@
+name: R29 Premium World Polish Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r29-premium-world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: R29 premium world polish contract
+        run: python3 tools/test_r29_premium_world_polish_contract.py
+      - name: Enforce Android and Web build gates for every stage
+        run: python3 tools/test_stage_build_workflows.py
+      - name: Preserve R28 sky-luxury cross-device contract
+        run: python3 tools/test_r28_sky_luxury_cross_device_contract.py
+      - name: Privacy / no-secrets guard
+        run: python3 tools/check_git_privacy_v304.py
+      - name: Compile Python contracts
+        run: python3 -m compileall -q tools
+      - name: Diff hygiene
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}..HEAD
