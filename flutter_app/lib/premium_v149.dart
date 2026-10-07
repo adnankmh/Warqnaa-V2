@@ -10,6 +10,29 @@ import 'services/app_sounds.dart';
 /// Visual and UX primitives introduced in Warqna v149.
 /// These widgets are dependency-light so they work on Web, Android and iOS.
 
+/// R30 keeps this standalone module dependency-light. It intentionally mirrors
+/// the approved Warqnaa sky/cyan/gold tokens without importing the main.dart
+/// part library, avoiding a circular library dependency.
+abstract final class _R30SkyLuxury {
+  static const Color sky = Color(0xff24c8ff);
+  static const Color cyan = Color(0xff22d3ee);
+  static const Color deep = Color(0xff064777);
+  static const Color navy = Color(0xff052f54);
+  static const Color goldSoft = Color(0xffffdf7d);
+
+  static const LinearGradient panelGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[Color(0xff0a6eb0), Color(0xff07598f), Color(0xff064777)],
+  );
+
+  static const LinearGradient heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[Color(0xff11a8f5), Color(0xff0878cf), Color(0xff07528e)],
+  );
+}
+
 enum BotDifficulty { easy, normal, pro, master }
 
 class BotProfile {
@@ -101,9 +124,9 @@ class Bot3DAvatar extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [profile.secondary, profile.primary, const Color(0xff07111c)],
                 ),
-                border: Border.all(color: Color.lerp(profile.secondary, B307SkyLuxury.cyan, .28)!, width: 2.2),
+                border: Border.all(color: Color.lerp(profile.secondary, _R30SkyLuxury.cyan, .28)!, width: 2.2),
                 boxShadow: [
-                  BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .20), blurRadius: size * .20, spreadRadius: .7),
+                  BoxShadow(color: _R30SkyLuxury.sky.withValues(alpha: .20), blurRadius: size * .20, spreadRadius: .7),
                   BoxShadow(color: profile.primary.withValues(alpha: .18), blurRadius: size * .16, spreadRadius: .4),
                   const BoxShadow(color: Colors.black38, blurRadius: 7, offset: Offset(0, 4)),
                 ],
@@ -223,12 +246,12 @@ class BotIdentityShowcase extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [profile.primary.withValues(alpha: .34), B307SkyLuxury.deep, B307SkyLuxury.navy, profile.secondary.withValues(alpha: .12)],
+            colors: [profile.primary.withValues(alpha: .34), _R30SkyLuxury.deep, _R30SkyLuxury.navy, profile.secondary.withValues(alpha: .12)],
           ),
           borderRadius: BorderRadius.circular(compact ? 20 : 26),
-          border: Border.all(color: Color.lerp(profile.secondary, B307SkyLuxury.sky, .24)!.withValues(alpha: .48)),
+          border: Border.all(color: Color.lerp(profile.secondary, _R30SkyLuxury.sky, .24)!.withValues(alpha: .48)),
           boxShadow: <BoxShadow>[
-            BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .12), blurRadius: 24, offset: const Offset(0, 12)),
+            BoxShadow(color: _R30SkyLuxury.sky.withValues(alpha: .12), blurRadius: 24, offset: const Offset(0, 12)),
             BoxShadow(color: profile.primary.withValues(alpha: .12), blurRadius: 18),
           ],
         ),
@@ -592,11 +615,11 @@ class _ReactionDockState extends State<ReactionDock> {
           constraints: const BoxConstraints(maxHeight: 330),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            gradient: B307SkyLuxury.panelGradient,
+            gradient: _R30SkyLuxury.panelGradient,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .34)),
+            border: Border.all(color: _R30SkyLuxury.sky.withValues(alpha: .34)),
             boxShadow: <BoxShadow>[
-              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .16), blurRadius: 20, spreadRadius: 1, offset: const Offset(0, 10)),
+              BoxShadow(color: _R30SkyLuxury.sky.withValues(alpha: .16), blurRadius: 20, spreadRadius: 1, offset: const Offset(0, 10)),
               const BoxShadow(color: Colors.black38, blurRadius: 22, offset: Offset(0, 12)),
             ],
           ),
@@ -616,9 +639,9 @@ class _ReactionDockState extends State<ReactionDock> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                     decoration: BoxDecoration(
-                      color: B307SkyLuxury.cyan.withValues(alpha: .11),
+                      color: _R30SkyLuxury.cyan.withValues(alpha: .11),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .30)),
+                      border: Border.all(color: _R30SkyLuxury.cyan.withValues(alpha: .30)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -691,7 +714,7 @@ class _ReactionDockState extends State<ReactionDock> {
                                 colors: <Color>[Color(0x3300cfff), Color(0x220b8cff), Color(0x18052f54)],
                               ),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24)),
+                              border: Border.all(color: _R30SkyLuxury.sky.withValues(alpha: .24)),
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -1065,13 +1088,13 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
                 constraints: const BoxConstraints(maxWidth: 270),
                 padding: const EdgeInsets.fromLTRB(22, 15, 22, 12),
                 decoration: BoxDecoration(
-                  gradient: B307SkyLuxury.heroGradient,
+                  gradient: _R30SkyLuxury.heroGradient,
                   borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .62), width: 1.5),
+                  border: Border.all(color: _R30SkyLuxury.goldSoft.withValues(alpha: .62), width: 1.5),
                   boxShadow: <BoxShadow>[
                     const BoxShadow(color: Color(0x77000000), blurRadius: 26, offset: Offset(0, 12)),
-                    BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .30), blurRadius: 24, spreadRadius: 1),
-                    BoxShadow(color: B307SkyLuxury.goldSoft.withValues(alpha: .22), blurRadius: 18, spreadRadius: 1),
+                    BoxShadow(color: _R30SkyLuxury.cyan.withValues(alpha: .30), blurRadius: 24, spreadRadius: 1),
+                    BoxShadow(color: _R30SkyLuxury.goldSoft.withValues(alpha: .22), blurRadius: 18, spreadRadius: 1),
                   ],
                 ),
                 child: Stack(clipBehavior: Clip.none, children: [
