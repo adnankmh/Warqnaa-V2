@@ -5111,7 +5111,7 @@ class PremiumCardBack extends StatelessWidget {
                   painter: _WarqnaaCardBackPainter(color: c2),
                   child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
                 )
-              : null,
+              : const SizedBox.shrink(),
         ),
       ),
     );
