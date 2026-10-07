@@ -3,7 +3,7 @@ part of 'main.dart';
 /// B307 visual system: an original Warqnaa premium card-room experience
 /// inspired by the polish of modern MENA social card-game products without
 /// copying third-party branding, assets, or proprietary layouts.
-const String warqnaaB307VisualRelease = '1.4.0+308-sky-luxe';
+const String warqnaaB307VisualRelease = '1.5.0+309-premium-world';
 
 /// Bright sky-blue visual foundation requested for the R27 luxury pass.
 ///
@@ -969,20 +969,16 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
           final packagesRaw = catalog['packages'];
           final packages = packagesRaw is List ? packagesRaw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList() : <Map<String, dynamic>>[];
           return ListView(padding: const EdgeInsets.all(12), children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: B307SkyLuxury.heroGradient,
-                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
-                boxShadow: B307SkyLuxury.glow,
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                Text(ar ? 'عروض ورقنا الخاصة' : 'Warqnaa special offers', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 20, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 5),
-                Text(ar ? 'اختَر الحزمة المناسبة. الدفع النهائي يتم عبر مزود دفع موثوق، ولا يخزن ورقنا بيانات بطاقتك.' : 'Choose a package. Final payment is handled by a trusted provider; Warqnaa does not store raw card details.', style: const TextStyle(fontSize: 10, height: 1.5, color: B307SkyLuxury.textMuted)),
-              ]),
+            B307PageHero(
+              icon: Icons.local_mall_rounded,
+              title: ar ? 'عروض ورقنا الخاصة' : 'Warqnaa special offers',
+              subtitle: ar
+                  ? 'حزم واضحة وتسعير مباشر وشراء موثّق، مع إبقاء بيانات الدفع لدى مزود الخدمة.'
+                  : 'Clear bundles, transparent pricing and verified checkout while payment data stays with the provider.',
+              trailing: const Icon(Icons.verified_user_rounded, color: B307SkyLuxury.emerald, size: 25),
             ),
+            const SizedBox(height: 8),
+            B307CommerceTrustStrip(catalog: catalog, localeCode: widget.controller.localeCode),
             const SizedBox(height: 10),
             SizedBox(height: 39, child: ListView(scrollDirection: Axis.horizontal, children: <Widget>[
               for (final entry in <Map<String, String>>[
@@ -1030,6 +1026,52 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
             ),
           ]);
         },
+      ),
+    );
+  }
+}
+
+class B307CommerceTrustStrip extends StatelessWidget {
+  const B307CommerceTrustStrip({super.key, required this.catalog, required this.localeCode});
+  final Map<String, dynamic> catalog;
+  final String localeCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = localeCode == 'ar';
+    final sandbox = catalog['sandbox'] == true;
+    final productionReady = catalog['production_ready'] == true;
+    final providersRaw = catalog['providers'];
+    final providers = providersRaw is Map ? Map<String, dynamic>.from(providersRaw) : <String, dynamic>{};
+    final verifiedProviders = providers.values.where((value) => value is Map && value['verification_ready'] == true).length;
+    final statusLabel = productionReady
+        ? (ar ? 'الشراء الموثّق جاهز' : 'Verified checkout ready')
+        : sandbox
+            ? (ar ? 'وضع تجريبي آمن' : 'Safe sandbox mode')
+            : (ar ? 'الشراء محمي والتحقق قيد الإعداد' : 'Protected checkout; verification setup pending');
+    final detail = ar
+        ? '$verifiedProviders مزود/مزودي دفع جاهزين للتحقق • لا يتم تخزين بيانات البطاقة الخام'
+        : '$verifiedProviders verified payment provider(s) ready • raw card details are not stored';
+    return Semantics(
+      label: '$statusLabel. $detail',
+      child: Container(
+        key: const ValueKey('r29-commerce-trust-strip'),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.panelGradient,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: (productionReady ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .38)),
+        ),
+        child: Row(children: <Widget>[
+          Icon(productionReady ? Icons.verified_rounded : Icons.shield_outlined, color: productionReady ? B307SkyLuxury.emerald : B307SkyLuxury.cyan, size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+            Text(statusLabel, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10.5, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 2),
+            Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.5, height: 1.3, fontWeight: FontWeight.w700)),
+          ])),
+          if (sandbox) const Padding(padding: EdgeInsetsDirectional.only(start: 6), child: Icon(Icons.science_outlined, color: B307SkyLuxury.goldSoft, size: 18)),
+        ]),
       ),
     );
   }
