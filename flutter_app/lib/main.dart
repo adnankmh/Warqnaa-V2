@@ -8803,9 +8803,16 @@ Future<void> showAvailableRooms(BuildContext context, AppController controller, 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(L.t(controller.localeCode, 'openRooms'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 5),
-          Text(L.t(controller.localeCode, 'openRoomsHint'), style: const TextStyle(color: Colors.white60)),
+          B307PageHero(
+            icon: Icons.public_rounded,
+            title: L.t(controller.localeCode, 'openRooms'),
+            subtitle: L.t(controller.localeCode, 'openRoomsHint'),
+            trailing: Icon(
+              controller.serverConnected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+              color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+              size: 26,
+            ),
+          ),
           const SizedBox(height: 12),
           if (rooms.isEmpty)
             Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Center(child: Text(L.t(controller.localeCode, 'noOpenRooms'), style: const TextStyle(color: Colors.white60))))
@@ -8851,9 +8858,12 @@ void showJoinRoomByCode(BuildContext context, AppController controller, GameInfo
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(L.t(controller.localeCode, 'joinByCode'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 7),
-        Text(L.t(controller.localeCode, 'joinByCodeHint'), style: const TextStyle(color: Colors.white60, height: 1.45)),
+        B307PageHero(
+          icon: Icons.password_rounded,
+          title: L.t(controller.localeCode, 'joinByCode'),
+          subtitle: L.t(controller.localeCode, 'joinByCodeHint'),
+          trailing: const Icon(Icons.lock_open_rounded, color: B307SkyLuxury.goldSoft, size: 26),
+        ),
         const SizedBox(height: 12),
         TextField(controller: codeController, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomCode'), prefixIcon: const Icon(Icons.tag_rounded))),
         const SizedBox(height: 9),
@@ -8887,9 +8897,12 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(L.t(controller.localeCode, 'chooseGameMode'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 6),
-        Text(L.t(controller.localeCode, 'chooseGameModeHint'), style: const TextStyle(color: Colors.white60, height: 1.5)),
+        B307PageHero(
+          icon: Icons.tune_rounded,
+          title: L.t(controller.localeCode, 'chooseGameMode'),
+          subtitle: L.t(controller.localeCode, 'chooseGameModeHint'),
+          trailing: const Icon(Icons.style_rounded, color: B307SkyLuxury.cyan, size: 26),
+        ),
         const SizedBox(height: 14),
         Row(
           children: [
@@ -8942,9 +8955,12 @@ class _GameModeCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 160),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: .08),
+          gradient: B307SkyLuxury.panelGradient,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: .35)),
+          border: Border.all(color: color.withValues(alpha: .46)),
+          boxShadow: <BoxShadow>[
+            BoxShadow(color: color.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5)),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -8980,9 +8996,16 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
       builder: (context, setLocalState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(L.t(controller.localeCode, 'createRoom'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 5),
-          Text(L.t(controller.localeCode, 'roomModeDescription'), style: const TextStyle(color: Colors.white60, height: 1.45)),
+          B307PageHero(
+            icon: Icons.add_home_work_rounded,
+            title: L.t(controller.localeCode, 'createRoom'),
+            subtitle: L.t(controller.localeCode, 'roomModeDescription'),
+            trailing: Icon(
+              voiceEnabled ? Icons.mic_rounded : Icons.style_rounded,
+              color: voiceEnabled ? B307SkyLuxury.emerald : B307SkyLuxury.goldSoft,
+              size: 26,
+            ),
+          ),
           const SizedBox(height: 12),
           TextField(controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
           const SizedBox(height: 10),
@@ -9046,9 +9069,10 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.white.withValues(alpha: .055), Theme.of(context).colorScheme.primary.withValues(alpha: .08)]),
+              gradient: B307SkyLuxury.panelGradient,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .22)),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .26)),
+              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 10, offset: const Offset(0, 5))],
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const Row(children: [
