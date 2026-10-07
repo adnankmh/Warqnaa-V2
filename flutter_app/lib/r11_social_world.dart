@@ -1,9 +1,9 @@
 part of 'main.dart';
 
 const String warqnaaR11Release = '0.6.0+230';
-const Color _r11Gold = Color(0xFFF2C96D);
-const Color _r11Mint = Color(0xFF55E6A5);
-const Color _r11Deep = Color(0xFF06130E);
+const Color _r11Gold = B307SkyLuxury.goldSoft;
+const Color _r11Mint = B307SkyLuxury.cyan;
+const Color _r11Deep = B307SkyLuxury.navy;
 
 Map<String, dynamic> _r11Map(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 List<Map<String, dynamic>> _r11List(dynamic value) => value is List
@@ -225,7 +225,7 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
       const SizedBox(height: 9), Text(ar ? 'مجلس حي يجمع اللاعبين والفعاليات والمدرجات والإعادات — بخصوصية صممت أولًا.' : 'A living majlis for players, events, spectator stands and replays — built privacy-first.', style: TextStyle(color: Colors.white.withValues(alpha: .68), height: 1.5)),
       const SizedBox(height: 16), Wrap(spacing: 8, runSpacing: 8, children: [FilledButton.icon(onPressed: _composer, icon: const Icon(Icons.auto_awesome), label: Text(ar ? 'انشر لحظتك' : 'Share a moment')),OutlinedButton.icon(onPressed: _createEvent, icon: const Icon(Icons.event_available_outlined), label: Text(ar ? 'فعالية' : 'Event')),OutlinedButton.icon(onPressed: _privacy, icon: const Icon(Icons.shield_outlined), label: Text(ar ? 'الخصوصية' : 'Privacy'))]),
     ]);
-    return Container(constraints: BoxConstraints(minHeight: wide ? 260 : 250), padding: EdgeInsets.all(wide ? 28 : 20), decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), border: Border.all(color: _r11Mint.withValues(alpha: .18)), gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF0B2A1C), _r11Deep, Color(0xFF07100D)]), boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 34, offset: Offset(0, 18))]), child: Stack(children: [
+    return Container(key: const ValueKey('r29-sky-social-hero'), constraints: BoxConstraints(minHeight: wide ? 260 : 250), padding: EdgeInsets.all(wide ? 28 : 20), decoration: BoxDecoration(borderRadius: BorderRadius.circular(30), border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .34)), gradient: B307SkyLuxury.heroGradient, boxShadow: B307SkyLuxury.glow), child: Stack(children: [
       PositionedDirectional(end: -22, top: -30, child: Text('♠\n♥ ♦\n♣', textAlign: TextAlign.center, style: TextStyle(fontSize: wide ? 70 : 54, height: .9, color: Colors.white.withValues(alpha: .035), fontWeight: FontWeight.w900))),
       Align(alignment: AlignmentDirectional.centerStart, child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 760), child: content)),
     ]));
@@ -233,7 +233,7 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
 
   Widget _stats(Map<String, dynamic> stats) {
     final items = <(IconData, String, dynamic)>[(Icons.people_alt_outlined, ar ? 'متابع' : 'Followers', stats['followers'] ?? 0),(Icons.person_add_alt, ar ? 'أتابع' : 'Following', stats['following'] ?? 0),(Icons.stadium_outlined, ar ? 'مدرج مباشر' : 'Live stands', stats['live_rooms'] ?? 0),(Icons.auto_awesome_outlined, ar ? 'فعالية' : 'Events', stats['events'] ?? 0)];
-    return SizedBox(height: 82, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, index) { final item = items[index]; return Container(width: 145, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: .76), borderRadius: BorderRadius.circular(18), border: Border.all(color: _r11Mint.withValues(alpha: .12))), child: Row(children: [Icon(item.$1, color: index == 0 ? _r11Gold : _r11Mint, size: 21), const SizedBox(width: 9), Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Text('${item.$3}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),Text(item.$2, style: const TextStyle(fontSize: 9, color: Colors.white54))]) ])); }));
+    return SizedBox(height: 82, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: items.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, index) { final item = items[index]; return Container(width: 145, padding: const EdgeInsets.all(12), decoration: BoxDecoration(gradient: B307SkyLuxury.panelGradient, borderRadius: BorderRadius.circular(18), border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24))), child: Row(children: [Icon(item.$1, color: index == 0 ? _r11Gold : _r11Mint, size: 21), const SizedBox(width: 9), Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Text('${item.$3}', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 18, fontWeight: FontWeight.w900)),Text(item.$2, style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted))]) ])); }));
   }
 
   Widget _feed(List<Map<String, dynamic>> items) {
@@ -461,7 +461,22 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
     final clubs = _r11List(data['clubs']), mine = _r11Map(data['my_club']);
     if (loading && clubs.isEmpty) return const Center(child: CircularProgressIndicator());
     return RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.fromLTRB(14,14,14,100), children: [
-      Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), gradient: const LinearGradient(colors: [Color(0xFF132D22), _r11Deep]), border: Border.all(color: _r11Gold.withValues(alpha: .18))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'أندية ورقنا' : 'WARQNAA CLUBS', style: TextStyle(color: _r11Gold, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),const SizedBox(height: 8),Text(ar ? 'راية واحدة، مجلس واحد.' : 'One banner. One majlis.', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900)),Text(ar ? 'فعاليات النادي، الحضور، الإعلانات، الدوري والنشاط في مكان واحد.' : 'Club events, attendance, announcements, league and activity in one place.', style: const TextStyle(color: Colors.white60, height: 1.5)),if (mine.isEmpty) ...[const SizedBox(height: 14),FilledButton.icon(onPressed: live && !creating && joiningId == null ? _createClub : null, icon: const Icon(Icons.add_business_outlined), label: Text(ar ? 'أسّس ناديك' : 'Found your club'))]])),
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        B307PageHero(
+          icon: Icons.shield_rounded,
+          title: ar ? 'أندية ورقنا' : 'Warqnaa Clubs',
+          subtitle: ar ? 'راية واحدة، مجلس واحد — فعاليات ودوريات وإعلانات ونشاط الأعضاء في مساحة زرقاء فاخرة.' : 'One banner, one majlis — events, leagues, announcements and member activity in a premium blue space.',
+          trailing: const Icon(Icons.groups_3_rounded, color: B307SkyLuxury.goldSoft, size: 28),
+        ),
+        if (mine.isEmpty) ...[
+          const SizedBox(height: 9),
+          FilledButton.icon(
+            onPressed: live && !creating && joiningId == null ? _createClub : null,
+            icon: const Icon(Icons.add_business_outlined),
+            label: Text(ar ? 'أسّس ناديك' : 'Found your club'),
+          ),
+        ],
+      ]),
       if (!live) Padding(padding: const EdgeInsets.only(top: 12), child: _R11GlassCard(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _R11Notice(text: ar ? 'الأندية تحتاج اتصالًا موثّقًا. الانضمام والتأسيس متوقفان حتى تحديث البيانات.' : 'Clubs need a verified connection. Refresh before joining or founding a club.', icon: Icons.cloud_off_outlined),
         TextButton.icon(onPressed: () async { await widget.controller.reconnectV173(); await _load(); }, icon: const Icon(Icons.refresh), label: Text(ar ? 'إعادة الاتصال' : 'Reconnect')),
