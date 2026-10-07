@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{CompetitiveMatch, CompetitiveRating, CompetitiveSeason, Game, RankedQueueEntry, SiteSetting, Tournament, User};
+use App\Models\{CompetitionAppeal, CompetitiveMatch, CompetitiveRating, CompetitiveSeason, Game, RankedQueueEntry, SiteSetting, Tournament, User};
 use App\Services\Competitive\{CompetitiveRatingService,CompetitiveSeasonService,TournamentBracketService};
 use App\Services\Games\GameCatalog;
 use App\Services\Platform\AdminAuditService;
@@ -25,6 +25,7 @@ class AdminCompetitiveController extends Controller
                 'ranked_waiting'=>RankedQueueEntry::where('status','waiting')->count(),
                 'matches_live'=>CompetitiveMatch::whereIn('status',['forming','active'])->count(),
                 'matches_review'=>CompetitiveMatch::where('status','review')->count(),
+                'appeals_pending'=>CompetitionAppeal::where('status','pending')->count(),
                 'rated_players'=>$active?CompetitiveRating::where('season_id',$active->id)->where('scope_key','overall')->count():0,
                 'tournaments_open'=>Tournament::whereIn('status',['open','running'])->count(),
             ],
@@ -33,6 +34,7 @@ class AdminCompetitiveController extends Controller
             'leaders'=>$active?$seasons->leaderboard($active,'overall',null,null,30)['rows']:[],
             'queue'=>RankedQueueEntry::with(['user.profile','game','room'])->whereIn('status',['waiting','matching','matched'])->latest('joined_at')->limit(80)->get(),
             'review_matches'=>CompetitiveMatch::with(['room','game','season','tournament'])->where('status','review')->latest('finished_at')->limit(80)->get(),
+            'appeals'=>CompetitionAppeal::with(['user.profile','match.game','match.room','tournament','resolver.profile'])->latest('submitted_at')->limit(80)->get(),
             'recent_matches'=>CompetitiveMatch::with(['room','game','season','tournament'])->latest('started_at')->limit(80)->get(),
             'tournaments'=>Tournament::with(['game','season','club'])->latest()->limit(80)->get(),
             'games'=>Game::where('active',true)->whereIn('key',GameCatalog::customerKeys())->get(),'tiers'=>config('warqna_competitive.tiers',[]),
@@ -109,6 +111,135 @@ class AdminCompetitiveController extends Controller
         return $this->respond($request,'تم تنفيذ إجراء المباراة.',$result);
     }
 
+    public function appealQueue(Request $request)
+    {
+        $this->guardReviewer($request);
+        $status = (string) $request->query('status', 'pending');
+        abort_unless(in_array($status, ['pending', 'accepted', 'upheld', 'resolved'], true), 422, 'حالة الاعتراض غير صحيحة.');
+
+        $appeals = CompetitionAppeal::with(['user.profile','match.game','match.room','tournament','resolver.profile'])
+            ->where('status', $status)
+            ->latest('submitted_at')
+            ->limit(100)
+            ->get();
+
+        return response()->json([
+            'ok' => true,
+            'status' => $status,
+            'appeals' => $appeals,
+        ]);
+    }
+
+    public function appealAction(Request $request, CompetitionAppeal $appeal, CompetitiveRatingService $ratings, AdminAuditService $audit)
+    {
+        $actor = $this->guardReviewer($request);
+        $data = $request->validate([
+            'decision' => 'required|in:uphold,approve_after_review,void_match',
+            'note' => 'required|string|min:5|max:1000',
+        ]);
+        abort_unless($appeal->status === 'pending', 409, 'تم حسم هذا الاعتراض مسبقًا.');
+
+        $appeal->loadMissing('match.room');
+        $match = $appeal->match;
+        abort_unless($match, 404, 'المباراة المرتبطة بالاعتراض غير موجودة.');
+        $before = $appeal->toArray();
+        $note = trim(strip_tags($data['note']));
+        $result = ['ok' => true, 'decision' => $data['decision']];
+
+        if ($data['decision'] === 'void_match') {
+            abort_if((bool)$match->rating_processed, 422, 'تم اعتماد التصنيف بالفعل؛ استخدم تسوية إدارية موثقة بدل إلغاء المباراة.');
+            $result = $ratings->voidMatch($match, $note, $actor->id);
+            $appealStatus = 'accepted';
+        } elseif ($data['decision'] === 'approve_after_review') {
+            abort_unless($match->room, 422, 'لا توجد غرفة مرتبطة بالمباراة لمراجعة النتيجة.');
+            $result = $match->rating_processed
+                ? ['ok' => true, 'duplicate' => true, 'message' => 'النتيجة كانت معتمدة مسبقًا.']
+                : $ratings->processRoom($match->room, true);
+            $appealStatus = 'resolved';
+        } else {
+            $appealStatus = 'upheld';
+        }
+
+        $appeal->update([
+            'status' => $appealStatus,
+            'resolved_by' => $actor->id,
+            'decision_note' => $note,
+            'resolved_at' => now(),
+        ]);
+
+        $freshMatch = $match->fresh();
+        $pending = CompetitionAppeal::where('competitive_match_id', $match->id)->where('status', 'pending')->exists();
+        $meta = (array)($freshMatch->meta ?? []);
+        $meta['appeal_pending'] = $pending;
+        $meta['last_appeal_decision'] = [
+            'appeal_id' => $appeal->id,
+            'decision' => $data['decision'],
+            'reviewer_id' => $actor->id,
+            'at' => now()->toIso8601String(),
+        ];
+        $freshMatch->update(['meta' => $meta]);
+
+        $audit->record(
+            $request,
+            'admin.competitive.appeal.'.$data['decision'],
+            $appeal,
+            $before,
+            $appeal->fresh()->toArray(),
+            ['match_id' => $match->id, 'result' => $result]
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم حسم الاعتراض وتوثيق القرار.',
+            'appeal' => $appeal->fresh(['match.game','tournament','user.profile','resolver.profile']),
+            'review_result' => $result,
+        ]);
+    }
+
+    public function reviewerAccess(Request $request, User $user, AdminAuditService $audit)
+    {
+        $actor = AuthenticatedActor::resolve($request);
+        abort_unless($actor->isPrimaryAdmin(), 403, 'فقط المدير الرئيسي يستطيع تفويض مراجعي المسابقات.');
+        abort_if($user->isPrimaryAdmin(), 422, 'المدير الرئيسي يملك صلاحية المراجعة تلقائيًا.');
+
+        $data = $request->validate(['enabled' => 'required|boolean']);
+        $before = $user->toArray();
+        $permissions = (array)($user->admin_permissions ?? []);
+
+        if ((bool)$data['enabled']) {
+            $permissions['competition_review'] = true;
+            $user->is_admin = true;
+            if (($user->admin_role ?? 'player') === 'player') {
+                $user->admin_role = 'delegated_admin';
+            }
+        } else {
+            unset($permissions['competition_review']);
+        }
+
+        $user->admin_permissions = $permissions;
+        $user->save();
+
+        $audit->record(
+            $request,
+            'admin.competitive.reviewer_access',
+            $user,
+            $before,
+            $user->fresh()->toArray(),
+            ['enabled' => (bool)$data['enabled']]
+        );
+
+        return response()->json([
+            'ok' => true,
+            'message' => (bool)$data['enabled'] ? 'تم منح صلاحية مراجعة المسابقات.' : 'تم سحب صلاحية مراجعة المسابقات.',
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'admin_role' => $user->admin_role,
+                'competition_review' => $user->hasAdminPermission('competition_review'),
+            ],
+        ]);
+    }
+
     public function createTournament(Request $request, CompetitiveSeasonService $seasons, AdminAuditService $audit)
     {
         $this->guard($request);
@@ -161,6 +292,18 @@ class AdminCompetitiveController extends Controller
         $actor = AuthenticatedActor::resolve($request);
         abort_unless((bool)$actor->is_admin,403,'هذه الصفحة للإدارة فقط.');
         abort_unless($actor->hasAdminPermission('competitive'),403,'تحتاج صلاحية إدارة Competitive Arena.');
+    }
+
+    private function guardReviewer(Request $request): User
+    {
+        $actor = AuthenticatedActor::resolve($request);
+        abort_unless((bool)$actor->is_admin,403,'هذه الصفحة للإدارة فقط.');
+        abort_unless(
+            $actor->hasAdminPermission('competitive') || $actor->hasAdminPermission('competition_review'),
+            403,
+            'تحتاج صلاحية مراجعة المسابقات.'
+        );
+        return $actor;
     }
 
     /** @return array<int,int> */

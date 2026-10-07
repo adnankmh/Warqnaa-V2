@@ -70,7 +70,7 @@ void main() {
       expect(controller.attempts, 1);
       expect(tester.widget<OutlinedButton>(guest).onPressed, isNull);
       controller.gate.complete();
-      for (var i = 0; i < 40 && find.byType(R8HomeLobby).evaluate().isEmpty; i++) {
+      for (var i = 0; i < 40 && find.byType(B307HomeDashboard).evaluate().isEmpty; i++) {
         await tester.pump(const Duration(milliseconds: 50));
       }
       expect(controller.isAuthenticated, isTrue);
@@ -78,7 +78,7 @@ void main() {
       expect(controller.isAdmin, isFalse);
       expect(controller.authToken, isNull);
       expect(controller.api.token, isNull);
-      expect(find.byType(R8HomeLobby), findsOneWidget);
+      expect(find.byType(B307HomeDashboard), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink()); controller.dispose();
     });

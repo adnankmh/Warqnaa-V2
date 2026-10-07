@@ -88,18 +88,18 @@ class _R64PlayCommandBar extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(colors: <Color>[Color(0xff193b2b), Color(0xff321f2a), Color(0xff171717)]),
-        border: Border.all(color: const Color(0xffffcf58).withValues(alpha: .22)),
-        boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x44000000), blurRadius: 22, offset: Offset(0, 8))],
+        gradient: B307SkyLuxury.heroGradient,
+        border: B307SkyLuxury.border(alpha: .42),
+        boxShadow: B307SkyLuxury.glow,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
         Row(children: <Widget>[
-          const Icon(Icons.public_rounded, color: Color(0xffffcf58)),
+          const Icon(Icons.public_rounded, color: B307SkyLuxury.goldSoft),
           const SizedBox(width: 8),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(ar ? 'مركز اللعب العالمي' : 'World play center', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: TextStyle(color: Colors.white.withValues(alpha: .52), fontSize: 8, letterSpacing: 1.1)),
+              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
             ]),
           ),
           _R64NetworkBadge(online: controller.serverConnected, ar: ar),
@@ -134,12 +134,12 @@ class _R64NetworkBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
     decoration: BoxDecoration(
-      color: (online ? const Color(0xff55e68a) : Colors.orangeAccent).withValues(alpha: .12),
+      color: (online ? B307SkyLuxury.emerald : B307SkyLuxury.gold).withValues(alpha: .16),
       borderRadius: BorderRadius.circular(30),
-      border: Border.all(color: (online ? const Color(0xff55e68a) : Colors.orangeAccent).withValues(alpha: .24)),
+      border: Border.all(color: (online ? B307SkyLuxury.emerald : B307SkyLuxury.gold).withValues(alpha: .38)),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-      Icon(online ? Icons.cloud_done_outlined : Icons.offline_bolt_outlined, size: 13, color: online ? const Color(0xff55e68a) : Colors.orangeAccent),
+      Icon(online ? Icons.cloud_done_outlined : Icons.offline_bolt_outlined, size: 13, color: online ? B307SkyLuxury.emerald : B307SkyLuxury.goldSoft),
       const SizedBox(width: 4),
       Text(online ? (ar ? 'متصل' : 'Online') : (ar ? 'محلي' : 'Local'), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900)),
     ]),

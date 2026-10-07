@@ -1,6 +1,7 @@
 name: Build and deploy Flutter Web
 
 on:
+  # Every release-stage PR must produce a Flutter Web artifact from exact HEAD.
   workflow_dispatch:
   push:
     branches: [main, master]
@@ -66,7 +67,9 @@ jobs:
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
       - name: Validate source package and reject merge markers
-        run: python3 tools/validate_release.py
+        run: |
+          python3 tools/validate_release.py
+          python3 tools/test_stage_build_workflows.py
 
       - name: Install pinned Flutter SDK
         uses: subosito/flutter-action@v2
@@ -167,11 +170,25 @@ jobs:
           fi
           flutter build web --release --base-href "$BASE_HREF" "${EXTRA_ARGS[@]}"
 
+      - name: Record exact-stage Web provenance
+        run: |
+          mkdir -p flutter_app/build/stage-meta
+          {
+            echo "workflow=Build and deploy Flutter Web"
+            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "ref=${{ github.ref }}"
+            echo "run_id=${{ github.run_id }}"
+            echo "release_version=${{ steps.release.outputs.version }}"
+            echo "release_build=${{ steps.release.outputs.build }}"
+          } > flutter_app/build/stage-meta/web-stage-manifest.txt
+
       - name: Upload Flutter Web build artifact
         uses: actions/upload-artifact@v6
         with:
           name: warqnaa-flutter-web-v${{ steps.release.outputs.build }}
-          path: flutter_app/build/web
+          path: |
+            flutter_app/build/web
+            flutter_app/build/stage-meta/web-stage-manifest.txt
           if-no-files-found: error
           retention-days: 14
 

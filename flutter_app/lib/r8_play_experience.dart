@@ -217,20 +217,60 @@ class _R18DiscoveryShelf extends StatelessWidget {
 
 class R8CardHand extends StatelessWidget {
   const R8CardHand({super.key, required this.count, required this.cardBuilder, this.selectedIndex, this.compact = false});
-  final int count; final int? selectedIndex; final bool compact; final Widget Function(int index, double width, double height) cardBuilder;
+  final int count;
+  final int? selectedIndex;
+  final bool compact;
+  final Widget Function(int index, double width, double height) cardBuilder;
+
   @override
   Widget build(BuildContext context) {
     if (count == 0) return const SizedBox.shrink();
     return LayoutBuilder(builder: (context, constraints) {
-      final viewport = constraints.maxWidth;
-      final width = compact ? (viewport < 340 ? 48.0 : viewport > 900 ? 54.0 : 50.0) : (viewport < 340 ? 54.0 : viewport > 900 ? 68.0 : viewport > 600 ? 64.0 : 58.0);
+      // R28 invariant: the complete hand always stays inside the visible table.
+      // Hand/Banakil can reach 15–19 cards, so overlap adapts instead of
+      // introducing horizontal scrolling or pushing edge cards off-screen.
+      final viewport = math.max(1.0, constraints.maxWidth);
+      final sidePadding = viewport < 360 ? 6.0 : 10.0;
+      final usable = math.max(1.0, viewport - sidePadding * 2);
+      final preferredWidth = compact
+          ? (viewport < 340 ? 46.0 : viewport > 900 ? 54.0 : 50.0)
+          : (viewport < 340 ? 52.0 : viewport > 900 ? 68.0 : viewport > 600 ? 64.0 : 58.0);
+      final minimumReveal = compact ? 11.0 : 13.0;
+      final widthBudget = count <= 1 ? usable : usable - minimumReveal * (count - 1);
+      final width = math.min(preferredWidth, math.max(36.0, widthBudget));
       final height = width * 1.48;
-      final available = math.max(width, viewport - 16);
-      final step = count <= 1 ? 0.0 : ((available - width) / (count - 1)).clamp(44.0, width + 6).toDouble();
-      final span = width + step * (count - 1);
-      final order = [for (var i = 0; i < count; i++) i];
-      final cards = SizedBox(width: span, height: height + 20, child: Stack(clipBehavior: Clip.none, children: [for (final index in order) Positioned(key: ValueKey('r8-hand-$index'), left: step * index, top: selectedIndex == index ? 0 : 12, width: width, height: height, child: cardBuilder(index, width, height))]));
-      return Directionality(textDirection: TextDirection.ltr, child: SizedBox(height: height + 20, child: SingleChildScrollView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 8), child: SizedBox(width: math.max(available, span), child: Center(child: cards)))));
+      final step = count <= 1 ? 0.0 : math.max(0.0, (usable - width) / (count - 1));
+      final span = math.min(usable, width + step * (count - 1));
+      final order = <int>[for (var i = 0; i < count; i++) i];
+      final cards = SizedBox(
+        width: span,
+        height: height + 20,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            for (final index in order)
+              Positioned(
+                key: ValueKey('r8-hand-$index'),
+                left: step * index,
+                top: selectedIndex == index ? 0 : 12,
+                width: width,
+                height: height,
+                child: cardBuilder(index, width, height),
+              ),
+          ],
+        ),
+      );
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: double.infinity,
+          height: height + 20,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: sidePadding),
+            child: Align(alignment: Alignment.bottomCenter, child: cards),
+          ),
+        ),
+      );
     });
   }
 }

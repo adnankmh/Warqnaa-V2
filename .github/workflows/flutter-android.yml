@@ -1,16 +1,20 @@
 name: Build Android APK and AAB
 
 on:
+  # Every release-stage PR must build Android, even when a stage only changes
+  # backend/contracts/workflows. This keeps APK/AAB evidence tied to exact HEAD.
   workflow_dispatch:
   pull_request:
     branches: [main, master]
-    paths: ['flutter_app/**', 'RELEASE_VERSION.json', '.github/workflows/flutter-android.yml', 'tools/android_emulator_smoke.sh', 'tools/test_r7_android_emulator_contract.py', 'tools/test_android_emulator_smoke.py']
   push:
     branches: [main, master]
-    paths: ['flutter_app/**', 'RELEASE_VERSION.json', '.github/workflows/flutter-android.yml', 'tools/android_emulator_smoke.sh', 'tools/test_r7_android_emulator_contract.py', 'tools/test_android_emulator_smoke.py']
 
 permissions:
   contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -31,7 +35,9 @@ jobs:
         run: python3 tools/release_metadata.py --github-output >> "$GITHUB_OUTPUT"
 
       - name: Validate source package and reject merge markers
-        run: python3 tools/validate_release.py
+        run: |
+          python3 tools/validate_release.py
+          python3 tools/test_stage_build_workflows.py
 
       - name: Set up Java 17
         uses: actions/setup-java@v5
@@ -309,6 +315,18 @@ jobs:
           sha256sum "$APK" > "$APK.sha256"
           sha256sum "$AAB" > "$AAB.sha256"
 
+      - name: Record exact-stage Android provenance
+        run: |
+          mkdir -p flutter_app/build/stage-meta
+          {
+            echo "workflow=Build Android APK and AAB"
+            echo "head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
+            echo "ref=${{ github.ref }}"
+            echo "run_id=${{ github.run_id }}"
+            echo "release_version=${{ steps.release.outputs.version }}"
+            echo "release_build=${{ steps.release.outputs.build }}"
+          } > flutter_app/build/stage-meta/android-stage-manifest.txt
+
       - name: Upload launch-safe APK and Play AAB
         uses: actions/upload-artifact@v6
         with:
@@ -321,3 +339,4 @@ jobs:
             flutter_app/build/app/outputs/bundle/release/app-release.aab
             flutter_app/build/app/outputs/bundle/release/app-release.aab.sha256
             flutter_app/build/symbols/**
+            flutter_app/build/stage-meta/android-stage-manifest.txt

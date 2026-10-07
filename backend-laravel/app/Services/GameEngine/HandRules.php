@@ -29,6 +29,7 @@ class HandRules extends AbstractCardRules
             'melds' => [],
             'first_meld_done' => [],
             'drew_this_turn' => [],
+            'manual_hand_order' => [],
             'scores' => $previousScores,
             'round' => $round,
             'rounds_total' => 5,
@@ -43,6 +44,16 @@ class HandRules extends AbstractCardRules
     {
         if ($action === 'new_round') {
             return ($state['phase'] ?? null) === 'finished' && !empty($state['next_round_available']);
+        }
+
+        if ($action === 'organize') {
+            if (($state['phase'] ?? 'playing') !== 'playing' || !isset($state['hands'][$playerId])) {
+                return false;
+            }
+            $requested = array_values($payload['cards'] ?? []);
+            $current = array_values($state['hands'][$playerId] ?? []);
+            return count($requested) === count($current)
+                && $this->sameCardMultiset($current, $requested);
         }
 
         if (($state['turn'] ?? null) !== $playerId || ($state['phase'] ?? 'playing') !== 'playing') {
@@ -66,7 +77,7 @@ class HandRules extends AbstractCardRules
                 && $this->isValidMeld($cards);
         }
 
-        if ($action === 'arrange_melds') {
+        if (in_array($action, ['arrange_melds', 'meld_many'], true)) {
             return $this->validateArrange($state, $playerId, $payload);
         }
 
@@ -100,19 +111,29 @@ class HandRules extends AbstractCardRules
             ]);
         }
 
+        if ($action === 'organize') {
+            $state['hands'][$playerId] = array_values($payload['cards'] ?? []);
+            $state['manual_hand_order'][$playerId] = true;
+            return $state;
+        }
+
         if ($action === 'draw_deck') {
             $this->restoreDeckIfNeeded($state);
             if (!empty($state['deck'])) {
                 $state['hands'][$playerId][] = array_shift($state['deck']);
             }
-            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            if (empty($state['manual_hand_order'][$playerId])) {
+                $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            }
             $state['drew_this_turn'][$playerId] = true;
             $state['messages'][] = $this->labelPlayer($playerId).' سحب من الدك.';
         }
 
         if ($action === 'draw_discard') {
             $state['hands'][$playerId][] = array_pop($state['discard']);
-            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            if (empty($state['manual_hand_order'][$playerId])) {
+                $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+            }
             $state['drew_this_turn'][$playerId] = true;
             $state['messages'][] = $this->labelPlayer($playerId).' سحب من الرمي.';
         }
@@ -136,7 +157,7 @@ class HandRules extends AbstractCardRules
             }
         }
 
-        if ($action === 'arrange_melds') {
+        if (in_array($action, ['arrange_melds', 'meld_many'], true)) {
             $groups = array_values($payload['groups'] ?? []);
             $allCards = [];
             foreach ($groups as $group) {
@@ -190,8 +211,157 @@ class HandRules extends AbstractCardRules
             }
         }
 
-        $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId] ?? []);
+        if (empty($state['manual_hand_order'][$playerId])) {
+            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId] ?? []);
+        }
         return $state;
+    }
+
+    /**
+     * Server-authoritative action hints consumed by Flutter. These are
+     * suggestions only; validate() remains the final authority for every move.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function availableActions(array $state, string $playerId): array
+    {
+        if (($state['phase'] ?? 'playing') !== 'playing' || ($state['turn'] ?? null) !== $playerId) {
+            return [];
+        }
+
+        $hand = array_values($state['hands'][$playerId] ?? []);
+        $actions = [
+            ['type' => 'organize', 'cards' => $hand],
+        ];
+
+        if (empty($state['drew_this_turn'][$playerId])) {
+            if (!empty($state['deck']) || !empty($state['discard'])) {
+                $actions[] = ['type' => 'draw_deck'];
+            }
+            if (!empty($state['discard'])) {
+                $actions[] = ['type' => 'draw_discard'];
+            }
+            return $actions;
+        }
+
+        foreach ($hand as $card) {
+            $actions[] = ['type' => 'discard', 'card' => $card];
+        }
+
+        $candidates = $this->meldCandidates($hand);
+        foreach ($candidates as $cards) {
+            if ($this->validate($state, $playerId, 'meld', ['cards' => $cards])) {
+                $actions[] = ['type' => 'meld', 'cards' => $cards];
+            }
+        }
+
+        $groups = $this->nonOverlappingMeldCandidates($candidates, $hand);
+        if (count($groups) >= 2 && $this->validate($state, $playerId, 'meld_many', ['groups' => $groups])) {
+            $actions[] = ['type' => 'meld_many', 'groups' => $groups];
+        }
+
+        if (!empty($state['first_meld_done'][$playerId])) {
+            foreach (($state['melds'] ?? []) as $owner => $ownerGroups) {
+                foreach ((array) $ownerGroups as $index => $group) {
+                    foreach ($hand as $card) {
+                        $payload = ['group_owner' => (string) $owner, 'group_index' => (int) $index, 'cards' => [$card]];
+                        if ($this->validate($state, $playerId, 'layoff', $payload)) {
+                            $actions[] = ['type' => 'layoff'] + $payload;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $actions;
+    }
+
+    protected function sameCardMultiset(array $left, array $right): bool
+    {
+        $a = array_count_values(array_map('strval', $left));
+        $b = array_count_values(array_map('strval', $right));
+        ksort($a);
+        ksort($b);
+        return $a === $b;
+    }
+
+    /** @return array<int,array<int,string>> */
+    protected function meldCandidates(array $hand): array
+    {
+        $hand = array_values(array_map('strval', $hand));
+        $jokers = array_values(array_filter($hand, fn ($card) => $this->rank($card) === 'JOKER'));
+        $naturals = array_values(array_filter($hand, fn ($card) => $this->rank($card) !== 'JOKER'));
+        $candidates = [];
+
+        $byRank = [];
+        foreach ($naturals as $card) {
+            $byRank[$this->rank($card)][] = $card;
+        }
+        foreach ($byRank as $cards) {
+            if (count($cards) >= 3) {
+                $candidates[] = array_slice($cards, 0, min(4, count($cards)));
+            } elseif (count($cards) >= 2 && $jokers) {
+                $candidate = array_merge($cards, [reset($jokers)]);
+                if ($this->isValidMeld($candidate)) $candidates[] = $candidate;
+            }
+        }
+
+        foreach ($this->suits as $suit) {
+            $cards = array_values(array_filter($naturals, fn ($card) => $this->suit($card) === $suit));
+            usort($cards, fn ($a, $b) => $this->cardValue($a) <=> $this->cardValue($b));
+            $count = count($cards);
+            for ($start = 0; $start < $count; $start++) {
+                for ($end = $start + 2; $end < min($count, $start + 7); $end++) {
+                    $candidate = array_slice($cards, $start, $end - $start + 1);
+                    if ($this->isValidMeld($candidate)) $candidates[] = $candidate;
+                    if ($jokers) {
+                        $withJoker = array_merge($candidate, [reset($jokers)]);
+                        if ($this->isValidMeld($withJoker)) $candidates[] = $withJoker;
+                    }
+                }
+            }
+        }
+
+        $unique = [];
+        foreach ($candidates as $candidate) {
+            $copy = array_values($candidate);
+            sort($copy);
+            $unique[implode('|', $copy)] = array_values($candidate);
+        }
+        return array_values($unique);
+    }
+
+    /**
+     * @param array<int,array<int,string>> $candidates
+     * @param array<int,string> $hand
+     * @return array<int,array<int,string>>
+     */
+    protected function nonOverlappingMeldCandidates(array $candidates, array $hand): array
+    {
+        usort($candidates, fn ($a, $b) => count($b) <=> count($a));
+        $available = array_count_values(array_map('strval', $hand));
+        $used = [];
+        $groups = [];
+
+        foreach ($candidates as $candidate) {
+            $candidateCounts = array_count_values(array_map('strval', $candidate));
+            $fits = true;
+            foreach ($candidateCounts as $card => $count) {
+                if (($used[$card] ?? 0) + $count > ($available[$card] ?? 0)) {
+                    $fits = false;
+                    break;
+                }
+            }
+            if (!$fits) continue;
+
+            $groups[] = array_values($candidate);
+            foreach ($candidateCounts as $card => $count) {
+                $used[$card] = ($used[$card] ?? 0) + $count;
+            }
+            if (count($groups) >= 4) break;
+        }
+
+        return $groups;
     }
 
     protected function openingRequirement(): int|float

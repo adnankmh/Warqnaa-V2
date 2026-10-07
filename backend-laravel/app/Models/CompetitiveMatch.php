@@ -14,4 +14,5 @@ class CompetitiveMatch extends Model
     public function room() { return $this->belongsTo(Room::class); }
     public function game() { return $this->belongsTo(Game::class); }
     public function ratingEvents() { return $this->hasMany(CompetitiveRatingEvent::class); }
+    public function appeals() { return $this->hasMany(CompetitionAppeal::class); }
 }

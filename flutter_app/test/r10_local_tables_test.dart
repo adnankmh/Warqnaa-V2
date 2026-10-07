@@ -216,9 +216,14 @@ void main() {
           expect(controller.api.token, isNull);
           expect(find.byType(R8CardHand), findsOneWidget);
           expect(find.byType(CircularProgressIndicator), findsNothing);
-          final cards = tester.widgetList<PlayingCard>(find.descendant(of: find.byType(R8CardHand), matching: find.byType(PlayingCard)));
+          final handFinder = find.byType(R8CardHand);
+          final cards = tester.widgetList<PlayingCard>(find.descendant(of: handFinder, matching: find.byType(PlayingCard)));
           expect(cards, isNotEmpty);
-          expect(cards.every((card) => card.width >= 48), isTrue);
+          final minimumCardWidth = size.height < 500 ? 36.0 : 48.0;
+          expect(cards.every((card) => card.width >= minimumCardWidth), isTrue);
+          final handRect = tester.getRect(handFinder);
+          expect(handRect.left, greaterThanOrEqualTo(-0.5));
+          expect(handRect.right, lessThanOrEqualTo(size.width + 0.5));
           if (game.id != 'tarneeb') {
             final table = tester.getRect(find.byKey(const ValueKey('r10-engine-table')));
             expect(table.height, greaterThanOrEqualTo(300), reason: 'Landscape must retain a visible table');

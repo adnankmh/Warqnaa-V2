@@ -1,0 +1,40 @@
+name: R28 Sky Luxury Cross Device Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r28-sky-luxury:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: R28 sky-luxury cross-device contract
+        run: python3 tools/test_r28_sky_luxury_cross_device_contract.py
+      - name: Enforce Android and Web build gates for every stage
+        run: python3 tools/test_stage_build_workflows.py
+      - name: R28 Hand Banakil and competition integrity contract
+        run: python3 tools/test_r28_hand_banakil_competition_contract.py
+      - name: R27 sky-luxury visual contract
+        run: python3 tools/test_r27_sky_luxury_visual_contract.py
+      - name: R27 admin/economy/store/localization contract
+        run: python3 tools/test_r27_admin_economy_store_localization_contract.py
+      - name: Privacy / no-secrets guard
+        run: python3 tools/check_git_privacy_v304.py
+      - name: Compile Python contracts
+        run: python3 -m compileall -q tools
+      - name: Diff hygiene
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}..HEAD

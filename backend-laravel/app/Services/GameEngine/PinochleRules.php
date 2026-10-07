@@ -32,15 +32,76 @@ class PinochleRules extends HandRules
             'first_meld_done' => [],
             // The starter has 19 cards and begins by discarding without drawing.
             'drew_this_turn' => $starter === null ? [] : [$starter => true],
+            'manual_hand_order' => [],
             'scores' => $previousScores,
             'round' => (int) ($options['round'] ?? 1),
             'target' => $target,
             'twos_wild' => true,
             'jokers_wild' => true,
             'messages' => [
-                'بناكل: 18 ورقة لكل لاعب و19 للاعب البادئ. يبدأ برمي ورقة، ولا يوجد حد أدنى للنزول. يمكن تركيب الأوراق على مجموعات الشريك فقط.',
+                'بناكل: 18 ورقة لكل لاعب و19 للاعب البادئ. يبدأ برمي ورقة، ولا يوجد حد أدنى للنزول. يمكن السحب من الرزمة أو أخذ ورقة/عدة أوراق متتالية من النار، ويمكن تركيب الأوراق على مجموعات الشريك فقط.',
             ],
         ];
+    }
+
+    public function validate(array $state, string $playerId, string $action, array $payload): bool
+    {
+        if ($action === 'draw_discard_stack') {
+            if (($state['turn'] ?? null) !== $playerId || ($state['phase'] ?? 'playing') !== 'playing') {
+                return false;
+            }
+            if (!empty($state['drew_this_turn'][$playerId])) {
+                return false;
+            }
+            $count = (int) ($payload['count'] ?? 0);
+            $available = count($state['discard'] ?? []);
+            return $count >= 2 && $count <= $available;
+        }
+
+        return parent::validate($state, $playerId, $action, $payload);
+    }
+
+    public function apply(array $state, string $playerId, string $action, array $payload): array
+    {
+        if ($action !== 'draw_discard_stack') {
+            return parent::apply($state, $playerId, $action, $payload);
+        }
+
+        if (!$this->validate($state, $playerId, $action, $payload)) {
+            $state['last_error'] = 'invalid_discard_stack';
+            $state['last_error_message'] = 'اختر عددًا صحيحًا من أوراق النار المتاحة.';
+            return $state;
+        }
+
+        unset($state['last_error'], $state['last_error_message']);
+        $count = (int) $payload['count'];
+        $start = count($state['discard']) - $count;
+        $picked = array_splice($state['discard'], $start, $count);
+        $state['hands'][$playerId] = array_merge($state['hands'][$playerId] ?? [], $picked);
+        if (empty($state['manual_hand_order'][$playerId])) {
+            $state['hands'][$playerId] = $this->sortHand($state['hands'][$playerId]);
+        }
+        $state['drew_this_turn'][$playerId] = true;
+        $state['messages'][] = $this->labelPlayer($playerId).' أخذ '.$count.' أوراق متتالية من النار.';
+        return $state;
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    public function availableActions(array $state, string $playerId): array
+    {
+        $actions = parent::availableActions($state, $playerId);
+        if (($state['turn'] ?? null) !== $playerId || !empty($state['drew_this_turn'][$playerId])) {
+            return $actions;
+        }
+
+        $discardCount = count($state['discard'] ?? []);
+        if ($discardCount >= 2) {
+            $actions[] = [
+                'type' => 'draw_discard_stack',
+                'max_count' => $discardCount,
+            ];
+        }
+        return $actions;
     }
 
     protected function openingRequirement(): int|float

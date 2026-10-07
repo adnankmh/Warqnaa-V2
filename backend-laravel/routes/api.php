@@ -185,6 +185,8 @@ Route::prefix('mobile/v1')->group(function () {
         Route::delete('/competitive/queue', [MobileCompetitiveController::class, 'cancelQueue'])->middleware('throttle:30,1');
         Route::get('/competitive/leaderboard', [MobileCompetitiveController::class, 'leaderboard']);
         Route::get('/competitive/history', [MobileCompetitiveController::class, 'history']);
+        Route::get('/competitive/appeals', [MobileCompetitiveController::class, 'appeals']);
+        Route::post('/competitive/matches/{match}/appeals', [MobileCompetitiveController::class, 'submitAppeal'])->middleware('throttle:warqna-sensitive');
         Route::get('/competitive/tournaments/{tournament}', [MobileCompetitiveController::class, 'tournament']);
         Route::post('/competitive/tournaments/{tournament}/join', [MobileCompetitiveController::class, 'joinTournament'])->middleware('throttle:warqna-sensitive');
         Route::delete('/competitive/tournaments/{tournament}/leave', [MobileCompetitiveController::class, 'leaveTournament'])->middleware('throttle:warqna-sensitive');
@@ -215,6 +217,9 @@ Route::prefix('mobile/v1')->group(function () {
         Route::post('/admin/competitive/seasons/{season}', [AdminCompetitiveController::class, 'seasonAction']);
         Route::post('/admin/competitive/ratings/{user}', [AdminCompetitiveController::class, 'adjustRating']);
         Route::post('/admin/competitive/matches/{match}', [AdminCompetitiveController::class, 'matchAction']);
+        Route::get('/admin/competitive/appeals', [AdminCompetitiveController::class, 'appealQueue']);
+        Route::patch('/admin/competitive/appeals/{appeal}', [AdminCompetitiveController::class, 'appealAction'])->middleware('throttle:warqna-sensitive');
+        Route::patch('/admin/competitive/reviewers/{user}', [AdminCompetitiveController::class, 'reviewerAccess'])->middleware('throttle:warqna-sensitive');
         Route::post('/admin/competitive/tournaments', [AdminCompetitiveController::class, 'createTournament']);
         Route::post('/admin/competitive/tournaments/{tournament}/bracket', [AdminCompetitiveController::class, 'buildBracket']);
 

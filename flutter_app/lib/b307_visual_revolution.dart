@@ -58,63 +58,78 @@ class B307TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    return Container(
-      margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        gradient: B307SkyLuxury.shellGradient,
-        borderRadius: BorderRadius.circular(17),
-        border: B307SkyLuxury.border(alpha: .40),
-        boxShadow: B307SkyLuxury.glow,
-      ),
-      child: Row(children: <Widget>[
-        GestureDetector(
-          onTap: () => showProfile(context, controller),
-          child: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
-              border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
-              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
-            ),
-            child: Center(child: Text(controller.avatarEmoji, style: const TextStyle(fontSize: 22))),
-          ),
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 390;
+      final avatarSize = compact ? 36.0 : 42.0;
+      return Container(
+        margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 7 : 10, vertical: 7),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.shellGradient,
+          borderRadius: BorderRadius.circular(17),
+          border: B307SkyLuxury.border(alpha: .40),
+          boxShadow: B307SkyLuxury.glow,
         ),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
-            Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13)),
-            const SizedBox(height: 2),
-            Row(children: <Widget>[
-              Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
-              const SizedBox(width: 4),
-              Text(
-                controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
-                style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
+        child: Row(children: <Widget>[
+          GestureDetector(
+            onTap: () => showProfile(context, controller),
+            child: Container(
+              width: avatarSize,
+              height: avatarSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
+                border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
+                boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
               ),
+              child: Center(child: Text(controller.avatarEmoji, style: TextStyle(fontSize: compact ? 19 : 22))),
+            ),
+          ),
+          SizedBox(width: compact ? 6 : 9),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
+              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: compact ? 11.5 : 13)),
+              const SizedBox(height: 2),
+              Row(children: <Widget>[
+                Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ]),
             ]),
-          ]),
-        ),
-        B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: B307SkyLuxury.gold),
-        const SizedBox(width: 5),
-        B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: B307SkyLuxury.goldSoft),
-        const SizedBox(width: 4),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          tooltip: ar ? 'الأصدقاء' : 'Friends',
-          onPressed: () => showFriends(context, controller),
-          icon: const Icon(Icons.people_alt_outlined, size: 21, color: B307SkyLuxury.text),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          tooltip: ar ? 'الإشعارات' : 'Notifications',
-          onPressed: () => showNotifications(context, controller),
-          icon: const Icon(Icons.notifications_none_rounded, size: 21, color: B307SkyLuxury.text),
-        ),
-      ]),
-    );
+          ),
+          if (!compact) ...<Widget>[
+            B307TopCounter(icon: Icons.workspace_premium_rounded, value: '${controller.vipDays}', accent: B307SkyLuxury.gold),
+            const SizedBox(width: 5),
+          ],
+          B307TopCounter(icon: Icons.monetization_on_rounded, value: formatNumber(controller.coins), accent: B307SkyLuxury.goldSoft),
+          SizedBox(width: compact ? 2 : 4),
+          if (!compact)
+            IconButton(
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+              tooltip: ar ? 'الأصدقاء' : 'Friends',
+              onPressed: () => showFriends(context, controller),
+              icon: const Icon(Icons.people_alt_outlined, size: 21, color: B307SkyLuxury.text),
+            ),
+          IconButton(
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+            tooltip: ar ? 'الإشعارات' : 'Notifications',
+            onPressed: () => showNotifications(context, controller),
+            icon: const Icon(Icons.notifications_none_rounded, size: 21, color: B307SkyLuxury.text),
+          ),
+        ]),
+      );
+    });
   }
 }
 
@@ -209,6 +224,186 @@ class B307BottomNavigation extends StatelessWidget {
   }
 }
 
+class B307DesktopNavigation extends StatelessWidget {
+  const B307DesktopNavigation({
+    super.key,
+    required this.controller,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final AppController controller;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final destinations = <({IconData icon, String ar, String en})>[
+      (icon: Icons.storefront_outlined, ar: 'المتجر', en: 'Store'),
+      (icon: Icons.style_outlined, ar: 'الألعاب', en: 'Games'),
+      (icon: Icons.home_rounded, ar: 'الرئيسية', en: 'Home'),
+      (icon: Icons.groups_2_outlined, ar: 'المجتمع', en: 'Social'),
+      (icon: Icons.emoji_events_outlined, ar: 'البطولات', en: 'Events'),
+    ];
+
+    return SafeArea(
+      right: false,
+      child: Container(
+        key: const Key('r28-sky-desktop-navigation'),
+        width: 220,
+        margin: const EdgeInsets.fromLTRB(10, 10, 6, 10),
+        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.shellGradient,
+          borderRadius: BorderRadius.circular(24),
+          border: B307SkyLuxury.border(alpha: .42),
+          boxShadow: B307SkyLuxury.glow,
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: <Color>[Color(0xff18b9ff), Color(0xff0b79d0)],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .48)),
+            ),
+            child: Row(children: <Widget>[
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.sky, B307SkyLuxury.gold]),
+                  border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
+                ),
+                alignment: Alignment.center,
+                child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  const Text('WARQNAA', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: .9)),
+                  Text(ar ? 'مجتمع ألعاب الورق' : 'Social card games', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 16),
+          for (var i = 0; i < destinations.length; i++) ...<Widget>[
+            _B307DesktopDestination(
+              icon: destinations[i].icon,
+              label: ar ? destinations[i].ar : destinations[i].en,
+              selected: selectedIndex == i,
+              onTap: () => onSelected(i),
+            ),
+            if (i != destinations.length - 1) const SizedBox(height: 7),
+          ],
+          const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .09),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .26)),
+            ),
+            child: Row(children: <Widget>[
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: B307SkyLuxury.navy.withValues(alpha: .52),
+                  border: Border.all(color: B307SkyLuxury.gold.withValues(alpha: .65)),
+                ),
+                child: Text(controller.avatarEmoji, style: const TextStyle(fontSize: 20)),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
+                  Text(ar ? 'المستوى ${controller.level}' : 'Level ${controller.level}', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9, fontWeight: FontWeight.w700)),
+                ]),
+              ),
+              IconButton(
+                tooltip: ar ? 'الإعدادات' : 'Settings',
+                visualDensity: VisualDensity.compact,
+                onPressed: () => showSettings(context, controller),
+                icon: const Icon(Icons.settings_outlined, size: 19, color: B307SkyLuxury.goldSoft),
+              ),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _B307DesktopDestination extends StatelessWidget {
+  const _B307DesktopDestination({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: selected
+                  ? const LinearGradient(colors: <Color>[Color(0xff22c8ff), Color(0xff0b85e0)])
+                  : null,
+              color: selected ? null : Colors.white.withValues(alpha: .055),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected
+                    ? B307SkyLuxury.sky.withValues(alpha: .65)
+                    : B307SkyLuxury.sky.withValues(alpha: .16),
+              ),
+              boxShadow: selected
+                  ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .22), blurRadius: 14)]
+                  : const <BoxShadow>[],
+            ),
+            child: Row(children: <Widget>[
+              Icon(icon, color: selected ? Colors.white : B307SkyLuxury.textMuted, size: 21),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? Colors.white : B307SkyLuxury.textMuted,
+                    fontSize: 11.5,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (selected) const Icon(Icons.chevron_right_rounded, size: 18, color: B307SkyLuxury.goldSoft),
+            ]),
+          ),
+        ),
+      );
+}
+
 class B307HomeDashboard extends StatelessWidget {
   const B307HomeDashboard({super.key, required this.controller, required this.onTab});
   final AppController controller;
@@ -264,6 +459,34 @@ class B307HomeDashboard extends StatelessWidget {
           const SizedBox(width: 7),
           Expanded(child: B307StatCard(icon: Icons.military_tech_outlined, label: ar ? 'الفوز' : 'Wins', value: '${controller.wins}')),
         ]),
+        if (controller.isLocalAdmin) ...<Widget>[
+          const SizedBox(height: 9),
+          InkWell(
+            key: const ValueKey('r9-open-studio'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: <Color>[Color(0xff109eea), Color(0xff0874c7)]),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .38)),
+                boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .14), blurRadius: 12, offset: const Offset(0, 5))],
+              ),
+              child: Row(children: <Widget>[
+                const Icon(Icons.design_services_rounded, color: B307SkyLuxury.goldSoft, size: 22),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                    Text(ar ? 'استوديو Adnan' : 'Adnan studio', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
+                    Text(ar ? 'إدارة وتخصيص محلي سريع لهذا الجهاز' : 'Quick local management and customization for this device', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.8, fontWeight: FontWeight.w700)),
+                  ]),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.text),
+              ]),
+            ),
+          ),
+        ],
         const SizedBox(height: 10),
         B307SectionHeader(
           title: ar ? 'ألعابك' : 'Your games',
@@ -275,7 +498,7 @@ class B307HomeDashboard extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: featured.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .90),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .78),
           itemBuilder: (context, index) {
             final game = featured[index];
             return InkWell(
@@ -316,6 +539,57 @@ class B307HomeDashboard extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 12),
+        B307SectionHeader(
+          title: ar ? 'عالم ورقنا' : 'Warqnaa world',
+          action: ar ? 'استكشف' : 'Explore',
+          onTap: () => onTab(3),
+        ),
+        const SizedBox(height: 7),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 760 ? 4 : 2;
+            return GridView.count(
+              key: const ValueKey('r28-sky-world-grid'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: columns,
+              crossAxisSpacing: 7,
+              mainAxisSpacing: 7,
+              childAspectRatio: constraints.maxWidth >= 760 ? 1.42 : 1.18,
+              children: <Widget>[
+                B307WorldTile(
+                  icon: Icons.emoji_events_rounded,
+                  title: ar ? 'البطولات' : 'Tournaments',
+                  subtitle: ar ? 'يومية وأسبوعية وكبرى' : 'Daily, weekly and grand',
+                  accent: B307SkyLuxury.gold,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
+                ),
+                B307WorldTile(
+                  icon: Icons.shield_rounded,
+                  title: ar ? 'الأندية' : 'Clubs',
+                  subtitle: ar ? 'فرق، دوريات ومجتمع' : 'Teams, leagues and community',
+                  accent: B307SkyLuxury.emerald,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClubsPage(controller: controller))),
+                ),
+                B307WorldTile(
+                  icon: Icons.face_retouching_natural_rounded,
+                  title: ar ? 'تخصيص الملف' : 'Profile studio',
+                  subtitle: ar ? 'إطار، غلاف، لون وباشا' : 'Frame, cover, color and Pasha',
+                  accent: B307SkyLuxury.cyan,
+                  onTap: () => showProfile(context, controller),
+                ),
+                B307WorldTile(
+                  icon: Icons.forum_rounded,
+                  title: ar ? 'المجتمع' : 'Social',
+                  subtitle: ar ? 'أصدقاء، دعوات وتفاعل' : 'Friends, invites and reactions',
+                  accent: B307SkyLuxury.sky,
+                  onTap: () => onTab(3),
+                ),
+              ],
+            );
+          },
+        ),
         const SizedBox(height: 10),
         B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),
         const SizedBox(height: 7),
@@ -324,10 +598,248 @@ class B307HomeDashboard extends StatelessWidget {
           B307QuickAction(icon: Icons.credit_card_rounded, label: ar ? 'العروض النقدية' : 'Cash offers', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => B307CashShopPage(controller: controller)))),
           B307QuickAction(icon: Icons.people_alt_outlined, label: ar ? 'الأصدقاء' : 'Friends', onTap: () => showFriends(context, controller)),
           B307QuickAction(icon: Icons.account_balance_wallet_outlined, label: ar ? 'المحفظة' : 'Wallet', onTap: () => showWallet(context, controller)),
+          if (controller.isLocalAdmin)
+            B307QuickAction(
+              icon: Icons.design_services_rounded,
+              label: ar ? 'استوديو Adnan' : 'Adnan studio',
+              onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))),
+            ),
         ]),
       ],
     );
   }
+}
+
+class B307PageHero extends StatelessWidget {
+  const B307PageHero({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        key: ValueKey<String>('r28-sky-page-${title.hashCode}'),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: B307SkyLuxury.heroGradient,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .38)),
+          boxShadow: B307SkyLuxury.glow,
+        ),
+        child: Row(children: <Widget>[
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: B307SkyLuxury.cyan.withValues(alpha: .13),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .42)),
+            ),
+            child: Icon(icon, color: B307SkyLuxury.goldSoft, size: 25),
+          ),
+          const SizedBox(width: 11),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 16, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 3),
+            Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, height: 1.35, fontWeight: FontWeight.w700)),
+          ])),
+          if (trailing != null) ...<Widget>[const SizedBox(width: 8), trailing!],
+        ]),
+      );
+}
+
+class B307WorldTile extends StatelessWidget {
+  const B307WorldTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: title,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(17),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xff0b78c4), Color(0xff07588f)],
+              ),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: accent.withValues(alpha: .52)),
+              boxShadow: <BoxShadow>[
+                BoxShadow(color: accent.withValues(alpha: .14), blurRadius: 14, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  width: 38,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: accent.withValues(alpha: .15),
+                    border: Border.all(color: accent.withValues(alpha: .46)),
+                  ),
+                  child: Icon(icon, color: accent, size: 22),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 11.5),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700, fontSize: 8.8, height: 1.25),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+}
+
+class B307TarneebHud extends StatelessWidget {
+  const B307TarneebHud({
+    super.key,
+    required this.weLabel,
+    required this.theyLabel,
+    required this.weScore,
+    required this.theyScore,
+    required this.roundLabel,
+    required this.trickScore,
+    required this.xpMultiplier,
+    required this.connected,
+  });
+
+  final String weLabel;
+  final String theyLabel;
+  final int weScore;
+  final int theyScore;
+  final String roundLabel;
+  final String trickScore;
+  final double xpMultiplier;
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget score(String label, int value, CrossAxisAlignment alignment) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: B307SkyLuxury.panelGradient,
+              borderRadius: BorderRadius.circular(14),
+              border: B307SkyLuxury.border(alpha: .34),
+            ),
+            child: Column(
+              crossAxisAlignment: alignment,
+              children: <Widget>[
+                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.5, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text('$value', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 18, fontWeight: FontWeight.w900, height: 1)),
+              ],
+            ),
+          ),
+        );
+
+    return Container(
+      key: const ValueKey('r28-sky-tarneeb-hud'),
+      margin: const EdgeInsets.fromLTRB(10, 4, 10, 3),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        gradient: B307SkyLuxury.shellGradient,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .44)),
+        boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
+      ),
+      child: Row(children: <Widget>[
+        score(weLabel, weScore, CrossAxisAlignment.start),
+        const SizedBox(width: 6),
+        Flexible(
+          flex: 2,
+          child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+            Text(roundLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 9.5, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 2),
+            Text(trickScore, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 4,
+              runSpacing: 3,
+              children: <Widget>[
+                _B307HudBadge(
+                  icon: connected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+                  label: connected ? 'LIVE' : 'LOCAL',
+                  accent: connected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+                ),
+                if (xpMultiplier > 1.0)
+                  _B307HudBadge(
+                    icon: Icons.bolt_rounded,
+                    label: 'x${xpMultiplier.toStringAsFixed(xpMultiplier % 1 == 0 ? 0 : 1)} XP',
+                    accent: B307SkyLuxury.gold,
+                  ),
+              ],
+            ),
+          ]),
+        ),
+        const SizedBox(width: 6),
+        score(theyLabel, theyScore, CrossAxisAlignment.end),
+      ]),
+    );
+  }
+}
+
+class _B307HudBadge extends StatelessWidget {
+  const _B307HudBadge({required this.icon, required this.label, required this.accent});
+  final IconData icon;
+  final String label;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: .14),
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: accent.withValues(alpha: .48)),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Icon(icon, size: 9, color: accent),
+          const SizedBox(width: 2),
+          Text(label, style: TextStyle(color: accent, fontSize: 7.5, fontWeight: FontWeight.w900)),
+        ]),
+      );
 }
 
 class B307StatCard extends StatelessWidget {
