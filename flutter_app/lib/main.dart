@@ -7819,16 +7819,84 @@ class PremiumListTile extends StatelessWidget {
 }
 
 Future<void> showAvatarPicker(BuildContext context, AppController controller) async {
-  const avatars = <String>['🦁','🦅','🐺','🦊','🐯','🐼','🌙','⭐','👑','👑','🧠','🔥'];
-  await showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('تغيير الصورة الرمزية', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 12),
-    Center(child: AccountAvatar(controller: controller, size: 96)),
-    const SizedBox(height: 13),
-    FilledButton.icon(onPressed: () async { final err = await controller.updateAvatarFromGallery(context); if (context.mounted) showToast(context, err ?? 'تم تحديث الصورة.'); }, icon: const Icon(Icons.photo_library_outlined), label: const Text('اختيار صورة من الجهاز')),
-    const SizedBox(height: 12),
-    Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: avatars.map((emoji) => InkWell(onTap: () async { await controller.chooseAvatarEmoji(emoji); if (context.mounted) Navigator.pop(context); }, borderRadius: BorderRadius.circular(50), child: Container(width: 54, height: 54, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .06), border: Border.all(color: emoji == controller.avatarEmoji ? Theme.of(context).colorScheme.primary : Colors.white12)), child: Text(emoji, style: const TextStyle(fontSize: 28))))).toList()),
-  ]));
+  const avatars = <String>['🦁','🦅','🐺','🦊','🐯','🐼','🌙','⭐','👑','🧠','🔥','💎'];
+  final ar = controller.localeCode == 'ar';
+  await showPremiumSheet(
+    context,
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      B307PageHero(
+        icon: Icons.face_retouching_natural_rounded,
+        title: ar ? 'استوديو الصورة والرمز' : 'Avatar studio',
+        subtitle: ar
+            ? 'اختر صورة من جهازك أو هوية رمزية فاخرة تظهر في الملف والطاولات والمنافسات.'
+            : 'Choose a device photo or a premium identity that appears across profile, tables and competitions.',
+        trailing: const Icon(Icons.auto_awesome_rounded, color: B307SkyLuxury.goldSoft, size: 26),
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: Container(
+          key: const ValueKey('r30-avatar-preview-ring'),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.cyan, B307SkyLuxury.goldSoft, B307SkyLuxury.azure]),
+            boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 24, spreadRadius: 2)],
+          ),
+          child: AccountAvatar(controller: controller, size: 96),
+        ),
+      ),
+      const SizedBox(height: 13),
+      FilledButton.icon(
+        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text),
+        onPressed: () async {
+          final err = await controller.updateAvatarFromGallery(context);
+          if (context.mounted) showToast(context, err ?? (ar ? 'تم تحديث الصورة.' : 'Avatar updated.'));
+        },
+        icon: const Icon(Icons.photo_library_outlined),
+        label: Text(ar ? 'اختيار صورة من الجهاز' : 'Choose photo from device'),
+      ),
+      const SizedBox(height: 12),
+      B307SectionHeader(title: ar ? 'الرموز المميزة' : 'Premium symbols'),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 9,
+        runSpacing: 9,
+        alignment: WrapAlignment.center,
+        children: avatars.map((emoji) {
+          final selected = emoji == controller.avatarEmoji;
+          return Semantics(
+            button: true,
+            selected: selected,
+            label: emoji,
+            child: InkWell(
+              onTap: () async {
+                await controller.chooseAvatarEmoji(emoji);
+                if (context.mounted) Navigator.pop(context);
+              },
+              borderRadius: BorderRadius.circular(50),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 58,
+                height: 58,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: selected
+                      ? const LinearGradient(colors: <Color>[B307SkyLuxury.azure, B307SkyLuxury.royal])
+                      : B307SkyLuxury.panelGradient,
+                  border: Border.all(color: selected ? B307SkyLuxury.goldSoft : B307SkyLuxury.sky.withValues(alpha: .30), width: selected ? 2 : 1),
+                  boxShadow: selected
+                      ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.cyan.withValues(alpha: .28), blurRadius: 14)]
+                      : const <BoxShadow>[],
+                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 29)),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ]),
+  );
 }
 
 Future<void> showAvatarPreview(BuildContext context, AppController controller) async {
