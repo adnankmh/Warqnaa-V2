@@ -31,8 +31,9 @@ def main() -> None:
     require(premium, "r30-sky-reaction-dock", 'premium reaction dock')
     require(premium, "r30-sky-floating-reaction", 'premium floating reaction')
     require(premium, "r30-bot-identity-", 'premium bot identity surface')
-    require(premium, "B307SkyLuxury.heroGradient", 'shared sky hero gradient for reactions')
+    require(premium, "_R30SkyLuxury.heroGradient", 'standalone sky hero gradient for reactions')
     require(premium, "Gameplay decisions come from the authoritative engine, not this presentation layer.", 'authoritative bot-engine boundary')
+    require(premium, "avoiding a circular library dependency", 'standalone palette dependency boundary')
 
     print('R30 premium tables, avatars and interactions contract: PASS')
 
