@@ -5083,7 +5083,7 @@ class PremiumCardBack extends StatelessWidget {
       image: true,
       label: Directionality.of(context) == TextDirection.rtl ? 'ظهر ورقنا' : 'Warqnaa card back',
       child: Container(
-        key: const ValueKey('r30-premium-card-back'),
+        key: const ValueKey('r19-warqnaa-card-back'),
         width: width,
         height: height,
         alignment: Alignment.center,
@@ -5104,12 +5104,15 @@ class PremiumCardBack extends StatelessWidget {
             BoxShadow(color: Colors.black.withValues(alpha: .32), blurRadius: 5, offset: const Offset(0, 3)),
           ],
         ),
-        child: asset == null && customBytes == null
-            ? CustomPaint(
-                painter: _WarqnaaCardBackPainter(color: c2),
-                child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
-              )
-            : null,
+        child: KeyedSubtree(
+          key: const ValueKey('r30-premium-card-back'),
+          child: asset == null && customBytes == null
+              ? CustomPaint(
+                  painter: _WarqnaaCardBackPainter(color: c2),
+                  child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
+                )
+              : null,
+        ),
       ),
     );
   }
@@ -5183,7 +5186,7 @@ class WarqnaaTableSurface extends StatelessWidget {
         final radius = portrait ? 38.0 : 30.0;
         final overlay = portrait ? LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .08), Colors.transparent, Colors.black.withValues(alpha: .14)]) : null;
         return AnimatedContainer(
-          key: const ValueKey('r30-premium-table-surface'),
+          key: const ValueKey('r19-warqnaa-table-surface'),
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           decoration: BoxDecoration(
@@ -5197,6 +5200,7 @@ class WarqnaaTableSurface extends StatelessWidget {
             ],
           ),
           child: ClipRRect(
+            key: const ValueKey('r30-premium-table-surface'),
             borderRadius: BorderRadius.circular(radius),
             child: Stack(
               children: [
