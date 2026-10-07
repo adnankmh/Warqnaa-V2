@@ -8558,47 +8558,206 @@ void showCompetitions(BuildContext context, AppController controller) {
 }
 
 void showGameLobby(BuildContext context, AppController controller, GameInfo game) {
+  final ar = controller.localeCode == 'ar';
   if (game.serverOnly && !controller.serverConnected) {
-    showToast(context, 'هذه اللعبة تستخدم محرك الخادم الكامل. اربط التطبيق بخادم Laravel للعبها بصورة صحيحة.');
+    showToast(context, ar
+        ? 'هذه اللعبة تستخدم محرك الخادم الكامل. اربط التطبيق بخادم Laravel للعبها بصورة صحيحة.'
+        : 'This game uses the full server engine. Connect to the Laravel server to play it correctly.');
     return;
   }
   showPremiumSheet(
     context,
     child: Column(
+      key: const ValueKey('r31-premium-game-lobby'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: ClipRRect(borderRadius: BorderRadius.circular(24), child: Image.asset(gameArtAsset(game.id), width: 180, height: 118, fit: BoxFit.cover))),
-        const SizedBox(height: 5),
-        Center(child: Text(L.t(controller.localeCode, game.id), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900))),
-        Center(child: Text(controller.localeCode == 'ar' ? (controller.serverConnected ? 'اختر طريقة اللعب' : 'تدريب محلي مع الكمبيوتر') : (controller.serverConnected ? 'Choose how to play' : 'Local practice with computer players'), style: const TextStyle(color: Colors.white60))),
-        const SizedBox(height: 15),
-        Row(
-          children: [
-            Expanded(child: FilledButton.icon(onPressed: () { Navigator.pop(context); showPlayModePicker(context, controller, game); }, icon: const Icon(Icons.play_arrow), label: Text(L.t(controller.localeCode, 'friendly')))),
-            const SizedBox(width: 8),
-            Expanded(child: FilledButton.tonalIcon(onPressed: () => showCompetitions(context, controller), icon: const Icon(Icons.emoji_events), label: Text(L.t(controller.localeCode, 'competitions')))),
-          ],
-        ),
-        const SizedBox(height: 10),
-        PremiumPanel(
-          child: Wrap(
-            alignment: WrapAlignment.spaceAround,
-            runAlignment: WrapAlignment.center,
-            spacing: 4,
-            runSpacing: 6,
-            children: [
-              QuickButton(icon: '📖', label: L.t(controller.localeCode, 'rules'), onTap: () => showRules(context, controller.localeCode, game.id)),
-              QuickButton(icon: '📊', label: L.t(controller.localeCode, 'leaderboard'), onTap: () => showLeaderboard(context, controller)),
-              QuickButton(icon: '➕', label: L.t(controller.localeCode, 'createRoom'), onTap: () => showCreateRoom(context, controller, game)),
-              QuickButton(icon: '🌐', label: L.t(controller.localeCode, 'openRooms'), onTap: () => showAvailableRooms(context, controller, game)),
-              QuickButton(icon: '🔑', label: L.t(controller.localeCode, 'joinByCode'), onTap: () => showJoinRoomByCode(context, controller, game)),
-              QuickButton(icon: '👥', label: L.t(controller.localeCode, 'friends'), onTap: () => showFriends(context, controller)),
-            ],
+        B307PageHero(
+          icon: Icons.style_rounded,
+          title: L.t(controller.localeCode, game.id),
+          subtitle: ar
+              ? (controller.serverConnected ? 'اختر طريقة اللعب وادخل إلى طاولة ورقنا بسرعة.' : 'تدريب محلي فاخر مع لاعبي الكمبيوتر.')
+              : (controller.serverConnected ? 'Choose how to play and enter your Warqnaa table quickly.' : 'Premium local practice with computer players.'),
+          trailing: Container(
+            width: 74,
+            height: 54,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .44)),
+            ),
+            child: Image.asset(
+              gameArtAsset(game.id),
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 28))),
+            ),
           ),
+        ),
+        const SizedBox(height: 9),
+        Container(
+          key: const ValueKey('r31-lobby-connection-strip'),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+          decoration: BoxDecoration(
+            gradient: B307SkyLuxury.panelGradient,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: (controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .34),
+            ),
+          ),
+          child: Row(children: [
+            Icon(
+              controller.serverConnected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+              color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+              size: 19,
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                controller.serverConnected
+                    ? (ar ? 'متصل بالخادم • الغرف والبطولات متاحة' : 'Server connected • rooms and competitions available')
+                    : (ar ? 'وضع محلي • التدريب متاح بدون خادم' : 'Local mode • practice available without server'),
+                style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 11),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final stacked = constraints.maxWidth < 430;
+            final primary = _R31LobbyActionTile(
+              icon: Icons.play_arrow_rounded,
+              title: L.t(controller.localeCode, 'friendly'),
+              subtitle: ar ? 'ابدأ مباراة عادية أو صوتية' : 'Start a normal or voice match',
+              accent: B307SkyLuxury.emerald,
+              onTap: () {
+                Navigator.pop(context);
+                showPlayModePicker(context, controller, game);
+              },
+            );
+            final competitive = _R31LobbyActionTile(
+              icon: Icons.emoji_events_rounded,
+              title: L.t(controller.localeCode, 'competitions'),
+              subtitle: ar ? 'بطولات وترتيب ومكافآت' : 'Cups, ranking and rewards',
+              accent: B307SkyLuxury.goldSoft,
+              onTap: () => showCompetitions(context, controller),
+            );
+            return stacked
+                ? Column(children: [primary, const SizedBox(height: 8), competitive])
+                : Row(children: [Expanded(child: primary), const SizedBox(width: 8), Expanded(child: competitive)]);
+          },
+        ),
+        const SizedBox(height: 11),
+        B307SectionHeader(title: ar ? 'أدوات الغرفة' : 'Room tools'),
+        const SizedBox(height: 7),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 640 ? 3 : 2;
+            return GridView.count(
+              key: const ValueKey('r31-lobby-tools-grid'),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: columns,
+              crossAxisSpacing: 7,
+              mainAxisSpacing: 7,
+              childAspectRatio: constraints.maxWidth >= 640 ? 2.15 : 1.65,
+              children: [
+                _R31LobbyTool(icon: Icons.menu_book_rounded, label: L.t(controller.localeCode, 'rules'), onTap: () => showRules(context, controller.localeCode, game.id)),
+                _R31LobbyTool(icon: Icons.leaderboard_rounded, label: L.t(controller.localeCode, 'leaderboard'), onTap: () => showLeaderboard(context, controller)),
+                _R31LobbyTool(icon: Icons.add_box_rounded, label: L.t(controller.localeCode, 'createRoom'), onTap: () => showCreateRoom(context, controller, game)),
+                _R31LobbyTool(icon: Icons.public_rounded, label: L.t(controller.localeCode, 'openRooms'), onTap: () => showAvailableRooms(context, controller, game)),
+                _R31LobbyTool(icon: Icons.password_rounded, label: L.t(controller.localeCode, 'joinByCode'), onTap: () => showJoinRoomByCode(context, controller, game)),
+                _R31LobbyTool(icon: Icons.people_alt_rounded, label: L.t(controller.localeCode, 'friends'), onTap: () => showFriends(context, controller)),
+              ],
+            );
+          },
         ),
       ],
     ),
   );
+}
+
+class _R31LobbyActionTile extends StatelessWidget {
+  const _R31LobbyActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.accent,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          key: ValueKey<String>('r31-lobby-action-${icon.codePoint}'),
+          constraints: const BoxConstraints(minHeight: 105),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: B307SkyLuxury.panelGradient,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: accent.withValues(alpha: .48)),
+            boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
+          ),
+          child: Row(children: [
+            Container(
+              width: 44,
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: .13),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: accent.withValues(alpha: .40)),
+              ),
+              child: Icon(icon, color: accent, size: 24),
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12.5, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 3),
+                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9, height: 1.3, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.textMuted, size: 18),
+          ]),
+        ),
+      );
+}
+
+class _R31LobbyTool extends StatelessWidget {
+  const _R31LobbyTool({required this.icon, required this.label, required this.onTap});
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: B307SkyLuxury.panelGradient,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24)),
+            ),
+            child: Row(children: [
+              Icon(icon, color: B307SkyLuxury.cyan, size: 20),
+              const SizedBox(width: 7),
+              Expanded(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9.5, fontWeight: FontWeight.w900))),
+            ]),
+          ),
+        ),
+      );
 }
 
 Future<void> showAvailableRooms(BuildContext context, AppController controller, GameInfo game) async {
@@ -8644,9 +8803,16 @@ Future<void> showAvailableRooms(BuildContext context, AppController controller, 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(L.t(controller.localeCode, 'openRooms'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 5),
-          Text(L.t(controller.localeCode, 'openRoomsHint'), style: const TextStyle(color: Colors.white60)),
+          B307PageHero(
+            icon: Icons.public_rounded,
+            title: L.t(controller.localeCode, 'openRooms'),
+            subtitle: L.t(controller.localeCode, 'openRoomsHint'),
+            trailing: Icon(
+              controller.serverConnected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+              color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+              size: 26,
+            ),
+          ),
           const SizedBox(height: 12),
           if (rooms.isEmpty)
             Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Center(child: Text(L.t(controller.localeCode, 'noOpenRooms'), style: const TextStyle(color: Colors.white60))))
@@ -8692,9 +8858,12 @@ void showJoinRoomByCode(BuildContext context, AppController controller, GameInfo
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(L.t(controller.localeCode, 'joinByCode'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 7),
-        Text(L.t(controller.localeCode, 'joinByCodeHint'), style: const TextStyle(color: Colors.white60, height: 1.45)),
+        B307PageHero(
+          icon: Icons.password_rounded,
+          title: L.t(controller.localeCode, 'joinByCode'),
+          subtitle: L.t(controller.localeCode, 'joinByCodeHint'),
+          trailing: const Icon(Icons.lock_open_rounded, color: B307SkyLuxury.goldSoft, size: 26),
+        ),
         const SizedBox(height: 12),
         TextField(controller: codeController, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomCode'), prefixIcon: const Icon(Icons.tag_rounded))),
         const SizedBox(height: 9),
@@ -8728,9 +8897,12 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(L.t(controller.localeCode, 'chooseGameMode'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 6),
-        Text(L.t(controller.localeCode, 'chooseGameModeHint'), style: const TextStyle(color: Colors.white60, height: 1.5)),
+        B307PageHero(
+          icon: Icons.tune_rounded,
+          title: L.t(controller.localeCode, 'chooseGameMode'),
+          subtitle: L.t(controller.localeCode, 'chooseGameModeHint'),
+          trailing: const Icon(Icons.style_rounded, color: B307SkyLuxury.cyan, size: 26),
+        ),
         const SizedBox(height: 14),
         Row(
           children: [
@@ -8783,9 +8955,12 @@ class _GameModeCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 160),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: .08),
+          gradient: B307SkyLuxury.panelGradient,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: .35)),
+          border: Border.all(color: color.withValues(alpha: .46)),
+          boxShadow: <BoxShadow>[
+            BoxShadow(color: color.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5)),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -8821,9 +8996,16 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
       builder: (context, setLocalState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(L.t(controller.localeCode, 'createRoom'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 5),
-          Text(L.t(controller.localeCode, 'roomModeDescription'), style: const TextStyle(color: Colors.white60, height: 1.45)),
+          B307PageHero(
+            icon: Icons.add_home_work_rounded,
+            title: L.t(controller.localeCode, 'createRoom'),
+            subtitle: L.t(controller.localeCode, 'roomModeDescription'),
+            trailing: Icon(
+              voiceEnabled ? Icons.mic_rounded : Icons.style_rounded,
+              color: voiceEnabled ? B307SkyLuxury.emerald : B307SkyLuxury.goldSoft,
+              size: 26,
+            ),
+          ),
           const SizedBox(height: 12),
           TextField(controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
           const SizedBox(height: 10),
@@ -8887,9 +9069,10 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.white.withValues(alpha: .055), Theme.of(context).colorScheme.primary.withValues(alpha: .08)]),
+              gradient: B307SkyLuxury.panelGradient,
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .22)),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .26)),
+              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 10, offset: const Offset(0, 5))],
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               const Row(children: [
