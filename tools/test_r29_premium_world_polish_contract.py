@@ -15,6 +15,7 @@ def main() -> None:
     visual = read('flutter_app/lib/b307_visual_revolution.dart')
     social = read('flutter_app/lib/r11_social_world.dart')
     competitive = read('flutter_app/lib/r12_competitive.dart')
+    main_dart = read('flutter_app/lib/main.dart')
 
     require(visual, "1.5.0+309-premium-world", 'R29 visual release marker')
     require(visual, "r29-commerce-trust-strip", 'commerce trust strip')
@@ -31,6 +32,9 @@ def main() -> None:
     require(competitive, "r29-sky-season-rank", 'season rank premium surface')
     require(competitive, "const Color _r12Panel = B307SkyLuxury.surface", 'competitive sky panel palette')
     require(competitive, "B307PageHero(", 'tournament premium hero')
+    require(main_dart, "r29-sky-profile-metrics", 'profile premium metrics')
+    require(main_dart, "Profile customization", 'profile customization identity')
+    require(main_dart, "B307PageHero(", 'profile premium hero')
 
     print('R29 premium world polish contract: PASS')
 
