@@ -223,7 +223,7 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
     B307PageHero(
       icon: Icons.emoji_events_rounded,
       title: ar ? 'طريقك إلى الكأس' : 'Your road to the cup',
-      subtitle: ar ? 'الدوريات والكؤوس والبطولات برسوم وتسجيل ونتائج موثقة من الخادم.' : 'Leagues, cups and championships with server-verified fees, registration and results.',
+      subtitle: ar ? 'الدوريات والكؤوس والبطولات برسوم وتسجيل ونتائج موثقة من الخادم.' : 'LEAGUES • CUPS • CHAMPIONSHIPS — server-verified fees, registration and results.',
       trailing: const Icon(Icons.workspace_premium_rounded, color: B307SkyLuxury.goldSoft, size: 28),
     ),
     const SizedBox(height:12), R21TournamentDirectory(cups:_r12List(data['tournaments']),locale:widget.controller.localeCode,onOpen:_openCup),
