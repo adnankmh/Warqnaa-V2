@@ -28,6 +28,8 @@ abstract final class R9Design {
   static const Color midnight = Color(0xFF052F54);
   static const Color ink = Color(0xFF064777);
   static const Color skySurface = Color(0xFF268FD0);
+  // Legacy R27 blue-glass reference retained for cumulative visual contracts.
+  static const Color legacyBlueGlass = Color(0xFF07598F);
   static const Color skyCanvas = Color(0xFF4EB7ED);
   static const Color skyPanel = Color(0xFF329EDB);
   static const Color ivory = Color(0xFFF6F8FC);
