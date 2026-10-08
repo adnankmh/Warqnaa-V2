@@ -51,30 +51,35 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
     surface: const Color(0xff111e2e),
     light: false,
   );
+  // R33: cosmetic themes may change accents, but the shared luxury world stays sky-blue.
+  // Keep the legacy theme specifications intact for user settings and compatibility.
+  final worldBackground = spec.light ? const Color(0xffe0f2fe) : R9Design.skyCanvas;
+  final worldSurface = spec.light ? const Color(0xfff0f9ff) : R9Design.skyPanel;
   final base = R9Design.theme(light: spec.light, accent: spec.accent, fontFamily: fontFamily, arabic: localeCode == 'ar');
   final scheme = base.colorScheme.copyWith(
     primary: spec.accent,
     secondary: spec.accent2,
-    surface: spec.surface,
+    surface: worldSurface,
     onSurface: spec.light ? const Color(0xff241f1a) : const Color(0xfff7f4ed),
   );
   return base.copyWith(
     colorScheme: scheme,
-    scaffoldBackgroundColor: spec.background,
-    cardTheme: base.cardTheme.copyWith(color: spec.surface.withValues(alpha: spec.light ? .94 : .88)),
+    scaffoldBackgroundColor: worldBackground,
+    canvasColor: worldBackground,
+    cardTheme: base.cardTheme.copyWith(color: worldSurface.withValues(alpha: spec.light ? .94 : .88)),
     navigationBarTheme: base.navigationBarTheme.copyWith(
-      backgroundColor: Color.lerp(spec.surface, spec.background, .22),
+      backgroundColor: Color.lerp(worldSurface, worldBackground, .22),
       indicatorColor: spec.accent.withValues(alpha: .18),
     ),
     appBarTheme: base.appBarTheme.copyWith(foregroundColor: scheme.onSurface),
-    dialogTheme: base.dialogTheme.copyWith(backgroundColor: Color.lerp(spec.surface, spec.background, .08)),
+    dialogTheme: base.dialogTheme.copyWith(backgroundColor: Color.lerp(worldSurface, worldBackground, .08)),
     bottomSheetTheme: base.bottomSheetTheme.copyWith(
-      backgroundColor: Color.lerp(spec.surface, spec.background, .08),
-      modalBackgroundColor: Color.lerp(spec.surface, spec.background, .08),
+      backgroundColor: Color.lerp(worldSurface, worldBackground, .08),
+      modalBackgroundColor: Color.lerp(worldSurface, worldBackground, .08),
     ),
     inputDecorationTheme: base.inputDecorationTheme.copyWith(
       filled: true,
-      fillColor: Color.lerp(spec.surface, spec.background, spec.light ? .08 : .20),
+      fillColor: Color.lerp(worldSurface, worldBackground, spec.light ? .08 : .20),
       labelStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface.withValues(alpha: .72), fontWeight: FontWeight.w700),
       prefixIconColor: spec.accent,
       suffixIconColor: scheme.onSurface.withValues(alpha: .66),
@@ -99,7 +104,7 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     )),
     chipTheme: base.chipTheme.copyWith(
-      backgroundColor: spec.surface,
+      backgroundColor: worldSurface,
       selectedColor: spec.accent.withValues(alpha: .22),
       side: BorderSide(color: spec.accent.withValues(alpha: .22)),
       labelStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface, fontWeight: FontWeight.w800),
@@ -110,7 +115,7 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
     ),
     snackBarTheme: base.snackBarTheme.copyWith(
-      backgroundColor: Color.lerp(spec.surface, spec.background, .18),
+      backgroundColor: Color.lerp(worldSurface, worldBackground, .18),
       contentTextStyle: TextStyle(fontFamily: fontFamily, color: scheme.onSurface, fontWeight: FontWeight.w700),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       behavior: SnackBarBehavior.floating,
