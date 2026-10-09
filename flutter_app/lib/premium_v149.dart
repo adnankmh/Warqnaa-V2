@@ -967,7 +967,7 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
       final ratio = image.width / image.height;
       if (showEntirePhoto) {
         // Inscribe the entire rectangular image inside the circular crop mask.
-        final maxSide = viewport * .70;
+        const maxSide = viewport * .70;
         if (ratio >= 1) {
           imageWidth = maxSide;
           imageHeight = maxSide / ratio;
