@@ -547,15 +547,16 @@ class B307HomeDashboard extends StatelessWidget {
                   boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                  SizedBox(
-                    height: 70,
+                  // The artwork takes remaining card height instead of
+                  // overflowing 320px phones when labels and badges are shown.
+                  Expanded(child: SizedBox(
                     width: double.infinity,
                     child: Stack(fit: StackFit.expand, children: <Widget>[
                        Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain,
                          filterQuality: FilterQuality.high,
                          errorBuilder: (_, __, ___) => R34GameEmblem(gameId: game.id, compact: true)),
                      ]),
-                  ),
+                  )),
                   const SizedBox(height: 5),
                   Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
