@@ -486,16 +486,6 @@ class B307HomeDashboard extends StatelessWidget {
       children: <Widget>[
         R35ChampionBanner(controller: controller),
         const SizedBox(height: 9),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.gold, foregroundColor: B307SkyLuxury.navy),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
-                icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                label: Text(ar ? 'شارك الآن' : 'Join now'),
-              ),
-            ])),
-          ]),
-        ),
-        const SizedBox(height: 9),
         Row(children: <Widget>[
           Expanded(child: B307StatCard(icon: Icons.shield_outlined, label: ar ? 'المستوى' : 'Level', value: '${controller.level}')),
           const SizedBox(width: 7),
