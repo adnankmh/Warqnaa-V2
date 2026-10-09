@@ -78,18 +78,30 @@ class MobileApiController extends Controller
         ]);
     }
 
-    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery)
+    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery, StoreOfferPricingService $pricing)
     {
         $catalog->sync();
         $user = $this->ensurePrimaryAdmin(AuthenticatedActor::resolve($request));
         $user->update(['last_seen_at'=>now()]);
         $user->load('profile', 'wallet');
+        $storeItems = StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get();
+        $quotes = $pricing->quotesFor($storeItems);
+        // The customer bootstrap surfaces the same discounted amount that
+        // the server purchase endpoint will charge after confirmation.
+        $storeItems->each(function (StoreItem $item) use ($quotes): void {
+            $quote = $quotes[$item->id] ?? null;
+            if ($quote === null) return;
+            $item->setAttribute('original_price', $quote['original_price']);
+            $item->setAttribute('price', $quote['price']);
+            $item->setAttribute('discount_percent', $quote['discount_percent']);
+            $item->setAttribute('offer_key', $quote['offer_key']);
+        });
         return response()->json([
             'ok' => true,
             'user' => $this->selfProfile($user),
             'wallet' => $this->walletPayload($user),
             'games' => Game::where('active', true)->whereIn('key', GameCatalog::customerKeys())->orderBy('id')->get(),
-            'store' => StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get(),
+            'store' => $storeItems,
             // Bootstrap is a lobby summary, never a game-state transport. The
             // session endpoint supplies the server-filtered hand for each seat.
             'rooms' => Room::query()->with('game')
