@@ -326,7 +326,7 @@ class R35ChampionBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Text(ar ? '🏆 بطولات ورقنا الكبرى' : '🏆 WARQNAA CHAMPIONSHIPS',
                 maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: R35ReferenceColors.paleGold,
+                style: TextStyle(color: R35ReferenceColors.paleGold,
                   fontSize: compact ? 16 : 24, fontWeight: FontWeight.w900, height: 1.2)),
               const SizedBox(height: 7),
               Text(ar ? 'نافس، اربح الجوائز الافتراضية، واصنع تاريخك!'
