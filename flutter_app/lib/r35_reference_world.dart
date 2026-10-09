@@ -755,7 +755,7 @@ class R35StoreTreasureTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: R35ReferenceColors.gold,
                 borderRadius: BorderRadius.circular(9)),
-              child: Text('🪙 ' + formatNumber(price), maxLines: 1,
+              child: Text('🪙 ${formatNumber(price)}', maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: R35ReferenceColors.navy,
                   fontSize: 10, fontWeight: FontWeight.w900)),
