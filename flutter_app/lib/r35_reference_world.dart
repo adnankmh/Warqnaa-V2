@@ -293,12 +293,13 @@ class R35ChampionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    final compact = MediaQuery.sizeOf(context).width < 600;
     return Semantics(
       container: true,
       label: ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa grand championships',
       child: Container(
         key: const ValueKey('r35-sky-grand-tournament-banner'),
-        height: 212,
+        height: compact ? 176 : 212,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
@@ -315,25 +316,25 @@ class R35ChampionBanner extends StatelessWidget {
             ),
           )),
           PositionedDirectional(
-            end: 9, bottom: 3,
-            child: SizedBox(width: 184, height: 194,
+            end: compact ? 1 : 9, bottom: 3,
+            child: SizedBox(width: compact ? 112 : 184, height: compact ? 156 : 194,
               child: CustomPaint(painter: R35GoldTrophyPainter())),
           ),
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(19, 17, 188, 17),
+            padding: EdgeInsetsDirectional.fromSTEB(compact ? 11 : 19, 13, compact ? 112 : 188, 13),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Text(ar ? '🏆 بطولات ورقنا الكبرى' : '🏆 WARQNAA CHAMPIONSHIPS',
                 maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: R35ReferenceColors.paleGold,
-                  fontSize: 24, fontWeight: FontWeight.w900, height: 1.2)),
+                  fontSize: compact ? 16 : 24, fontWeight: FontWeight.w900, height: 1.2)),
               const SizedBox(height: 7),
               Text(ar ? 'نافس، اربح الجوائز الافتراضية، واصنع تاريخك!'
                       : 'Compete for virtual rewards and make your mark!',
                 maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                style: TextStyle(color: Colors.white, fontSize: compact ? 10 : 13, fontWeight: FontWeight.w800)),
               const SizedBox(height: 7),
-              Text(ar ? 'اطّلع على البطولات الحالية وشروط المشاركة قبل التسجيل.'
+              if (!compact) Text(ar ? 'اطّلع على البطولات الحالية وشروط المشاركة قبل التسجيل.'
                       : 'Review available tournaments and their rules before entering.',
                 maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 10, fontWeight: FontWeight.w700)),
