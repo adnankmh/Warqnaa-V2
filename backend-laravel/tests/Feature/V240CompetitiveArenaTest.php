@@ -179,7 +179,7 @@ class V240CompetitiveArenaTest extends TestCase
         // R34: one immutable, auditable virtual-token payout per verified winner.
         $award = WalletTransaction::where('user_id',$winner)->where('type','tournament_prize')->firstOrFail();
         $this->assertSame('tournament:'.$tournament->id.':player:'.$winner, $award->meta['idempotency_key']);
-        $retry = app(\\App\\Services\\WarqnaPro\\TournamentSettlementService::class)
+        $retry = app(\App\Services\WarqnaPro\TournamentSettlementService::class)
             ->settle($tournament->id, [$winner], $finalRoom->id);
         $this->assertTrue($retry['duplicate']);
         $this->assertSame(1, WalletTransaction::where('user_id',$winner)->where('type','tournament_prize')->count());
