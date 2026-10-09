@@ -4,6 +4,7 @@ namespace App\Services\Commerce;
 
 use App\Models\{StoreItem,StoreOffer};
 use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
 
 /**
  * R36: one authoritative, auditable virtual-token quote across Web and Mobile.
@@ -15,7 +16,7 @@ use Carbon\CarbonInterface;
 class StoreOfferPricingService
 {
     /** @return array{price:int,original_price:int,discount_percent:int,offer_key:?string,offer_id:?int} */
-    public function quote(StoreItem $item, ?CarbonInterface $at = null): array
+    public function quote(StoreItem $item, ?CarbonInterface $at = null, ?Collection $offers = null): array
     {
         $price = max(0, (int) $item->price);
         $now = $at ?? now();
@@ -23,19 +24,7 @@ class StoreOfferPricingService
         $percentage = 0;
 
         if ($item->active) {
-            $eligible = StoreOffer::query()
-                ->where('active', true)
-                ->where(function ($query) use ($now) {
-                    $query->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
-                })
-                ->where(function ($query) use ($now) {
-                    $query->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
-                })
-                ->orderByDesc('discount_percent')
-                ->orderBy('id')
-                ->get();
-
-            foreach ($eligible as $offer) {
+            foreach (($offers ?? $this->activeOffers($now)) as $offer) {
                 $keys = is_array($offer->item_keys) ? $offer->item_keys : [];
                 if (!in_array((string) $item->key, $keys, true)) continue;
                 $candidate = max(0, min(95, (int) $offer->discount_percent));
@@ -58,5 +47,29 @@ class StoreOfferPricingService
             'offer_key' => $winner?->key,
             'offer_id' => $winner?->id,
         ];
+    }
+
+    /** @param Collection<int,StoreItem> $items @return array<int,array<string,mixed>> */
+    public function quotesFor(Collection $items): array
+    {
+        $now = now();
+        $offers = $this->activeOffers($now);
+        $quotes = [];
+        foreach ($items as $item) $quotes[$item->id] = $this->quote($item, $now, $offers);
+        return $quotes;
+    }
+
+    /** @return Collection<int,StoreOffer> */
+    private function activeOffers(CarbonInterface $at): Collection
+    {
+        return StoreOffer::query()
+            ->where('active', true)
+            ->where(function ($query) use ($at) {
+                $query->whereNull('starts_at')->orWhere('starts_at', '<=', $at);
+            })
+            ->where(function ($query) use ($at) {
+                $query->whereNull('ends_at')->orWhere('ends_at', '>=', $at);
+            })
+            ->orderByDesc('discount_percent')->orderBy('id')->get();
     }
 }
