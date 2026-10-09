@@ -354,7 +354,7 @@ class MobileApiController extends Controller
             $player = User::query()->lockForUpdate()->findOrFail($user->id);
             $today = now()->toDateString();
             if (DailyRewardClaim::where('user_id', $player->id)
-                ->where('claim_date', $today)->exists()) return null;
+                ->whereDate('claim_date', $today)->exists()) return null;
 
             $coins = 100;
             $xp = 20;
