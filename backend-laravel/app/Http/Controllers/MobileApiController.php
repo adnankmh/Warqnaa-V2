@@ -231,7 +231,7 @@ class MobileApiController extends Controller
                 DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote, $pricing) {
                     $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
                     $liveQuote = $pricing->quote($lockedItem);
-                    if (!$lockedItem->active || $liveQuote['price'] !== $quote['price'])
+                    if (!$lockedItem->active || $liveQuote !== $quote)
                         throw new \DomainException('price_changed');
                     $wallet->debit($user, (int)$quote['price'], 'competition_ticket_purchase', [
                         'store_item_id'=>$item->id,'key'=>$item->key,'denomination'=>$denomination,
@@ -256,14 +256,17 @@ class MobileApiController extends Controller
             ]);
         }
         $renewable = (bool) $item->duration_days || in_array($item->category, ['pasha','xp_booster'], true);
-        $existingInventory = $user->inventoryItems()->where('store_item_id', $item->id)->latest('id')->first();
-        if ($existingInventory && !$renewable) return response()->json(['ok' => false, 'message' => 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'], 409);
-
         try {
-            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory, $quote, $pricing) {
+            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $quote, $pricing) {
+                // Serialize purchases for this player before checking permanent ownership.
+                User::query()->lockForUpdate()->findOrFail($user->id);
                 $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                $existingInventory = $user->inventoryItems()
+                    ->where('store_item_id', $lockedItem->id)
+                    ->lockForUpdate()->latest('id')->first();
+                if ($existingInventory && !$renewable) throw new \DomainException('already_owned');
                 $liveQuote = $pricing->quote($lockedItem);
-                if (!$lockedItem->active || $liveQuote['price'] !== $quote['price'])
+                if (!$lockedItem->active || $liveQuote !== $quote)
                     throw new \DomainException('price_changed');
                 $wallet->debit($user, (int) $quote['price'], 'store_purchase', [
                     'store_item_id' => $item->id,
@@ -312,7 +315,10 @@ class MobileApiController extends Controller
                 return $inventory;
             });
         } catch (\DomainException $e) {
-            return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.'],409);
+            $message = $e->getMessage() === 'already_owned'
+                ? 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'
+                : 'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.';
+            return response()->json(['ok'=>false,'message'=>$message],409);
         } catch (\RuntimeException) {
             return response()->json(['ok' => false, 'message' => 'رصيد التوكنز غير كافٍ'], 422);
         }
