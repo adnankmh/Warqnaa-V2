@@ -618,3 +618,150 @@ class R35GoldTrophyPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant R35GoldTrophyPainter oldDelegate) => false;
 }
+
+
+/// Screenshot-guided virtual storefront: prices are read from the live
+/// controller catalogue and every offer opens the real product preview.
+class R35StoreTreasureStrip extends StatelessWidget {
+  const R35StoreTreasureStrip({super.key, required this.controller});
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final samples = products.where((product) =>
+      controller.isStoreProductVisible(product) &&
+      <String>{'tables', 'cards', 'boost', 'pasha', 'covers'}.contains(product.category)
+    ).take(3).toList(growable: false);
+    return Container(
+      key: const ValueKey('r35-reference-store-specials'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: <Color>[Color(0xFF1389DA), Color(0xFF0759AE), Color(0xFF042F7E)]),
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(color: R35ReferenceColors.paleGold.withValues(alpha: .88), width: 1.5),
+        boxShadow: <BoxShadow>[BoxShadow(color: R35ReferenceColors.deep.withValues(alpha: .28),
+          blurRadius: 18, offset: const Offset(0, 8))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+        Row(children: <Widget>[
+          const Icon(Icons.local_offer_rounded, color: R35ReferenceColors.gold, size: 26),
+          const SizedBox(width: 9),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+            Text(ar ? 'مقتنيات وعروض خاصة' : 'Premium items and special offers',
+              style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
+            Text(ar ? 'مقتنيات المتجر الحقيقية بأسعارها الفعلية' : 'Actual catalogue items with verified prices',
+              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 10)),
+          ])),
+          IconButton(
+            tooltip: ar ? 'المحفظة' : 'Wallet',
+            onPressed: () => showWallet(context, controller),
+            icon: const Icon(Icons.account_balance_wallet_rounded, color: R35ReferenceColors.paleGold)),
+        ]),
+        const SizedBox(height: 12),
+        if (samples.isEmpty)
+          Padding(padding: const EdgeInsets.all(12),
+            child: Text(ar ? 'لا توجد عروض متاحة حاليًا' : 'No offers available right now',
+              style: const TextStyle(color: Colors.white70)))
+        else Row(children: <Widget>[
+          for (var i = 0; i < samples.length; i++) ...<Widget>[
+            if (i != 0) const SizedBox(width: 8),
+            Expanded(child: R35StoreTreasureTile(
+              product: samples[i],
+              controller: controller,
+              onTap: () => showProductPreview(context, controller, samples[i]),
+            )),
+          ],
+        ]),
+        const SizedBox(height: 12),
+        InkWell(
+          onTap: () => showRewards(context, controller),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: <Color>[Color(0xFF0A9FE3), Color(0xFF0E5BB5)]),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: R35ReferenceColors.cyan.withValues(alpha: .66)),
+            ),
+            child: Row(children: <Widget>[
+              const Icon(Icons.card_giftcard_rounded, size: 27, color: R35ReferenceColors.paleGold),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                Text(ar ? 'صناديق الجوائز والمكافآت' : 'Prize boxes and rewards',
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                Text(ar ? 'اطّلع على المكافآت المتاحة وشروطها' : 'View available rewards and their terms',
+                  style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 10)),
+              ])),
+              const Icon(Icons.chevron_right_rounded, color: R35ReferenceColors.gold),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class R35StoreTreasureTile extends StatelessWidget {
+  const R35StoreTreasureTile({
+    super.key, required this.product, required this.controller, required this.onTap,
+  });
+  final StoreProduct product;
+  final AppController controller;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final price = controller.priceFor(product);
+    return Semantics(
+      button: true,
+      label: product.name(controller.localeCode),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(5, 11, 5, 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              colors: <Color>[Color(0xFF1E91E5), Color(0xFF074C9D)]),
+            border: Border.all(color: R35ReferenceColors.cyan.withValues(alpha: .76)),
+          ),
+          child: Column(children: <Widget>[
+            Container(
+              width: 50, height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const RadialGradient(colors: <Color>[
+                  Color(0xFFFFECA2), Color(0xFFFFC447), Color(0xFFAD6500)]),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(color: R35ReferenceColors.gold.withValues(alpha: .31), blurRadius: 12),
+                ],
+              ),
+              child: Center(child: Text(product.icon, maxLines: 1,
+                style: const TextStyle(fontSize: 26))),
+            ),
+            const SizedBox(height: 8),
+            Text(product.name(controller.localeCode), textAlign: TextAlign.center,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              decoration: BoxDecoration(
+                color: R35ReferenceColors.gold,
+                borderRadius: BorderRadius.circular(9)),
+              child: Text('🪙 ' + formatNumber(price), maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: R35ReferenceColors.navy,
+                  fontSize: 10, fontWeight: FontWeight.w900)),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
