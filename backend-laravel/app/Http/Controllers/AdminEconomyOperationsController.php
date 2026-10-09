@@ -30,7 +30,7 @@ class AdminEconomyOperationsController extends Controller
             $season = EconomySeason::query()->lockForUpdate()->firstOrNew(['key' => $data['key']]);
             $before = $season->exists ? $season->toArray() : null;
             $season->fill([
-                'name' => ['ar' => $data['name_ar'], 'en' => $data['name_en'] ?: $data['name_ar']],
+                'name' => ['ar' => $data['name_ar'], 'en' => ($data['name_en'] ?? null) ?: $data['name_ar']],
                 'starts_at' => $data['starts_at'],
                 'ends_at' => $data['ends_at'],
                 'active' => $request->boolean('active'),
@@ -61,7 +61,7 @@ class AdminEconomyOperationsController extends Controller
             $offer = StoreOffer::query()->lockForUpdate()->firstOrNew(['key' => $data['key']]);
             $before = $offer->exists ? $offer->toArray() : null;
             $offer->fill([
-                'title' => ['ar' => $data['title_ar'], 'en' => $data['title_en'] ?: $data['title_ar']],
+                'title' => ['ar' => $data['title_ar'], 'en' => ($data['title_en'] ?? null) ?: $data['title_ar']],
                 'description' => ['ar' => 'خصم محدود المدة', 'en' => 'Time-limited promotion'],
                 'discount_percent' => (int)$data['discount_percent'],
                 'item_keys' => $keys,
@@ -92,7 +92,7 @@ class AdminEconomyOperationsController extends Controller
             }
             $before = $rare->exists ? $rare->toArray() : null;
             $rare->fill([
-                'name' => ['ar' => $data['name_ar'], 'en' => $data['name_en'] ?: $data['name_ar']],
+                'name' => ['ar' => $data['name_ar'], 'en' => ($data['name_en'] ?? null) ?: $data['name_ar']],
                 'rarity' => $data['rarity'],
                 'supply' => $data['supply'],
                 'active' => $request->boolean('active'),
