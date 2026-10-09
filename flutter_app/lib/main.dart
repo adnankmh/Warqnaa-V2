@@ -3803,6 +3803,8 @@ class _StorePageState extends State<StorePage> {
         const SizedBox(height: 8),
         R101CommerceShowcase(controller: widget.controller),
         const SizedBox(height: 10),
+        R35StoreTreasureStrip(controller: widget.controller),
+        const SizedBox(height: 10),
         PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
           Row(children:[Expanded(child:Text(ar?'تقدم المستوى ${widget.controller.level}':'Level progress ${widget.controller.level}',style:const TextStyle(fontWeight:FontWeight.w900))),Text('${widget.controller.xp} / ${widget.controller.xpNext} XP',style:const TextStyle(color:Colors.amber,fontWeight:FontWeight.w900,fontSize:11))]),
           const SizedBox(height:8),
