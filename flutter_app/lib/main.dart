@@ -3616,7 +3616,7 @@ Future<void> showHomeGamesSelector(BuildContext context, AppController controlle
             final checked = selected.contains(game.id);
             return CheckboxListTile(
               value: checked,
-              secondary: Text(game.icon, style: const TextStyle(fontSize: 28)),
+              secondary: SizedBox(width: 46, height: 46, child: R34GameEmblem(gameId: game.id, compact: true)),
               title: Text(L.t(controller.localeCode, game.id), style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: Text(checked ? '${selected.toList().indexOf(game.id) + 1}/4' : L.t(controller.localeCode, 'tapToSelect')),
               onChanged: (value) {
@@ -7851,7 +7851,7 @@ Future<void> showAvatarPicker(BuildContext context, AppController controller) as
       ),
       const SizedBox(height: 13),
       FilledButton.icon(
-        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text),
+        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: r101ReadableInk(B307SkyLuxury.azure)),
         onPressed: () async {
           final err = await controller.updateAvatarFromGallery(context);
           if (context.mounted) showToast(context, err ?? (ar ? 'تم تحديث الصورة.' : 'Avatar updated.'));
@@ -8482,7 +8482,7 @@ void showSettings(BuildContext context, AppController controller) {
           const SizedBox(height: 10),
           FilledButton.icon(
             key: const ValueKey('r32-settings-save'),
-            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text, minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: r101ReadableInk(B307SkyLuxury.azure), minimumSize: const Size.fromHeight(50)),
             onPressed: () {
               Navigator.pop(context);
               showToast(context, ar ? 'تم حفظ الإعدادات وتطبيقها على التطبيق.' : 'Settings saved and applied.');
@@ -8655,11 +8655,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .44)),
             ),
-            child: Image.asset(
-              gameArtAsset(game.id),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 28))),
-            ),
+            child: R34GameEmblem(gameId: game.id, compact: true),
           ),
         ),
         const SizedBox(height: 9),
