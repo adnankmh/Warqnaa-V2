@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/r34_tournament_rewards.dart';
+import 'package:warqna_mobile/r34_tournament_rewards.dart';
 
 void main() {
   test('UTC window and minimum entrants are enforced', () {
