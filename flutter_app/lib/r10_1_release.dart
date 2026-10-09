@@ -48,7 +48,11 @@ Color r101ReadableInk(Color background) {
   final luminosity = background.computeLuminance();
   final darkContrast = (luminosity + .05) / (navy.computeLuminance() + .05);
   final lightContrast = 1.05 / (luminosity + .05);
-  return darkContrast >= lightContrast ? navy : Colors.white;
+  // A few medium-blue accents leave both navy and white below WCAG AA.
+  // Pure black is the guaranteed accessible fallback for those midtones.
+  final blackContrast = (luminosity + .05) / .05;
+  if (darkContrast >= 4.5 && darkContrast >= lightContrast) return navy;
+  return blackContrast >= lightContrast ? Colors.black : Colors.white;
 }
 
 ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, String localeCode = 'en'}) {
