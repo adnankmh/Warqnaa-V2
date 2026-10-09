@@ -143,6 +143,50 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $this->assertSame(25, $row['discount_percent']);
     }
 
+    public function test_web_store_rejects_repeat_permanent_purchase_without_second_debit(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $item = $this->item('r36_web_collectible');
+        $this->offer('r36_web_offer', [$item->key], 25);
+        $this->actingAs($user);
+
+        $this->postJson(route('store.buy', ['item'=>$item->id]), [
+            'expected_price'=>750,
+        ])->assertOk()->assertJsonPath('ok', true)
+          ->assertJsonPath('pricing.price', 750);
+
+        $this->assertSame(250, (int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(1, WalletTransaction::where('user_id',$user->id)->where('type','store_buy')->count());
+        $this->assertSame(1, $user->inventoryItems()->where('store_item_id',$item->id)->count());
+
+        $this->postJson(route('store.buy', ['item'=>$item->id]), [
+            'expected_price'=>750,
+        ])->assertOk()->assertJsonPath('ok', false);
+
+        $this->assertSame(250, (int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(1, WalletTransaction::where('user_id',$user->id)->where('type','store_buy')->count());
+        $this->assertSame(1, $user->inventoryItems()->where('store_item_id',$item->id)->count());
+    }
+
+    public function test_web_checkout_rejects_expired_promotion_price_without_debit(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $item = $this->item('r36_web_offer_expiry');
+        $this->offer('r36_web_expired', [$item->key], 25);
+        $this->actingAs($user);
+
+        Carbon::setTestNow('2026-10-13 00:00:00');
+        $this->postJson(route('store.buy', ['item'=>$item->id]), [
+            'expected_price'=>750,
+        ])->assertOk()->assertJsonPath('ok', false);
+
+        $this->assertSame(1000, (int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(0, WalletTransaction::where('user_id',$user->id)->where('type','store_buy')->count());
+        $this->assertSame(0, $user->inventoryItems()->where('store_item_id',$item->id)->count());
+    }
+
     public function test_duplicate_daily_claim_does_not_credit_wallet_twice(): void
     {
         Carbon::setTestNow('2026-10-10 10:00:00');
