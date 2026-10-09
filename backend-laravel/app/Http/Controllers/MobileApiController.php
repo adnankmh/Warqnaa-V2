@@ -228,7 +228,11 @@ class MobileApiController extends Controller
             $denomination = (int) data_get($item->payload, 'denomination', 0);
             abort_if($denomination <= 0, 422, 'فئة التذكرة غير صحيحة.');
             try {
-                DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote) {
+                DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote, $pricing) {
+                    $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                    $liveQuote = $pricing->quote($lockedItem);
+                    if (!$lockedItem->active || $liveQuote['price'] !== $quote['price'])
+                        throw new \DomainException('price_changed');
                     $wallet->debit($user, (int)$quote['price'], 'competition_ticket_purchase', [
                         'store_item_id'=>$item->id,'key'=>$item->key,'denomination'=>$denomination,
                         'original_price'=>$quote['original_price'],'discount_percent'=>$quote['discount_percent'],'offer_key'=>$quote['offer_key'],
@@ -240,6 +244,8 @@ class MobileApiController extends Controller
                     $ticket->increment('quantity');
                     $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_revenue', ['store_item_id'=>$item->id,'key'=>$item->key]);
                 });
+            } catch (\DomainException $e) {
+                return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.'],409);
             } catch (\RuntimeException) {
                 return response()->json(['ok'=>false,'message'=>'رصيد التوكنز غير كافٍ'], 422);
             }
@@ -254,7 +260,11 @@ class MobileApiController extends Controller
         if ($existingInventory && !$renewable) return response()->json(['ok' => false, 'message' => 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'], 409);
 
         try {
-            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory, $quote) {
+            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory, $quote, $pricing) {
+                $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                $liveQuote = $pricing->quote($lockedItem);
+                if (!$lockedItem->active || $liveQuote['price'] !== $quote['price'])
+                    throw new \DomainException('price_changed');
                 $wallet->debit($user, (int) $quote['price'], 'store_purchase', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
@@ -301,6 +311,8 @@ class MobileApiController extends Controller
                 if (!$isBooster) $this->activateStoreItem($user, $item);
                 return $inventory;
             });
+        } catch (\DomainException $e) {
+            return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.'],409);
         } catch (\RuntimeException) {
             return response()->json(['ok' => false, 'message' => 'رصيد التوكنز غير كافٍ'], 422);
         }
