@@ -365,7 +365,7 @@ class R35ArtGameCard extends StatelessWidget {
     button: true,
     label: L.t(locale, game.id),
     child: InkWell(
-      key: ValueKey('r35-game-' + game.id),
+      key: ValueKey('r35-game-${game.id}'),
       borderRadius: BorderRadius.circular(13),
       onTap: onTap,
       child: Container(
