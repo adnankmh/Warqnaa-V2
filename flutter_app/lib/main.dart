@@ -8655,7 +8655,11 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .44)),
             ),
-            child: R34GameEmblem(gameId: game.id, compact: true),
+            child: Stack(fit: StackFit.expand, children: <Widget>[
+              Opacity(opacity: .14, child: Image.asset(gameArtAsset(game.id), fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink())),
+              R34GameEmblem(gameId: game.id, compact: true),
+            ]),
           ),
         ),
         const SizedBox(height: 9),
