@@ -324,23 +324,44 @@ class MobileApiController extends Controller
     public function claimDaily(Request $request, WalletService $wallet)
     {
         $user = $request->user();
-        $today = now()->toDateString();
-        if (DailyRewardClaim::where('user_id', $user->id)->whereDate('claim_date', $today)->exists()) {
+        // R36: unique(user_id, claim_date) plus an authoritative user-row lock
+        // ensures even simultaneous API calls can never mint the daily reward twice.
+        $result = DB::transaction(function () use ($user, $wallet) {
+            $player = User::query()->lockForUpdate()->findOrFail($user->id);
+            $today = now()->toDateString();
+            if (DailyRewardClaim::where('user_id', $player->id)
+                ->where('claim_date', $today)->exists()) return null;
+
+            $coins = 100;
+            $xp = 20;
+            // Claim row precedes the reward; an outer rollback undoes every grant.
+            DailyRewardClaim::create([
+                'user_id' => $player->id,
+                'claim_date' => $today,
+                'streak' => 1,
+                'coins' => $coins,
+                'payload' => ['xp' => $xp, 'source' => 'verified_daily_claim'],
+            ]);
+            $wallet->credit($player, $coins, 'daily_reward', [
+                'claim_date' => $today,
+                'idempotency_key' => 'daily:'.$today.':player:'.$player->id,
+            ]);
+            $profile = $player->profile()->lockForUpdate()->first();
+            if ($profile) {
+                $profile->increment('xp', $xp);
+                $profile->update(['last_daily_reward_at' => now()]);
+            }
+            return ['coins' => $coins, 'xp' => $xp];
+        });
+
+        if ($result === null) {
             return response()->json(['ok' => false, 'message' => 'تم استلام مكافأة اليوم مسبقاً'], 409);
-        }
-        $coins = 100;
-        $xp = 20;
-        $wallet->credit($user, $coins, 'daily_reward', ['claim_date' => $today]);
-        DailyRewardClaim::create(['user_id' => $user->id, 'claim_date' => $today, 'streak' => 1, 'coins' => $coins, 'payload' => ['xp' => $xp]]);
-        if ($user->profile) {
-            $user->profile->increment('xp', $xp);
-            $user->profile->update(['last_daily_reward_at' => now()]);
         }
         return response()->json([
             'ok' => true,
             'message' => 'تم استلام المكافأة اليومية',
-            'coins' => $coins,
-            'xp' => $xp,
+            'coins' => $result['coins'],
+            'xp' => $result['xp'],
             'wallet' => $this->walletPayload($user->fresh()),
             'profile' => $user->profile?->fresh(),
         ]);
