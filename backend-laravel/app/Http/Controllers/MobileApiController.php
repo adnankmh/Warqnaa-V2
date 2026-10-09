@@ -243,7 +243,7 @@ class MobileApiController extends Controller
 
         try {
             $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory, $quote) {
-                $wallet->debit($user, (int) $item->price, 'store_purchase', [
+                $wallet->debit($user, (int) $quote['price'], 'store_purchase', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
                     'category' => $item->category,
