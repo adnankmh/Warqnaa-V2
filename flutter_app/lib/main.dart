@@ -50,6 +50,7 @@ part 'v300_world_experience.dart';
 part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
+part 'r35_reference_world.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
@@ -3797,6 +3798,8 @@ class _StorePageState extends State<StorePage> {
             buildMainFileFriendsButton(context, widget.controller),
           ],
         ),
+        const SizedBox(height: 10),
+        R35StoreTreasureStrip(controller: widget.controller),
         const SizedBox(height: 10),
         B307RealMoneyStoreBanner(controller: widget.controller),
         const SizedBox(height: 8),

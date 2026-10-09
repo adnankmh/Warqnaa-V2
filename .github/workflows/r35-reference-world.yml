@@ -1,0 +1,42 @@
+name: R35 Reference World Visual Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r35-reference-world:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: R35 screenshot reference UX and interaction contract
+        run: python3 tools/test_r35_visual_reference_contract.py
+      - name: Preserve R32 account rewards contract
+        run: python3 tools/test_r32_premium_account_rewards_contract.py
+      - name: Preserve R31 lobby navigation contract
+        run: python3 tools/test_r31_premium_lobby_room_flow_contract.py
+      - name: Preserve R30 avatars and table contract
+        run: python3 tools/test_r30_premium_table_avatar_contract.py
+      - name: Preserve R28 cross-device sky design
+        run: python3 tools/test_r28_sky_luxury_cross_device_contract.py
+      - name: Enforce Android and Web build contracts
+        run: python3 tools/test_stage_build_workflows.py
+      - name: Privacy and secrets guard
+        run: python3 tools/check_git_privacy_v304.py
+      - name: Compile all Python source contracts
+        run: python3 -m compileall -q tools
+      - name: Diff hygiene
+        run: git diff --check ${{ github.event.pull_request.base.sha || 'HEAD^' }}..HEAD

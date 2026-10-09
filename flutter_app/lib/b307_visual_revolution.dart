@@ -82,7 +82,7 @@ class B307TopBar extends StatelessWidget {
                 border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
                 boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
               ),
-              child: Center(child: Text(controller.avatarEmoji, style: TextStyle(fontSize: compact ? 19 : 22))),
+              child: Center(child: AccountAvatar(controller: controller, size: avatarSize - 6)),
             ),
           ),
           SizedBox(width: compact ? 6 : 9),
@@ -210,9 +210,9 @@ class B307BottomNavigation extends StatelessWidget {
                     boxShadow: selected ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 12)] : null,
                   ),
                   child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    Icon(icons[i], size: 21, color: selected ? Colors.white : B307SkyLuxury.textMuted),
+                    Icon(icons[i], size: 21, color: selected ? Colors.black : B307SkyLuxury.textMuted),
                     const SizedBox(height: 2),
-                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : B307SkyLuxury.textMuted)),
+                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
                   ]),
                 ),
               ),
@@ -280,7 +280,8 @@ class B307DesktopNavigation extends StatelessWidget {
                   border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
                 ),
                 alignment: Alignment.center,
-                child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+                child: Image.asset('assets/images/brand/warqna_logo.png', fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.style_rounded, color: Colors.white)),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -291,17 +292,78 @@ class B307DesktopNavigation extends StatelessWidget {
               ),
             ]),
           ),
-          const SizedBox(height: 16),
-          for (var i = 0; i < destinations.length; i++) ...<Widget>[
-            _B307DesktopDestination(
-              icon: destinations[i].icon,
-              label: ar ? destinations[i].ar : destinations[i].en,
-              selected: selectedIndex == i,
-              onTap: () => onSelected(i),
-            ),
-            if (i != destinations.length - 1) const SizedBox(height: 7),
-          ],
-          const Spacer(),
+          const SizedBox(height: 12),
+          // R35 reference sidebar: retain all five tab indices but make the
+          // secondary illustrated world destinations scrollable on short PCs.
+          Expanded(child: SingleChildScrollView(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+              for (var i = 0; i < destinations.length; i++) ...<Widget>[
+                _B307DesktopDestination(
+                  icon: destinations[i].icon,
+                  label: ar ? destinations[i].ar : destinations[i].en,
+                  selected: selectedIndex == i,
+                  onTap: () => onSelected(i),
+                ),
+                const SizedBox(height: 6),
+              ],
+              const Divider(color: Colors.white24),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 2, 0, 7),
+                child: Text(ar ? 'استكشف ورقنا' : 'Explore Warqnaa',
+                  style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 10.5, fontWeight: FontWeight.w900))),
+              _B307DesktopDestination(
+                icon: Icons.leaderboard_rounded,
+                label: ar ? 'المتصدرون' : 'Leaderboards',
+                selected: false,
+                onTap: () => showLeaderboard(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.shield_rounded,
+                label: ar ? 'الأندية' : 'Clubs',
+                selected: false,
+                onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                  builder: (_) => ClubsPage(controller: controller))),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.card_giftcard_rounded,
+                label: ar ? 'المكافآت والمهام' : 'Rewards and quests',
+                selected: false,
+                onTap: () => showRewards(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.people_alt_rounded,
+                label: ar ? 'الأصدقاء' : 'Friends',
+                selected: false,
+                onTap: () => showFriends(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.notifications_active_outlined,
+                label: ar ? 'الإشعارات' : 'Notifications',
+                selected: false,
+                onTap: () => showNotifications(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.face_retouching_natural_rounded,
+                label: ar ? 'تخصيص الملف' : 'Profile studio',
+                selected: false,
+                onTap: () => showProfile(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.settings_outlined,
+                label: ar ? 'الإعدادات' : 'Settings',
+                selected: false,
+                onTap: () => showSettings(context, controller),
+              ),
+              const SizedBox(height: 4),
+            ]),
+          )),
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
@@ -383,7 +445,7 @@ class _B307DesktopDestination extends StatelessWidget {
                   : const <BoxShadow>[],
             ),
             child: Row(children: <Widget>[
-              Icon(icon, color: selected ? Colors.white : B307SkyLuxury.textMuted, size: 21),
+              Icon(icon, color: selected ? Colors.black : B307SkyLuxury.textMuted, size: 21),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -391,7 +453,7 @@ class _B307DesktopDestination extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: selected ? Colors.white : B307SkyLuxury.textMuted,
+                    color: selected ? Colors.black : B307SkyLuxury.textMuted,
                     fontSize: 11.5,
                     fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
                   ),
@@ -412,45 +474,17 @@ class B307HomeDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    // R35 screenshot-guided composition on larger screens; retain the
+    // existing compact/mobile dashboard with its full interaction contracts.
+    if (MediaQuery.sizeOf(context).width >= 1024) {
+      return R35ReferenceWorldDashboard(controller: controller, onTab: onTab);
+    }
     final games = customerGamesR101;
     final featured = games.take(6).toList(growable: false);
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 16),
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            gradient: B307SkyLuxury.heroGradient,
-            border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .46)),
-            boxShadow: B307SkyLuxury.glow,
-          ),
-          child: Row(children: <Widget>[
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(colors: <Color>[Color(0x66ffffff), Color(0x1600e5ff)]),
-                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
-              ),
-              child: const Icon(Icons.emoji_events_rounded, size: 40, color: B307SkyLuxury.goldSoft),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-              Text(ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa Grand Tournaments', style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 18)),
-              const SizedBox(height: 4),
-              Text(ar ? 'نافس كل يوم، اجمع الجوائز، وارتقِ من واجهة زرقاء فاخرة وسريعة.' : 'Compete daily, collect rewards and progress from a bright premium blue hub.', style: const TextStyle(fontSize: 10, height: 1.45, color: B307SkyLuxury.textMuted)),
-              const SizedBox(height: 9),
-              FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.gold, foregroundColor: B307SkyLuxury.navy),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
-                icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                label: Text(ar ? 'شارك الآن' : 'Join now'),
-              ),
-            ])),
-          ]),
-        ),
+        R35ChampionBanner(controller: controller),
         const SizedBox(height: 9),
         Row(children: <Widget>[
           Expanded(child: B307StatCard(icon: Icons.shield_outlined, label: ar ? 'المستوى' : 'Level', value: '${controller.level}')),
@@ -513,15 +547,16 @@ class B307HomeDashboard extends StatelessWidget {
                   boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                  SizedBox(
-                    height: 48,
+                  // The artwork takes remaining card height instead of
+                  // overflowing 320px phones when labels and badges are shown.
+                  Expanded(child: SizedBox(
                     width: double.infinity,
                     child: Stack(fit: StackFit.expand, children: <Widget>[
-                       Opacity(opacity: .14, child: Image.asset(r101GameArtAsset(game.id), fit: BoxFit.cover,
-                         errorBuilder: (_, __, ___) => const SizedBox.shrink())),
-                       R34GameEmblem(gameId: game.id, compact: true),
+                       Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain,
+                         filterQuality: FilterQuality.high,
+                         errorBuilder: (_, __, ___) => R34GameEmblem(gameId: game.id, compact: true)),
                      ]),
-                  ),
+                  )),
                   const SizedBox(height: 5),
                   Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
