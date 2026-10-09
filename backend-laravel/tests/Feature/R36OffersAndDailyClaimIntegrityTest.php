@@ -103,6 +103,21 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $this->assertSame(1, $user->inventoryItems()->where('store_item_id',$item->id)->count());
     }
 
+    public function test_mobile_bootstrap_displays_the_actual_discounted_store_price(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $item = $this->item('r36_bootstrap_badge');
+        $this->offer('r36_bootstrap_offer', [$item->key], 25);
+        $this->withToken($user->createToken('r36-store-bootstrap')->plainTextToken);
+        $response = $this->getJson('/api/mobile/v1/bootstrap')->assertOk();
+        $row = collect($response->json('store'))->firstWhere('key', $item->key);
+        $this->assertNotNull($row);
+        $this->assertSame(750, $row['price']);
+        $this->assertSame(1000, $row['original_price']);
+        $this->assertSame(25, $row['discount_percent']);
+    }
+
     public function test_duplicate_daily_claim_does_not_credit_wallet_twice(): void
     {
         Carbon::setTestNow('2026-10-10 10:00:00');
