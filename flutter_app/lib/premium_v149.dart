@@ -923,6 +923,7 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
   final transform = TransformationController();
   ui.Image? decoded;
   bool exporting = false;
+  bool showEntirePhoto = true;
 
   @override
   void initState() {
@@ -964,7 +965,17 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
     double imageHeight = viewport;
     if (image != null) {
       final ratio = image.width / image.height;
-      if (ratio >= 1) {
+      if (showEntirePhoto) {
+        // Inscribe the entire rectangular image inside the circular crop mask.
+        final maxSide = viewport * .70;
+        if (ratio >= 1) {
+          imageWidth = maxSide;
+          imageHeight = maxSide / ratio;
+        } else {
+          imageHeight = maxSide;
+          imageWidth = maxSide * ratio;
+        }
+      } else if (ratio >= 1) {
         imageHeight = viewport;
         imageWidth = viewport * ratio;
       } else {
@@ -1001,7 +1012,19 @@ class _AvatarCropDialogState extends State<AvatarCropDialog> {
             ),
           ),
           const SizedBox(height: 9),
-          TextButton.icon(onPressed: () => transform.value = Matrix4.identity(), icon: const Icon(Icons.restart_alt), label: Text(ar ? 'إعادة الضبط' : 'Reset')),
+          Wrap(alignment: WrapAlignment.center, spacing: 8, children: [
+            ChoiceChip(
+              label: Text(ar ? 'الصورة كاملة' : 'Full photo'),
+              selected: showEntirePhoto,
+              onSelected: (_) => setState(() { showEntirePhoto = true; transform.value = Matrix4.identity(); }),
+            ),
+            ChoiceChip(
+              label: Text(ar ? 'قص وتقريب' : 'Crop and zoom'),
+              selected: !showEntirePhoto,
+              onSelected: (_) => setState(() { showEntirePhoto = false; transform.value = Matrix4.identity(); }),
+            ),
+            TextButton.icon(onPressed: () => transform.value = Matrix4.identity(), icon: const Icon(Icons.restart_alt), label: Text(ar ? 'إعادة الضبط' : 'Reset')),
+          ]),
         ],
       ),
       actions: [
