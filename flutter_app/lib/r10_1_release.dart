@@ -41,6 +41,16 @@ const Map<String, R101ThemeSpec> r101Themes = <String, R101ThemeSpec>{
   'aurora_luxe': R101ThemeSpec(code:'aurora_luxe',accent:Color(0xff63f2d1),accent2:Color(0xffc18cff),background:Color(0xff09151b),surface:Color(0xff17313a),light:false),
 };
 
+/// R34: foreground is selected by actual WCAG contrast, not theme labels.
+/// Sky-blue buttons receive a deep navy ink; dark cosmetic accents use white.
+Color r101ReadableInk(Color background) {
+  const navy = Color(0xFF061827);
+  final luminosity = background.computeLuminance();
+  final darkContrast = (luminosity + .05) / (navy.computeLuminance() + .05);
+  final lightContrast = 1.05 / (luminosity + .05);
+  return darkContrast >= lightContrast ? navy : Colors.white;
+}
+
 ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, String localeCode = 'en'}) {
   final fallbackAccent = colorFromHex(fallbackAccentHex);
   final spec = r101Themes[code] ?? R101ThemeSpec(
@@ -55,12 +65,18 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
   // Keep the legacy theme specifications intact for user settings and compatibility.
   final worldBackground = spec.light ? const Color(0xffe0f2fe) : R9Design.skyCanvas;
   final worldSurface = spec.light ? const Color(0xfff0f9ff) : R9Design.skyPanel;
+  // Bright sky actions read crisply in Arabic and English, unlike white on cyan.
+  final blueAction = spec.code == 'sky' || spec.code == 'ocean' || spec.code == 'royal_blue';
+  final actionFill = blueAction ? R9Design.sky : spec.accent;
+  final actionInk = r101ReadableInk(actionFill);
+  final surfaceInk = r101ReadableInk(worldSurface);
   final base = R9Design.theme(light: spec.light, accent: spec.accent, fontFamily: fontFamily, arabic: localeCode == 'ar');
   final scheme = base.colorScheme.copyWith(
     primary: spec.accent,
     secondary: spec.accent2,
     surface: worldSurface,
-    onSurface: spec.light ? const Color(0xff241f1a) : const Color(0xfff7f4ed),
+    onSurface: surfaceInk,
+    onPrimary: actionInk,
   );
   return base.copyWith(
     colorScheme: scheme,
@@ -69,7 +85,9 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
     cardTheme: base.cardTheme.copyWith(color: worldSurface.withValues(alpha: spec.light ? .94 : .88)),
     navigationBarTheme: base.navigationBarTheme.copyWith(
       backgroundColor: Color.lerp(worldSurface, worldBackground, .22),
-      indicatorColor: spec.accent.withValues(alpha: .18),
+      indicatorColor: actionFill.withValues(alpha: .38),
+      iconTheme: WidgetStateProperty.resolveWith((states) => IconThemeData(color: states.contains(WidgetState.selected) ? surfaceInk : surfaceInk.withValues(alpha: .72))),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(fontFamily: fontFamily, fontSize: 11, fontWeight: states.contains(WidgetState.selected) ? FontWeight.w900 : FontWeight.w700, color: surfaceInk)),
     ),
     appBarTheme: base.appBarTheme.copyWith(foregroundColor: scheme.onSurface),
     dialogTheme: base.dialogTheme.copyWith(backgroundColor: Color.lerp(worldSurface, worldBackground, .08)),
@@ -85,21 +103,21 @@ ThemeData r101Theme(String code, String fallbackAccentHex, {String? fontFamily, 
       suffixIconColor: scheme.onSurface.withValues(alpha: .66),
     ),
     filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
-      backgroundColor: spec.accent,
-      foregroundColor: spec.light ? Colors.white : const Color(0xff111111),
+      backgroundColor: actionFill,
+      foregroundColor: actionInk,
       textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w900, letterSpacing: localeCode == 'ar' ? 0 : .15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       minimumSize: const Size(44, 46),
     )),
     outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
       foregroundColor: scheme.onSurface,
-      side: BorderSide(color: spec.accent.withValues(alpha: .36)),
+      side: BorderSide(color: r101ReadableInk(worldSurface).withValues(alpha: .48)),
       textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
       minimumSize: const Size(44, 46),
     )),
     textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
-      foregroundColor: spec.accent,
+      foregroundColor: surfaceInk,
       textStyle: TextStyle(fontFamily: fontFamily, fontWeight: FontWeight.w800),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     )),
