@@ -62,8 +62,18 @@ class StoreController
 
         try {
             $purchase = DB::transaction(function () use ($user, $item, $wallet, $pricing) {
+                // Serialize web and mobile purchases for the same player before wallet debit.
+                User::query()->lockForUpdate()->findOrFail($user->id);
                 $item = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
                 if (!$item->active) throw new \DomainException('inactive_item');
+                // The initial preflight check is only a UX optimization. Enforce
+                // permanent ownership again under the player/item transaction locks.
+                if (!$item->duration_days && in_array($item->category, ['badge','table','pasha_style','card_back','name_color','text_color','profile_color','name_frame','effect','emoji_pack','profile_cover','profile_frame'], true)) {
+                    if (InventoryItem::where('user_id', $user->id)
+                        ->where('store_item_id', $item->id)->lockForUpdate()->exists()) {
+                        throw new \DomainException('already_owned');
+                    }
+                }
                 $payload = $item->payload ?: [];
                 $ticketDenomination = $item->category === 'competition_ticket'
                     ? (int)($payload['denomination'] ?? 0) : 0;
@@ -117,9 +127,11 @@ class StoreController
                 return ['kind'=>'inventory', 'inventory_id'=>$inventory->id, 'quote'=>$quote];
             });
         } catch (\DomainException $e) {
-            return $this->friendlyFail($e->getMessage() === 'price_changed'
-                ? 'تغير سعر المنتج. يرجى تحديث صفحة المتجر والتأكد من السعر الجديد.'
-                : 'هذا المنتج غير متاح للشراء حالياً.');
+            return $this->friendlyFail(match ($e->getMessage()) {
+                'price_changed' => 'تغير سعر المنتج. يرجى تحديث صفحة المتجر والتأكد من السعر الجديد.',
+                'already_owned' => 'هذا العنصر موجود لديك بالفعل. يمكنك تفعيله من مشترياتي.',
+                default => 'هذا المنتج غير متاح للشراء حالياً.',
+            });
         } catch (RuntimeException $e) {
             return $this->friendlyFail('رصيدك من التوكنز غير كافٍ. تحتاج إلى شراء توكنز أو ترقية مستواك للحصول على مكافآت.');
         } catch (Throwable $e) {
