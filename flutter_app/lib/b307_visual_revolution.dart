@@ -82,7 +82,7 @@ class B307TopBar extends StatelessWidget {
                 border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
                 boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .34), blurRadius: 12)],
               ),
-              child: Center(child: Text(controller.avatarEmoji, style: TextStyle(fontSize: compact ? 19 : 22))),
+              child: Center(child: AccountAvatar(controller: controller, size: avatarSize - 6)),
             ),
           ),
           SizedBox(width: compact ? 6 : 9),
@@ -210,9 +210,9 @@ class B307BottomNavigation extends StatelessWidget {
                     boxShadow: selected ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 12)] : null,
                   ),
                   child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    Icon(icons[i], size: 21, color: selected ? Colors.white : B307SkyLuxury.textMuted),
+                    Icon(icons[i], size: 21, color: selected ? Colors.black : B307SkyLuxury.textMuted),
                     const SizedBox(height: 2),
-                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.white : B307SkyLuxury.textMuted)),
+                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
                   ]),
                 ),
               ),
@@ -280,7 +280,8 @@ class B307DesktopNavigation extends StatelessWidget {
                   border: Border.all(color: B307SkyLuxury.goldSoft, width: 2),
                 ),
                 alignment: Alignment.center,
-                child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+                child: Image.asset('assets/images/brand/warqna_logo.png', fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.style_rounded, color: Colors.white)),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -383,7 +384,7 @@ class _B307DesktopDestination extends StatelessWidget {
                   : const <BoxShadow>[],
             ),
             child: Row(children: <Widget>[
-              Icon(icon, color: selected ? Colors.white : B307SkyLuxury.textMuted, size: 21),
+              Icon(icon, color: selected ? Colors.black : B307SkyLuxury.textMuted, size: 21),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -391,7 +392,7 @@ class _B307DesktopDestination extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: selected ? Colors.white : B307SkyLuxury.textMuted,
+                    color: selected ? Colors.black : B307SkyLuxury.textMuted,
                     fontSize: 11.5,
                     fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
                   ),
@@ -412,6 +413,11 @@ class B307HomeDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    // R35 screenshot-guided composition on larger screens; retain the
+    // existing compact/mobile dashboard with its full interaction contracts.
+    if (MediaQuery.sizeOf(context).width >= 1024) {
+      return R35ReferenceWorldDashboard(controller: controller, onTab: onTab);
+    }
     final games = customerGamesR101;
     final featured = games.take(6).toList(growable: false);
     return ListView(
@@ -514,12 +520,12 @@ class B307HomeDashboard extends StatelessWidget {
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
                   SizedBox(
-                    height: 48,
+                    height: 70,
                     width: double.infinity,
                     child: Stack(fit: StackFit.expand, children: <Widget>[
-                       Opacity(opacity: .14, child: Image.asset(r101GameArtAsset(game.id), fit: BoxFit.cover,
-                         errorBuilder: (_, __, ___) => const SizedBox.shrink())),
-                       R34GameEmblem(gameId: game.id, compact: true),
+                       Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain,
+                         filterQuality: FilterQuality.high,
+                         errorBuilder: (_, __, ___) => R34GameEmblem(gameId: game.id, compact: true)),
                      ]),
                   ),
                   const SizedBox(height: 5),
