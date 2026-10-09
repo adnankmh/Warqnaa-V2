@@ -38,8 +38,8 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
     {
         return StoreItem::create([
             'key'=>$key, 'name'=>['ar'=>'عنصر تجريبي','en'=>'Test item'],
-            'category'=>'badge', 'price'=>$price, 'active'=>true,
-            'payload'=>['badge'=>$key],
+            'category'=>'profile_cover', 'price'=>$price, 'active'=>true,
+            'payload'=>['cover'=>$key, 'r91_price_normalized'=>true, 'r91_base_price'=>$price],
         ]);
     }
 
