@@ -148,8 +148,8 @@ Route::middleware('auth')->group(function(){
     Route::post('/competitive/tournaments/{tournament}/bracket',[AdminCompetitiveController::class,'buildBracket'])->name('admin.competitive.tournament.bracket');
     Route::get('/pro-v118', fn()=>response()->json(['ok'=>true,'version'=>config('warqna_pro_features.version'),'status'=>'admin pro dashboard route restored v134']))->name('admin.pro.v118');
     Route::get('/engine-audit', [\App\Http\Controllers\EngineAuditController::class,'index'])->name('admin.engine.audit');
-    Route::post('/economy/season', fn()=>back()->with('ok','تم حفظ الموسم من لوحة الإدارة'))->name('admin.economy.season');
-    Route::post('/economy/offer', fn()=>back()->with('ok','تم حفظ العرض من لوحة الإدارة'))->name('admin.economy.offer');
-    Route::post('/economy/rare', fn()=>back()->with('ok','تم حفظ المقتنى النادر من لوحة الإدارة'))->name('admin.economy.rare');
+    Route::post('/economy/season', [\App\Http\Controllers\AdminEconomyOperationsController::class, 'saveSeason'])->name('admin.economy.season');
+    Route::post('/economy/offer', [\App\Http\Controllers\AdminEconomyOperationsController::class, 'saveOffer'])->name('admin.economy.offer');
+    Route::post('/economy/rare', [\App\Http\Controllers\AdminEconomyOperationsController::class, 'saveRare'])->name('admin.economy.rare');
 });
 });
