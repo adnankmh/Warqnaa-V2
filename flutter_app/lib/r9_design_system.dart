@@ -27,7 +27,11 @@ abstract final class R9Design {
   static const Color emerald = Color(0xFF2DD4A8);
   static const Color midnight = Color(0xFF052F54);
   static const Color ink = Color(0xFF064777);
-  static const Color skySurface = Color(0xFF07598F);
+  static const Color skySurface = Color(0xFF268FD0);
+  // Legacy R27 blue-glass reference retained for cumulative visual contracts.
+  static const Color legacyBlueGlass = Color(0xFF07598F);
+  static const Color skyCanvas = Color(0xFF4EB7ED);
+  static const Color skyPanel = Color(0xFF329EDB);
   static const Color ivory = Color(0xFFF6F8FC);
 
   static ThemeData theme({required bool light, required Color accent, String? fontFamily, bool arabic = false}) {
@@ -45,7 +49,7 @@ abstract final class R9Design {
         : ColorScheme.fromSeed(
             seedColor: foundationSeed,
             brightness: Brightness.dark,
-            surface: skySurface,
+            surface: skyPanel,
           ).copyWith(
             tertiary: gold,
             outline: const Color(0xFF73D9FF),
@@ -57,8 +61,8 @@ abstract final class R9Design {
       fontFamily: fontFamily,
       brightness: light ? Brightness.light : Brightness.dark,
       colorScheme: scheme,
-      scaffoldBackgroundColor: light ? const Color(0xFFF0F8FF) : midnight,
-      canvasColor: light ? const Color(0xFFF0F8FF) : midnight,
+      scaffoldBackgroundColor: light ? const Color(0xFFF0F8FF) : skyCanvas,
+      canvasColor: light ? const Color(0xFFF0F8FF) : skyCanvas,
       visualDensity: VisualDensity.standard,
       dividerTheme: DividerThemeData(
         color: light ? scheme.outlineVariant.withValues(alpha: .42) : sky.withValues(alpha: .24),
@@ -78,7 +82,7 @@ abstract final class R9Design {
     );
 
     final blueBorder = light ? scheme.outlineVariant.withValues(alpha: .42) : sky.withValues(alpha: .30);
-    final darkGlass = Color.lerp(midnight, skySurface, .66)!;
+    final darkGlass = Color.lerp(skyPanel, skyCanvas, .38)!;
 
     return base.copyWith(
       textTheme: text,
@@ -120,7 +124,7 @@ abstract final class R9Design {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: light ? Colors.white.withValues(alpha: .84) : sky.withValues(alpha: .075),
+        fillColor: light ? Colors.white.withValues(alpha: .84) : const Color(0xFF65C6F4).withValues(alpha: .40),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(rMedium), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
@@ -134,7 +138,7 @@ abstract final class R9Design {
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 68,
-        backgroundColor: light ? Colors.white.withValues(alpha: .97) : ink.withValues(alpha: .98),
+        backgroundColor: light ? Colors.white.withValues(alpha: .97) : skyPanel.withValues(alpha: .98),
         indicatorColor: light ? accent.withValues(alpha: .14) : sky.withValues(alpha: .22),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
@@ -155,15 +159,15 @@ abstract final class R9Design {
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: light ? const Color(0xFFF5FAFF) : const Color(0xFF064777),
-        modalBackgroundColor: light ? const Color(0xFFF5FAFF) : const Color(0xFF064777),
+        backgroundColor: light ? const Color(0xFFF5FAFF) : skyPanel,
+        modalBackgroundColor: light ? const Color(0xFFF5FAFF) : skyPanel,
         showDragHandle: true,
         dragHandleColor: light ? scheme.outline : sky,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(rHero))),
       ),
       dialogTheme: DialogThemeData(
         elevation: 0,
-        backgroundColor: light ? const Color(0xFFF8FCFF) : const Color(0xFF07598F),
+        backgroundColor: light ? const Color(0xFFF8FCFF) : skyPanel,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(rLarge),
           side: BorderSide(color: blueBorder),
