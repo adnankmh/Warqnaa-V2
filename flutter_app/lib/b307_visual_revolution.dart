@@ -516,12 +516,7 @@ class B307HomeDashboard extends StatelessWidget {
                   SizedBox(
                     height: 48,
                     width: double.infinity,
-                    child: Image.asset(
-                      r101GameArtAsset(game.id),
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 30))),
-                    ),
+                    child: R34GameEmblem(gameId: game.id, compact: true),
                   ),
                   const SizedBox(height: 5),
                   Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10, fontWeight: FontWeight.w900)),
