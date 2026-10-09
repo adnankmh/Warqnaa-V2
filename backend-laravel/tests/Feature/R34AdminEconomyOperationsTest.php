@@ -18,7 +18,7 @@ class R34AdminEconomyOperationsTest extends TestCase
             'email' => $admin ? 'r34-admin@example.test' : 'r34-guest@example.test',
             'password' => Hash::make('random-local-test-only'),
             'is_admin' => $admin,
-            'admin_role' => $admin ? 'primary_admin' : null,
+            'admin_role' => $admin ? 'primary_admin' : 'player',
         ]);
     }
 
