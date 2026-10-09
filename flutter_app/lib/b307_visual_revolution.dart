@@ -423,31 +423,8 @@ class B307HomeDashboard extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 16),
       children: <Widget>[
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            gradient: B307SkyLuxury.heroGradient,
-            border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .46)),
-            boxShadow: B307SkyLuxury.glow,
-          ),
-          child: Row(children: <Widget>[
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(colors: <Color>[Color(0x66ffffff), Color(0x1600e5ff)]),
-                border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
-              ),
-              child: const Icon(Icons.emoji_events_rounded, size: 40, color: B307SkyLuxury.goldSoft),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-              Text(ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa Grand Tournaments', style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 18)),
-              const SizedBox(height: 4),
-              Text(ar ? 'نافس كل يوم، اجمع الجوائز، وارتقِ من واجهة زرقاء فاخرة وسريعة.' : 'Compete daily, collect rewards and progress from a bright premium blue hub.', style: const TextStyle(fontSize: 10, height: 1.45, color: B307SkyLuxury.textMuted)),
-              const SizedBox(height: 9),
+        R35ChampionBanner(controller: controller),
+        const SizedBox(height: 9),
               FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.gold, foregroundColor: B307SkyLuxury.navy),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
