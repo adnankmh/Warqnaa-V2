@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\{
     AntiCheatEvent, CompetitionTicket, CompetitiveMatch, CompetitiveRating, CompetitiveRatingEvent,
-    CompetitiveSeason, Game, Room, SeasonRewardClaim, Tournament, TournamentEntry, User, Wallet
+    CompetitiveSeason, Game, Room, SeasonRewardClaim, Tournament, TournamentEntry, User, Wallet, WalletTransaction
 };
 use App\Services\Competitive\{
     CompetitiveMatchmakingService, CompetitiveRatingService, CompetitiveSeasonService,
@@ -176,6 +176,13 @@ class V240CompetitiveArenaTest extends TestCase
         $this->assertNotNull(data_get($finished->bracket,'settlement.paid_at'));
         $this->assertSame(1000,(int)data_get($finished->bracket,'settlement.prize'));
         $this->assertSame(1000,(int)User::findOrFail($winner)->wallet()->value('tokens'));
+        // R34: one immutable, auditable virtual-token payout per verified winner.
+        $award = WalletTransaction::where('user_id',$winner)->where('type','tournament_prize')->firstOrFail();
+        $this->assertSame('tournament:'.$tournament->id.':player:'.$winner, $award->meta['idempotency_key']);
+        $retry = app(\App\Services\WarqnaPro\TournamentSettlementService::class)
+            ->settle($tournament->id, [$winner], $finalRoom->id);
+        $this->assertTrue($retry['duplicate']);
+        $this->assertSame(1, WalletTransaction::where('user_id',$winner)->where('type','tournament_prize')->count());
     }
 
     public function test_mobile_registration_supports_an_admin_created_custom_championship_key(): void

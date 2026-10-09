@@ -354,7 +354,9 @@ class R9DirectionalTablePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final portrait = !kIsWeb && size.height > size.width;
+    // R34: follow actual viewport orientation on Android AND Web (including
+    // portrait browser windows); preserve whole artwork without cropping.
+    final portrait = size.height > size.width;
     final c1 = controller.color1For(product);
     final c2 = controller.color2For(product);
     return AspectRatio(

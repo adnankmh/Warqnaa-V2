@@ -170,6 +170,82 @@ class _R8Portal extends StatelessWidget {
   Widget build(BuildContext context) => Material(color: const Color(0xff0b1c2a), borderRadius: BorderRadius.circular(16), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: Container(constraints: const BoxConstraints(minHeight: 76), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: accent.withValues(alpha: .24)), gradient: LinearGradient(colors: [accent.withValues(alpha: .08), Colors.transparent])), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .10), boxShadow: [BoxShadow(color: accent.withValues(alpha: .18), blurRadius: 16)]), child: Icon(icon, size: 20, color: accent)), const SizedBox(height: 6), Text(label, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900))]))));
 }
 
+/// R34 original Warqnaa illustrated game emblems, vector-built for crisp Web/Android.
+/// These replace reused stock game thumbnails in prominent discovery surfaces.
+class R34GameEmblem extends StatelessWidget {
+  const R34GameEmblem({super.key, required this.gameId, this.compact = false});
+  final String gameId;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final id = gameId.toLowerCase();
+    final isTarneeb = id.contains('tarneeb');
+    final isTrix = id.contains('trix');
+    final isHand = id.contains('hand');
+    final isBoard = id.contains('domino') || id.contains('backgammon') || id.contains('chess');
+    final accent = isTarneeb ? const Color(0xFFFFC84A)
+        : isTrix ? const Color(0xFF31E4F4)
+        : isHand ? const Color(0xFFFFB8E0)
+        : id.contains('banakil') ? const Color(0xFF65F0BC)
+        : id.contains('baloot') ? const Color(0xFFF3D38B)
+        : isBoard ? const Color(0xFF7AE6F9)
+        : const Color(0xFFA9D9FF);
+    final glyph = id.contains('400') ? '400' : id.contains('41') ? '41' : id.contains('61') ? '61'
+        : isTarneeb ? '♠' : isTrix ? '♥' : isHand ? '♣'
+        : id.contains('banakil') ? '♦' : id.contains('baloot') ? '♠'
+        : id.contains('domino') ? '⚁' : id.contains('backgammon') ? '⚄'
+        : id.contains('chess') ? '♞' : id.contains('basra') ? '★' : '✦';
+    return LayoutBuilder(builder: (context, box) {
+      final availableWidth = box.maxWidth.isFinite ? box.maxWidth : 80.0;
+      final availableHeight = box.maxHeight.isFinite ? box.maxHeight : 80.0;
+      final size = math.min(availableWidth, availableHeight).clamp(24.0, compact ? 64.0 : 162.0).toDouble();
+      Widget card({required Color color, required double tilt, required double dx, required double dy}) =>
+          Positioned(
+            left: size * dx,
+            top: size * dy,
+            child: Transform.rotate(
+              angle: tilt,
+              child: Container(
+                width: size * .60,
+                height: size * .79,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(size * .095),
+                  border: Border.all(color: accent.withValues(alpha: .68), width: math.max(1.0, size * .018)),
+                  boxShadow: <BoxShadow>[BoxShadow(color: Colors.black.withValues(alpha: .22), blurRadius: size * .12, offset: Offset(0, size * .06))],
+                ),
+              ),
+            ),
+          );
+      return Center(
+        child: SizedBox.square(
+          dimension: size,
+          child: Stack(clipBehavior: Clip.hardEdge, children: <Widget>[
+            Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(colors: <Color>[accent.withValues(alpha: .28), accent.withValues(alpha: .02)]),
+            ))),
+            card(color: const Color(0xFF0B2B47), tilt: -.23, dx: .12, dy: .12),
+            card(color: const Color(0xFFF5FCFF), tilt: .17, dx: .30, dy: .10),
+            Center(child: Transform.rotate(angle: .17, child: Text(glyph,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: size * (glyph.length > 2 ? .26 : .49),
+                fontWeight: FontWeight.w900,
+                color: isTrix || isTarneeb ? const Color(0xFFC72E4C) : const Color(0xFF083858),
+                shadows: <Shadow>[Shadow(color: accent.withValues(alpha: .18), blurRadius: 3)],
+              ),
+            ))),
+            Positioned(right: size * .04, bottom: size * .08,
+              child: Icon(Icons.auto_awesome_rounded, color: accent, size: size * .20)),
+          ]),
+        ),
+      );
+    });
+  }
+}
+
 class R8GameTile extends StatelessWidget {
   const R8GameTile({super.key, required this.game, required this.locale, required this.onTap});
   final GameInfo game; final String locale; final VoidCallback onTap;
@@ -188,7 +264,8 @@ class R8GameTile extends StatelessWidget {
     final ar = locale == 'ar'; final p = _palette(ar);
     return Semantics(button: true, label: L.t(locale, game.id), child: Material(color: const Color(0xff081824), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: p.$2.withValues(alpha: .48))), clipBehavior: Clip.antiAlias, child: InkWell(onTap: onTap, child: Stack(fit: StackFit.expand, children: [
       DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [p.$1, p.$2.withValues(alpha: .66), const Color(0xff06111a)]))),
-      Image.asset(r101GameArtAsset(game.id), fit: BoxFit.cover, excludeFromSemantics: true, errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 44)))),
+      const SizedBox.expand(child: ColoredBox(color: Colors.transparent)),
+       R34GameEmblem(gameId: game.id),
       const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x08000000), Color(0x22000000), Color(0xe3071119)], stops: [0, .48, 1]))),
       PositionedDirectional(top: 9, start: 9, child: Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4), decoration: BoxDecoration(color: const Color(0xcc07131e), borderRadius: BorderRadius.circular(99), border: Border.all(color: p.$2.withValues(alpha: .4))), child: Text(p.$3, style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: p.$2)))),
       PositionedDirectional(start: 11, end: 11, bottom: 9, child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [Text(L.t(locale, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black, blurRadius: 8)])), const SizedBox(height: 2), Text(ar ? 'ابدأ اللعب الآن' : 'Play now', style: const TextStyle(fontSize: 9, color: Color(0xffc6d8e3), fontWeight: FontWeight.w700))])), Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: p.$2.withValues(alpha: .16), border: Border.all(color: p.$2.withValues(alpha: .52))), child: Icon(ar ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, color: p.$2, size: 20))])),

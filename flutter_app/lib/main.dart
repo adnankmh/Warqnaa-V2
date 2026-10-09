@@ -3616,7 +3616,7 @@ Future<void> showHomeGamesSelector(BuildContext context, AppController controlle
             final checked = selected.contains(game.id);
             return CheckboxListTile(
               value: checked,
-              secondary: Text(game.icon, style: const TextStyle(fontSize: 28)),
+              secondary: SizedBox(width: 46, height: 46, child: R34GameEmblem(gameId: game.id, compact: true)),
               title: Text(L.t(controller.localeCode, game.id), style: const TextStyle(fontWeight: FontWeight.w800)),
               subtitle: Text(checked ? '${selected.toList().indexOf(game.id) + 1}/4' : L.t(controller.localeCode, 'tapToSelect')),
               onChanged: (value) {
@@ -7851,7 +7851,7 @@ Future<void> showAvatarPicker(BuildContext context, AppController controller) as
       ),
       const SizedBox(height: 13),
       FilledButton.icon(
-        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text),
+        style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: r101ReadableInk(B307SkyLuxury.azure)),
         onPressed: () async {
           final err = await controller.updateAvatarFromGallery(context);
           if (context.mounted) showToast(context, err ?? (ar ? 'تم تحديث الصورة.' : 'Avatar updated.'));
@@ -8482,7 +8482,7 @@ void showSettings(BuildContext context, AppController controller) {
           const SizedBox(height: 10),
           FilledButton.icon(
             key: const ValueKey('r32-settings-save'),
-            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: B307SkyLuxury.text, minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: r101ReadableInk(B307SkyLuxury.azure), minimumSize: const Size.fromHeight(50)),
             onPressed: () {
               Navigator.pop(context);
               showToast(context, ar ? 'تم حفظ الإعدادات وتطبيقها على التطبيق.' : 'Settings saved and applied.');
@@ -8655,11 +8655,11 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .44)),
             ),
-            child: Image.asset(
-              gameArtAsset(game.id),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(child: Text(game.icon, style: const TextStyle(fontSize: 28))),
-            ),
+            child: Stack(fit: StackFit.expand, children: <Widget>[
+              Opacity(opacity: .14, child: Image.asset(gameArtAsset(game.id), fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink())),
+              R34GameEmblem(gameId: game.id, compact: true),
+            ]),
           ),
         ),
         const SizedBox(height: 9),
@@ -10076,11 +10076,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
             crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:wide?1.55:1.35,
             children:[
               _AdminMetric(icon:'👥',label:'اللاعبون',value:stats['users']?.toString() ?? 'محلي'),
-              _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '0'),
-              _AdminMetric(icon:'🏆',label:'المنافسات',value:stats['tournaments']?.toString() ?? '3'),
-              _AdminMetric(icon:'🪙',label:'الرصيد الإداري',value:formatNumber(widget.controller.coins)),
+              _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '—'),
+              _AdminMetric(icon:'🏆',label:'المنافسات',value:stats['tournaments']?.toString() ?? '—'),
+              _AdminMetric(icon:'🪙',label:'الرصيد الإداري',value:stats['wallet_reserve']?.toString() ?? formatNumber(widget.controller.coins)),
               _AdminMetric(icon:'🧠',label:'محركات فعالة',value:'${gamesCatalog.length}'),
               _AdminMetric(icon:'🛒',label:'عناصر المتجر',value:'${products.length}'),
+              _AdminMetric(icon:'🎟️',label:'فئات تذاكر المدير (100+)',value:stats['ticket_types']?.toString() ?? '—'),
               _AdminMetric(icon:'👑',label:'المستوى',value:'${widget.controller.level}'),
               _AdminMetric(icon:'🛡️',label:'الصلاحية',value:widget.controller.isPrimaryAdmin?'PRIMARY':'ADMIN'),
             ],

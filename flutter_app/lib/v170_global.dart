@@ -396,15 +396,18 @@ class _PashaColorAvatarV170 extends StatelessWidget {
   const _PashaColorAvatarV170({required this.name, required this.emoji, required this.bytes, required this.color, required this.pasha, required this.size, this.pashaAsset});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: size + (pasha ? 8 : 0),
-        height: size + (pasha ? 8 : 0),
+  Widget build(BuildContext context) => SizedBox.square(
+        // Preserve a genuine 1:1 avatar at every layout width; badge floats independently.
+        dimension: size + (pasha ? 8 : 0),
         child: Stack(clipBehavior: Clip.none, children: [
           Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withValues(alpha: .58), blurRadius: pasha ? 18 : 8, spreadRadius: pasha ? 2 : 0)]),
-              child: GlowAvatar(text: emoji.isEmpty ? name.characters.first : emoji, bytes: bytes, size: size, color: color),
-            ),
+            child: Center(child: SizedBox.square(
+              dimension: size,
+              child: DecoratedBox(
+                decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withValues(alpha: .58), blurRadius: pasha ? 18 : 8, spreadRadius: pasha ? 2 : 0)]),
+                child: GlowAvatar(text: emoji.isEmpty ? name.characters.first : emoji, bytes: bytes, size: size, color: color),
+              ),
+            )),
           ),
           if (pasha)
             Positioned(

@@ -112,21 +112,25 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
 
 <section id="admin-economy" class="admin-section">
  <h2>💎 إدارة المواسم والعروض والمقتنيات النادرة</h2>
+ @if($errors->any())<div class="pro-card" role="alert" style="border:1px solid #ef4444"><strong>لم يتم الحفظ، يرجى تصحيح المدخلات:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
  <div class="admin-economy-grid">
   <form class="pro-card" method="post" action="{{ route('admin.economy.season') }}">@csrf
    <h3>إنشاء/تعديل موسم</h3>
    <label>Key<input name="key" value="season_royal_launch"></label>
    <label>اسم الموسم بالعربي<input name="name_ar" value="موسم ملكي جديد"></label>
-   <label>البداية<input type="date" name="starts_at"></label>
-   <label>النهاية<input type="date" name="ends_at"></label>
+   <label>البداية<input type="date" name="starts_at" required></label>
+   <label>النهاية<input type="date" name="ends_at" required></label>
    <label class="check-row"><input type="checkbox" name="active" value="1" checked> مفعل</label>
    <button class="primary">حفظ الموسم</button>
   </form>
   <form class="pro-card" method="post" action="{{ route('admin.economy.offer') }}">@csrf
    <h3>إنشاء/تعديل عرض</h3>
    <label>Key<input name="key" value="offer_royal_week"></label>
-   <label>عنوان العرض<input name="title_ar" value="عرض الأسبوع الملكي"></label>
-   <label>نسبة الخصم<input type="number" name="discount_percent" min="0" max="95" value="25"></label>
+   <label>عنوان العرض<input name="title_ar" value="عرض الأسبوع الملكي" required></label>
+   <label>نسبة الخصم<input type="number" name="discount_percent" min="0" max="95" value="25" required></label>
+   <label>مفاتيح المنتجات المستهدفة (افصل بفاصلة)<input name="item_keys" required placeholder="table_royal_01,cardback_gold" title="اختر مفاتيح منتجات متاحة بالفعل في المتجر"></label>
+   <label>بداية العرض<input type="date" name="starts_at" required></label>
+   <label>نهاية العرض<input type="date" name="ends_at" required></label>
    <label class="check-row"><input type="checkbox" name="active" value="1" checked> مفعل</label>
    <button class="primary">حفظ العرض</button>
   </form>

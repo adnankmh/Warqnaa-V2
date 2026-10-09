@@ -27,7 +27,11 @@ class DatabaseSeeder extends Seeder { public function run(): void {
  ]);
  // Preserve user-selected avatar/display/colors while enforcing only privileged progression entitlements.
  $adminProfile->forceFill(['level'=>99,'pasha_days'=>36500,'badge'=>'king'])->save();
- Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ // R34: seeding must never shrink the primary admin's virtual-token reserve.
+ $adminWallet=Wallet::firstOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ if ((int)$adminWallet->tokens < 9000000000000000000 || (int)$adminWallet->gems < 100000000) {
+  $adminWallet->forceFill(['tokens'=>max(9000000000000000000,(int)$adminWallet->tokens),'gems'=>max(100000000,(int)$adminWallet->gems)])->save();
+ }
  // R9.1: exactly 10 curated non-admin demo users
  // B304: demo users are local/testing only by default; production requires explicit opt-in.
  // Production never gets known demo credentials unless WARQNAA_SEED_DEMO_USERS=true is explicitly set.
@@ -575,7 +579,11 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
    Wallet::updateOrCreate(['user_id'=>$abd->id],['tokens'=>10000000000000000,'gems'=>100000]);
  }
  // BIGINT cannot store the requested 10^32 ceremonial Adnan balance, so keep a safe DB reserve and an unlimited primary-admin wallet policy.
- Wallet::updateOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ // R34: seeding must never shrink the primary admin's virtual-token reserve.
+ $adminWallet=Wallet::firstOrCreate(['user_id'=>$admin->id],['tokens'=>9000000000000000000,'gems'=>100000000]);
+ if ((int)$adminWallet->tokens < 9000000000000000000 || (int)$adminWallet->gems < 100000000) {
+  $adminWallet->forceFill(['tokens'=>max(9000000000000000000,(int)$adminWallet->tokens),'gems'=>max(100000000,(int)$adminWallet->gems)])->save();
+ }
  $admin->profile?->update(['pasha_days'=>36500,'level'=>99,'badge'=>'king']);
  // R9.1 keeps demo balances deliberately different for realistic economy testing.
  // Remove two retired historical demo-only accounts so a fresh/current dev database exposes exactly 10 normal demo users.
@@ -587,10 +595,12 @@ foreach($v105Emoji as [$key,$ar,$en,$icons,$price,$tier]) DB::table('store_items
  $admin->profile?->update(['pasha_days'=>36500,'level'=>99,'badge'=>'king']);
  if (\Illuminate\Support\Facades\Schema::hasTable('competition_tickets')) {
    foreach ([50,100,200,500,1000,2000,4000,5000,8000,10000,20000,30000,50000,100000] as $denomination) {
-     \App\Models\CompetitionTicket::updateOrCreate(
+     // Preserve audit history and replenish each primary-admin ticket to >= 100.
+     $ticket=\App\Models\CompetitionTicket::firstOrCreate(
        ['user_id'=>$admin->id,'denomination'=>$denomination],
-       ['quantity'=>999999,'total_used'=>0]
+       ['quantity'=>100,'total_used'=>0]
      );
+     if ((int)$ticket->quantity < 100) $ticket->update(['quantity'=>100]);
    }
  }
  if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {

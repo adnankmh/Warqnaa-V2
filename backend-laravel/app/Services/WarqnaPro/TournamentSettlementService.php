@@ -42,11 +42,11 @@ class TournamentSettlementService
             if(!$admin) throw new RuntimeException('Primary admin wallet is unavailable for tournament settlement.');
             $share=intdiv($prize,count($eligible));
             $remainder=$prize-($share*count($eligible));
-            $this->wallet->debit($admin,$prize,'tournament_prize_payout',['tournament_id'=>$t->id,'room_id'=>$roomId]);
+            $this->wallet->debit($admin,$prize,'tournament_prize_payout',['tournament_id'=>$t->id,'room_id'=>$roomId,'idempotency_key'=>'tournament:'.$t->id.':pool']);
             foreach($eligible as $i=>$uid){
                 $user=User::find($uid); if(!$user) continue;
                 $amount=$share+($i===0?$remainder:0);
-                $this->wallet->credit($user,$amount,'tournament_prize',['tournament_id'=>$t->id,'room_id'=>$roomId]);
+                $this->wallet->credit($user,$amount,'tournament_prize',['tournament_id'=>$t->id,'room_id'=>$roomId,'idempotency_key'=>'tournament:'.$t->id.':player:'.$uid]);
             }
             $bracket['settlement']=['paid_at'=>now()->toIso8601String(),'room_id'=>$roomId,'winners'=>$eligible,'prize'=>$prize];
             $bracket['settlement_ready']=false;

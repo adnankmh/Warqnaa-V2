@@ -62,10 +62,13 @@ class StoreCatalogService
         $admin ??= \App\Models\User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
         $item=\App\Models\StoreItem::find($storeItemId);
         if(!$admin || !$item || !$item->active || in_array($item->category,['pasha','competition_ticket'],true)) return;
-        \App\Models\InventoryItem::updateOrCreate(
+        // Keep every active non-consumable collectible in the primary admin inventory.
+        // Do not deactivate an existing selection or reset its expiry on catalog sync.
+        $owned=\App\Models\InventoryItem::firstOrCreate(
             ['user_id'=>$admin->id,'store_item_id'=>$item->id],
-            ['active'=>false,'activated_at'=>null,'expires_at'=>null]
+            ['quantity'=>1,'active'=>false,'activated_at'=>null,'expires_at'=>null]
         );
+        if ((int)$owned->quantity < 1) $owned->update(['quantity'=>1]);
     }
 
     private function upsert(array $item): void
