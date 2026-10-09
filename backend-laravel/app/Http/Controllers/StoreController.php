@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\{CompetitionTicket,StoreItem,InventoryItem,User,StoreOffer};
 use App\Services\Wallet\WalletService;
 use App\Services\WarqnaPro\StoreCatalogService;
+use App\Services\Commerce\StoreOfferPricingService;
 use App\Services\Commerce\CommerceCatalogService;
 use Illuminate\Support\Facades\{DB,Log};
 use RuntimeException;
@@ -11,7 +12,7 @@ use Throwable;
 
 class StoreController
 {
-    public function index(StoreCatalogService $catalog, CommerceCatalogService $commerce)
+    public function index(StoreCatalogService $catalog, CommerceCatalogService $commerce, StoreOfferPricingService $pricing)
     {
         $catalog->sync();
         if(auth()->check() && auth()->user()->admin_role==='primary_admin') app(\App\Services\Admin\PrimaryAdminStateService::class)->enforce(auth()->user());
@@ -20,8 +21,10 @@ class StoreController
             ->orderByRaw("CASE category WHEN 'table' THEN 10 WHEN 'card_back' THEN 20 WHEN 'pasha' THEN 30 WHEN 'profile_frame' THEN 40 WHEN 'profile_cover' THEN 50 WHEN 'name_frame' THEN 60 WHEN 'name_color' THEN 70 WHEN 'text_color' THEN 80 WHEN 'profile_color' THEN 90 WHEN 'badge' THEN 100 WHEN 'effect' THEN 110 WHEN 'emoji_pack' THEN 120 WHEN 'xp_booster' THEN 130 WHEN 'competition_ticket' THEN 140 ELSE 999 END")
             ->orderBy('price')->orderBy('id')->get();
         $grouped=$allItems->groupBy(function($item){ return $item->category==='name_frame' ? 'name_color' : $item->category; });
+        $priceQuotes=$pricing->quotesFor($allItems);
         return view('store.index', [
             'items'=>$grouped,
+            'priceQuotes'=>$priceQuotes,
             'inventory'=>auth()->user()->inventoryItems()->with('storeItem')->latest()->get(),
             'commerceOffers'=>StoreOffer::where('active',true)->where(fn($q)=>$q->whereNull('starts_at')->orWhere('starts_at','<=',now()))->where(fn($q)=>$q->whereNull('ends_at')->orWhere('ends_at','>=',now()))->latest()->get(),
             'commerceCatalog'=>$commerce->catalog(),
@@ -36,7 +39,7 @@ class StoreController
         ]);
     }
 
-    public function buy(StoreItem $item, WalletService $wallet)
+    public function buy(StoreItem $item, WalletService $wallet, StoreOfferPricingService $pricing)
     {
         if (class_exists('\\App\\Models\\SiteSetting') && !\App\Models\SiteSetting::getValue('store_enabled', true)) {
             return $this->friendlyFail('المتجر متوقف مؤقتًا من الإدارة.');
@@ -58,13 +61,28 @@ class StoreController
         }
 
         try {
-            $purchase = DB::transaction(function () use ($user, $item, $payload, $ticketDenomination, $wallet) {
-                if ((int)$item->price > 0) {
-                    $wallet->debit($user, (int)$item->price, 'store_buy', [
+            $purchase = DB::transaction(function () use ($user, $item, $wallet, $pricing) {
+                $item = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                if (!$item->active) throw new \DomainException('inactive_item');
+                $payload = $item->payload ?: [];
+                $ticketDenomination = $item->category === 'competition_ticket'
+                    ? (int)($payload['denomination'] ?? 0) : 0;
+                if ($item->category === 'competition_ticket' && $ticketDenomination <= 0)
+                    throw new \DomainException('invalid_ticket');
+                $quote = $pricing->quote($item);
+                $expected = request()->input('expected_price');
+                if ($expected !== null && (string)$expected !== (string)$quote['price'])
+                    throw new \DomainException('price_changed');
+                if ($quote['price'] > 0) {
+                    $wallet->debit($user, (int)$quote['price'], 'store_buy', [
                         'item'=>$item->key,
                         'category'=>$item->category,
+                        'original_price'=>$quote['original_price'],
+                        'charged_price'=>$quote['price'],
+                        'discount_percent'=>$quote['discount_percent'],
+                        'offer_key'=>$quote['offer_key'],
                     ]);
-                    $wallet->creditPrimaryAdminRevenue($user, (int)$item->price, 'store_sale_income', [
+                    $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_sale_income', [
                         'item'=>$item->key,
                         'category'=>$item->category,
                     ]);
@@ -78,7 +96,7 @@ class StoreController
                         'country_name'=>country_name('PS'),
                     ]);
                     $profile->increment('pasha_days', $days);
-                    return ['kind'=>'pasha', 'days'=>$days];
+                    return ['kind'=>'pasha', 'days'=>$days, 'quote'=>$quote];
                 }
 
                 if ($item->category === 'competition_ticket') {
@@ -87,7 +105,7 @@ class StoreController
                         ['quantity'=>0, 'total_used'=>0],
                     );
                     $ticket->increment('quantity');
-                    return ['kind'=>'ticket', 'denomination'=>$ticketDenomination, 'quantity'=>(int)$ticket->fresh()->quantity];
+                    return ['kind'=>'ticket', 'denomination'=>$ticketDenomination, 'quantity'=>(int)$ticket->fresh()->quantity, 'quote'=>$quote];
                 }
 
                 $validDays = (int)($payload['valid_days'] ?? $item->duration_days ?? 0);
@@ -96,8 +114,12 @@ class StoreController
                     'store_item_id'=>$item->id,
                     'expires_at'=>$validDays > 0 ? now()->addDays($validDays) : null,
                 ]);
-                return ['kind'=>'inventory', 'inventory_id'=>$inventory->id];
+                return ['kind'=>'inventory', 'inventory_id'=>$inventory->id, 'quote'=>$quote];
             });
+        } catch (\DomainException $e) {
+            return $this->friendlyFail($e->getMessage() === 'price_changed'
+                ? 'تغير سعر المنتج. يرجى تحديث صفحة المتجر والتأكد من السعر الجديد.'
+                : 'هذا المنتج غير متاح للشراء حالياً.');
         } catch (RuntimeException $e) {
             return $this->friendlyFail('رصيدك من التوكنز غير كافٍ. تحتاج إلى شراء توكنز أو ترقية مستواك للحصول على مكافآت.');
         } catch (Throwable $e) {
@@ -110,16 +132,18 @@ class StoreController
         }
 
         if ($purchase['kind'] === 'pasha') {
-            return $this->friendlyOk('✅ تم شراء '.$purchase['days'].' يوم باشا. تم تفعيل ميزات الباشا: XP أعلى، أولوية بالغرف، صلاحيات VIP، وإمكانية إنشاء نوادٍ ومنافسات.');
+            return $this->friendlyOk('✅ تم شراء '.$purchase['days'].' يوم باشا.', ['pricing'=>$purchase['quote']]);
         }
         if ($purchase['kind'] === 'ticket') {
             return $this->friendlyOk('✅ تم شراء تذكرة منافسة بقيمة '.$purchase['denomination'].' توكنز.', [
                 'ticket'=>['denomination'=>$purchase['denomination'], 'quantity'=>$purchase['quantity']],
+                'pricing'=>$purchase['quote'],
             ]);
         }
 
         return $this->friendlyOk('✅ تم شراء '.($item->name['ar'] ?? $item->key).' بنجاح. تم خصم التوكنز وتحويل قيمة الشراء إلى حساب الإدارة وإضافة العنصر إلى مشترياتك.', [
             'inventory_id'=>$purchase['inventory_id'],
+            'pricing'=>$purchase['quote'],
             'item'=>[
                 'id'=>$item->id,
                 'name'=>$item->name['ar'] ?? $item->key,
