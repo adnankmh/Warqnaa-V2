@@ -69,8 +69,10 @@ class R34AdminEconomyOperationsTest extends TestCase
         $this->actingAs($this->actor(true));
         $item = RareCollectible::create([
             'key'=>'r34_test_relic','name'=>['ar'=>'إطار','en'=>'Frame'],
-            'rarity'=>'rare','supply'=>100,'claimed'=>25,'active'=>true,
+            'rarity'=>'rare','supply'=>100,'active'=>true,
         ]);
+        // Claimed is intentionally guarded from mass assignment in production.
+        $item->forceFill(['claimed'=>25])->save();
         $input = [
             'key'=>$item->key,'name_ar'=>'إطار محدود','rarity'=>'epic',
             'supply'=>10,'active'=>1,
