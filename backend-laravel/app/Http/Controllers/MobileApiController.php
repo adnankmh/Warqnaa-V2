@@ -8,6 +8,7 @@ use App\Services\Platform\ProductionConfigService;
 use App\Services\Account\AccountCancellationService;
 use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\WarqnaPro\StoreCatalogService;
+use App\Services\Commerce\StoreOfferPricingService;
 use App\Services\Games\GameCatalog;
 use App\Services\WarqnaPro\AssetDeliveryService;
 use App\Support\AuthenticatedActor;
@@ -201,27 +202,31 @@ class MobileApiController extends Controller
         ]);
     }
 
-    public function purchase(Request $request, WalletService $wallet, StoreCatalogService $catalog)
+    public function purchase(Request $request, WalletService $wallet, StoreCatalogService $catalog, StoreOfferPricingService $pricing)
     {
-        $data = $request->validate(['key' => 'required|string|max:120', 'confirmed' => 'required|accepted']);
+        $data = $request->validate(['key' => 'required|string|max:120', 'confirmed' => 'required|accepted', 'expected_price'=>'sometimes|integer|min:0']);
         $user = $request->user();
         $catalog->sync();
         $item = StoreItem::where('key', $data['key'])->where('active', true)->first();
         if (!$item) return response()->json(['ok'=>false,'message'=>'هذا العنصر غير متاح حالياً أو لم تتم مزامنته مع المتجر.'], 404);
+        $quote = $pricing->quote($item);
+        if (isset($data['expected_price']) && (int)$data['expected_price'] !== (int)$quote['price'])
+            return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج. حدّث المتجر ثم أكّد السعر من جديد.','pricing'=>$quote], 409);
         if ($item->category === 'competition_ticket') {
             $denomination = (int) data_get($item->payload, 'denomination', 0);
             abort_if($denomination <= 0, 422, 'فئة التذكرة غير صحيحة.');
             try {
-                DB::transaction(function () use ($user, $item, $wallet, $denomination) {
-                    $wallet->debit($user, (int)$item->price, 'competition_ticket_purchase', [
+                DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote) {
+                    $wallet->debit($user, (int)$quote['price'], 'competition_ticket_purchase', [
                         'store_item_id'=>$item->id,'key'=>$item->key,'denomination'=>$denomination,
+                        'original_price'=>$quote['original_price'],'discount_percent'=>$quote['discount_percent'],'offer_key'=>$quote['offer_key'],
                     ]);
                     $ticket = CompetitionTicket::firstOrCreate(
                         ['user_id'=>$user->id,'denomination'=>$denomination],
                         ['quantity'=>0,'total_used'=>0]
                     );
                     $ticket->increment('quantity');
-                    $wallet->creditPrimaryAdminRevenue($user, (int)$item->price, 'store_revenue', ['store_item_id'=>$item->id,'key'=>$item->key]);
+                    $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_revenue', ['store_item_id'=>$item->id,'key'=>$item->key]);
                 });
             } catch (\RuntimeException) {
                 return response()->json(['ok'=>false,'message'=>'رصيد التوكنز غير كافٍ'], 422);
@@ -229,6 +234,7 @@ class MobileApiController extends Controller
             return response()->json([
                 'ok'=>true,'message'=>'تم شراء تذكرة المنافسة','wallet'=>$this->walletPayload($user->fresh()),
                 'tickets'=>CompetitionTicket::where('user_id',$user->id)->pluck('quantity','denomination')->map(fn($value)=>(int)$value)->all(),
+                'pricing'=>$quote,
             ]);
         }
         $renewable = (bool) $item->duration_days || in_array($item->category, ['pasha','xp_booster'], true);
@@ -236,14 +242,17 @@ class MobileApiController extends Controller
         if ($existingInventory && !$renewable) return response()->json(['ok' => false, 'message' => 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'], 409);
 
         try {
-            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory) {
+            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory, $quote) {
                 $wallet->debit($user, (int) $item->price, 'store_purchase', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
                     'category' => $item->category,
+                    'original_price'=>$quote['original_price'],
+                    'discount_percent'=>$quote['discount_percent'],
+                    'offer_key'=>$quote['offer_key'],
                 ]);
 
-                $wallet->creditPrimaryAdminRevenue($user, (int)$item->price, 'store_revenue', [
+                $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_revenue', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
                 ]);
@@ -290,6 +299,7 @@ class MobileApiController extends Controller
             'wallet' => $this->walletPayload($user->fresh()),
             'profile' => $user->profile?->fresh(),
             'inventory_item' => $inventory->load('storeItem'),
+            'pricing'=>$quote,
         ]);
     }
 
