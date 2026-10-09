@@ -292,17 +292,78 @@ class B307DesktopNavigation extends StatelessWidget {
               ),
             ]),
           ),
-          const SizedBox(height: 16),
-          for (var i = 0; i < destinations.length; i++) ...<Widget>[
-            _B307DesktopDestination(
-              icon: destinations[i].icon,
-              label: ar ? destinations[i].ar : destinations[i].en,
-              selected: selectedIndex == i,
-              onTap: () => onSelected(i),
-            ),
-            if (i != destinations.length - 1) const SizedBox(height: 7),
-          ],
-          const Spacer(),
+          const SizedBox(height: 12),
+          // R35 reference sidebar: retain all five tab indices but make the
+          // secondary illustrated world destinations scrollable on short PCs.
+          Expanded(child: SingleChildScrollView(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+              for (var i = 0; i < destinations.length; i++) ...<Widget>[
+                _B307DesktopDestination(
+                  icon: destinations[i].icon,
+                  label: ar ? destinations[i].ar : destinations[i].en,
+                  selected: selectedIndex == i,
+                  onTap: () => onSelected(i),
+                ),
+                const SizedBox(height: 6),
+              ],
+              const Divider(color: Colors.white24),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 2, 0, 7),
+                child: Text(ar ? 'استكشف ورقنا' : 'Explore Warqnaa',
+                  style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 10.5, fontWeight: FontWeight.w900))),
+              _B307DesktopDestination(
+                icon: Icons.leaderboard_rounded,
+                label: ar ? 'المتصدرون' : 'Leaderboards',
+                selected: false,
+                onTap: () => showLeaderboard(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.shield_rounded,
+                label: ar ? 'الأندية' : 'Clubs',
+                selected: false,
+                onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                  builder: (_) => ClubsPage(controller: controller))),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.card_giftcard_rounded,
+                label: ar ? 'المكافآت والمهام' : 'Rewards and quests',
+                selected: false,
+                onTap: () => showRewards(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.people_alt_rounded,
+                label: ar ? 'الأصدقاء' : 'Friends',
+                selected: false,
+                onTap: () => showFriends(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.notifications_active_outlined,
+                label: ar ? 'الإشعارات' : 'Notifications',
+                selected: false,
+                onTap: () => showNotifications(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.face_retouching_natural_rounded,
+                label: ar ? 'تخصيص الملف' : 'Profile studio',
+                selected: false,
+                onTap: () => showProfile(context, controller),
+              ),
+              const SizedBox(height: 6),
+              _B307DesktopDestination(
+                icon: Icons.settings_outlined,
+                label: ar ? 'الإعدادات' : 'Settings',
+                selected: false,
+                onTap: () => showSettings(context, controller),
+              ),
+              const SizedBox(height: 4),
+            ]),
+          )),
+          const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
