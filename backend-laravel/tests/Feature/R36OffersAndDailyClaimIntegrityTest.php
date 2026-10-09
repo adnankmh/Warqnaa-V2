@@ -101,6 +101,31 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $this->assertSame('r36_silver', $tx->meta['offer_key']);
         $this->assertSame(25, $tx->meta['discount_percent']);
         $this->assertSame(1, $user->inventoryItems()->where('store_item_id',$item->id)->count());
+
+        // A non-renewable collectible must not charge the player twice.
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key, 'confirmed'=>true, 'expected_price'=>750,
+        ])->assertStatus(409);
+        $this->assertSame(250, (int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(1, WalletTransaction::where('user_id',$user->id)->where('type','store_purchase')->count());
+        $this->assertSame(1, $user->inventoryItems()->where('store_item_id',$item->id)->count());
+    }
+
+    public function test_expired_discount_must_not_allow_checkout_using_stale_price(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $item = $this->item('r36_expiring_cover');
+        $this->offer('r36_ends', [$item->key], 25);
+        $this->withToken($user->createToken('r36-expired')->plainTextToken);
+
+        Carbon::setTestNow('2026-10-13 00:00:00');
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key, 'confirmed'=>true, 'expected_price'=>750,
+        ])->assertStatus(409)->assertJsonPath('pricing.price', 1000);
+        $this->assertSame(1000, (int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(0, WalletTransaction::where('user_id',$user->id)->where('type','store_purchase')->count());
+        $this->assertSame(0, $user->inventoryItems()->where('store_item_id',$item->id)->count());
     }
 
     public function test_mobile_bootstrap_displays_the_actual_discounted_store_price(): void
