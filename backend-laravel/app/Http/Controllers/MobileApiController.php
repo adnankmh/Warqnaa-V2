@@ -397,68 +397,20 @@ class MobileApiController extends Controller
         ]);
     }
 
+    /**
+     * Rewarded-ad grants are intentionally unavailable until we integrate and
+     * verify the ad network's signed server-to-server callback. A client-supplied
+     * verification_id or network name is NOT evidence of a completed ad.
+     *
+     * Enabling a feature flag cannot override this integrity requirement.
+     * Do not credit the wallet, XP, tickets, or inventory from this endpoint.
+     */
     public function claimRewardedAd(Request $request, WalletService $wallet, ProductionConfigService $productionConfig)
     {
-        abort_unless($productionConfig->enabled('rewarded_ads', true), 503, 'Rewarded ads are temporarily unavailable.');
-        $data = $request->validate([
-            'verification_id'=>'required|string|min:8|max:190',
-            'network'=>'nullable|string|max:40',
-        ]);
-        $user = $request->user();
-        $today = now()->toDateString();
-        $dailyCount = RewardedAdClaim::where('user_id',$user->id)->whereDate('claim_date',$today)->count();
-        $dailyLimit = min(8, max(0, (int) data_get($productionConfig->flags(), 'rewarded_ads.payload.daily_limit', 8)));
-        if ($dailyLimit === 0 || $dailyCount >= $dailyLimit) return response()->json(['ok'=>false,'message'=>'Daily rewarded-ad limit reached.'],429);
-        if (RewardedAdClaim::where('verification_id',$data['verification_id'])->exists()) {
-            return response()->json(['ok'=>false,'message'=>'This ad verification was already used.'],409);
-        }
-
-        $ladder = [
-            1=>['tokens'=>50,'xp'=>15],
-            2=>['tokens'=>75,'xp'=>25],
-            3=>['tokens'=>100,'xp'=>40,'ticket'=>50],
-            4=>['tokens'=>150,'xp'=>60],
-            5=>['tokens'=>200,'xp'=>90,'store_key'=>'b304_profile_aurora_30d','duration_days'=>2],
-            6=>['tokens'=>250,'xp'=>120,'ticket'=>100],
-            7=>['tokens'=>350,'xp'=>160,'store_key'=>'b304_profile_emerald_30d','duration_days'=>2],
-            8=>['tokens'=>500,'xp'=>250,'store_key'=>'b304_profile_legend_30d','duration_days'=>7],
-        ];
-        $claimNumber = min(8, $dailyCount + 1);
-        $reward = $ladder[$claimNumber];
-        $tokens = (int)$reward['tokens'];
-        $xp = (int)$reward['xp'];
-        $temporary = null;
-
-        DB::transaction(function () use ($user,$wallet,$data,$today,$tokens,$xp,$reward,$claimNumber,&$temporary) {
-            $wallet->credit($user,$tokens,'rewarded_ad',['verification_id'=>$data['verification_id'],'claim_number'=>$claimNumber]);
-            $user->profile?->increment('xp',$xp);
-            if (!empty($reward['ticket'])) {
-                $ticket = CompetitionTicket::query()->firstOrCreate(
-                    ['user_id'=>$user->id,'denomination'=>(int)$reward['ticket']],
-                    ['quantity'=>0]
-                );
-                $ticket->increment('quantity');
-            }
-            if (!empty($reward['store_key'])) {
-                $item = StoreItem::where('key',$reward['store_key'])->where('active',true)->first();
-                if ($item) {
-                    $days=(int)($reward['duration_days'] ?? 2);
-                    $inventory=InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays($days)]);
-                    $temporary=['store_key'=>$item->key,'duration_days'=>$days,'expires_at'=>$inventory->expires_at?->toIso8601String()];
-                }
-            }
-            RewardedAdClaim::create([
-                'user_id'=>$user->id,'claim_date'=>$today,'reward_tokens'=>$tokens,'reward_xp'=>$xp,
-                'network'=>$data['network'] ?? 'admob','verification_id'=>$data['verification_id'],
-                'payload'=>['claim_number'=>$claimNumber,'temporary'=>$temporary,'ticket'=>$reward['ticket'] ?? null],
-            ]);
-        });
         return response()->json([
-            'ok'=>true,'message'=>'Reward added','claim_number'=>$claimNumber,'tokens'=>$tokens,'xp'=>$xp,
-            'ticket'=>$reward['ticket'] ?? null,'temporary_reward'=>$temporary,
-            'remaining'=>max(0,$dailyLimit-$dailyCount-1),'wallet'=>$this->walletPayload($user->fresh()),
-            'profile'=>$user->profile?->fresh(),
-        ]);
+            'ok' => false,
+            'message' => 'Rewarded ads are unavailable until provider verification is configured.',
+        ], 503);
     }
 
     public function deleteAccount(Request $request, AccountCancellationService $cancellation)
