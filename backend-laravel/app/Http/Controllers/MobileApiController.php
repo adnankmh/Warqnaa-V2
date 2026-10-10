@@ -138,7 +138,7 @@ class MobileApiController extends Controller
                 'offline_login' => true,
                 'offline_gameplay' => true,
                 'server_sync_when_online' => true,
-                'rewarded_ads' => true,
+                'rewarded_ads' => false, // Disabled until signed network SSV is implemented.
                 'competition_tickets' => true,
                 'daily_packs' => true,
                 'universal_designer' => true,
@@ -294,7 +294,9 @@ class MobileApiController extends Controller
                     : now();
                 $expiresAt = $item->duration_days ? $baseExpiry->addDays((int) $item->duration_days) : null;
                 $isBooster = $item->category === 'xp_booster';
-                if ($renewable && $existingInventory) {
+                // Every paid XP booster purchase creates a separate unspent entitlement.
+                // Reusing the last row would silently erase a previously purchased activation.
+                if ($renewable && $existingInventory && !$isBooster) {
                     $existingInventory->update([
                         'active'=>!$isBooster,
                         'activated_at'=>$isBooster ? null : now(),
@@ -460,36 +462,62 @@ class MobileApiController extends Controller
 
     public function activateStoreInventoryV183(Request $request)
     {
-        $data=$request->validate(['key'=>'required|string|max:120']);
-        $user=$request->user();
-        $inventory=$user->inventoryItems()
-            ->whereHas('storeItem',fn($q)=>$q->where('key',$data['key'])->where('category','xp_booster')->where('active',true))
-            ->with('storeItem')->latest('id')->first();
-        if(!$inventory) return response()->json(['ok'=>false,'message'=>'المسرّع غير موجود في مخزونك.'],404);
-        if($inventory->expires_at && $inventory->expires_at->isPast()) {
-            $inventory->delete();
-            return response()->json(['ok'=>false,'message'=>'انتهت صلاحية المسرّع قبل التفعيل.'],410);
-        }
-        $item=$inventory->storeItem;
-        $payload=$item->payload ?: [];
-        $hours=max(1,(int)($payload['activate_hours'] ?? 24));
-        DB::transaction(function() use($user,$inventory,$item,$payload,$hours){
-            $user->inventoryItems()
-                ->where('id','!=',$inventory->id)
-                ->whereHas('storeItem',fn($q)=>$q->where('category','xp_booster'))
-                ->update(['active'=>false]);
-            $inventory->update(['active'=>true,'activated_at'=>now(),'expires_at'=>now()->addHours($hours)]);
-            $profile=$user->profile()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],[
-                'display_name'=>$user->username,'country_code'=>'PS','country_name'=>'Palestine',
+        $data = $request->validate(['key' => 'required|string|max:120']);
+        $user = $request->user();
+
+        $result = DB::transaction(function () use ($user, $data) {
+            // The user row serializes same-account mobile and web entitlement changes.
+            User::query()->lockForUpdate()->findOrFail($user->id);
+            $owned = $user->inventoryItems()
+                ->whereHas('storeItem', fn ($query) => $query
+                    ->where('key', $data['key'])->where('category', 'xp_booster'));
+
+            // A purchased entitlement remains usable after its catalog SKU is delisted.
+            $inventory = (clone $owned)->whereNull('activated_at')
+                ->with('storeItem')->lockForUpdate()->latest('id')->first();
+            if (!$inventory) {
+                return ['status' => (clone $owned)->exists() ? 409 : 404];
+            }
+            if ($inventory->expires_at && $inventory->expires_at->lte(now())) {
+                // Keep the expired entitlement for audit and purchase history.
+                return ['status' => 410];
+            }
+
+            $payload = $inventory->storeItem->payload ?: [];
+            $hours = max(1, min(168, (int) ($payload['activate_hours'] ?? 24)));
+            $expiry = now()->addHours($hours);
+
+            $user->inventoryItems()->where('id', '!=', $inventory->id)
+                ->whereHas('storeItem', fn ($query) => $query->where('category', 'xp_booster'))
+                ->update(['active' => false]);
+            $inventory->update([
+                'active' => true, 'activated_at' => now(), 'expires_at' => $expiry,
             ]);
-            $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25);
-            $profile->xp_boost_expires_at=now()->addHours($hours);
+            $profile = $user->profile()->lockForUpdate()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['display_name' => $user->username, 'country_code' => 'PS', 'country_name' => 'Palestine']
+            );
+            $profile->xp_boost_multiplier = max(1.0, (float) ($payload['multiplier'] ?? 1.25));
+            $profile->xp_boost_expires_at = $expiry;
             $profile->save();
+
+            return ['status' => 200, 'hours' => $hours, 'inventory_id' => $inventory->id];
         });
+
+        if ($result['status'] !== 200) {
+            $message = match ($result['status']) {
+                409 => 'تم استخدام هذا المسرّع مسبقاً. اشترِ مسرّعاً جديداً لإعادة التفعيل.',
+                410 => 'انتهت صلاحية المسرّع قبل التفعيل.',
+                default => 'المسرّع غير موجود في مخزونك.',
+            };
+            return response()->json(['ok' => false, 'message' => $message], $result['status']);
+        }
+
         return response()->json([
-            'ok'=>true,'message'=>'تم تفعيل المسرّع لمدة '.$hours.' ساعة.',
-            'profile'=>$user->profile?->fresh(),
-            'inventory_item'=>$inventory->fresh()->load('storeItem'),
+            'ok' => true, 'message' => 'تم تفعيل المسرّع لمدة '.$result['hours'].' ساعة.',
+            'profile' => $user->profile?->fresh(),
+            'inventory_item' => $user->inventoryItems()
+                ->with('storeItem')->findOrFail($result['inventory_id']),
         ]);
     }
 
