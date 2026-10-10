@@ -229,9 +229,13 @@ class MobileApiController extends Controller
             abort_if($denomination <= 0, 422, 'فئة التذكرة غير صحيحة.');
             try {
                 DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote, $pricing) {
+                    // Consistent lock order: player, product, wallet, ticket.
+                    User::query()->lockForUpdate()->findOrFail($user->id);
                     $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
                     $liveQuote = $pricing->quote($lockedItem);
-                    if (!$lockedItem->active || $liveQuote !== $quote)
+                    if (!$lockedItem->active || $liveQuote !== $quote
+                        || $lockedItem->category !== 'competition_ticket'
+                        || (int) data_get($lockedItem->payload, 'denomination', 0) !== $denomination)
                         throw new \DomainException('price_changed');
                     $wallet->debit($user, (int)$quote['price'], 'competition_ticket_purchase', [
                         'store_item_id'=>$item->id,'key'=>$item->key,'denomination'=>$denomination,
@@ -283,17 +287,18 @@ class MobileApiController extends Controller
                 ]);
 
                 // Only one cosmetic from the same category remains active.
-                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','xp_booster','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
+                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
                     $user->inventoryItems()
                         ->whereHas('storeItem', fn ($query) => $query->where('category', $item->category))
                         ->update(['active' => false]);
                 }
 
-                $baseExpiry = $existingInventory?->expires_at && $existingInventory->expires_at->isFuture()
+                $isBooster = $item->category === 'xp_booster';
+                // Each purchased booster has its own independent redemption window.
+                $baseExpiry = !$isBooster && $existingInventory?->expires_at && $existingInventory->expires_at->isFuture()
                     ? $existingInventory->expires_at->copy()
                     : now();
                 $expiresAt = $item->duration_days ? $baseExpiry->addDays((int) $item->duration_days) : null;
-                $isBooster = $item->category === 'xp_booster';
                 // Every paid XP booster purchase creates a separate unspent entitlement.
                 // Reusing the last row would silently erase a previously purchased activation.
                 if ($renewable && $existingInventory && !$isBooster) {
@@ -313,7 +318,7 @@ class MobileApiController extends Controller
                 }
 
                 // V183 boosters remain in inventory until the player explicitly activates them.
-                if (!$isBooster) $this->activateStoreItem($user, $item);
+                if (!$isBooster) $this->activateStoreItem($user, $item, $expiresAt);
                 return $inventory;
             });
         } catch (\DomainException $e) {
@@ -474,13 +479,12 @@ class MobileApiController extends Controller
 
             // A purchased entitlement remains usable after its catalog SKU is delisted.
             $inventory = (clone $owned)->whereNull('activated_at')
-                ->with('storeItem')->lockForUpdate()->latest('id')->first();
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })->with('storeItem')->lockForUpdate()->latest('id')->first();
             if (!$inventory) {
-                return ['status' => (clone $owned)->exists() ? 409 : 404];
-            }
-            if ($inventory->expires_at && $inventory->expires_at->lte(now())) {
-                // Keep the expired entitlement for audit and purchase history.
-                return ['status' => 410];
+                $unused = (clone $owned)->whereNull('activated_at')->exists();
+                return ['status' => $unused ? 410 : ((clone $owned)->exists() ? 409 : 404)];
             }
 
             $payload = $inventory->storeItem->payload ?: [];
@@ -521,7 +525,7 @@ class MobileApiController extends Controller
         ]);
     }
 
-    private function activateStoreItem(User $user, StoreItem $item): void
+    private function activateStoreItem(User $user, StoreItem $item, ?\DateTimeInterface $paidExpiry = null): void
     {
         $profile = $user->profile()->firstOrCreate(
             ['user_id' => $user->id],
@@ -539,20 +543,20 @@ class MobileApiController extends Controller
                 break;
             case 'name_color':
                 if (isset($payload['color'])) $profile->name_color = (string) $payload['color'];
-                $profile->name_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
+                $profile->name_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 $profile->active_name_frame = $payload['frame'] ?? $payload['glow'] ?? $profile->active_name_frame;
                 break;
             case 'text_color':
                 if (isset($payload['color'])) {
                     $profile->text_color = (string) $payload['color'];
                     $profile->chat_color = (string) $payload['color'];
-                    $profile->chat_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
+                    $profile->chat_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 }
                 break;
             case 'profile_color':
                 $gradient = (array) ($payload['gradient'] ?? []);
                 $profile->active_profile_color = count($gradient) >= 2 ? implode('|', array_slice($gradient, 0, 2)) : (string) ($payload['color'] ?? $item->key);
-                $profile->profile_color_expires_at = now()->addDays((int) ($item->duration_days ?: ($payload['duration_days'] ?? 30)));
+                $profile->profile_color_expires_at = $paidExpiry ?? now()->addDays((int) ($item->duration_days ?: ($payload['duration_days'] ?? 30)));
                 break;
             case 'badge':
                 $profile->badge = $payload['badge'] ?? $item->key;
@@ -566,7 +570,7 @@ class MobileApiController extends Controller
             case 'name_frame':
                 $profile->active_name_frame = $payload['frame'] ?? $item->key;
                 if (isset($payload['color'])) $profile->name_color = (string) $payload['color'];
-                $profile->name_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
+                $profile->name_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 break;
             case 'xp_booster':
                 $profile->xp_boost_multiplier = (float) ($payload['multiplier'] ?? 1.25);
