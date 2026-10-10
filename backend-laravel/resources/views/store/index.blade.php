@@ -120,6 +120,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         $tier=$payload['tier'] ?? $payload['tab'] ?? 'pro';
         $emojiTier=$payload['emoji_tier'] ?? (($item->price==0)?'free':'vip');
         $name=$item->name[$locale] ?? $item->name['en'] ?? $item->name['ar'] ?? $item->key;
+        $quote=$priceQuotes[$item->id] ?? ['price'=>(int)$item->price,'original_price'=>(int)$item->price,'discount_percent'=>0];
         $previewIcon=$payload['preview_icon'] ?? $payload['icon'] ?? $icons[$cat] ?? '🎁';
         $assetUrl=$payload['asset_url'] ?? $payload['table_image'] ?? $payload['card_back_image'] ?? null;
        @endphp
@@ -134,6 +135,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         data-sound-key="{{$payload['sound_key'] ?? ''}}"
         data-name="{{ strtolower($name.' '.$item->key.' '.$cat) }}">
         @csrf
+        <input type="hidden" name="expected_price" value="{{ $quote['price'] }}">
         <div class="product-preview-v127 type-{{$cat}}" style="--item-color:{{$color}};--item-color2:{{$color2}};--item-pattern:{{$pattern}}">
          @if($cat==='table')
           <div class="product-table-v127 table-real-preview-v128 r101-inlay {{$payload['table_class'] ?? $payload['table'] ?? ''}}" @if($assetUrl) style="--r101-table-art:url('{{$assetUrl}}')" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
@@ -160,7 +162,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
          <p>{{ $item->description['ar'] ?? 'مقتنى فاخر داخل Warqnaa' }}</p>
         </div>
         <div class="product-actions-v127">
-         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($item->price) }}</span>
+         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($quote['price']) }}@if(($quote['discount_percent'] ?? 0)>0)<small style="display:block;color:#ffe996;font-weight:800"><del>{{ number_format($quote['original_price']) }}</del> −{{ $quote['discount_percent'] }}%</small>@endif</span>
          @unless($cat==='pasha')<button type="button" onclick="previewStoreItem(this)">معاينة</button>@endunless
          <button class="primary" type="submit">شراء</button>
         </div>

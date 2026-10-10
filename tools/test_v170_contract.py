@@ -180,7 +180,9 @@ def main() -> int:
         "sendToUser",
     ])
     require("backend-laravel/app/Http/Controllers/MobileApiController.php", [
-        "DailyRewardClaim::where('user_id', $user->id)->whereDate('claim_date', $today)->exists()",
+        "DailyRewardClaim::where('user_id', $player->id)",
+        "lockForUpdate()->findOrFail($user->id)",
+        "'idempotency_key' => 'daily:'.$today.':player:'.$player->id",
         "تم استلام مكافأة اليوم مسبقاً",
     ])
     require("backend-laravel/app/Http/Controllers/TournamentController.php", [
