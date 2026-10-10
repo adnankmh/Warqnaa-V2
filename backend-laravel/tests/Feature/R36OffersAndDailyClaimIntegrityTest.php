@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\{DailyRewardClaim,InventoryItem,Profile,StoreItem,StoreOffer,User,Wallet,WalletTransaction};
+use App\Models\{CompetitionTicket,DailyRewardClaim,InventoryItem,Profile,StoreItem,StoreOffer,User,Wallet,WalletTransaction};
 use App\Services\WarqnaPro\StoreCatalogService;
 use App\Services\Commerce\StoreOfferPricingService;
 use Carbon\Carbon;
@@ -310,6 +310,112 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $this->postJson(route('inventory.activate',['inventory'=>$inventory->id]))
             ->assertStatus(409)->assertJsonPath('ok',false);
         $this->assertSame(1,$user->inventoryItems()->whereNotNull('activated_at')->count());
+    }
+
+    public function test_second_booster_purchase_preserves_active_effect_and_has_new_expiry(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>200000]);
+        app(StoreCatalogService::class)->sync();
+        $item = StoreItem::where('key','booster_yellow_v183')->firstOrFail();
+        $price = app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('r36-booster-renewal')->plainTextToken);
+
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $this->postJson('/api/mobile/v1/store/activate',['key'=>$item->key])->assertOk();
+        $first = $user->inventoryItems()->where('store_item_id',$item->id)->firstOrFail();
+        $this->assertTrue((bool)$first->active);
+        $this->assertNotNull($first->activated_at);
+        $firstActiveExpiry = $first->expires_at->toDateTimeString();
+
+        // Purchasing the next booster must NOT deactivate the first, nor carry over its expiry.
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $second = $user->inventoryItems()->where('store_item_id',$item->id)
+            ->whereNull('activated_at')->firstOrFail();
+        $this->assertTrue((bool)$first->fresh()->active);
+        $this->assertSame($firstActiveExpiry, $first->fresh()->expires_at->toDateTimeString());
+        $this->assertFalse((bool)$second->active);
+        $this->assertSame(now()->addDays((int)$item->duration_days)->toDateTimeString(),
+            $second->expires_at->toDateTimeString());
+    }
+
+    public function test_expired_later_booster_does_not_block_older_valid_purchase(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $item = StoreItem::create([
+            'key'=>'r36_booster_mixed_expiry','category'=>'xp_booster',
+            'name'=>['ar'=>'مسرع','en'=>'Booster'],'price'=>1000,
+            'active'=>false,'duration_days'=>5,
+            'payload'=>['multiplier'=>1.5,'activate_hours'=>24],
+        ]);
+        $valid = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>false,'expires_at'=>now()->addDays(2),
+        ]);
+        $expired = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>false,'expires_at'=>now()->subMinute(),
+        ]);
+        $this->withToken($user->createToken('r36-mixed-booster')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/activate',['key'=>$item->key])->assertOk();
+        $this->assertNotNull($valid->fresh()->activated_at);
+        $this->assertNull($expired->fresh()->activated_at);
+        $this->assertNotNull($expired->fresh());
+    }
+
+    public function test_paid_profile_color_renewal_keeps_inventory_and_profile_expiration_equal(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>10000000]);
+        app(StoreCatalogService::class)->sync();
+        $item = StoreItem::where('category','profile_color')->where('active',true)->firstOrFail();
+        $this->assertGreaterThan(0, (int)$item->duration_days);
+        $oldExpiry = now()->addDays(20);
+        $inventory = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>true,'activated_at'=>now(),'expires_at'=>$oldExpiry,
+        ]);
+        $price=app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('r36-profile-renewal')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $expected=$oldExpiry->copy()->addDays((int)$item->duration_days)->toDateTimeString();
+        $this->assertSame($expected,$inventory->fresh()->expires_at->toDateTimeString());
+        $this->assertSame($expected,$user->profile()->firstOrFail()
+            ->profile_color_expires_at->toDateTimeString());
+    }
+
+    public function test_ticket_checkout_charges_server_quote_and_credits_once(): void
+    {
+        Carbon::setTestNow('2026-10-10 10:00:00');
+        $user=$this->player();
+        $user->wallet()->update(['tokens'=>1000000]);
+        app(StoreCatalogService::class)->sync();
+        $item=StoreItem::where('category','competition_ticket')->where('active',true)->firstOrFail();
+        $denomination=(int) data_get($item->payload,'denomination');
+        $this->assertGreaterThan(0,$denomination);
+        $price=app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('r36-ticket-purchase')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price+1,
+        ])->assertStatus(409);
+        $this->assertSame(0,CompetitionTicket::where('user_id',$user->id)->count());
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk()->assertJsonPath('ok',true);
+        $this->assertSame(1,(int)CompetitionTicket::where('user_id',$user->id)
+            ->where('denomination',$denomination)->firstOrFail()->quantity);
+        $this->assertSame(1000000-$price,(int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(1,WalletTransaction::where('user_id',$user->id)
+            ->where('type','competition_ticket_purchase')->count());
     }
 
     public function test_duplicate_daily_claim_does_not_credit_wallet_twice(): void
