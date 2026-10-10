@@ -172,21 +172,42 @@ class StoreController
     public function activate(InventoryItem $inventory)
     {
         abort_unless($inventory->user_id===auth()->id(),403);
-        $item=$inventory->storeItem;
-        DB::transaction(function() use($inventory,$item){
-            // العناصر الشكلية: عنصر واحد مفعل من نفس القسم في نفس الوقت.
-            if(in_array($item->category,['name_color','text_color','profile_color','badge','table','pasha_style','xp_booster','card_back','name_frame','effect','emoji_pack','profile_cover'],true)) {
-                InventoryItem::where('user_id',auth()->id())->whereHas('storeItem',fn($q)=>$q->where('category',$item->category))->update(['active'=>false]);
-            }
-            $payload=$item->payload ?: [];
-            $activeHours = ($item->category==='xp_booster') ? max(1,(int)($payload['activate_hours'] ?? 24)) : null;
-            $activeDays = $item->category==='xp_booster' ? null : ($item->duration_days ?: null);
-            $inventory->update(['active'=>true,'activated_at'=>now(),'expires_at'=>$activeHours?now()->addHours($activeHours):($activeDays?now()->addDays($activeDays):$inventory->expires_at)]);
+        try {
+            $item = DB::transaction(function () use ($inventory) {
+                $user = auth()->user();
+                User::query()->lockForUpdate()->findOrFail($user->id);
+                $owned = InventoryItem::query()->where('user_id', $user->id)
+                    ->lockForUpdate()->findOrFail($inventory->id);
+                $item = $owned->storeItem;
+                if (!$item) throw new \DomainException('missing_item');
+                if ($owned->expires_at && $owned->expires_at->lte(now())) {
+                    throw new \DomainException('expired');
+                }
+                if ($item->category === 'xp_booster' && $owned->activated_at !== null) {
+                    throw new \DomainException('already_activated');
+                }
+
+                // Equipping an owned cosmetic NEVER renews the purchased expiry.
+                if (in_array($item->category, ['name_color','text_color','profile_color','badge','table','pasha_style','xp_booster','card_back','name_frame','effect','emoji_pack','profile_cover','profile_frame'], true)) {
+                    InventoryItem::where('user_id', $user->id)
+                        ->whereHas('storeItem', fn ($query) => $query->where('category', $item->category))
+                        ->update(['active' => false]);
+                }
+                $payload = $item->payload ?: [];
+                $booster = $item->category === 'xp_booster';
+                $expiry = $booster
+                    ? now()->addHours(max(1, min(168, (int) ($payload['activate_hours'] ?? 24))))
+                    : $owned->expires_at;
+                $owned->update([
+                    'active' => true,
+                    'activated_at' => $owned->activated_at ?? now(),
+                    'expires_at' => $expiry,
+                ]);
             $profile=auth()->user()->profile;
             if($profile){
                 if($item->category==='name_color' && isset($payload['color'])) { $profile->name_color=$payload['color']; $profile->active_name_frame=$payload['frame'] ?? $payload['glow'] ?? ('glow-'.str_replace('#','',$payload['color'])); }
                 if($item->category==='text_color' && isset($payload['color'])) { $profile->chat_color=$payload['color']; $profile->text_color=$payload['color']; }
-                if($item->category==='profile_color') { $gradient=(array)($payload['gradient'] ?? []); $profile->active_profile_color=count($gradient)>=2 ? implode('|',array_slice($gradient,0,2)) : ($payload['color'] ?? $item->key); $profile->profile_color_expires_at=now()->addDays((int)($item->duration_days ?: ($payload['duration_days'] ?? 30))); }
+                if($item->category==='profile_color') { $gradient=(array)($payload['gradient'] ?? []); $profile->active_profile_color=count($gradient)>=2 ? implode('|',array_slice($gradient,0,2)) : ($payload['color'] ?? $item->key); $profile->profile_color_expires_at=$expiry; }
                 if($item->category==='badge') $profile->badge=$payload['badge'] ?? $item->key;
                 if($item->category==='table') $profile->active_table_skin=$payload['table'] ?? $item->key;
                 if($item->category==='pasha_style') {
@@ -197,11 +218,26 @@ class StoreController
                 if($item->category==='name_frame') { $profile->active_name_frame=$payload['frame'] ?? $item->key; if(isset($payload['color'])) $profile->name_color=$payload['color']; }
                 if($item->category==='effect') { if(isset($payload['theme'])) $profile->active_site_theme=(string)$payload['theme']; else $profile->active_effect=$payload['effect'] ?? $item->key; }
                 if($item->category==='profile_cover') $profile->active_profile_cover=$payload['cover'] ?? $item->key;
-                if($item->category==='xp_booster') { $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25); $profile->xp_boost_expires_at=now()->addHours(max(1,(int)($payload['activate_hours'] ?? 24))); }
+                if($item->category==='xp_booster') { $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25); $profile->xp_boost_expires_at=$expiry; }
                 $profile->save();
             }
-        });
-        return $this->friendlyOk('تم التفعيل بنجاح', ['activated'=>true,'category'=>$item->category,'payload'=>$item->payload ?: [],'inventory_id'=>$inventory->id]);
+            return $item;
+            });
+        } catch (\DomainException $e) {
+            $message = match ($e->getMessage()) {
+                'expired' => 'انتهت صلاحية العنصر. يلزم شراء صلاحية جديدة.',
+                'already_activated' => 'تم استخدام المسرّع مسبقاً ولا يمكن تفعيله مجدداً.',
+                default => 'العنصر غير متاح للتفعيل.',
+            };
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json(['ok'=>false, 'message'=>$message], $e->getMessage()==='expired' ? 410 : 409);
+            }
+            return back()->withErrors(['msg'=>$message]);
+        }
+        return $this->friendlyOk('تم التفعيل بنجاح', [
+            'activated'=>true, 'category'=>$item->category,
+            'payload'=>$item->payload ?: [], 'inventory_id'=>$inventory->id,
+        ]);
     }
     private function friendlyOk(string $message, array $extra=[]){ if(request()->expectsJson() || request()->ajax()) return response()->json(array_merge(['ok'=>true,'message'=>$message],$extra)); return back()->with('ok',$message); }
     private function friendlyFail(string $message){ if(request()->expectsJson() || request()->ajax()) return response()->json(['ok'=>false,'message'=>$message],200); return back()->withErrors(['msg'=>$message]); }
