@@ -45,7 +45,11 @@ ok((ROOT/'backend-laravel/tools/test-v304-fair-deal.php').exists(),'thousands-sc
 life=text('backend-laravel/app/Services/Gameplay/MatchLifecycleService.php')
 ok('ABANDONED_SECONDS=600' in life.replace(' ',''),'abandoned matches expire after 10 minutes')
 mobile=text('backend-laravel/app/Http/Controllers/MobileApiController.php')
-ok('dailyLimit = min(8' in mobile and 'claimNumber = min(8' in mobile and "'temporary_reward'=>$temporary" in mobile,'progressive eight-step rewarded ads are server-authoritative')
+# Until network-signed SSV callbacks are implemented, client-supplied ad
+# receipt strings MUST NOT reach a token/XP/ticket minting path.
+claim = mobile.split('public function claimRewardedAd(', 1)[1].split('public function deleteAccount(', 1)[0]
+ok("'ok' => false" in claim and '], 503);' in claim and 'verification_id' not in claim,
+   'unverified rewarded-ad claims fail closed without minting virtual currency')
 store=text('backend-laravel/app/Services/WarqnaPro/StoreCatalogService.php')
 ok('syncB304VerticalLegend' in store and "whereIn('category',['badge','effect'])" in store,'B304 store deactivates legacy tables/cardbacks/effects/badges')
 level=text('backend-laravel/app/Services/Leveling/XpService.php')
