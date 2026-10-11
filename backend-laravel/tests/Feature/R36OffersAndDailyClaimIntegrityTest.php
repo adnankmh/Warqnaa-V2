@@ -290,6 +290,41 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $this->assertSame($expiry->toDateTimeString(), $inventory->fresh()->expires_at->toDateTimeString());
     }
 
+    public function test_web_name_and_chat_cosmetics_follow_paid_expiry_without_renewal(): void
+    {
+        $user = $this->player();
+        $this->actingAs($user);
+        foreach ([
+            ['name_color', 'name_color_expires_at', ['color'=>'#4477cc']],
+            ['text_color', 'chat_color_expires_at', ['color'=>'#33aa99']],
+            ['name_frame', 'name_color_expires_at', ['frame'=>'r36-royal-frame']],
+        ] as $index => [$category, $expiryField, $payload]) {
+            Carbon::setTestNow('2026-10-10 10:00:00');
+            $item = StoreItem::create([
+                'key'=>'r36_web_expiry_'.$index, 'category'=>$category,
+                'name'=>['ar'=>'زينة','en'=>'Cosmetic'], 'price'=>1000,
+                'duration_days'=>7, 'active'=>true, 'payload'=>$payload,
+            ]);
+            $expiry = now()->addDays(2);
+            $inventory = InventoryItem::create([
+                'user_id'=>$user->id, 'store_item_id'=>$item->id,
+                'active'=>false, 'expires_at'=>$expiry,
+            ]);
+            $this->postJson(route('inventory.activate', ['inventory'=>$inventory->id]))
+                ->assertOk()->assertJsonPath('ok', true);
+            $this->assertSame($expiry->toDateTimeString(),
+                $inventory->fresh()->expires_at->toDateTimeString());
+            $this->assertSame($expiry->toDateTimeString(),
+                $user->profile()->firstOrFail()->{$expiryField}->toDateTimeString());
+
+            Carbon::setTestNow('2026-10-13 10:00:00');
+            $this->postJson(route('inventory.activate', ['inventory'=>$inventory->id]))
+                ->assertStatus(410)->assertJsonPath('ok', false);
+            $this->assertSame($expiry->toDateTimeString(),
+                $inventory->fresh()->expires_at->toDateTimeString());
+        }
+    }
+
     public function test_web_booster_cannot_reactivate_without_another_paid_entitlement(): void
     {
         Carbon::setTestNow('2026-10-10 10:00:00');
