@@ -38,7 +38,7 @@ def verify_consolidated_quality_workflows() -> None:
     triggered = {
         p.name
         for p in workflow_dir.glob("*.yml")
-        if "\\n  pull_request:" in read(p)
+        if "\n  pull_request:" in read(p)
     }
     assert triggered == parents | conditional, (
         f"Unexpected direct PR workflows: {sorted(triggered ^ (parents | conditional))}"
@@ -69,8 +69,8 @@ def verify_consolidated_quality_workflows() -> None:
         verify_always_runs_on_release_pr(parent_source, parent)
         for child in children:
             content = read(workflow_dir / child)
-            require(content, "\\n  workflow_call:", f"{child} reusable trigger")
-            assert "\\n  pull_request:" not in content, (
+            require(content, "\n  workflow_call:", f"{child} reusable trigger")
+            assert "\n  pull_request:" not in content, (
                 f"{child} would duplicate the umbrella PR run"
             )
             require(
@@ -78,7 +78,7 @@ def verify_consolidated_quality_workflows() -> None:
                 f"uses: ./.github/workflows/{child}",
                 f"{child} still runs inside {parent}",
             )
-            require(content, "\\njobs:", f"{child} original quality jobs")
+            require(content, "\njobs:", f"{child} original quality jobs")
     print("Five parent release workflows retain all fourteen reusable quality gates: PASS")
 
 def main() -> None:
