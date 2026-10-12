@@ -71,7 +71,7 @@
      <header class="w36-panel-head"><h2>🛡️ {{ $ar?'الأندية':'Clubs' }}</h2><a href="{{ $isAuthed?route('clubs'):route('login') }}">{{ $ar?'استكشف':'Explore' }} ←</a></header>
      @forelse($worldClubs as $club)
        <a class="w36-club-item" href="{{ $isAuthed?route('clubs.show',$club):route('login') }}">
-        <span class="w36-club-crest" aria-hidden="true">♛</span>
+        <span class="w36-club-crest" aria-hidden="true">@if($club->logo && preg_match('#^(https?://|/)#i',(string)$club->logo))<img src="{{ $club->logo }}" loading="lazy" decoding="async" alt="">@else{{ $club->logo ?: '♛' }}@endif</span>
         <span><strong>{{ $club->name }}</strong><small>{{ $club->members_count }} {{ $ar?'عضو':'members' }} · {{ $ar?'المستوى':'Level' }} {{ $club->level }}</small></span>
         <span class="w36-join-label">{{ $ar?'فتح':'Open' }}</span>
        </a>
@@ -93,7 +93,8 @@
      <div class="w36-store-items">
       @forelse($worldProducts as $item)
        <a href="{{ $isAuthed?route('store'):route('login') }}" class="w36-store-item">
-        <span class="w36-shop-icon" aria-hidden="true">{{ $item->payload['preview_icon'] ?? '🎁' }}</span>
+        @php $w36ItemArt=$item->payload['asset_url'] ?? $item->payload['table_image'] ?? $item->payload['card_back_image'] ?? null; @endphp
+        <span class="w36-shop-icon" aria-hidden="true">@if($w36ItemArt && preg_match('#^(https?://|/)#i',(string)$w36ItemArt))<img src="{{ $w36ItemArt }}" loading="lazy" decoding="async" alt="">@else{{ $item->payload['preview_icon'] ?? '🎁' }}@endif</span>
         <strong>{{ $item->name[$ar?'ar':'en'] ?? $item->key }}</strong>
         <small>🪙 {{ number_format((int)$item->price) }}</small>
        </a>
