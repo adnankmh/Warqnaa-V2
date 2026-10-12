@@ -1,8 +1,7 @@
 name: R32 Premium Account Rewards Gate
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
