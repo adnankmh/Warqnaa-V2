@@ -490,7 +490,13 @@ class MobileApiController extends Controller
                     ->where('key', $data['key'])->where('category', 'xp_booster'));
 
             // A purchased entitlement remains usable after its catalog SKU is delisted.
-            $inventory = (clone $owned)->whereNull('activated_at')
+            // The primary admin's 100+ evergreen units can be activated repeatedly;
+            // normal players still consume each paid XP booster exactly once.
+            $primary = $user->isPrimaryAdmin();
+            $available = clone $owned;
+            if ($primary) $available->where('quantity', '>', 0);
+            else $available->whereNull('activated_at');
+            $inventory = $available
                 ->where(function ($query) {
                     $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })->with('storeItem')->lockForUpdate()->latest('id')->first();
@@ -507,7 +513,11 @@ class MobileApiController extends Controller
                 ->whereHas('storeItem', fn ($query) => $query->where('category', 'xp_booster'))
                 ->update(['active' => false]);
             $inventory->update([
-                'active' => true, 'activated_at' => now(), 'expires_at' => $expiry,
+                'active' => true,
+                'activated_at' => now(),
+                // Primary-admin stock is permanently owned even while its
+                // configured XP multiplier still runs for the chosen hours.
+                'expires_at' => $primary ? null : $expiry,
             ]);
             $profile = $user->profile()->lockForUpdate()->firstOrCreate(
                 ['user_id' => $user->id],
@@ -544,6 +554,13 @@ class MobileApiController extends Controller
             ['display_name' => $user->username, 'country_code' => 'PS', 'country_name' => 'Palestine']
         );
         $payload = $item->payload ?: [];
+        if ($user->isPrimaryAdmin() && in_array($item->category, [
+            'name_color', 'name_frame', 'text_color', 'profile_color',
+        ], true)) {
+            // Catalog ownership has no expiry. A selected color is guaranteed
+            // an independent one-year appearance term.
+            $paidExpiry = now()->addDays(\App\Services\Admin\PrimaryAdminStateService::COLOR_VALIDITY_DAYS);
+        }
 
         switch ($item->category) {
             case 'pasha':
