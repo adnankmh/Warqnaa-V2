@@ -624,6 +624,93 @@ class B307HomeDashboard extends StatelessWidget {
             );
           },
         ),
+
+        const SizedBox(height: 12),
+        R35StoreTreasureStrip(controller: controller),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'ردود الفعل والباقات' : 'Reactions and packs',
+          icon: Icons.emoji_emotions_rounded,
+          actionLabel: ar ? 'المتجر' : 'Store',
+          onAction: () => onTab(0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+            Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: <Widget>[
+              for (final emoji in const <String>['😂','😍','🥳','😭','😎','👍','💙','🔥','👏','👑','💎','🏆'])
+                Container(
+                  width: 43, height: 43, alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: B307SkyLuxury.panelGradient,
+                    borderRadius: BorderRadius.circular(11),
+                    border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .57))),
+                  child: Text(emoji, style: const TextStyle(fontSize: 25)),
+                ),
+            ]),
+            const SizedBox(height: 10),
+            Text(ar ? 'معاينة للباقات. أرسل ردود الفعل من داخل غرفة اللعبة.' :
+              'Pack preview. Send reactions inside an actual game room.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 11)),
+            const SizedBox(height: 8),
+            R35GoldAction(
+              label: ar ? 'استعرض باقات الإيموجي' : 'Browse emoji packs',
+              icon: Icons.shopping_bag_rounded, onTap: () => onTab(0)),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'ملفي الشخصي ومظهر الباشا' : 'Profile and Pasha style',
+          icon: Icons.auto_awesome_rounded,
+          actionLabel: ar ? 'تخصيص' : 'Customize',
+          onAction: () => showAvatarPicker(context, controller),
+          child: Row(children: <Widget>[
+            Container(
+              width: 76, height: 76,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: R35ReferenceColors.gold, width: 3),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(color: R35ReferenceColors.gold.withValues(alpha: .23), blurRadius: 14)],
+              ),
+              child: ClipOval(child: AccountAvatar(controller: controller, size: 66)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 3),
+              Text((ar ? 'المستوى ' : 'Level ') + controller.level.toString() +
+                   ' · VIP ' + controller.vipDays.toString(),
+                style: const TextStyle(color: R35ReferenceColors.paleGold, fontSize: 11)),
+              const SizedBox(height: 9),
+              R35GoldAction(label: ar ? 'تغيير الصورة والإطار' : 'Change avatar and frame',
+                icon: Icons.photo_camera_rounded,
+                onTap: () => showAvatarPicker(context, controller)),
+            ])),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'التدريب مع الروبوتات' : 'Bot practice',
+          icon: Icons.smart_toy_rounded,
+          actionLabel: ar ? 'الألعاب' : 'Games',
+          onAction: () => onTab(1),
+          child: Column(children: <Widget>[
+            R35FeatureLine(
+              icon: Icons.sports_esports_rounded,
+              title: ar ? 'خصوم تدريب داخل غرف حقيقية' : 'Practice opponents in real rooms',
+              detail: ar ? 'ابدأ من صالة اللعبة، ثم استخدم خيارات الروبوتات المتاحة.' :
+                'Open a game lobby and choose its available bot features.',
+            ),
+            if (featured.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 10),
+              R35GoldAction(
+                label: ar ? 'ابدأ التدريب' : 'Start practicing',
+                icon: Icons.play_arrow_rounded,
+                onTap: () => showGameLobby(context, controller, featured.first)),
+            ],
+          ]),
+        ),
         const SizedBox(height: 10),
         B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),
         const SizedBox(height: 7),
