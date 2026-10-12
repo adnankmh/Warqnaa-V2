@@ -97,6 +97,42 @@ def main() -> None:
         "showAvatarPicker(context, controller)", "onAction: () => onTab(0)",
     ):
         check(visual, needle, "working native mobile reference panel")
+    # The development dashboard must be real, primary-admin-only and derived
+    # from the exact latest GitHub PR head, never a hard-coded success counter.
+    for needle in (
+        "w36-live-progress",
+        "auth()->user()->isPrimaryAdmin()",
+        "https://api.github.com/repos/adnankmh/Warqnaa-V2",
+        "data-w36-workflow",
+        "/pulls/29",
+        "/actions/runs?head_sha=",
+        "event=pull_request",
+        "aria-valuenow",
+        "setInterval",
+        "response.ok",
+        "Live refresh unavailable",
+    ):
+        check(web_home, needle, "admin-only real GitHub release progress")
+    for workflow in (
+        "Backend CI and Security Foundation",
+        "Build Android APK and AAB",
+        "Build and deploy Flutter Web",
+        "Production Release Gate",
+        "R7 isolated runtime and visual review",
+    ):
+        check(web_home, workflow, "five quality gates preserve individual status")
+    for needle in (
+        ".w36-progress-center",
+        ".w36-progress-gate[data-status=\"success\"]",
+        ".w36-progress-gate[data-status=\"failed\"]",
+        ".w36-progress-track",
+        "@media(max-width:560px)",
+    ):
+        check(web_style, needle, "responsive honest progress display")
+    check(web_shell, "?v=36-sky-world-progress", "refresh progress dashboard CSS")
+    assert "— / 5" in web_home, "First render must never invent successful workflow counts."
+    assert "Passing workflows" in web_home, "Do not mistake CI for total game progress."
+
     assert "password" not in web_home.lower(), "Public showcase must not expose demo credentials."
     assert "design-reference.png" not in web_home, "Never render the entire collage as a fake screen."
 
