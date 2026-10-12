@@ -135,6 +135,85 @@ class R16PrimaryAdminEntitlementsTest extends TestCase
         }
     }
 
+
+    public function test_primary_admin_can_reactivate_same_nonexpiring_booster_on_mobile_and_web(): void
+    {
+        $admin=User::factory()->create(['is_admin'=>true,'admin_role'=>'primary_admin']);
+        Profile::create([
+            'user_id'=>$admin->id,'display_name'=>'Primary',
+            'country_code'=>'PS','country_name'=>'Palestine',
+        ]);
+        Wallet::create(['user_id'=>$admin->id,'tokens'=>1,'gems'=>1]);
+        app(StoreCatalogService::class)->sync();
+        $admin=app(PrimaryAdminStateService::class)->enforce($admin);
+        $boost=StoreItem::where('key','booster_gold_v183')->firstOrFail();
+        $owned=InventoryItem::where('user_id',$admin->id)
+            ->where('store_item_id',$boost->id)->firstOrFail();
+        $this->assertGreaterThanOrEqual(100,$owned->quantity);
+        $this->assertNull($owned->expires_at);
+        $this->withToken($admin->createToken('r36-admin-booster')->plainTextToken);
+        for($i=0;$i<2;$i++) {
+            $this->postJson('/api/mobile/v1/store/activate',['key'=>$boost->key])
+                ->assertOk()->assertJsonPath('ok',true);
+        }
+        $this->assertNull($owned->fresh()->expires_at);
+        $this->assertGreaterThanOrEqual(100,$owned->fresh()->quantity);
+        $this->assertNotNull($owned->fresh()->activated_at);
+        $this->assertTrue($admin->profile()->firstOrFail()->xp_boost_expires_at->isFuture());
+
+        $this->actingAs($admin);
+        for($i=0;$i<2;$i++) {
+            $this->postJson(route('inventory.activate',['inventory'=>$owned->id]))
+                ->assertOk()->assertJsonPath('ok',true);
+        }
+        $this->assertNull($owned->fresh()->expires_at);
+        $this->assertGreaterThanOrEqual(100,$owned->fresh()->quantity);
+    }
+
+    public function test_primary_admin_equips_yearlong_web_colors_without_expiring_owned_inventory(): void
+    {
+        \Carbon\Carbon::setTestNow('2026-10-12 11:00:00');
+        try {
+            $admin=User::factory()->create(['is_admin'=>true,'admin_role'=>'primary_admin']);
+            Profile::create([
+                'user_id'=>$admin->id,'display_name'=>'Primary',
+                'country_code'=>'PS','country_name'=>'Palestine',
+            ]);
+            Wallet::create(['user_id'=>$admin->id,'tokens'=>1,'gems'=>1]);
+            app(StoreCatalogService::class)->sync();
+            $admin=app(PrimaryAdminStateService::class)->enforce($admin);
+            $this->actingAs($admin);
+            foreach([
+                'name_color'=>'name_color_expires_at',
+                'text_color'=>'chat_color_expires_at',
+                'profile_color'=>'profile_color_expires_at',
+            ] as $category=>$field) {
+                $item=StoreItem::where('active',true)->where('category',$category)->first();
+                if (!$item) {
+                    $item=StoreItem::create([
+                        'key'=>'r36_admin_annual_'.$category,'category'=>$category,
+                        'name'=>['ar'=>'لون','en'=>'Color'],'price'=>1000,
+                        'duration_days'=>30,'active'=>true,
+                        'payload'=>['color'=>'#2277bb','gradient'=>['#115599','#44bbdd']],
+                    ]);
+                    app(StoreCatalogService::class)->grantPrimaryAdminItem($item->id,$admin);
+                }
+                $owned=InventoryItem::where('user_id',$admin->id)
+                    ->where('store_item_id',$item->id)->firstOrFail();
+                $this->postJson(route('inventory.activate',['inventory'=>$owned->id]))
+                    ->assertOk()->assertJsonPath('ok',true);
+                $this->assertNull($owned->fresh()->expires_at);
+                $this->assertGreaterThanOrEqual(100,(int)$owned->fresh()->quantity);
+                $this->assertGreaterThanOrEqual(
+                    now()->addDays(PrimaryAdminStateService::COLOR_VALIDITY_DAYS)->timestamp,
+                    $admin->profile()->firstOrFail()->{$field}->timestamp
+                );
+            }
+        } finally {
+            \Carbon\Carbon::setTestNow();
+        }
+    }
+
     public function test_primary_admin_wallet_never_spends_down(): void
     {
         $admin = User::factory()->create([
