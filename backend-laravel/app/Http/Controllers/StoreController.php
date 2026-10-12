@@ -221,7 +221,7 @@ class StoreController
                 if ($owned->expires_at && $owned->expires_at->lte(now())) {
                     throw new \DomainException('expired');
                 }
-                if ($item->category === 'xp_booster' && $owned->activated_at !== null) {
+                if ($item->category === 'xp_booster' && $owned->activated_at !== null && !$user->isPrimaryAdmin()) {
                     throw new \DomainException('already_activated');
                 }
 
@@ -236,16 +236,25 @@ class StoreController
                 $expiry = $booster
                     ? now()->addHours(max(1, min(168, (int) ($payload['activate_hours'] ?? 24))))
                     : $owned->expires_at;
+                $displayExpiry = $expiry;
+                if ($user->isPrimaryAdmin() && in_array($item->category, [
+                    'name_color', 'name_frame', 'text_color', 'profile_color',
+                ], true)) {
+                    $displayExpiry = now()->addDays(\App\Services\Admin\PrimaryAdminStateService::COLOR_VALIDITY_DAYS);
+                }
                 $owned->update([
                     'active' => true,
-                    'activated_at' => $owned->activated_at ?? now(),
-                    'expires_at' => $expiry,
+                    'activated_at' => $user->isPrimaryAdmin() && $booster
+                        ? now() : ($owned->activated_at ?? now()),
+                    // The primary admin's inventory never expires even if a
+                    // selected boost has a configured effect duration.
+                    'expires_at' => $user->isPrimaryAdmin() ? null : $expiry,
                 ]);
             $profile=auth()->user()->profile;
             if($profile){
-                if($item->category==='name_color') { if(isset($payload['color'])) { $profile->name_color=$payload['color']; $profile->active_name_frame=$payload['frame'] ?? $payload['glow'] ?? ('glow-'.str_replace('#','',$payload['color'])); } $profile->name_color_expires_at=$expiry; }
-                if($item->category==='text_color') { if(isset($payload['color'])) { $profile->chat_color=$payload['color']; $profile->text_color=$payload['color']; } $profile->chat_color_expires_at=$expiry; }
-                if($item->category==='profile_color') { $gradient=(array)($payload['gradient'] ?? []); $profile->active_profile_color=count($gradient)>=2 ? implode('|',array_slice($gradient,0,2)) : ($payload['color'] ?? $item->key); $profile->profile_color_expires_at=$expiry; }
+                if($item->category==='name_color') { if(isset($payload['color'])) { $profile->name_color=$payload['color']; $profile->active_name_frame=$payload['frame'] ?? $payload['glow'] ?? ('glow-'.str_replace('#','',$payload['color'])); } $profile->name_color_expires_at=$displayExpiry; }
+                if($item->category==='text_color') { if(isset($payload['color'])) { $profile->chat_color=$payload['color']; $profile->text_color=$payload['color']; } $profile->chat_color_expires_at=$displayExpiry; }
+                if($item->category==='profile_color') { $gradient=(array)($payload['gradient'] ?? []); $profile->active_profile_color=count($gradient)>=2 ? implode('|',array_slice($gradient,0,2)) : ($payload['color'] ?? $item->key); $profile->profile_color_expires_at=$displayExpiry; }
                 if($item->category==='badge') $profile->badge=$payload['badge'] ?? $item->key;
                 if($item->category==='table') $profile->active_table_skin=$payload['table'] ?? $item->key;
                 if($item->category==='pasha_style') {
@@ -253,7 +262,7 @@ class StoreController
                     if(isset($payload['color1'])) { $profile->name_color=$payload['color1']; $profile->chat_color=$payload['color1']; $profile->text_color=$payload['color1']; }
                 }
                 if($item->category==='card_back') $profile->active_card_back=$payload['card_back'] ?? $item->key;
-                if($item->category==='name_frame') { $profile->active_name_frame=$payload['frame'] ?? $item->key; if(isset($payload['color'])) $profile->name_color=$payload['color']; $profile->name_color_expires_at=$expiry; }
+                if($item->category==='name_frame') { $profile->active_name_frame=$payload['frame'] ?? $item->key; if(isset($payload['color'])) $profile->name_color=$payload['color']; $profile->name_color_expires_at=$displayExpiry; }
                 if($item->category==='effect') { if(isset($payload['theme'])) $profile->active_site_theme=(string)$payload['theme']; else $profile->active_effect=$payload['effect'] ?? $item->key; }
                 if($item->category==='profile_cover') $profile->active_profile_cover=$payload['cover'] ?? $item->key;
                 if($item->category==='xp_booster') { $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25); $profile->xp_boost_expires_at=$expiry; }
