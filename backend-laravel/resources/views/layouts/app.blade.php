@@ -8,7 +8,7 @@
     <meta name="keywords" content="ألعاب ورق, طرنيب, هاند, بناكل, بلوت, تركس, طاولة, Warqnaa">
     <meta property="og:title" content="Warqnaa">
     <meta property="og:description" content="منصة ألعاب ورق عربية احترافية وآمنة وممتعة.">
-    <meta name="theme-color" content="#0B3F1D">
+    <meta name="theme-color" content="#0879c8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
@@ -37,7 +37,7 @@
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 <link rel="stylesheet" href="{{ asset('assets/css/b306-app-parity.css') }}?v=306-parity">
-<link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=307">
+<link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=36-sky-world">
     <link rel="stylesheet" href="{{ asset('assets/css/r5-world-class.css') }}?v=r5">
     <link rel="stylesheet" href="{{ asset('assets/css/r6-1-world-class.css') }}?v=640">
 </head>
