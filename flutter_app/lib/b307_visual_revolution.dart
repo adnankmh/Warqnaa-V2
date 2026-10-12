@@ -679,8 +679,7 @@ class B307HomeDashboard extends StatelessWidget {
               Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
               const SizedBox(height: 3),
-              Text((ar ? 'المستوى ' : 'Level ') + controller.level.toString() +
-                   ' · VIP ' + controller.vipDays.toString(),
+              Text("${ar ? 'المستوى' : 'Level'} ${controller.level} · VIP ${controller.vipDays}",
                 style: const TextStyle(color: R35ReferenceColors.paleGold, fontSize: 11)),
               const SizedBox(height: 9),
               R35GoldAction(label: ar ? 'تغيير الصورة والإطار' : 'Change avatar and frame',
