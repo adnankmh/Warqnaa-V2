@@ -268,6 +268,14 @@ class MobileApiController extends Controller
                 $existingInventory = $user->inventoryItems()
                     ->where('store_item_id', $lockedItem->id)
                     ->lockForUpdate()->latest('id')->first();
+                // Source-of-truth product terms must remain identical from quote to charge.
+                // Price-only checks miss changes to category, duration, or entitlements.
+                if ($lockedItem->category !== $item->category
+                    || $lockedItem->key !== $item->key
+                    || (int) $lockedItem->duration_days !== (int) $item->duration_days
+                    || $lockedItem->payload !== $item->payload) {
+                    throw new \DomainException('price_changed');
+                }
                 if ($existingInventory && !$renewable) throw new \DomainException('already_owned');
                 $liveQuote = $pricing->quote($lockedItem);
                 if (!$lockedItem->active || $liveQuote !== $quote)
@@ -287,7 +295,7 @@ class MobileApiController extends Controller
                 ]);
 
                 // Only one cosmetic from the same category remains active.
-                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
+                if (in_array($item->category, ['name_color','text_color','profile_color','badge','table','pasha_style','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
                     $user->inventoryItems()
                         ->whereHas('storeItem', fn ($query) => $query->where('category', $item->category))
                         ->update(['active' => false]);
@@ -301,7 +309,11 @@ class MobileApiController extends Controller
                 $expiresAt = $item->duration_days ? $baseExpiry->addDays((int) $item->duration_days) : null;
                 // Every paid XP booster purchase creates a separate unspent entitlement.
                 // Reusing the last row would silently erase a previously purchased activation.
-                if ($renewable && $existingInventory && !$isBooster) {
+                // Never overwrite an expired entitlement: keep its original ledger trail.
+                // Only a still-valid paid term can be extended in place.
+                $canExtend = $existingInventory && $existingInventory->expires_at
+                    && $existingInventory->expires_at->isFuture();
+                if ($renewable && !$isBooster && $canExtend) {
                     $existingInventory->update([
                         'active'=>!$isBooster,
                         'activated_at'=>$isBooster ? null : now(),
@@ -550,13 +562,14 @@ class MobileApiController extends Controller
                 if (isset($payload['color'])) {
                     $profile->text_color = (string) $payload['color'];
                     $profile->chat_color = (string) $payload['color'];
-                    $profile->chat_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 }
+                $profile->chat_color_expires_at = $paidExpiry;
                 break;
             case 'profile_color':
                 $gradient = (array) ($payload['gradient'] ?? []);
                 $profile->active_profile_color = count($gradient) >= 2 ? implode('|', array_slice($gradient, 0, 2)) : (string) ($payload['color'] ?? $item->key);
-                $profile->profile_color_expires_at = $paidExpiry ?? now()->addDays((int) ($item->duration_days ?: ($payload['duration_days'] ?? 30)));
+                // NULL means a permanent cosmetic, never invent a 30-day timeout.
+                $profile->profile_color_expires_at = $paidExpiry;
                 break;
             case 'badge':
                 $profile->badge = $payload['badge'] ?? $item->key;
