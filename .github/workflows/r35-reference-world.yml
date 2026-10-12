@@ -1,8 +1,7 @@
 name: R35 Reference World Visual Gate
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
