@@ -68,7 +68,14 @@ class StoreCatalogService
             ['user_id'=>$admin->id,'store_item_id'=>$item->id],
             ['quantity'=>\App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY,'active'=>false,'activated_at'=>null,'expires_at'=>null]
         );
-        // Every primary-admin catalog item, including each XP booster and Pasha plan,\n        // remains stocked at 100+ with no purchased entitlement expiry.\n        if ((int)$owned->quantity < \App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY || $owned->expires_at !== null) {\n            $owned->update([\n                'quantity'=>max(\App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY, (int)$owned->quantity),\n                'expires_at'=>null,\n            ]);\n        }
+        // Every primary-admin catalog item, including each XP booster and Pasha plan,
+        // remains stocked at 100+ with no purchased entitlement expiry.
+        if ((int)$owned->quantity < \App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY || $owned->expires_at !== null) {
+            $owned->update([
+                'quantity'=>max(\App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY, (int)$owned->quantity),
+                'expires_at'=>null,
+            ]);
+        }
     }
 
     private function upsert(array $item): void
