@@ -560,6 +560,91 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
             $user->profile()->firstOrFail()->chat_color_expires_at->toDateTimeString());
     }
 
+
+    public function test_web_paid_timed_cosmetic_renews_remaining_days_and_profile_expiry(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item = StoreItem::create([
+            'key'=>'r36_web_paid_renewal','category'=>'profile_color',
+            'name'=>['ar'=>'ملف','en'=>'Profile'],'price'=>1000,'active'=>true,
+            'duration_days'=>7,'payload'=>['gradient'=>['#124488','#11aacc']],
+        ]);
+        $oldExpiry = now()->addDays(15);
+        $owned = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>true,'activated_at'=>now()->subDay(),'expires_at'=>$oldExpiry,
+        ]);
+        $user->profile()->firstOrFail()->update(['profile_color_expires_at'=>$oldExpiry]);
+        $price=app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->actingAs($user);
+        $this->postJson(route('store.buy', ['item'=>$item->id]),[
+            'expected_price'=>$price,
+        ])->assertOk()->assertJsonPath('ok',true);
+        $expected=$oldExpiry->copy()->addDays(7)->toDateTimeString();
+        $this->assertSame(1,$user->inventoryItems()->where('store_item_id',$item->id)->count());
+        $this->assertSame($expected,$owned->fresh()->expires_at->toDateTimeString());
+        $this->assertTrue((bool)$owned->fresh()->active);
+        $this->assertSame($expected,$user->profile()->firstOrFail()
+            ->profile_color_expires_at->toDateTimeString());
+        $this->assertSame(100000-$price,(int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(1,WalletTransaction::where('user_id',$user->id)
+            ->where('type','store_buy')->count());
+    }
+
+    public function test_web_expired_cosmetic_repurchase_keeps_history_and_creates_new_entitlement(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user=$this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item=StoreItem::create([
+            'key'=>'r36_web_expired_cosmetic','category'=>'name_color',
+            'name'=>['ar'=>'اسم','en'=>'Name'],'price'=>1000,'active'=>true,
+            'duration_days'=>5,'payload'=>['color'=>'#123456'],
+        ]);
+        $expiredAt=now()->subDay();
+        $historical=InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>false,'activated_at'=>now()->subDays(6),'expires_at'=>$expiredAt,
+        ]);
+        $price=app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->actingAs($user);
+        $this->postJson(route('store.buy',['item'=>$item->id]),[
+            'expected_price'=>$price,
+        ])->assertOk()->assertJsonPath('ok',true);
+        $this->assertSame(2,$user->inventoryItems()->where('store_item_id',$item->id)->count());
+        $this->assertSame($expiredAt->toDateTimeString(),
+            $historical->fresh()->expires_at->toDateTimeString());
+        $new=$user->inventoryItems()->where('store_item_id',$item->id)->latest('id')->firstOrFail();
+        $this->assertNotEquals($historical->id,$new->id);
+        $this->assertSame(now()->addDays(5)->toDateTimeString(),
+            $new->expires_at->toDateTimeString());
+    }
+
+    public function test_web_separate_booster_purchases_do_not_overwrite_unspent_entitlements(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user=$this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item=StoreItem::create([
+            'key'=>'r36_web_paid_booster','category'=>'xp_booster',
+            'name'=>['ar'=>'مسرع','en'=>'Booster'],'price'=>1000,'active'=>true,
+            'duration_days'=>3,'payload'=>['multiplier'=>1.5,'activate_hours'=>24],
+        ]);
+        $price=app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->actingAs($user);
+        for($i=0;$i<2;$i++) {
+            $this->postJson(route('store.buy',['item'=>$item->id]),[
+                'expected_price'=>$price,
+            ])->assertOk()->assertJsonPath('ok',true);
+        }
+        $this->assertSame(2,$user->inventoryItems()->where('store_item_id',$item->id)->count());
+        $this->assertSame(100000-2*$price,(int)$user->wallet()->firstOrFail()->tokens);
+        $this->assertSame(2,WalletTransaction::where('user_id',$user->id)
+            ->where('type','store_buy')->count());
+    }
+
     public function test_duplicate_daily_claim_does_not_credit_wallet_twice(): void
     {
         Carbon::setTestNow('2026-10-10 10:00:00');
