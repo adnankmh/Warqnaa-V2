@@ -118,7 +118,45 @@ class StoreController
                     return ['kind'=>'ticket', 'denomination'=>$ticketDenomination, 'quantity'=>(int)$ticket->fresh()->quantity, 'quote'=>$quote];
                 }
 
-                $validDays = (int)($payload['valid_days'] ?? $item->duration_days ?? 0);
+                $validDays = max(0, (int)($payload['valid_days'] ?? $item->duration_days ?? 0));
+                // Timed cosmetics extend their existing unexpired entitlement.
+                // XP boosters remain independent, once-only paid activations.
+                // An expired row is never rewritten: the audit trail survives.
+                $renewableCosmetic = $validDays > 0
+                    && in_array($item->category, [
+                        'badge','table','pasha_style','card_back','name_color',
+                        'text_color','profile_color','name_frame','profile_frame',
+                        'effect','emoji_pack','profile_cover',
+                    ], true);
+                $existing = $renewableCosmetic
+                    ? InventoryItem::query()
+                        ->where('user_id', $user->id)
+                        ->where('store_item_id', $item->id)
+                        ->where('expires_at', '>', now())
+                        ->orderByDesc('expires_at')
+                        ->lockForUpdate()->first()
+                    : null;
+                if ($existing) {
+                    $newExpiry = $existing->expires_at->copy()->addDays($validDays);
+                    $existing->update(['expires_at'=>$newExpiry]);
+                    // Immediately reflect paid renewal if this exact cosmetic is equipped.
+                    if ($existing->active) {
+                        $profile = $user->profile()->lockForUpdate()->first();
+                        if ($profile) {
+                            $expiryField = match ($item->category) {
+                                'name_color', 'name_frame' => 'name_color_expires_at',
+                                'text_color' => 'chat_color_expires_at',
+                                'profile_color' => 'profile_color_expires_at',
+                                default => null,
+                            };
+                            if ($expiryField !== null) {
+                                $profile->{$expiryField} = $newExpiry;
+                                $profile->save();
+                            }
+                        }
+                    }
+                    return ['kind'=>'inventory', 'inventory_id'=>$existing->id, 'quote'=>$quote];
+                }
                 $inventory = InventoryItem::create([
                     'user_id'=>$user->id,
                     'store_item_id'=>$item->id,
