@@ -70,6 +70,36 @@ def main() -> None:
     ):
         check(widget_test, needle, name)
 
+    # R36 expands the photographed design into real server-rendered dashboard
+    # panels and interactive native app components, never a screenshot overlay.
+    web_home = read("backend-laravel/resources/views/home.blade.php")
+    web_style = read("backend-laravel/public/assets/css/b307-cardroom-ui.css")
+    web_shell = read("backend-laravel/resources/views/layouts/app.blade.php")
+    for needle in (
+        "w36-grand-hero", "w36-tournaments", "w36-clubs", "w36-profile",
+        "w36-store-preview", "w36-reactions", "w36-bots",
+        "withCount('members')", "withCount('entries')", "game_art_url($game->key)",
+        "route('tournaments')", "route('clubs')", "route('store')",
+    ):
+        check(web_home, needle, "live premium web dashboard")
+    for needle in (
+        "R36 SKY-GOLD REFERENCE IMPLEMENTATION",
+        ".w36-world-grid", ".w36-grand-hero", ".w36-profile-avatar",
+        ".w36-store-items", ".w36-emoji-preview", "body.warqna-b304",
+        "prefers-reduced-motion", "focus-visible",
+    ):
+        check(web_style, needle, "original responsive visual design")
+    check(web_shell, "?v=36-sky-world", "versioned production theme")
+    for needle in (
+        "R35StoreTreasureStrip(controller: controller)",
+        "'ردود الفعل والباقات'", "'ملفي الشخصي ومظهر الباشا'",
+        "'التدريب مع الروبوتات'", "showGameLobby(context, controller, featured.first)",
+        "showAvatarPicker(context, controller)", "onAction: () => onTab(0)",
+    ):
+        check(visual, needle, "working native mobile reference panel")
+    assert "password" not in web_home.lower(), "Public showcase must not expose demo credentials."
+    assert "design-reference.png" not in web_home, "Never render the entire collage as a fake screen."
+
     assert "password" not in reference.lower(), "Never reproduce demo credentials from the collage."
     print("R35 screenshot-guided Warqnaa world contract: PASS")
 
