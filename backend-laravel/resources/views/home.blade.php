@@ -116,10 +116,124 @@
    </article>
  </section>
 
+
+ @if($isAuthed && auth()->user()->isPrimaryAdmin())
+  <section id="w36-live-progress" class="w36-progress-center" aria-labelledby="w36-progress-heading">
+    <div class="w36-progress-heading">
+      <div>
+        <span class="w36-progress-eyebrow">WARQNAA DEVELOPMENT • GITHUB LIVE</span>
+        <h2 id="w36-progress-heading">📈 {{ $ar?'مركز متابعة التطوير':'Development progress center' }}</h2>
+        <p>{{ $ar?'حالة بناء الإصدار والاختبارات الخمسة مباشرة من GitHub. هذه النسبة تخص اجتياز الاختبارات فقط، وليست نسبة اكتمال اللعبة.':'Live GitHub build and five quality gates. This percentage measures passing checks, not overall game completion.' }}</p>
+      </div>
+      <a class="w36-progress-pr" href="https://github.com/adnankmh/Warqnaa-V2/pull/29" target="_blank" rel="noopener noreferrer">R36 · PR #29 ↗</a>
+    </div>
+    <div class="w36-progress-overview">
+      <div class="w36-progress-count">
+        <strong id="w36-progress-passed">— / 5</strong>
+        <small>{{ $ar?'اختبارات ناجحة':'Passing workflows' }}</small>
+      </div>
+      <div class="w36-progress-track-group">
+        <div class="w36-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-label="{{ $ar?'اجتياز بوابات الجودة':'Passing quality gates' }}" id="w36-progress-track">
+          <span id="w36-progress-fill"></span>
+        </div>
+        <div id="w36-progress-note" role="status" aria-live="polite">{{ $ar?'جار التحقق من GitHub…':'Checking GitHub…' }}</div>
+      </div>
+    </div>
+    <div class="w36-progress-grid">
+      @foreach([
+        'Backend CI and Security Foundation'=>['🛡️','Laravel / Security','backend-ci.yml'],
+        'Build Android APK and AAB'=>['📱','Android APK / AAB','flutter-android.yml'],
+        'Build and deploy Flutter Web'=>['🌐','Flutter Web','flutter-web-pages.yml'],
+        'Production Release Gate'=>['🏆','Production / Economy','production-release-check.yml'],
+        'R7 isolated runtime and visual review'=>['🎨','UX / Game / Design','r7-runtime-verification.yml'],
+      ] as $workflow=>$config)
+        <a class="w36-progress-gate" data-w36-workflow="{{ $workflow }}" href="https://github.com/adnankmh/Warqnaa-V2/actions/workflows/{{ $config[2] }}" target="_blank" rel="noopener noreferrer">
+          <span class="w36-progress-gate-icon" aria-hidden="true">{{ $config[0] }}</span>
+          <span class="w36-progress-gate-title">{{ $config[1] }}</span>
+          <span class="w36-progress-gate-state">{{ $ar?'قيد التحقق':'Checking' }}</span>
+        </a>
+      @endforeach
+    </div>
+    <div class="w36-progress-footer">
+      <span id="w36-progress-version">{{ $ar?'آخر إصدار: جارٍ التحقق':'Latest revision: checking' }}</span>
+      <span>{{ $ar?'مشروع قيد التطوير • الدمج يتطلب اجتياز جميع الفحوصات والمراجعة':'In development • merge requires all checks and review' }}</span>
+      <a href="https://github.com/adnankmh/Warqnaa-V2/actions" target="_blank" rel="noopener noreferrer">{{ $ar?'عرض سجل GitHub Actions':'Open GitHub Actions' }} ↗</a>
+    </div>
+  </section>
+  <script>
+  (() => {
+    'use strict';
+    const root = document.getElementById('w36-live-progress');
+    if (!root || typeof window.fetch !== 'function') return;
+    const ar = document.documentElement.lang === 'ar';
+    const base = 'https://api.github.com/repos/adnankmh/Warqnaa-V2';
+    const expected = [...root.querySelectorAll('[data-w36-workflow]')];
+    const note = document.getElementById('w36-progress-note');
+    const count = document.getElementById('w36-progress-passed');
+    const fill = document.getElementById('w36-progress-fill');
+    const track = document.getElementById('w36-progress-track');
+    const version = document.getElementById('w36-progress-version');
+    const request = async path => {
+      const response = await fetch(base + path, {
+        method: 'GET', cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' }
+      });
+      if (!response.ok) throw new Error('GitHub unavailable');
+      return response.json();
+    };
+    async function refresh() {
+      try {
+        const pr = await request('/pulls/29');
+        const sha = pr.head && pr.head.sha;
+        if (typeof sha !== 'string' || !/^[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid SHA');
+        version.textContent = (ar ? 'الإصدار الحالي: ' : 'Current revision: ') +
+          sha.slice(0, 8) + (pr.draft ? ' · Draft' : pr.merged ? ' · Merged' : ' · Open');
+        const builds = await request('/actions/runs?head_sha=' + encodeURIComponent(sha) + '&event=pull_request&per_page=100');
+        const runs = Array.isArray(builds.workflow_runs) ? builds.workflow_runs : [];
+        let passed = 0, pending = 0, failed = 0, unknown = 0;
+        expected.forEach(node => {
+          const workflow = node.getAttribute('data-w36-workflow');
+          const candidates = runs.filter(run => run.name === workflow && run.head_sha === sha);
+          candidates.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          const run = candidates[0];
+          const state = node.querySelector('.w36-progress-gate-state');
+          let label = ar ? 'غير متاح' : 'Unavailable';
+          let mode = 'unknown';
+          if (run && run.status === 'completed' && run.conclusion === 'success') {
+            passed++; mode = 'success'; label = ar ? 'ناجح' : 'Passed';
+          } else if (run && run.status === 'completed') {
+            failed++; mode = 'failed'; label = ar ? 'يتطلب مراجعة' : 'Needs review';
+          } else if (run) {
+            pending++; mode = 'pending'; label = ar ? 'قيد التشغيل' : 'In progress';
+          } else { unknown++; }
+          node.dataset.status = mode;
+          state.textContent = label;
+          if (run && typeof run.html_url === 'string' && run.html_url.startsWith('https://github.com/')) node.href = run.html_url;
+        });
+        count.textContent = passed + ' / ' + expected.length;
+        fill.style.width = (passed / expected.length * 100) + '%';
+        track.setAttribute('aria-valuenow', String(passed));
+        note.textContent = (ar ? 'آخر تحديث من GitHub: ' : 'Last checked: ') +
+          new Date().toLocaleTimeString(ar ? 'ar-PS' : 'en-US', {hour:'2-digit', minute:'2-digit'}) +
+          (pending ? (ar ? ' • قيد التنفيذ: ' : ' • Running: ') + pending : '') +
+          (failed ? (ar ? ' • تحتاج مراجعة: ' : ' • Needs review: ') + failed : '') +
+          (unknown ? (ar ? ' • غير متاح: ' : ' • Unavailable: ') + unknown : '');
+      } catch (_) {
+        note.textContent = ar
+          ? 'تعذر التحديث المباشر. افتح GitHub Actions لمشاهدة الحالة الموثّقة.'
+          : 'Live refresh unavailable. Open GitHub Actions for verified results.';
+      }
+    }
+    refresh();
+    window.setInterval(() => { if (!document.hidden) refresh(); }, 300000);
+  })();
+  </script>
+ @endif
+
  <section class="b304-feature-grid">
   <article><i>🛡️</i><b>{{ $ar?'لعب خادمي آمن':'Server-authoritative play' }}</b><p>{{ $ar?'الحركات والنتائج والمحفظة تُعتمد من الخادم.':'Moves, results and wallet changes are verified server-side.' }}</p></article>
   <article><i>🎨</i><b>{{ $ar?'تخصيص احترافي':'Premium customization' }}</b><p>{{ $ar?'50 طاولة عالية الدقة، ظهر مطابق لكل طاولة، وألوان وثيمات قابلة للتفعيل فورًا.':'50 high-definition tables, one matching back for each table, and instantly activatable colors and themes.' }}</p></article>
-  <article><i>🎁</i><b>{{ $ar?'جوائز حقيقية':'Real rewards' }}</b><p>{{ $ar?'صناديق ودولاب وإعلانات مكافِئة ومسار تحديات متدرج.':'Prize boxes, wheel, rewarded ads and a staged challenge road.' }}</p></article>
+  <article><i>🎁</i><b>{{ $ar?'مكافآت افتراضية':'Virtual rewards' }}</b><p>{{ $ar?'صناديق ومسار تحديات ومكافآت افتراضية تُمنح بعد التحقق من الاستحقاق.':'Prize boxes, challenges and virtual rewards granted only after entitlement verification.' }}</p></article>
   <article><i>🏆</i><b>{{ $ar?'منافسات أولاً':'Competition first' }}</b><p>{{ $ar?'بطولات وتذاكر وترتيب وتحديات بدون ازدحام الصفحة الرئيسية.':'Tournaments, tickets, rankings and challenges without a crowded home screen.' }}</p></article>
  </section>
 </div>
