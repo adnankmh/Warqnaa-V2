@@ -58,3 +58,38 @@ jobs:
           path: ${{ runner.temp }}/r7-delivery
           if-no-files-found: error
           retention-days: 14
+
+  # Independent preserved reference/UX gates. Reusable workflows execute inside
+  # this single parent PR run, preserving every existing child job and artifact.
+  reference-01:
+    uses: ./.github/workflows/r20-premium-experience.yml
+    permissions:
+      contents: read
+  reference-02:
+    uses: ./.github/workflows/r21-community.yml
+    permissions:
+      contents: read
+  reference-03:
+    uses: ./.github/workflows/r28-sky-luxury-cross-device.yml
+    permissions:
+      contents: read
+  reference-04:
+    uses: ./.github/workflows/r29-premium-world-polish.yml
+    permissions:
+      contents: read
+  reference-05:
+    uses: ./.github/workflows/r30-premium-table-avatars-reactions.yml
+    permissions:
+      contents: read
+  reference-06:
+    uses: ./.github/workflows/r31-premium-lobby-room-flow.yml
+    permissions:
+      contents: read
+  reference-07:
+    uses: ./.github/workflows/r32-premium-account-rewards.yml
+    permissions:
+      contents: read
+  reference-08:
+    uses: ./.github/workflows/r35-reference-world.yml
+    permissions:
+      contents: read
