@@ -1,8 +1,7 @@
 name: R31 Premium Lobby Room Flow Gate
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:
