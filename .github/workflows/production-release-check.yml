@@ -122,3 +122,30 @@ jobs:
           grep -q '"license": "proprietary"' backend-laravel/composer.json
           grep -q 'cp .env.production.example .env' .github/workflows/backend-ci.yml
           grep -q 'rm -f .env' .github/workflows/backend-ci.yml
+
+  # Security/economy/game-matrix proofs are preserved as reusable workflows.
+  # A failure of any called job fails the production umbrella status.
+  release-01:
+    uses: ./.github/workflows/r22-multiplayer-resilience.yml
+    permissions:
+      contents: read
+  release-02:
+    uses: ./.github/workflows/r23-security-economy.yml
+    permissions:
+      contents: read
+  release-03:
+    uses: ./.github/workflows/r24-production-observability.yml
+    permissions:
+      contents: read
+  release-04:
+    uses: ./.github/workflows/r25-resilience-release.yml
+    permissions:
+      contents: read
+  release-05:
+    uses: ./.github/workflows/r26-game-matrix-final-qa.yml
+    permissions:
+      contents: read
+  release-06:
+    uses: ./.github/workflows/r27-admin-economy-store-localization.yml
+    permissions:
+      contents: read
