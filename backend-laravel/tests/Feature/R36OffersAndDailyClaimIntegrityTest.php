@@ -463,7 +463,7 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
             'key'=>'r36_permanent_profile_color','category'=>'profile_color',
             'name'=>['ar'=>'لون دائم','en'=>'Permanent profile color'],
             'price'=>1000,'active'=>true,'duration_days'=>null,
-            'payload'=>['gradient'=>['#1177aa','#43aaff']],
+            'payload'=>['gradient'=>['#1177aa','#43aaff'],'r91_price_normalized'=>true,'r91_base_price'=>1000],
         ]);
         $price = app(StoreOfferPricingService::class)->quote($item)['price'];
         $this->withToken($user->createToken('permanent-profile')->plainTextToken);
@@ -484,7 +484,7 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
             'key'=>'r36_expired_history_color','category'=>'profile_color',
             'name'=>['ar'=>'ملف','en'=>'Profile'],
             'price'=>1000,'active'=>true,'duration_days'=>5,
-            'payload'=>['gradient'=>['#1166bb','#44bbff']],
+            'payload'=>['gradient'=>['#1166bb','#44bbff'],'r91_price_normalized'=>true,'r91_base_price'=>1000],
         ]);
         $past = now()->subDays(2);
         $historical = InventoryItem::create([
@@ -518,7 +518,7 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $first = StoreItem::create([
             'key'=>'r36_first_profile_color','category'=>'profile_color',
             'name'=>['ar'=>'أول','en'=>'First'], 'price'=>1000,'active'=>true,
-            'duration_days'=>30,'payload'=>['gradient'=>['#123456','#abcdef']],
+            'duration_days'=>30,'payload'=>['gradient'=>['#123456','#abcdef'],'r91_price_normalized'=>true,'r91_base_price'=>1000],
         ]);
         $owned = InventoryItem::create([
             'user_id'=>$user->id,'store_item_id'=>$first->id,
@@ -527,7 +527,7 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $second = StoreItem::create([
             'key'=>'r36_second_profile_color','category'=>'profile_color',
             'name'=>['ar'=>'ثان','en'=>'Second'],'price'=>1000,'active'=>true,
-            'duration_days'=>30,'payload'=>['gradient'=>['#112244','#6688ff']],
+            'duration_days'=>30,'payload'=>['gradient'=>['#112244','#6688ff'],'r91_price_normalized'=>true,'r91_base_price'=>1000],
         ]);
         $price = app(StoreOfferPricingService::class)->quote($second)['price'];
         $this->withToken($user->createToken('exclusive-color')->plainTextToken);
@@ -549,7 +549,7 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
         $item = StoreItem::create([
             'key'=>'r36_text_color_no_color','category'=>'text_color',
             'name'=>['ar'=>'نص','en'=>'Text'],'price'=>1000,'active'=>true,
-            'duration_days'=>7,'payload'=>['preview_icon'=>'✦'],
+            'duration_days'=>7,'payload'=>['preview_icon'=>'✦','r91_price_normalized'=>true,'r91_base_price'=>1000],
         ]);
         $price = app(StoreOfferPricingService::class)->quote($item)['price'];
         $this->withToken($user->createToken('text-expiry')->plainTextToken);
