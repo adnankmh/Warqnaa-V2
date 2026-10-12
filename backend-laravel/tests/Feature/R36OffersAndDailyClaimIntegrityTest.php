@@ -453,6 +453,113 @@ class R36OffersAndDailyClaimIntegrityTest extends TestCase
             ->where('type','competition_ticket_purchase')->count());
     }
 
+
+    public function test_permanent_mobile_profile_color_does_not_receive_an_invented_expiration(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item = StoreItem::create([
+            'key'=>'r36_permanent_profile_color','category'=>'profile_color',
+            'name'=>['ar'=>'لون دائم','en'=>'Permanent profile color'],
+            'price'=>1000,'active'=>true,'duration_days'=>null,
+            'payload'=>['gradient'=>['#1177aa','#43aaff']],
+        ]);
+        $price = app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('permanent-profile')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk()->assertJsonPath('ok',true);
+        $this->assertNull($user->profile()->firstOrFail()->profile_color_expires_at);
+        $this->assertNull($user->inventoryItems()->where('store_item_id',$item->id)
+            ->firstOrFail()->expires_at);
+    }
+
+    public function test_expired_mobile_cosmetic_repurchase_keeps_prior_entitlement_as_history(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item = StoreItem::create([
+            'key'=>'r36_expired_history_color','category'=>'profile_color',
+            'name'=>['ar'=>'ملف','en'=>'Profile'],
+            'price'=>1000,'active'=>true,'duration_days'=>5,
+            'payload'=>['gradient'=>['#1166bb','#44bbff']],
+        ]);
+        $past = now()->subDays(2);
+        $historical = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$item->id,
+            'active'=>false,'activated_at'=>now()->subDays(7),
+            'expires_at'=>$past,
+        ]);
+        $price = app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('historical-color')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $this->assertSame(2, $user->inventoryItems()
+            ->where('store_item_id',$item->id)->count());
+        $this->assertSame($past->toDateTimeString(),
+            $historical->fresh()->expires_at->toDateTimeString());
+        $latest = $user->inventoryItems()->where('store_item_id',$item->id)
+            ->latest('id')->firstOrFail();
+        $this->assertNotEquals($historical->id,$latest->id);
+        $this->assertSame(now()->addDays(5)->toDateTimeString(),
+            $latest->expires_at->toDateTimeString());
+        $this->assertSame($latest->expires_at->toDateTimeString(),
+            $user->profile()->firstOrFail()->profile_color_expires_at->toDateTimeString());
+    }
+
+    public function test_mobile_profile_color_purchase_deactivates_other_owned_color(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $first = StoreItem::create([
+            'key'=>'r36_first_profile_color','category'=>'profile_color',
+            'name'=>['ar'=>'أول','en'=>'First'], 'price'=>1000,'active'=>true,
+            'duration_days'=>30,'payload'=>['gradient'=>['#123456','#abcdef']],
+        ]);
+        $owned = InventoryItem::create([
+            'user_id'=>$user->id,'store_item_id'=>$first->id,
+            'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays(10),
+        ]);
+        $second = StoreItem::create([
+            'key'=>'r36_second_profile_color','category'=>'profile_color',
+            'name'=>['ar'=>'ثان','en'=>'Second'],'price'=>1000,'active'=>true,
+            'duration_days'=>30,'payload'=>['gradient'=>['#112244','#6688ff']],
+        ]);
+        $price = app(StoreOfferPricingService::class)->quote($second)['price'];
+        $this->withToken($user->createToken('exclusive-color')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$second->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $this->assertFalse((bool)$owned->fresh()->active);
+        $this->assertTrue((bool)$user->inventoryItems()
+            ->where('store_item_id',$second->id)->firstOrFail()->active);
+        $this->assertSame(1,$user->inventoryItems()->where('active',true)
+            ->whereHas('storeItem',fn($q)=>$q->where('category','profile_color'))->count());
+    }
+
+    public function test_mobile_text_color_expiry_is_set_even_without_color_payload(): void
+    {
+        Carbon::setTestNow('2026-10-12 11:00:00');
+        $user = $this->player();
+        $user->wallet()->update(['tokens'=>100000]);
+        $item = StoreItem::create([
+            'key'=>'r36_text_color_no_color','category'=>'text_color',
+            'name'=>['ar'=>'نص','en'=>'Text'],'price'=>1000,'active'=>true,
+            'duration_days'=>7,'payload'=>['preview_icon'=>'✦'],
+        ]);
+        $price = app(StoreOfferPricingService::class)->quote($item)['price'];
+        $this->withToken($user->createToken('text-expiry')->plainTextToken);
+        $this->postJson('/api/mobile/v1/store/purchase', [
+            'key'=>$item->key,'confirmed'=>true,'expected_price'=>$price,
+        ])->assertOk();
+        $this->assertSame(now()->addDays(7)->toDateTimeString(),
+            $user->profile()->firstOrFail()->chat_color_expires_at->toDateTimeString());
+    }
+
     public function test_duplicate_daily_claim_does_not_credit_wallet_twice(): void
     {
         Carbon::setTestNow('2026-10-10 10:00:00');
