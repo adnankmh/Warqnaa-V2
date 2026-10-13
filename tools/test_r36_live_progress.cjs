@@ -16,7 +16,10 @@ async function verify(language) {
   const elements = new Map();
   const element = id => {
     if (!elements.has(id)) elements.set(id, {dataset: {}, style: {}, textContent: '', attributes: {},
-      setAttribute(name, value) { this.attributes[name] = value; }, replaceChildren() {}});
+      disabled: false, events: new Map(),
+      setAttribute(name, value) { this.attributes[name] = value; },
+      addEventListener(name, callback) { this.events.set(name, callback); },
+      replaceChildren() {}});
     return elements.get(id);
   };
   const gates = workflows.map(name => ({dataset: {}, href: '', state: element(name),
@@ -44,19 +47,23 @@ async function verify(language) {
     window: {fetch, setInterval(callback) { interval = callback; }}});
   await tick();
   assert.equal(element('w36-progress-passed').textContent, '5 / 5');
+  assert.equal(element('w36-progress-download').disabled, false);
   phase = 1; interval(); await tick();
   assert.equal(element('w36-progress-passed').textContent, '— / 5');
   assert.ok(gates.every(gate => gate.dataset.status === 'unknown'));
   assert.equal(element('w36-progress-fill').style.width, '0%');
   assert.equal(element('w36-progress-track').attributes['aria-valuenow'], '0');
+  assert.equal(element('w36-progress-download').disabled, true);
   phase = 2; interval(); await tick();
   assert.equal(element('w36-progress-passed').textContent, '0 / 5');
   assert.ok(gates.every(gate => gate.dataset.status === 'unknown'));
   phase = 3; interval(); await tick();
   assert.equal(element('w36-progress-passed').textContent, '4 / 5');
   assert.equal(gates[0].dataset.status, 'failed');
+  assert.equal(element('w36-progress-download').disabled, false);
   phase = 4; interval(); await tick();
   assert.equal(element('w36-progress-passed').textContent, '— / 5');
+  assert.equal(element('w36-progress-download').disabled, true);
 }
 (async () => {
   await verify('ar'); await verify('en');
