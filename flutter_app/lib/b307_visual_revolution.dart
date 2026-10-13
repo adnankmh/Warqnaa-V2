@@ -481,6 +481,16 @@ class B307HomeDashboard extends StatelessWidget {
     }
     final games = customerGamesR101;
     final featured = games.take(6).toList(growable: false);
+    // Distinct original card-room palettes mirror the illustrated game
+    // families from the sky/gold reference while preserving real game art.
+    const gameTileGradients = <List<Color>>[
+      <Color>[Color(0xffc52b53), Color(0xff5e145c)],
+      <Color>[Color(0xff14b7e6), Color(0xff064b98)],
+      <Color>[Color(0xff9042de), Color(0xff3e126d)],
+      <Color>[Color(0xffd83e62), Color(0xff6b1a53)],
+      <Color>[Color(0xff086fcc), Color(0xff053e8e)],
+      <Color>[Color(0xffba6a27), Color(0xff694022)],
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 16),
       children: <Widget>[
@@ -535,15 +545,19 @@ class B307HomeDashboard extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .78),
           itemBuilder: (context, index) {
             final game = featured[index];
+            final tilePalette = gameTileGradients[index % gameTileGradients.length];
             return InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () => showGameLobby(context, controller, game),
               child: Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  gradient: B307SkyLuxury.panelGradient,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: tilePalette,
+                  ),
                   borderRadius: BorderRadius.circular(15),
-                  border: B307SkyLuxury.border(alpha: .34),
+                  border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .55)),
                   boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
