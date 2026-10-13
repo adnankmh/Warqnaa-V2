@@ -37,7 +37,7 @@
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 <link rel="stylesheet" href="{{ asset('assets/css/b306-app-parity.css') }}?v=306-parity">
-<link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=36-sky-world-progress-commits">
+<link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=36-sky-world-game-hall">
     <link rel="stylesheet" href="{{ asset('assets/css/r5-world-class.css') }}?v=r5">
     <link rel="stylesheet" href="{{ asset('assets/css/r6-1-world-class.css') }}?v=640">
 </head>
