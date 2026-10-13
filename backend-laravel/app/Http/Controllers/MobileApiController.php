@@ -477,12 +477,12 @@ class MobileApiController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function activateStoreInventoryV183(Request $request)
+    public function activateStoreInventoryV183(Request $request, WalletService $wallet)
     {
         $data = $request->validate(['key' => 'required|string|max:120']);
         $user = $request->user();
 
-        $result = DB::transaction(function () use ($user, $data) {
+        $result = DB::transaction(function () use ($user, $data, $wallet) {
             // The user row serializes same-account mobile and web entitlement changes.
             User::query()->lockForUpdate()->findOrFail($user->id);
             $owned = $user->inventoryItems()
@@ -526,6 +526,17 @@ class MobileApiController extends Controller
             $profile->xp_boost_multiplier = max(1.0, (float) ($payload['multiplier'] ?? 1.25));
             $profile->xp_boost_expires_at = $expiry;
             $profile->save();
+
+            // Ownership and usage are separate facts. Keep the evergreen admin
+            // row untouched while recording every activation as an immutable
+            // zero-value ledger event. Ordinary paid boosts use the same trail.
+            $wallet->debit($user, 0, 'xp_booster_activation', [
+                'inventory_item_id' => $inventory->id,
+                'store_item_id' => $inventory->store_item_id,
+                'key' => $inventory->storeItem->key,
+                'channel' => 'mobile',
+                'effect_expires_at' => $expiry->toIso8601String(),
+            ]);
 
             return ['status' => 200, 'hours' => $hours, 'inventory_id' => $inventory->id];
         });
