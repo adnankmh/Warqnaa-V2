@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\{CompetitionTicket,InventoryItem,Profile,StoreItem,User,Wallet};
+use App\Models\{CompetitionTicket,InventoryItem,Profile,StoreItem,User,Wallet,WalletTransaction};
 use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\Wallet\WalletService;
 use App\Services\WarqnaPro\StoreCatalogService;
@@ -168,6 +168,20 @@ class R16PrimaryAdminEntitlementsTest extends TestCase
         }
         $this->assertNull($owned->fresh()->expires_at);
         $this->assertGreaterThanOrEqual(100,$owned->fresh()->quantity);
+
+        $activations=WalletTransaction::query()
+            ->where('user_id',$admin->id)
+            ->where('type','xp_booster_activation')
+            ->oldest('id')->get();
+        $this->assertCount(4,$activations);
+        $this->assertSame(['mobile','mobile','web','web'],
+            $activations->pluck('meta')->map(fn(array $meta)=>$meta['channel'])->all());
+        $this->assertTrue($activations->every(fn(WalletTransaction $event)=>
+            (int)$event->amount===0
+            && (int)data_get($event->meta,'inventory_item_id')===$owned->id
+            && (int)data_get($event->meta,'store_item_id')===$boost->id
+            && data_get($event->meta,'effect_expires_at')!==null
+        ));
     }
 
     public function test_primary_admin_equips_yearlong_web_colors_without_expiring_owned_inventory(): void
