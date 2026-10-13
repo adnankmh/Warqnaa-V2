@@ -207,11 +207,11 @@ class StoreController
         ]);
     }
 
-    public function activate(InventoryItem $inventory)
+    public function activate(InventoryItem $inventory, WalletService $wallet)
     {
         abort_unless($inventory->user_id===auth()->id(),403);
         try {
-            $item = DB::transaction(function () use ($inventory) {
+            $item = DB::transaction(function () use ($inventory, $wallet) {
                 $user = auth()->user();
                 User::query()->lockForUpdate()->findOrFail($user->id);
                 $owned = InventoryItem::query()->where('user_id', $user->id)
@@ -267,6 +267,17 @@ class StoreController
                 if($item->category==='profile_cover') $profile->active_profile_cover=$payload['cover'] ?? $item->key;
                 if($item->category==='xp_booster') { $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25); $profile->xp_boost_expires_at=$expiry; }
                 $profile->save();
+            }
+            if ($booster) {
+                // Do not consume or rewrite the primary admin's permanent stock.
+                // Each activation receives its own immutable ledger event.
+                $wallet->debit($user, 0, 'xp_booster_activation', [
+                    'inventory_item_id'=>$owned->id,
+                    'store_item_id'=>$item->id,
+                    'key'=>$item->key,
+                    'channel'=>'web',
+                    'effect_expires_at'=>$expiry->toIso8601String(),
+                ]);
             }
             return $item;
             });
