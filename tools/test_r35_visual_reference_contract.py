@@ -129,7 +129,7 @@ def main() -> None:
         "@media(max-width:560px)",
     ):
         check(web_style, needle, "responsive honest progress display")
-    check(web_shell, "?v=36-sky-world-progress-commits", "refresh progress timeline CSS")
+    check(web_shell, "?v=36-sky-world-game-hall", "refresh premium game hall CSS")
     for needle in (
         'id="w36-commit-heading"',
         'id="w36-commit-list"',
@@ -163,6 +163,43 @@ def main() -> None:
 
     assert "password" not in web_home.lower(), "Public showcase must not expose demo credentials."
     assert "design-reference.png" not in web_home, "Never render the entire collage as a fake screen."
+
+    # R36 game-hall replacement: real playable URLs and actual catalog art,
+    # not a decorative screenshot. Filters must have observable accessible state.
+    hall = read("backend-laravel/resources/views/games/index.blade.php")
+    for needle in (
+        "w36-premium-games",
+        "game_art_url($game->key)",
+        "route('rooms.index',$game->key)",
+        "route('tournaments')",
+        "route('clubs')",
+        "data-family-filter-v130",
+        "aria-pressed",
+        "aria-controls",
+        "id=\"gameSearchV130\"",
+        "id=\"w36GamesResults\"",
+        "id=\"w36GamesEmpty\"",
+        "id=\"w36ClearGameFilters\"",
+        "card.hidden=!match",
+        "empty.hidden=visible!==0",
+        "clear.addEventListener",
+        "$ar ? 'جميع الألعاب' : 'All games'",
+    ):
+        check(hall, needle, "functional accessible bilingual game hall")
+    for needle in (
+        "R36 Premium Games Hall",
+        ".w36-games-wall",
+        ".w36-game-hall-hero",
+        ".w36-game-tile-art img",
+        ".w36-game-tile[hidden]",
+        ".w36-games-empty[hidden]",
+        ".w36-featured-ribbon",
+        "@media(max-width:520px)",
+    ):
+        check(web_style, needle, "reference-aligned responsive game hall")
+    assert "object-fit:contain!important" in web_style, "Game illustrations must remain uncropped."
+    assert "innerHTML" not in hall, "Client search must not inject untrusted text as HTML."
+    assert "http://" not in hall, "No unencrypted third-party illustration URLs."
 
     assert "password" not in reference.lower(), "Never reproduce demo credentials from the collage."
     print("R35 screenshot-guided Warqnaa world contract: PASS")
