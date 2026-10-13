@@ -308,20 +308,22 @@ class R35ChampionBanner extends StatelessWidget {
             color: R35ReferenceColors.deep.withValues(alpha: .36), blurRadius: 23, offset: const Offset(0, 8))],
         ),
         child: Stack(fit: StackFit.expand, children: <Widget>[
-          const CustomPaint(painter: R35CoastalBannerPainter()),
+          Image.asset('assets/optimized/r36/championship_hero.webp',
+            key: const ValueKey('r36-championship-art'),
+            fit: BoxFit.cover, alignment: Alignment.centerLeft,
+            filterQuality: FilterQuality.high, excludeFromSemantics: true,
+            errorBuilder: (_, __, ___) => const CustomPaint(painter: R35CoastalBannerPainter())),
           Container(decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: <Color>[Color(0xEE07376E), Color(0xBB0C5EA8), Color(0x2000B9FF)],
+              begin: Alignment.centerRight, end: Alignment.centerLeft,
+              colors: <Color>[Color(0xD903285F), Color(0x70043E80), Color(0x00043E80)],
               stops: <double>[0, .55, 1],
             ),
           )),
-          PositionedDirectional(
-            end: compact ? 1 : 9, bottom: 3,
-            child: SizedBox(width: compact ? 112 : 184, height: compact ? 156 : 194,
-              child: CustomPaint(painter: R35GoldTrophyPainter())),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(compact ? 11 : 19, 13, compact ? 112 : 188, 13),
+          Align(alignment: Alignment.centerRight, child: FractionallySizedBox(
+            widthFactor: compact ? .65 : .60,
+            child: Padding(
+            padding: EdgeInsets.fromLTRB(8, 13, compact ? 11 : 19, 13),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Text(ar ? '🏆 بطولات ورقنا الكبرى' : '🏆 WARQNAA CHAMPIONSHIPS',
@@ -348,7 +350,7 @@ class R35ChampionBanner extends StatelessWidget {
                   )),
                 )),
             ]),
-          ),
+          ))),
         ]),
       ),
     );

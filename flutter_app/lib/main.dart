@@ -3663,14 +3663,34 @@ class GamesPage extends StatefulWidget {
 
 class _GamesPageState extends State<GamesPage> {
   String query = '';
+  String family = 'all';
+  final searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void clearFilters() {
+    searchController.clear();
+    setState(() { query = ''; family = 'all'; });
+  }
 
   @override
   Widget build(BuildContext context) {
     final lang = widget.controller.localeCode;
-    final visible = customerGamesR101.where((g) {
-      final name = L.t(lang, g.id).toLowerCase();
-      return name.contains(query.toLowerCase());
-    }).toList();
+    final ar = lang == 'ar';
+    final visible = customerGamesR101.where((g) =>
+      matchesGameSearchR36(g, query, family: family)).toList(growable: false);
+    final families = <(String, String)>[
+      ('all', ar ? 'جميع الألعاب' : 'All games'),
+      ('tarneeb', ar ? 'طرنيب' : 'Tarneeb'),
+      ('trix', ar ? 'تركس' : 'Trix'),
+      ('meld', ar ? 'هاند وبناكل' : 'Hand and Banakil'),
+      ('gulf', ar ? 'بلوت' : 'Baloot'),
+      ('basra', ar ? 'بصرة' : 'Basra'),
+    ];
     return ListView(
       padding: const EdgeInsets.all(13),
       children: [
@@ -3681,13 +3701,61 @@ class _GamesPageState extends State<GamesPage> {
         ),
         const SizedBox(height: 10),
         TextField(
+          key: const ValueKey('r36-game-search'),
+          controller: searchController,
           onChanged: (value) => setState(() => query = value),
           decoration: InputDecoration(
             hintText: L.t(lang, 'search'),
             prefixIcon: const Icon(Icons.search),
+            suffixIcon: query.isEmpty ? null : IconButton(
+              tooltip: ar ? 'مسح البحث' : 'Clear search',
+              onPressed: () {
+                searchController.clear();
+                setState(() => query = '');
+              },
+              icon: const Icon(Icons.close_rounded),
+            ),
           ),
         ),
+        const SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: <Widget>[
+            for (final entry in families) Padding(
+              padding: const EdgeInsetsDirectional.only(end: 7),
+              child: ChoiceChip(
+                key: ValueKey('r36-family-${entry.$1}'),
+                label: Text(entry.$2),
+                selected: family == entry.$1,
+                selectedColor: R35ReferenceColors.gold,
+                labelStyle: TextStyle(color: family == entry.$1 ? R35ReferenceColors.navy : null),
+                onSelected: (_) => setState(() => family = entry.$1),
+              ),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          child: Text(ar ? 'النتائج: ${visible.length} / ${customerGamesR101.length}'
+                        : 'Results: ${visible.length} / ${customerGamesR101.length}',
+            key: const ValueKey('r36-game-results'),
+            style: const TextStyle(fontWeight: FontWeight.w700)),
+        ),
         const SizedBox(height: 12),
+        if (visible.isEmpty) PremiumPanel(
+          child: Column(children: <Widget>[
+            const Icon(Icons.search_off_rounded, size: 38, color: R35ReferenceColors.paleGold),
+            const SizedBox(height: 8),
+            Text(ar ? 'لم نجد لعبة بهذه المواصفات' : 'No matching games',
+              key: const ValueKey('r36-games-empty'),
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            TextButton.icon(onPressed: clearFilters,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(ar ? 'عرض جميع الألعاب' : 'Show all games')),
+          ]),
+        ),
         LayoutBuilder(builder: (context, constraints) {
           final columns = constraints.maxWidth < 430 ? 2 : constraints.maxWidth < 850 ? 3 : 4;
           return GridView.builder(
@@ -3700,9 +3768,9 @@ class _GamesPageState extends State<GamesPage> {
               childAspectRatio: columns == 2 ? .92 : .82,
             ),
             itemCount: visible.length,
-            itemBuilder: (_, i) => GameCard(
+            itemBuilder: (_, i) => R35ArtGameCard(
               game: visible[i],
-              lang: lang,
+              locale: lang,
               onTap: () => showGameLobby(context, widget.controller, visible[i]),
             ),
           );

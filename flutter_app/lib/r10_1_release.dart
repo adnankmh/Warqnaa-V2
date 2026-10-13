@@ -6,6 +6,29 @@ const String warqnaaR19LuxuryCommerce = '1.9.5+714-game-art-stage';
 /// R10.1 keeps unfinished server-dependent titles out of the customer lobby.
 List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly && !b304BannedCustomerGames.contains(game.id)).toList(growable: false);
 
+/// Search both catalogue languages regardless of the current UI language.
+String normalizeGameSearchR36(String value) => value.toLowerCase()
+    .replaceAll(RegExp(r'[\u0300-\u036f\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]'), '')
+    .replaceAll(RegExp('[أإآٱ]'), 'ا')
+    .replaceAll('ـ', '')
+    .replaceAll(RegExp('[_-]'), ' ')
+    .trim().replaceAll(RegExp(r'\s+'), ' ');
+
+String gameFamilyR36(String id) {
+  if (id == 'tarneeb' || id == 'tarneeb_400' || id == 'syrian_tarneeb') return 'tarneeb';
+  if (id == 'trix' || id == 'trix_partner' || id == 'trix_complex') return 'trix';
+  if (id == 'hand' || id == 'hand_partner' || id == 'saudi_hand' || id == 'banakil') return 'meld';
+  return id == 'baloot' ? 'gulf' : id;
+}
+
+bool matchesGameSearchR36(GameInfo game, String query, {String family = 'all'}) {
+  if (family != 'all' && gameFamilyR36(game.id) != family) return false;
+  final aliases = game.id == 'basra' ? 'بصرة بصره باصره basrah' : '';
+  final text = normalizeGameSearchR36('${game.id} ${L.t('ar', game.id)} ${L.t('en', game.id)} $aliases');
+  final words = normalizeGameSearchR36(query).split(' ').where((word) => word.isNotEmpty);
+  return words.every(text.contains);
+}
+
 class R101ThemeSpec {
   const R101ThemeSpec({required this.code, required this.accent, required this.accent2, required this.background, required this.surface, required this.light});
   final String code;

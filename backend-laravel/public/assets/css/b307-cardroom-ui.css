@@ -466,6 +466,7 @@ body.warqna-b304 .w36-game-families{
   overflow-x:auto;padding:1px 0 6px;scrollbar-width:thin;
 }
 body.warqna-b304 .w36-game-families button{
+  display:inline-flex!important;align-items:center;justify-content:center;
   border:1px solid #a0ddffab!important;background:#054c98b8!important;border-radius:10px!important;
   padding:8px 12px!important;color:#f9fcff!important;min-height:34px!important;font-size:12px!important;
   font-weight:850!important;cursor:pointer;flex-shrink:0;
@@ -544,4 +545,22 @@ body.warqna-b304 .w36-premium-games.compact .w36-game-tile-info{gap:7px;padding:
 @media(max-width:340px){body.warqna-b304 .w36-games-wall{grid-template-columns:1fr 1fr}body.warqna-b304 .w36-game-tile-art{height:115px}}
 @media(prefers-reduced-motion:reduce){
  body.warqna-b304 .w36-game-tile,body.warqna-b304 .w36-game-hero-actions a{transition:none!important}
+}
+
+/* R36 shared generated championship artwork; real text and links remain HTML. */
+body.warqna-b304 .w36-illustrated-hero{
+ background-image:linear-gradient(270deg,#032654e8 0%,#0347838a 48%,#03478300 78%),url('/assets/r36/championship_hero.webp')!important;
+ background-size:cover!important;background-position:center left!important;
+}
+body.warqna-b304 .w36-illustrated-hero .w36-cup-illustration,
+body.warqna-b304 .w36-illustrated-hero .w36-game-hero-art{display:none!important}
+body.warqna-b304 .w36-illustrated-hero .w36-grand-copy,
+body.warqna-b304 .w36-illustrated-hero .hero-copy-v130{
+ grid-column:1/-1;max-width:62%;margin-left:auto;margin-right:0;text-shadow:0 2px 7px #022550;
+}
+body.warqna-b304 .w36-illustrated-hero .w36-game-hero-actions{grid-column:1/-1;justify-content:flex-end}
+@media(max-width:600px){
+ body.warqna-b304 .w36-illustrated-hero .w36-grand-copy,
+ body.warqna-b304 .w36-illustrated-hero .hero-copy-v130{max-width:70%}
+ body.warqna-b304 .w36-illustrated-hero .w36-grand-copy h2{font-size:24px!important}
 }

@@ -6,6 +6,9 @@
     $featured = ['tarneeb','hand','trix_complex','baloot','domino','ludo','jackaroo','spades'];
     $familyFor = fn($g) => (string) ($g->rules['family'] ?? 'training');
     $familyNames = [
+        'tarneeb'=>['طرنيب','Tarneeb'],'trix'=>['تركس','Trix'],
+        'meld'=>['هاند وبناكل','Hand and Banakil'],'gulf'=>['بلوت','Baloot'],
+        'basra'=>['بصرة','Basra'],
         'training'=>['تدريب','Training'],'classic'=>['كلاسيكية','Classic'],
         'partnership'=>['شراكة','Partnership'],'cards'=>['ألعاب الورق','Cards'],
         'strategy'=>['استراتيجية','Strategy'],'board'=>['ألعاب الطاولة','Board'],
@@ -23,11 +26,11 @@
 @endphp
 
 <section class="wz-lobby-v130 w36-premium-games" id="wzLobbyV130" aria-labelledby="w36GamesTitle">
- <header class="wz-lobby-hero-v130 w36-game-hall-hero">
+ <header class="wz-lobby-hero-v130 w36-game-hall-hero w36-illustrated-hero">
   <div class="hero-copy-v130">
    <span class="w36-hall-eyebrow">♠ WARQNAA GAME HALL ♥</span>
    <h1 id="w36GamesTitle">{{ $ar ? 'كل ألعاب ورقنا في صالة واحدة' : 'Every Warqnaa game, one grand hall' }}</h1>
-   <p>{{ $ar ? 'اختر لعبتك وادخل غرف اللعب الفعلية، مع بطاقات فنية واضحة وبحث سريع وقوائم منظمة تناسب الهاتف والكمبيوتر.' : 'Choose a game and enter its real rooms, with illustrated cards, fast search and a clear layout for desktop and mobile.' }}</p>
+   <p>{{ $ar ? 'اختر لعبتك المفضلة، ابحث بالعربية أو الإنجليزية، وادخل غرف اللعب.' : 'Find your favorite game in Arabic or English, then enter its rooms.' }}</p>
    <div class="w36-game-hall-stats">
     <span>🃏 <b>{{ number_format($totalGames) }}</b> {{ $ar ? 'لعبة متاحة' : 'available games' }}</span>
     <span>✨ <b>{{ number_format($featuredCount) }}</b> {{ $ar ? 'لعبة مميزة' : 'featured games' }}</span>
@@ -75,7 +78,7 @@
     <a class="wz-game-card-v130 w36-game-tile {{ $isFeatured ? 'featured' : '' }}"
        data-featured="{{ $isFeatured ? 1 : 0 }}"
        data-family="{{ $family }}"
-       data-name="{{ mb_strtolower($game->key.' '.($game->name['ar'] ?? '').' '.($game->name['en'] ?? '').' '.$engine) }}"
+       data-name="{{ mb_strtolower($game->key.' '.($game->name['ar'] ?? '').' '.($game->name['en'] ?? '').' '.$engine.($game->key==='basra'?' بصرة بصره باصره basrah':'')) }}"
        href="{{ route('rooms.index',$game->key) }}"
        aria-label="{{ ($ar?'افتح غرف ':'Open rooms for ').$name }}">
       <div class="w36-game-tile-art r101-game-art">
@@ -84,9 +87,9 @@
       </div>
       <div class="w36-game-tile-info">
        <strong>{{ $name }}</strong>
-       <small>👥 {{ $game->min_players }}–{{ $game->max_players }} {{ $ar?'لاعبين':'players' }}</small>
+       <small>👥 <bdi dir="ltr">{{ $game->min_players }}–{{ $game->max_players }}</bdi> {{ $ar?'لاعبين':'players' }}</small>
        <small>{{ $game->partnership ? ($ar?'🤝 شراكة':'🤝 Teams') : ($ar?'♠ فردي':'♠ Individual') }}</small>
-       <span class="w36-game-play-now">{{ $ar?'العب الآن':'Play now' }} <span aria-hidden="true">←</span></span>
+       <span class="w36-game-play-now">{{ $ar?'العب الآن':'Play now' }} <span aria-hidden="true">{{ $ar?'←':'→' }}</span></span>
       </div>
     </a>
    @endforeach
@@ -112,15 +115,19 @@
  const results=root.querySelector('#w36GamesResults');
  const empty=root.querySelector('#w36GamesEmpty');
  const clear=root.querySelector('#w36ClearGameFilters');
- const ar=document.documentElement.lang==='ar';
+ const ar=document.documentElement.lang.startsWith('ar');
+ const normalize=value=>String(value||'').normalize('NFKD')
+   .replace(/\p{M}/gu,'').replace(/ـ/g,'').replace(/[أإآٱ]/g,'ا')
+   .replace(/[_-]/g,' ').toLocaleLowerCase().trim().replace(/\s+/g,' ');
+ const searchable=new Map(cards.map(card=>[card,normalize(card.dataset.name)]));
  let onlyFeatured=false;
  const update=()=>{
-  const q=(search.value||'').toLocaleLowerCase().trim();
+  const words=normalize(search.value).split(' ').filter(Boolean);
   const family=tabs.find(tab=>tab.classList.contains('active'))?.dataset.familyFilterV130||'all';
   let visible=0;
   for(const card of cards) {
     const match=(family==='all'||card.dataset.family===family)&&
-      (!q||(card.dataset.name||'').includes(q))&&
+      words.every(word=>searchable.get(card).includes(word))&&
       (!onlyFeatured||card.dataset.featured==='1');
     card.hidden=!match;
     if(match) visible++;

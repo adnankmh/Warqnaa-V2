@@ -41,7 +41,7 @@
      ->orderBy('id')->limit(5)->get();
    $worldProfile=auth()->user()?->profile;
  @endphp
- <section class="w36-grand-hero" aria-labelledby="w36ChampTitle">
+ <section class="w36-grand-hero w36-illustrated-hero" aria-labelledby="w36ChampTitle">
   <div class="w36-grand-copy">
    <span class="w36-eyebrow">🏆 WARQNAA CHAMPIONSHIPS</span>
    <h2 id="w36ChampTitle">{{ $ar?'بطولات ورقنا الكبرى':'Warqnaa Grand Championships' }}</h2>
