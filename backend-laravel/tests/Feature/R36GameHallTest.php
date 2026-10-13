@@ -54,7 +54,7 @@ class R36GameHallTest extends TestCase
         $this->get(route('games'))->assertOk();
         $game = Game::where('key', 'tarneeb')->firstOrFail();
         $game->update(['active'=>false]);
-        Game::create(['key'=>'domino', 'name'=>['ar'=>'دومينو','en'=>'Domino'],
+        Game::updateOrCreate(['key'=>'domino'], ['name'=>['ar'=>'دومينو','en'=>'Domino'],
             'min_players'=>2, 'max_players'=>4, 'partnership'=>false,
             'active'=>true, 'rules'=>['family'=>'board']]);
         $response = $this->get(route('games'))->assertOk();

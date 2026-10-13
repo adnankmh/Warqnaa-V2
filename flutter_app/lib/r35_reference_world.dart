@@ -293,13 +293,16 @@ class R35ChampionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final compact = MediaQuery.sizeOf(context).width < 600;
+    final viewport = MediaQuery.sizeOf(context);
+    final compact = viewport.width < 600 || viewport.height < 480;
+    final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final bannerHeight = (compact ? 188.0 : 240.0) * (textScale < 1 ? 1 : textScale);
     return Semantics(
       container: true,
       label: ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa grand championships',
       child: Container(
         key: const ValueKey('r35-sky-grand-tournament-banner'),
-        height: compact ? 176 : 212,
+        height: bannerHeight,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),

@@ -3,6 +3,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:warqna_mobile/main.dart';
 
 void main() {
+  for (final locale in ['ar', 'en']) {
+    for (final viewport in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
+      testWidgets('R36 championship banner fits $locale $viewport with larger text', (tester) async {
+        tester.view.physicalSize = viewport;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(() { tester.view.resetPhysicalSize(); tester.view.resetDevicePixelRatio(); });
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(MaterialApp(home: MediaQuery(
+          data: MediaQueryData(size: viewport, textScaler: TextScaler.linear(1.5)),
+          child: Directionality(textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+            child: Scaffold(body: ListView(children: [R35ChampionBanner(controller: controller)]))),
+        )));
+        expect(find.byKey(const ValueKey('r36-championship-art')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   testWidgets('R35 original coastline and trophy render at both orientations',
       (tester) async {
     for (final viewport in <Size>[const Size(390, 844), const Size(1240, 720)]) {
