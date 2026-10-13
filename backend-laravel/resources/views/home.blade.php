@@ -187,6 +187,18 @@
     const commitSummary = document.getElementById('w36-commit-summary');
     let previousCommitSha = '';
     let lastCommitUpdate = 0;
+    let displayedHead = '';
+    function clearWorkflowStatus() {
+      expected.forEach(node => {
+        node.dataset.status = 'unknown';
+        node.querySelector('.w36-progress-gate-state').textContent = ar ? 'غير متاح' : 'Unavailable';
+        node.href = 'https://github.com/adnankmh/Warqnaa-V2/actions';
+      });
+      count.textContent = '— / ' + expected.length;
+      fill.style.width = '0%';
+      track.setAttribute('aria-valuenow', '0');
+      track.setAttribute('aria-valuetext', ar ? 'حالة الفحوص غير متاحة' : 'Workflow status unavailable');
+    }
     async function refreshCommits(sha, reportedCount) {
       if (previousCommitSha === sha && Date.now() - lastCommitUpdate < 600000) return;
       try {
@@ -238,6 +250,10 @@
         const pr = await request('/pulls/29');
         const sha = pr.head && pr.head.sha;
         if (typeof sha !== 'string' || !/^[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid SHA');
+        if (displayedHead !== sha) {
+          clearWorkflowStatus();
+          displayedHead = sha;
+        }
         version.textContent = (ar ? 'الإصدار الحالي: ' : 'Current revision: ') +
           sha.slice(0, 8) + (pr.draft ? ' · Draft' : pr.merged ? ' · Merged' : ' · Open');
         // History is supplemental: a GitHub rate limit must not hide CI status.
@@ -267,12 +283,14 @@
         count.textContent = passed + ' / ' + expected.length;
         fill.style.width = (passed / expected.length * 100) + '%';
         track.setAttribute('aria-valuenow', String(passed));
+        track.setAttribute('aria-valuetext', passed + ' / ' + expected.length);
         note.textContent = (ar ? 'آخر تحديث من GitHub: ' : 'Last checked: ') +
           new Date().toLocaleTimeString(ar ? 'ar-PS' : 'en-US', {hour:'2-digit', minute:'2-digit'}) +
           (pending ? (ar ? ' • قيد التنفيذ: ' : ' • Running: ') + pending : '') +
           (failed ? (ar ? ' • تحتاج مراجعة: ' : ' • Needs review: ') + failed : '') +
           (unknown ? (ar ? ' • غير متاح: ' : ' • Unavailable: ') + unknown : '');
       } catch (_) {
+        clearWorkflowStatus();
         note.textContent = ar
           ? 'تعذر التحديث المباشر. افتح GitHub Actions لمشاهدة الحالة الموثّقة.'
           : 'Live refresh unavailable. Open GitHub Actions for verified results.';
