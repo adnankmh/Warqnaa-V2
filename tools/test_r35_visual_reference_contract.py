@@ -129,7 +129,35 @@ def main() -> None:
         "@media(max-width:560px)",
     ):
         check(web_style, needle, "responsive honest progress display")
-    check(web_shell, "?v=36-sky-world-progress", "refresh progress dashboard CSS")
+    check(web_shell, "?v=36-sky-world-progress-commits", "refresh progress timeline CSS")
+    for needle in (
+        'id="w36-commit-heading"',
+        'id="w36-commit-list"',
+        'id="w36-commit-summary"',
+        "previousCommitSha",
+        "lastCommitUpdate",
+        "async function refreshCommits(",
+        "'/commits?sha=' + encodeURIComponent(sha) + '&per_page=8'",
+        "Number.isSafeInteger(reportedCount)",
+        "document.createElement('strong')",
+        "document.createElement('small')",
+        "commit.sha.slice(0, 8)",
+        "title.textContent",
+        "link.rel = 'noopener noreferrer'",
+        "commitList.replaceChildren(fragment)",
+        "void refreshCommits(sha, pr.commits)",
+    ):
+        check(web_home, needle, "verified real GitHub commit history and safe DOM")
+    for needle in (
+        ".w36-commit-center",
+        ".w36-commit-list",
+        ".w36-commit-heading",
+        "@media(max-width:620px)",
+    ):
+        check(web_style, needle, "responsive genuine commit feed")
+    assert "innerHTML" not in web_home, "Never render GitHub commit messages as HTML."
+    assert "100%" not in web_home, "Do not label commit count as product completion."
+
     assert "— / 5" in web_home, "First render must never invent successful workflow counts."
     assert "Passing workflows" in web_home, "Do not mistake CI for total game progress."
 
