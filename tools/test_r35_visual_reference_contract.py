@@ -198,6 +198,17 @@ def main() -> None:
     ):
         check(web_style, needle, "reference-aligned responsive game hall")
     assert "object-fit:contain!important" in web_style, "Game illustrations must remain uncropped."
+    # Cross-platform game-card fidelity: native Flutter tiles keep their
+    # genuine gameplay callbacks and uncut artwork while using premium colors.
+    for marker in (
+        "const gameTileGradients = <List<Color>>[",
+        "final tilePalette = gameTileGradients[index % gameTileGradients.length]",
+        "colors: tilePalette",
+        "B307SkyLuxury.goldSoft.withValues(alpha: .55)",
+        "Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain",
+        "onTap: () => showGameLobby(context, controller, game)",
+    ):
+        check(visual, marker, "Flutter jewel-colored playable illustrated game tiles")
     assert "innerHTML" not in hall, "Client search must not inject untrusted text as HTML."
     assert "http://" not in hall, "No unencrypted third-party illustration URLs."
 
