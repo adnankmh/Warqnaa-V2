@@ -373,3 +373,19 @@ body.warqna-b304 .b304-feature-grid article{
  .w36-progress-heading p{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.w36-progress-gate,.w36-progress-track>span,.w36-progress-pr{transition:none!important}}
+
+
+/* R36 admin development timeline - committed source changes, not estimates. */
+.w36-commit-center{margin-top:17px;padding:15px;border:1px solid rgba(168,228,255,.6);border-radius:15px;background:linear-gradient(155deg,rgba(2,63,145,.81),rgba(2,41,111,.75));}
+.w36-commit-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:13px}
+.w36-commit-heading h3{margin:0 0 4px!important;font-size:16px!important;font-weight:950!important;color:#ffdfa0!important}
+.w36-commit-heading small{font-size:11px;color:#cfedff}
+.w36-commit-heading>a{font-size:11px;color:#fff3c6!important;border:1px solid #a3dbff8a;border-radius:9px;padding:6px 11px;text-decoration:none!important;background:#0448828c}
+.w36-commit-heading>a:hover{border-color:#ffe388;background:#0969ac}
+.w36-commit-list{list-style:none;padding:0!important;margin:0!important;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.w36-commit-list li{min-width:0;margin:0!important;border:1px solid #7cd4ff74;border-radius:10px;background:linear-gradient(135deg,#116fac,#06488c);overflow:hidden}
+.w36-commit-list li>a{display:flex;flex-direction:column;gap:6px;padding:11px 12px;text-decoration:none!important;height:100%}
+.w36-commit-list li>a:hover{background:#127fc2;border-color:#ffd979}
+.w36-commit-list li strong{font-size:12px;line-height:1.55;font-weight:850;color:#fff;overflow-wrap:anywhere}
+.w36-commit-list li small{font-size:10px;color:#ffe3a8;font-variant-numeric:tabular-nums;direction:ltr;text-align:start}
+@media(max-width:620px){.w36-commit-center{padding:11px}.w36-commit-list{grid-template-columns:1fr}.w36-commit-heading h3{font-size:15px!important}}
