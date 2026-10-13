@@ -167,6 +167,7 @@
     <div class="w36-progress-footer">
       <span id="w36-progress-version">{{ $ar?'آخر إصدار: جارٍ التحقق':'Latest revision: checking' }}</span>
       <span>{{ $ar?'مشروع قيد التطوير • الدمج يتطلب اجتياز جميع الفحوصات والمراجعة':'In development • merge requires all checks and review' }}</span>
+      <button type="button" id="w36-progress-download" class="w36-progress-pr w36-progress-download" disabled>{{ $ar?'تنزيل تقرير الاختبارات':'Download test report' }} ↓</button>
       <a href="https://github.com/adnankmh/Warqnaa-V2/actions" target="_blank" rel="noopener noreferrer">{{ $ar?'عرض سجل GitHub Actions':'Open GitHub Actions' }} ↗</a>
     </div>
   </section>
@@ -185,10 +186,18 @@
     const version = document.getElementById('w36-progress-version');
     const commitList = document.getElementById('w36-commit-list');
     const commitSummary = document.getElementById('w36-commit-summary');
+    const download = document.getElementById('w36-progress-download');
+    let reportHead = '';
+    let reportCheckedAt = '';
+    let reportRows = [];
     let previousCommitSha = '';
     let lastCommitUpdate = 0;
     let displayedHead = '';
     function clearWorkflowStatus() {
+      reportHead = '';
+      reportCheckedAt = '';
+      reportRows = [];
+      download.disabled = true;
       expected.forEach(node => {
         node.dataset.status = 'unknown';
         node.querySelector('.w36-progress-gate-state').textContent = ar ? 'غير متاح' : 'Unavailable';
@@ -237,6 +246,29 @@
           : 'Commit history temporarily unavailable. Open GitHub.';
       }
     }
+    const csvCell = value => {
+      const text = String(value ?? '');
+      const safe = /^[=+@-]/.test(text) ? "'" + text : text;
+      return '"' + safe.replaceAll('"', '""') + '"';
+    };
+    download.addEventListener('click', () => {
+      if (download.disabled || !reportHead || reportRows.length !== expected.length) return;
+      const labels = ar
+        ? ['رأس الإصدار','وقت التحقق','بوابة الجودة','الحالة','رابط التشغيل']
+        : ['Head revision','Checked at','Quality gate','Status','Run URL'];
+      const csv = [labels, ...reportRows.map(row => [
+        reportHead, reportCheckedAt, row.workflow, row.status, row.url,
+      ])].map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob(['\uFEFF', csv], {type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'warqnaa-r36-ci-' + reportHead.slice(0, 8) + '.csv';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    });
     const request = async path => {
       const response = await fetch(base + path, {
         method: 'GET', cache: 'no-store',
@@ -261,6 +293,7 @@
         const builds = await request('/actions/runs?head_sha=' + encodeURIComponent(sha) + '&event=pull_request&per_page=100');
         const runs = Array.isArray(builds.workflow_runs) ? builds.workflow_runs : [];
         let passed = 0, pending = 0, failed = 0, unknown = 0;
+        const verifiedRows = [];
         expected.forEach(node => {
           const workflow = node.getAttribute('data-w36-workflow');
           const candidates = runs.filter(run => run.name === workflow && run.head_sha === sha);
@@ -278,8 +311,18 @@
           } else { unknown++; }
           node.dataset.status = mode;
           state.textContent = label;
+          verifiedRows.push({
+            workflow,
+            status: mode,
+            url: run && typeof run.html_url === 'string' && run.html_url.startsWith('https://github.com/')
+              ? run.html_url : '',
+          });
           if (run && typeof run.html_url === 'string' && run.html_url.startsWith('https://github.com/')) node.href = run.html_url;
         });
+        reportHead = sha;
+        reportCheckedAt = new Date().toISOString();
+        reportRows = verifiedRows;
+        download.disabled = verifiedRows.length !== expected.length;
         count.textContent = passed + ' / ' + expected.length;
         fill.style.width = (passed / expected.length * 100) + '%';
         track.setAttribute('aria-valuenow', String(passed));
