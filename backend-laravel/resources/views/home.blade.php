@@ -154,6 +154,16 @@
         </a>
       @endforeach
     </div>
+    <div class="w36-commit-center" aria-labelledby="w36-commit-heading">
+      <div class="w36-commit-heading">
+        <div><h3 id="w36-commit-heading">🧩 {{ $ar?'التعديلات البرمجية الأخيرة':'Latest verified code changes' }}</h3>
+          <small id="w36-commit-summary">{{ $ar?'جار تحميل سجل GitHub…':'Loading GitHub history…' }}</small></div>
+        <a href="https://github.com/adnankmh/Warqnaa-V2/pull/29/commits" target="_blank" rel="noopener noreferrer">{{ $ar?'جميع التعديلات':'All commits' }} ↗</a>
+      </div>
+      <ol id="w36-commit-list" class="w36-commit-list" aria-live="polite" aria-label="{{ $ar?'آخر تعديلات المشروع':'Latest project changes' }}">
+        <li>{{ $ar?'يتم التحقق من سجل GitHub مباشرة…':'Checking the live GitHub history…' }}</li>
+      </ol>
+    </div>
     <div class="w36-progress-footer">
       <span id="w36-progress-version">{{ $ar?'آخر إصدار: جارٍ التحقق':'Latest revision: checking' }}</span>
       <span>{{ $ar?'مشروع قيد التطوير • الدمج يتطلب اجتياز جميع الفحوصات والمراجعة':'In development • merge requires all checks and review' }}</span>
@@ -173,6 +183,48 @@
     const fill = document.getElementById('w36-progress-fill');
     const track = document.getElementById('w36-progress-track');
     const version = document.getElementById('w36-progress-version');
+    const commitList = document.getElementById('w36-commit-list');
+    const commitSummary = document.getElementById('w36-commit-summary');
+    let previousCommitSha = '';
+    let lastCommitUpdate = 0;
+    async function refreshCommits(sha, reportedCount) {
+      if (previousCommitSha === sha && Date.now() - lastCommitUpdate < 600000) return;
+      try {
+        const commits = await request('/commits?sha=' + encodeURIComponent(sha) + '&per_page=8');
+        if (!Array.isArray(commits)) throw new Error('Invalid commit history');
+        const fragment = document.createDocumentFragment();
+        commits.forEach(commit => {
+          if (!commit || typeof commit.sha !== 'string' || !/^[a-f0-9]{40}$/.test(commit.sha)) return;
+          const item = document.createElement('li');
+          const link = document.createElement('a');
+          const title = document.createElement('strong');
+          const meta = document.createElement('small');
+          const message = commit.commit && typeof commit.commit.message === 'string' ? commit.commit.message : '';
+          const date = commit.commit && commit.commit.author ? commit.commit.author.date : null;
+          link.href = 'https://github.com/adnankmh/Warqnaa-V2/commit/' + commit.sha;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          title.textContent = message.split('\n', 1)[0].slice(0, 160) || (ar ? 'تعديل برمجي' : 'Code change');
+          const dateLabel = date && !Number.isNaN(new Date(date).getTime())
+            ? new Date(date).toLocaleString(ar ? 'ar-PS' : 'en-US', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+            : '';
+          meta.textContent = commit.sha.slice(0, 8) + (dateLabel ? ' · ' + dateLabel : '');
+          link.append(title, meta);
+          item.appendChild(link);
+          fragment.appendChild(item);
+        });
+        commitList.replaceChildren(fragment);
+        previousCommitSha = sha;
+        lastCommitUpdate = Date.now();
+        commitSummary.textContent = (ar ? 'التعديلات في R36: ' : 'R36 commits: ') +
+          (Number.isSafeInteger(reportedCount) ? reportedCount.toLocaleString(ar ? 'ar-PS' : 'en-US') : '—') +
+          (ar ? ' · المصدر GitHub' : ' · sourced from GitHub');
+      } catch (_) {
+        commitSummary.textContent = ar
+          ? 'سجل التعديلات غير متاح حاليًا؛ راجعه عبر GitHub.'
+          : 'Commit history temporarily unavailable. Open GitHub.';
+      }
+    }
     const request = async path => {
       const response = await fetch(base + path, {
         method: 'GET', cache: 'no-store',
@@ -188,6 +240,8 @@
         if (typeof sha !== 'string' || !/^[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid SHA');
         version.textContent = (ar ? 'الإصدار الحالي: ' : 'Current revision: ') +
           sha.slice(0, 8) + (pr.draft ? ' · Draft' : pr.merged ? ' · Merged' : ' · Open');
+        // History is supplemental: a GitHub rate limit must not hide CI status.
+        void refreshCommits(sha, pr.commits);
         const builds = await request('/actions/runs?head_sha=' + encodeURIComponent(sha) + '&event=pull_request&per_page=100');
         const runs = Array.isArray(builds.workflow_runs) ? builds.workflow_runs : [];
         let passed = 0, pending = 0, failed = 0, unknown = 0;
