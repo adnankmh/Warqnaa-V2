@@ -39,7 +39,9 @@ def main() -> int:
         "ProductCardV170(controller: controller, product: product)",
         "showPublicPlayerProfileV170",
         "showChallengesV170",
-        "GroupInnovationHubV170",
+        # The home shortcut now uses the authenticated directory instead of the
+        # old presentation-only group hub. R36 exercises its real join action.
+        "body: R11ClubsWorldPage(controller: controller)",
         "TarneebBidButtonV170",
         "serverAutoNextRoundTimer",
         "Duration(milliseconds: 1700)",
