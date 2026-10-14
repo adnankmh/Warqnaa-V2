@@ -244,7 +244,7 @@ class R16PrimaryAdminEntitlementsTest extends TestCase
         $this->withToken($admin->createToken('r36-pasha-style')->plainTextToken)
             ->patchJson('/api/mobile/v1/profile',['pasha_style'=>'gold'])
             ->assertOk()
-            ->assertJsonPath('user.profile.pasha_style','gold');
+            ->assertJsonPath('user.pasha_style','gold');
 
         $admin=app(PrimaryAdminStateService::class)->enforce($admin->fresh());
         $this->assertSame('gold',$admin->profile->pasha_style);
