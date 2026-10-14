@@ -658,8 +658,12 @@ class MobileApiController extends Controller
     /** Email is returned only on authenticated self endpoints, never in public profiles. */
     private function selfProfile(User $user): array
     {
+        $boostExpiry=$user->profile?->xp_boost_expires_at;
+        $boostActive=!$boostExpiry || $boostExpiry->gte(now());
         return $user->publicProfile() + [
             'email' => (string)$user->email,
+            'xp_boost_multiplier'=>$boostActive ? max(1.0,(float)($user->profile?->xp_boost_multiplier ?? 1)) : 1.0,
+            'xp_boost_expires_at'=>$boostExpiry?->toIso8601String(),
             'admin_permissions' => $user->isPrimaryAdmin()
                 ? PrimaryAdminStateService::FULL_PERMISSIONS
                 : (array)($user->admin_permissions ?? []),

@@ -120,4 +120,15 @@ void main() {
     expect(controller.owned,isNot(contains('r36_stock')));
     controller.dispose();
   });
+  test('a fresh session restores the server booster and clears an expired previous effect',() async {
+    final api=MemoryStoreApi()..snapshot={'user':{'xp_boost_multiplier':3.25,'xp_boost_expires_at':'2099-01-01T00:00:00Z'}};
+    final controller=AppController(api:api)..serverConnected=true;
+    expect(await controller.refreshServerStoreR36(),isTrue);
+    expect(controller.activeXpMultiplier,3.25);
+    expect(controller.boosterExpiresAtV173?.year,2099);
+    api.snapshot={'user':{'xp_boost_multiplier':3.25,'xp_boost_expires_at':'2020-01-01T00:00:00Z'}};
+    expect(await controller.refreshServerStoreR36(),isTrue);
+    expect(controller.activeXpMultiplier,1.0);
+    controller.dispose();
+  });
 }

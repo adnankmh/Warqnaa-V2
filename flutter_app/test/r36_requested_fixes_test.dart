@@ -113,7 +113,8 @@ void main() {
     expect(find.byType(R11ClubsWorldPage),findsOneWidget);
     expect(find.text('Actual server club'),findsOneWidget);
     final join=find.byKey(const ValueKey('r21-club-join-42'));
-    await tester.ensureVisible(join);await tester.tap(join);await tester.pumpAndSettle();
+    await tester.ensureVisible(join);await tester.pumpAndSettle();
+    await tester.tap(join);await tester.pumpAndSettle();
     expect(api.joined,42);expect(api.reads,2);
     expect(find.text('Actual server club'),findsNWidgets(2));
     expect(tester.takeException(),isNull);

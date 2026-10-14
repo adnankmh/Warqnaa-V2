@@ -1175,6 +1175,11 @@ class AppController extends ChangeNotifier {
       final serverTotalXp = int.tryParse(user['xp']?.toString() ?? '');
       if (serverTotalXp != null) xp = xpProgressFromTotal(serverTotalXp, level);
       vipDays = int.tryParse(user['pasha_days']?.toString() ?? '') ?? vipDays;
+      if(user.containsKey('xp_boost_multiplier')) {
+        activeXpMultiplier=math.max(1.0,double.tryParse(user['xp_boost_multiplier']?.toString() ?? '') ?? 1.0);
+        boosterExpiresAtV173=DateTime.tryParse(user['xp_boost_expires_at']?.toString() ?? '');
+        if(boosterExpiresAtV173?.isAfter(DateTime.now())==false)activeXpMultiplier=1.0;
+      }
       selectedCover = user['active_cover']?.toString() ?? selectedCover;
       botDifficultyCode = user['bot_difficulty']?.toString() ?? botDifficultyCode;
       final uiPreferences = user['ui_preferences'];

@@ -108,6 +108,21 @@ class R36RequestedGameplayFixesTest extends TestCase
         return $cards;
     }
 
+    public function test_bootstrap_restores_the_active_booster_and_rejects_an_expired_multiplier(): void
+    {
+        $user=User::factory()->create();
+        $profile=$user->profile()->firstOrCreate(['user_id'=>$user->id],['display_name'=>$user->username]);
+        $expiry=now()->addHour();
+        $profile->update(['xp_boost_multiplier'=>3.25,'xp_boost_expires_at'=>$expiry]);
+        $token=$user->createToken('r36-boost')->plainTextToken;
+        $this->withToken($token)->getJson('/api/mobile/v1/bootstrap')->assertOk()
+            ->assertJsonPath('user.xp_boost_multiplier',3.25)
+            ->assertJsonPath('user.xp_boost_expires_at',$expiry->toIso8601String());
+        $profile->update(['xp_boost_expires_at'=>now()->subSecond()]);
+        $this->withToken($token)->getJson('/api/mobile/v1/bootstrap')->assertOk()
+            ->assertJsonPath('user.xp_boost_multiplier',1);
+    }
+
     public function test_individual_hand_allows_laying_off_on_other_players_but_banakil_keeps_partnership_scope(): void
     {
         foreach(['hand'=>true,'saudi_hand'=>true,'banakil'=>false] as $game=>$allowed) {
