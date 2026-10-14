@@ -86,4 +86,35 @@ void main() {
     expect(find.byKey(const ValueKey('r35-game-tarneeb')), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  for (final locale in ['ar', 'en']) {
+    testWidgets('R36 luxury store hero keeps readable contrast $locale',
+        (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final controller = AppController()..localeCode = locale;
+      addTearDown(controller.dispose);
+      final title = locale == 'ar' ? 'متجر ورقنا المميز' : 'Warqnaa Luxury Store';
+      final subtitle = locale == 'ar'
+          ? 'عروض حقيقية، مقتنيات، مسرّعات وهوية بصرية — مع تحقق خادمي قبل منح أي رصيد.'
+          : 'Real offers, collectibles, boosters and visual identity — server verified before currency is granted.';
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData.light(),
+        home: Directionality(
+          textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(body: SingleChildScrollView(
+            child: R101CommerceShowcase(controller: controller),
+          )),
+        ),
+      ));
+      expect(tester.widget<Text>(find.text(title)).style?.color, Colors.white);
+      expect(tester.widget<Text>(find.text(subtitle)).style?.color, Colors.white70);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
 }
