@@ -654,13 +654,13 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
                     disabledBackgroundColor: const Color(0xFF24483A),
                     disabledForegroundColor: Colors.white70,
                     side: BorderSide(color: _r11Mint.withValues(alpha: .42)),
-                    textStyle: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   onPressed: widget.allowJoin && widget.busyClubId == null && available(club) ? () => widget.onJoin(club) : null,
                   child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
                     const SizedBox(width: 8),
-                    Flexible(child: Text(label, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis)),
+                    Flexible(child: Text(label, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900))),
                   ])),
               ])),
           )));
