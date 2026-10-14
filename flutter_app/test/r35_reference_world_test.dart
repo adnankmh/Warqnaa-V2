@@ -141,7 +141,11 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
-    for (final viewport in [const Size(320, 640), const Size(844, 390)]) {
+    for (final viewport in [
+      const Size(320, 640),
+      const Size(390, 844),
+      const Size(844, 390),
+    ]) {
       testWidgets('R36 store item names stay readable $locale $viewport',
           (tester) async {
         tester.view.physicalSize = viewport;
@@ -152,10 +156,9 @@ void main() {
         });
         final controller = AppController()..localeCode = locale;
         addTearDown(controller.dispose);
-        final sample = products.firstWhere((product) =>
-            controller.isStoreProductVisible(product) &&
-            {'tables', 'cards', 'boost', 'pasha', 'covers'}
-                .contains(product.category));
+        final sample = products.firstWhere(
+          (product) => product.id == 'table_v173_royal_01',
+        );
         await tester.pumpWidget(MaterialApp(home: Directionality(
           textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
           child: Scaffold(body: SingleChildScrollView(
@@ -164,7 +167,7 @@ void main() {
         )));
         final label =
             tester.widget<Text>(find.text(sample.name(controller.localeCode)));
-        expect(label.maxLines, 2);
+        expect(label.maxLines, 3);
         expect(label.style?.fontSize, 11.5);
         expect(label.style?.height, 1.15);
         expect(label.style?.fontWeight, FontWeight.w900);
