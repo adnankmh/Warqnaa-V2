@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
 import 'package:warqna_mobile/services/api_client.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
+import 'r8_play_experience_test.dart' show host;
 
 class MemoryStoreApi extends WarqnaApiClient {
   Map<String,dynamic> snapshot={};
@@ -130,5 +132,18 @@ void main() {
     expect(await controller.refreshServerStoreR36(),isTrue);
     expect(controller.activeXpMultiplier,1.0);
     controller.dispose();
+  });
+  testWidgets('owned Pasha renewal confirms a paid server purchase from the real product card',(tester) async {
+    final api=MemoryStoreApi();final product=products.firstWhere((item)=>item.category=='pasha');
+    api.snapshot={'store':[row(product.id)],'inventory':[{'store_item':{'key':product.id},'quantity':1,'active':true}]};
+    final controller=AppController(api:api)..serverConnected=true..coins=BigInt.from(1000);
+    await controller.refreshServerStoreR36();
+    await tester.pumpWidget(host(Scaffold(body:SingleChildScrollView(child:ProductCardV170(controller:controller,product:product))),'ar'));
+    await tester.tap(find.text('تجديد الباشا'));await tester.pumpAndSettle();
+    expect(api.lastExpectedPrice,isNull);
+    await tester.tap(find.widgetWithText(FilledButton,'تجديد'));await tester.pumpAndSettle();
+    expect(api.lastExpectedPrice,125);expect(controller.coins,BigInt.from(875));
+    expect(tester.takeException(),isNull);
+    await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
   });
 }

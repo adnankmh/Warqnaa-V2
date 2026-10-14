@@ -5,6 +5,7 @@ extension R36ServerStore on AppController {
 
   Future<bool> activateOwnedProductR36(StoreProduct product) async {
     lastStoreError=null;
+    if(product.reusable)return buy(product);
     if(serverConnected && product.category=='boost') {
       try {
         final result=await api.activateStoreItemV183(product.id);
