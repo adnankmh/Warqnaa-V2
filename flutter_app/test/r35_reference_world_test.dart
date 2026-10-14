@@ -137,4 +137,38 @@ void main() {
     });
   }
 
+  for (final locale in ['ar', 'en']) {
+    for (final viewport in [const Size(320, 640), const Size(844, 390)]) {
+      testWidgets('R36 store item names stay readable $locale $viewport',
+          (tester) async {
+        tester.view.physicalSize = viewport;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        final sample = products.firstWhere((product) =>
+            controller.isStoreProductVisible(product) &&
+            {'tables', 'cards', 'boost', 'pasha', 'covers'}
+                .contains(product.category));
+        await tester.pumpWidget(MaterialApp(home: Directionality(
+          textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(body: SingleChildScrollView(
+            child: R35StoreTreasureStrip(controller: controller),
+          )),
+        )));
+        final label =
+            tester.widget<Text>(find.text(sample.name(controller.localeCode)));
+        expect(label.maxLines, 2);
+        expect(label.style?.fontSize, 11.5);
+        expect(label.style?.height, 1.15);
+        expect(label.style?.fontWeight, FontWeight.w900);
+        expect(label.style?.color, Colors.white);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
 }
