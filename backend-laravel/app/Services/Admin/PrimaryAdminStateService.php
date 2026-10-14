@@ -76,7 +76,9 @@ class PrimaryAdminStateService
             'xp' => max(self::XP_FLOOR, (int)($profile->xp ?? 0)),
             'pasha_days' => max(self::PASHA_DAYS, (int)($profile->pasha_days ?? 0)),
             'badge' => $profile->badge ?: 'king',
-            'pasha_style' => 'red',
+            // Preserve the owner's selected fez instead of resetting it on every
+            // login/catalog sync. Red remains the safe default for new profiles.
+            'pasha_style' => $profile->pasha_style ?: 'red',
         ])->save();
 
         // Primary-admin color and text cosmetics always have at least one full
