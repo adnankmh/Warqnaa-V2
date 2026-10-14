@@ -638,7 +638,7 @@ class R101CommerceShowcase extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 ar ? 'عروض حقيقية، مقتنيات، مسرّعات وهوية بصرية — مع تحقق خادمي قبل منح أي رصيد.' : 'Real offers, collectibles, boosters and visual identity — server verified before currency is granted.',
-                style: const TextStyle(fontSize: 10, height: 1.45, color: Colors.white70),
+                style: const TextStyle(fontSize: 12, height: 1.45, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
               const SizedBox(height: 8),
               Wrap(spacing: 6, runSpacing: 6, children: [
