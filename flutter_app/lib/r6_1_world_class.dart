@@ -389,7 +389,7 @@ class R61SocialHubPage extends StatelessWidget {
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(ar ? 'مجتمع ورقنا' : 'Warqnaa Social', style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
               const SizedBox(height: 4),
-              Text(ar ? 'أصدقاء ورسائل وأندية وعالم حي من مركز واحد.' : 'Friends, messages, clubs and a live world from one hub.', style: const TextStyle(color: Colors.white70, height: 1.45, fontSize: 12)),
+              Text(ar ? 'أصدقاء ورسائل وأندية وعالم حي من مركز واحد.' : 'Friends, messages, clubs and a live world from one hub.', style: const TextStyle(color: Colors.white60, height: 1.45, fontSize: 10)),
             ])),
           ]),
         ),
@@ -478,7 +478,7 @@ class _R61SocialPortal extends StatelessWidget {
             Icon(icon, color: const Color(0xffffcf65)),
             const SizedBox(height: 6),
             Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w700)),
+            Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8.5, color: Colors.white60)),
           ]),
         ),
       );
