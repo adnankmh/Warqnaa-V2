@@ -122,7 +122,7 @@ class User extends Authenticatable
             'email_verified'=>(bool)$this->email_verified_at,
             'deletion_requested_at'=>$this->deletion_requested_at?->toIso8601String(),
             'pasha_days'=>$effectivePashaDays,
-            'pasha_style'=>'red',
+            'pasha_style'=>$p?->pasha_style ?? 'red',
             'champion_rank_points'=>(int)($p?->champion_rank_points ?? 0),
             'competitive_rating'=>(int)($this->competitiveRatings()->where('scope_key', 'overall')->latest('season_id')->value('rating') ?? config('warqna_competitive.initial_rating', 1000)),
             'chat_color'=>$p?->chat_color,
