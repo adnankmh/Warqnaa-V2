@@ -1620,8 +1620,8 @@ class AppController extends ChangeNotifier {
   int? durationFor(StoreProduct product) => int.tryParse(storeRowR36(product.id)?['duration_days']?.toString() ?? '') ?? (storeDurationOverrides.containsKey(product.id)
       ? storeDurationOverrides[product.id]
       : product.durationDays);
-  Color color1For(StoreProduct product) => colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
-  Color color2For(StoreProduct product) => colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
+  Color color1For(StoreProduct product) => storeGradientR36(product,0) ?? colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
+  Color color2For(StoreProduct product) => storeGradientR36(product,1) ?? colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
   bool isStoreProductVisible(StoreProduct product) {
     if (serverConnected && serverStoreReadyR36) {
       final row=serverStoreR36[product.id];
@@ -4068,93 +4068,13 @@ class _StorePageState extends State<StorePage> {
 
 class ClubsPage extends StatelessWidget {
   final AppController controller;
-
   const ClubsPage({super.key, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    final lang = controller.localeCode;
-    const clubs = [
-      ('falcons', '🦅', 'صقور العرب', 18, 46, 315000, 'متصدر دوري المجموعات'),
-      ('kings', '👑', 'ملوك الورق', 25, 50, 728000, 'مجموعة احترافية • دخول بالباشا'),
-      ('friends', '🤝', 'رفاق اللعب', 12, 31, 146000, 'مجتمع ودي وتحديات يومية'),
-      ('aces', '🂡', 'نخبة الآسات', 31, 48, 910000, 'بطولات أسبوعية وجوائز كبيرة'),
-    ];
-    final currentMatches = clubs.where((c) => c.$1 == controller.activeClub).toList();
-    final current = currentMatches.isEmpty ? null : currentMatches.first;
-    return ListView(
-      padding: const EdgeInsets.all(13),
-      children: [
-        SectionTitle(title: L.t(lang, 'clubs'), action: controller.vipDays > 0 ? '👑 باشا فعّال' : 'ترقية للباشا', onTap: () => showPashaBenefits(context, controller)),
-        const SizedBox(height: 10),
-        if (current != null)
-          PremiumPanel(
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .18), Colors.transparent]),
-              ),
-              child: Column(
-                children: [
-                  Text(current.$2, style: const TextStyle(fontSize: 64)),
-                  Text(current.$3, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 5),
-                  Text(current.$7, style: const TextStyle(color: Colors.white60)),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: _ClubMetric(icon: '👥', value: '${current.$5}/50', label: 'الأعضاء')),
-                    const SizedBox(width: 8),
-                    Expanded(child: _ClubMetric(icon: '🪙', value: formatNumber(current.$6), label: 'الخزينة')),
-                    const SizedBox(width: 8),
-                    Expanded(child: _ClubMetric(icon: '⭐', value: 'LV.${current.$4}', label: 'المستوى')),
-                  ]),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: FilledButton.icon(onPressed: () => showClubChallenges(context, controller, current.$3), icon: const Icon(Icons.emoji_events_outlined), label: const Text('تحديات المجموعة'))),
-                    const SizedBox(width: 8),
-                    Expanded(child: FilledButton.tonalIcon(onPressed: controller.leaveClub, icon: const Icon(Icons.logout), label: Text(L.t(lang, 'leaveClub')))),
-                  ]),
-                ],
-              ),
-            ),
-          ),
-        const SizedBox(height: 12),
-        // Legacy v170 contract symbol retained: GroupInnovationHubV170
-        GroupCommandCenterV173(controller: controller),
-        const SizedBox(height: 14),
-        Row(children: [
-          const Expanded(child: SectionTitle(title: 'المجموعات المقترحة')),
-          FilledButton.tonalIcon(onPressed: controller.vipDays > 0 ? () => showCreateGroupV151(context, controller) : () => showPashaBenefits(context, controller), icon: PashaHatV173(controller: controller, width: 30, height: 22), label: Text(controller.vipDays > 0 ? 'إنشاء مجموعة' : 'يتطلب باشا')),
-        ]),
-        const SizedBox(height: 8),
-        ...clubs.map((club) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: PremiumPanel(
-            child: InkWell(
-              onTap: () => showGroupDetailV151(context, controller, club.$1, club.$2, club.$3, club.$4, club.$5, club.$6),
-              borderRadius: BorderRadius.circular(22),
-              child: Padding(
-              padding: const EdgeInsets.all(13),
-              child: Row(children: [
-                Container(width: 58, height: 58, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(18)), child: Text(club.$2, style: const TextStyle(fontSize: 31))),
-                const SizedBox(width: 11),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${club.$3} • LV.${club.$4}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 3),
-                  Text(club.$7, style: const TextStyle(color: Colors.white60, fontSize: 10)),
-                  const SizedBox(height: 3),
-                  Text('${club.$5}/50 عضو • خزينة ${formatNumber(club.$6)}', style: const TextStyle(color: Colors.white54, fontSize: 9)),
-                ])),
-                FilledButton.tonal(onPressed: controller.activeClub == club.$1 ? () => controller.leaveClub() : () { final ok = controller.joinClub(club.$1); if (!ok) showToast(context, 'غادر المجموعة الحالية قبل الانضمام إلى مجموعة أخرى.'); }, child: Text(controller.activeClub == club.$1 ? 'مغادرة' : L.t(lang, 'joinClub'))),
-              ]),
-            ),
-            ),
-          ),
-        )),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(L.t(controller.localeCode, 'clubs'))),
+    body: R11ClubsWorldPage(controller: controller),
+  );
 }
 
 class _ClubMetric extends StatelessWidget {
@@ -10265,7 +10185,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
           const SizedBox(height:12),
           GridView.count(
             shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),
-            crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,mainAxisExtent:144,
+            crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,mainAxisExtent:160,
             children:[
               _AdminMetric(icon:'👥',label:'اللاعبون',value:stats['users']?.toString() ?? 'محلي'),
               _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '—'),

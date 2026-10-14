@@ -59,12 +59,14 @@ void main() {
     api.snapshot={'store':[row(product.id)]};
     final controller=AppController(api:api)..serverConnected=true..isAdmin=true..adminRole='primary_admin';
     await controller.refreshServerStoreR36();
-    await controller.updateStoreProductAdmin(product,price:321,name:'حفظ مباشر',visible:false,durationDays:30);
+    await controller.updateStoreProductAdmin(product,price:321,name:'حفظ مباشر',visible:false,durationDays:30,color1:'#123456',color2:'#abcdef');
     expect(api.lastPatch?['price'],321);
     expect(controller.priceFor(product),321);
     expect(controller.nameFor(product),'حفظ مباشر');
     expect(controller.durationFor(product),30);
     expect(controller.isStoreProductVisible(product),isFalse);
+    expect(controller.color1For(product).toARGB32(),0xff123456);
+    expect(controller.color2For(product).toARGB32(),0xffabcdef);
     controller.dispose();
   });
   test('checkout confirms the displayed server quote',() async {

@@ -3,7 +3,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
+import 'package:warqna_mobile/services/api_client.dart';
 import 'r8_play_experience_test.dart' show host;
+
+class ClubDestinationApi extends WarqnaApiClient {
+  int reads=0;
+  int? joined;
+  Map<String,dynamic> get club=>{'id':42,'name':'Actual server club','visibility':'public',
+    'members_count':2,'capacity':50,'weekly_points':12,'league':{'en':'Gold','ar':'ذهبي'}};
+  @override Future<Map<String,dynamic>> clubsWorldR11() async {
+    reads++;return {'clubs':[club],'my_club':joined==null?null:club};
+  }
+  @override Future<Map<String,dynamic>> joinClubWorldR11(int clubId) async {
+    joined=clubId;return {'ok':true,'status':'joined'};
+  }
+}
 
 void main() {
   setUp(() { SharedPreferences.setMockInitialValues({}); AppSounds.enabled = false; });
@@ -90,5 +104,19 @@ void main() {
     expect(submitted,[['3_spades','4_spades','5_spades'],['3_spades','4_spades','5_spades']]);
     expect(tester.takeException(),isNull);
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+  testWidgets('home club destination lists and joins real server clubs',(tester) async {
+    final api=ClubDestinationApi();
+    final controller=AppController(api:api)..serverConnected=true;
+    await tester.pumpWidget(host(ClubsPage(controller:controller),'ar'));
+    await tester.pumpAndSettle();
+    expect(find.byType(R11ClubsWorldPage),findsOneWidget);
+    expect(find.text('Actual server club'),findsOneWidget);
+    final join=find.byKey(const ValueKey('r21-club-join-42'));
+    await tester.ensureVisible(join);await tester.tap(join);await tester.pumpAndSettle();
+    expect(api.joined,42);expect(api.reads,2);
+    expect(find.text('Actual server club'),findsNWidgets(2));
+    expect(tester.takeException(),isNull);
+    await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
   });
 }

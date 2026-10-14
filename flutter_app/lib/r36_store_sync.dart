@@ -73,6 +73,15 @@ extension R36ServerStore on AppController {
   }
 
   Map<String,dynamic>? storeRowR36(String key) => serverConnected?serverStoreR36[key]:null;
+  Color? storeGradientR36(StoreProduct product,int index) {
+    final payload=storeRowR36(product.id)?['payload'];
+    final gradient=payload is Map?payload['gradient']:null;
+    if(gradient is! List || gradient.length<=index)return null;
+    final hex=gradient[index].toString().replaceFirst('#','');
+    if(hex.length!=6 && hex.length!=8)return null;
+    final value=int.tryParse(hex.length==6?'ff$hex':hex,radix:16);
+    return value==null?null:Color(value);
+  }
   int storeDiscountR36(String key) => int.tryParse(storeRowR36(key)?['discount_percent']?.toString() ?? '') ?? 0;
   String? storeTextR36(StoreProduct product,String field,String language) {
     final row=storeRowR36(product.id);
