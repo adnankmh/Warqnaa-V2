@@ -45,6 +45,28 @@ void main() {
           B307SkyLuxury.cyan);
       expect(button.style?.foregroundColor?.resolve(<WidgetState>{}),
           B307SkyLuxury.navy);
+
+      club['membership'] = <String, dynamic>{'role': 'member'};
+      await tester.pumpWidget(directory(false));
+      final membershipAction = find.byKey(
+        const ValueKey('r21-club-join-36'),
+      );
+      expect(
+        find.descendant(
+          of: membershipAction,
+          matching: find.text(locale == 'ar' ? 'ناديك' : 'Your club'),
+        ),
+        findsOneWidget,
+      );
+      button = tester.widget<FilledButton>(membershipAction);
+      expect(button.child, isA<Row>());
+      expect(
+        find.descendant(
+          of: membershipAction,
+          matching: find.byIcon(Icons.verified_rounded),
+        ),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
   }
