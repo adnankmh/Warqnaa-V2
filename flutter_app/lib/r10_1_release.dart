@@ -299,7 +299,8 @@ class R19PashaProfileHero extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             '@${controller.username} • ${controller.countryFlag} ${controller.countryName}',
-                            maxLines: 1,
+                            key: const Key('r19-profile-identity'),
+                            maxLines: constraints.maxWidth < 350 ? 2 : 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700),
                           ),
