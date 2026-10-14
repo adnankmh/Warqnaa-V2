@@ -190,7 +190,7 @@ class MobileApiController extends Controller
         if (isset($data['active_cover'])) $profile->active_profile_cover = $data['active_cover'];
         if (isset($data['bot_difficulty'])) $profile->bot_difficulty = $data['bot_difficulty'];
         if (array_key_exists('ui_preferences',$data)) $profile->ui_preferences = $data['ui_preferences'];
-        if (isset($data['pasha_style'])) $profile->pasha_style = 'red';
+        if (isset($data['pasha_style'])) $profile->pasha_style = $data['pasha_style'];
         $profile->save();
 
         return response()->json(['ok' => true, 'message' => 'تم تحديث الملف الشخصي', 'user' => $this->selfProfile($request->user()->fresh('profile'))]);
@@ -578,8 +578,9 @@ class MobileApiController extends Controller
                 $profile->increment('pasha_days', (int) ($item->duration_days ?: ($payload['days'] ?? 30)));
                 return;
             case 'pasha_style':
-                // V0.2 keeps the original red Pasha fez and removes color variants.
-                $profile->pasha_style = 'red';
+                // Server-authored store payloads and the profile API now agree on
+                // the selected fez style. Legacy items without a style stay red.
+                $profile->pasha_style = (string) ($payload['style'] ?? 'red');
                 break;
             case 'name_color':
                 if (isset($payload['color'])) $profile->name_color = (string) $payload['color'];
