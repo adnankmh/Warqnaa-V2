@@ -566,3 +566,10 @@ body.warqna-b304 .w36-illustrated-hero .w36-game-hero-actions{grid-column:1/-1;j
  body.warqna-b304 .w36-illustrated-hero .hero-copy-v130{max-width:70%}
  body.warqna-b304 .w36-illustrated-hero .w36-grand-copy h2{font-size:24px!important}
 }
+
+/* R36: readable, touch-friendly rummy drafts. */
+#r36-rummy-workspace{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border:1px solid #65dfff;border-radius:14px;background:linear-gradient(145deg,#0864ae,#043b78)}
+#r36-rummy-workspace button,#r36-rummy-workspace select{min-height:44px;font-size:14px;padding:8px 12px;border-radius:10px;background:#ffd166;color:#102f53;font-weight:800}
+#r36-rummy-workspace button:disabled{opacity:.5;cursor:default}
+#r36-rummy-workspace>div{flex-basis:100%;color:#fff;padding:6px}
+.r36-grouped-card{opacity:.45;transform:translateY(-8px)}

@@ -64,7 +64,7 @@ class User extends Authenticatable
         return !empty($permissions['all']) || !empty($permissions[$permission]);
     }
 
-    private const PRIMARY_ADMIN_DISPLAY_BALANCE = '99999999999999999';
+    private const PRIMARY_ADMIN_DISPLAY_BALANCE = '9999999999999999999';
     // Historical compatibility marker kept for cumulative release contracts: 100000000000000000000000000000000
 
     public function displayTokenBalance(): string

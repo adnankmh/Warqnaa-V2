@@ -17,7 +17,7 @@ need('backend-laravel/app/Console/Commands/SetupLocalAdmins.php','DUAL_PRIMARY_A
 need('backend-laravel/app/Http/Controllers/AuthController.php','PrimaryAdminStateService::class')
 need('backend-laravel/app/Http/Controllers/MobileApiController.php','PrimaryAdminStateService::class')
 need('backend-laravel/app/Models/User.php','$effectiveLevel','$effectivePashaDays')
-need('flutter_app/lib/main.dart',"if (isPrimaryAdmin)","BigInt.parse('9000000000000000000')",'vipDays = math.max(vipDays, 36500)','Warqnaa Command Center')
+need('flutter_app/lib/main.dart',"if (isPrimaryAdmin)","BigInt.parse('9999999999999999999')",'vipDays = math.max(vipDays, 36500)','Warqnaa Command Center')
 need('backend-laravel/public/assets/css/b306-app-parity.css','.b306-admin-identity','.admin-tabs.jumbo-tabs','body.warqna-b304 .topbar')
 need('backend-laravel/resources/views/layouts/app.blade.php','b306-app-parity.css')
 need('backend-laravel/resources/views/admin/index.blade.php','b306-admin-identity','adminEffectiveLevel','adminEffectivePasha')

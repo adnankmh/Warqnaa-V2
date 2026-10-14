@@ -90,8 +90,14 @@ if (!function_exists('token_display')) {
  function token_display($user): string {
   if(!$user) return '0';
   $raw=method_exists($user,'displayTokenBalance') ? $user->displayTokenBalance() : (string)($user->wallet?->tokens ?? 0);
-  if(strlen($raw)>18) return $raw;
-  return number_format((int)$raw);
+  return format_token_balance($raw);
+ }
+}
+
+if (!function_exists('format_token_balance')) {
+ function format_token_balance(string $raw): string {
+  // Keep virtual balances exact beyond PHP/JavaScript's integer ranges.
+  return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', $raw);
  }
 }
 
@@ -99,6 +105,6 @@ if(!function_exists('game_art_url')){
  function game_art_url($key){
   $safe=preg_replace('/[^a-z0-9_\-]/i','',(string)$key);
   $path='assets/r101/games/'.$safe.'.webp';
-  return file_exists(public_path($path)) ? asset($path) : asset('assets/icons/icon.svg');
+  return file_exists(public_path($path)) ? asset($path).'?v=36-luxury' : asset('assets/icons/icon.svg');
  }
 }

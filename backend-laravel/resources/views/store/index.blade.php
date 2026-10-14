@@ -162,7 +162,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
          <p>{{ $item->description['ar'] ?? 'مقتنى فاخر داخل Warqnaa' }}</p>
         </div>
         <div class="product-actions-v127">
-         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($quote['price']) }}@if(($quote['discount_percent'] ?? 0)>0)<small style="display:block;color:#ffe996;font-weight:800"><del>{{ number_format($quote['original_price']) }}</del> −{{ $quote['discount_percent'] }}%</small>@endif</span>
+         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png?v=36-luxury" alt="باشا">@endif 🪙 {{ number_format($quote['price']) }}@if(($quote['discount_percent'] ?? 0)>0)<small style="display:block;color:#ffe996;font-weight:800"><del>{{ number_format($quote['original_price']) }}</del> −{{ $quote['discount_percent'] }}%</small>@endif</span>
          @unless($cat==='pasha')<button type="button" onclick="previewStoreItem(this)">معاينة</button>@endunless
          <button class="primary" type="submit">شراء</button>
         </div>

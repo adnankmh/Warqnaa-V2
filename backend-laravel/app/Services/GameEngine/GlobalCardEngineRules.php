@@ -217,9 +217,10 @@ class GlobalCardEngineRules implements GameRuleContract
             'play_card','card' => ['type'=>'play_card','card'=>$this->toShortCard($this->cardPayload($payload),$state['hands'][$playerId] ?? [])],
             'draw_deck','draw' => ['type'=>'draw_deck'],
             'draw_discard' => ['type'=>'draw_discard'],
+            'draw_discard_stack' => ['type'=>'draw_discard_stack','count'=>(int)($payload['count'] ?? 0)],
             'discard' => ['type'=>'discard','card'=>$this->toShortCard($this->cardPayload($payload),$state['hands'][$playerId] ?? [])],
             'meld' => ['type'=>'meld','cards'=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)($payload['cards'] ?? []))],
-            'meld_many' => ['type'=>'meld_many','groups'=>array_map(
+            'arrange_melds','meld_many' => ['type'=>'meld_many','groups'=>array_map(
                 fn($group)=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)$group),
                 (array)($payload['groups'] ?? [])
             )],

@@ -35,6 +35,7 @@
     <script>window.WARQNAA_R61={version:'1.4.0',build:610,homeProfileSocialNavigation:true,pairedTableCardBacks:true}; window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
+    <script defer src="/assets/js/r36-rummy-workspace.js?v=36-gameplay-fixes"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">
 <link rel="stylesheet" href="{{ asset('assets/css/b306-app-parity.css') }}?v=306-parity">
 <link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=36-sky-world-game-hall-discovery-art">
@@ -182,7 +183,7 @@
                 <img loading="lazy" decoding="async" class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
                 <span>{{ $currentUser->username }}</span>
             </button>
-            <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
+            <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png?v=36-luxury" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
             <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="سجل التوكنز">🪙 {{ token_display($currentUser) }}</a>
             <span id="siteClock" class="site-clock">--:--</span>
             <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="الثيمات">🎨</button>

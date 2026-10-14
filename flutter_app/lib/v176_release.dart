@@ -110,7 +110,11 @@ extension WarqnaV176Controller on AppController {
       if (key == null || key.isEmpty || !seenKeys.add(key)) continue;
       final expiry = DateTime.tryParse(item['expires_at']?.toString() ?? '')?.toLocal();
       final active = item['active'] == true || item['active'] == 1 || item['active']?.toString() == '1';
-      if (!active || (expiry != null && !expiry.isAfter(now))) {
+      // `active` means equipped. A purchased, unequipped cosmetic is still owned.
+      // Consumed boosters have quantity zero; legacy payloads used active alone.
+      final quantity = int.tryParse(item['quantity']?.toString() ?? '');
+      final hasOwnership = quantity == null ? active : quantity > 0;
+      if (!hasOwnership || (expiry != null && !expiry.isAfter(now))) {
         owned.remove(key);
         packInventoryExpiriesV176.remove(key);
         continue;

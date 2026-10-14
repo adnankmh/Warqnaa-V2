@@ -38,7 +38,7 @@ def main() -> int:
     require("r19_luxury_profile" in v304, "R19 premium profile collection remains wired", checks)
     require("ResponsiveAccountStatsV170" in v170, "responsive account/profile stats surface remains present", checks)
     require("HomeQuickActionsV170" in v170, "premium quick-action surface remains present", checks)
-    require("PRIMARY_ADMIN_DISPLAY_BALANCE = '99999999999999999'" in user, "primary-admin ceremonial balance contract is preserved", checks)
+    require("PRIMARY_ADMIN_DISPLAY_BALANCE = '9999999999999999999'" in user, "primary-admin ceremonial balance contract is preserved", checks)
     require("admin_role" in user and "isPrimaryAdmin" in user, "primary-admin authority remains role based", checks)
     require("ABANDONED_SECONDS" in lifecycle, "multiplayer lifecycle authority remains present", checks)
     require("server-authoritative" in doc.lower(), "R20 scope explicitly preserves server-authoritative gameplay/economy", checks)

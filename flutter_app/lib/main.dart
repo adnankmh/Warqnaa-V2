@@ -51,6 +51,7 @@ part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
+part 'r36_meld_workspace.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
@@ -170,6 +171,7 @@ class AppController extends ChangeNotifier {
   bool isAdmin = false;
   String adminRole = 'player';
   bool get isPrimaryAdmin => isAdmin && adminRole == 'primary_admin';
+  static final BigInt primaryAdminTokens = BigInt.parse('9999999999999999999');
   bool get isLocalAdmin => isAuthenticated && adminRole == 'local_admin' && authToken == null && !serverConnected;
   int? currentUserId;
   bool serverConnected = false;
@@ -591,7 +593,7 @@ class AppController extends ChangeNotifier {
       defaultVipDays: isAdmin ? 3650 : 0,
       defaultAvatar: demoAvatarFor(username),
     );
-    if (isAdmin) { level = math.max(level, 99); vipDays = math.max(vipDays, 36500); coins = coins < BigInt.parse('9000000000000000000') ? BigInt.parse('9000000000000000000') : coins; }
+    if (isPrimaryAdmin) { level = math.max(level, 99); vipDays = math.max(vipDays, 36500); coins = primaryAdminTokens; }
     _applyLocalLoginStreak();
     authToken = null;
     api.token = null;
@@ -1081,6 +1083,11 @@ class AppController extends ChangeNotifier {
     email = 'adnan@device.local';
     final prefs = await SharedPreferences.getInstance();
     await _loadAccountState(prefs, defaultCoins: '1000000', defaultLevel: 99, defaultVipDays: 36500, defaultAvatar: '👑');
+    coins = primaryAdminTokens;
+    owned.addAll(products.map((product) => product.id));
+    for (final denomination in competitionTicketValuesV173) {
+      competitionTickets[denomination] = math.max(100, competitionTickets[denomination] ?? 0);
+    }
     isAuthenticated = true;
     await _save();
     refreshUi();
@@ -1183,10 +1190,10 @@ class AppController extends ChangeNotifier {
     }
     syncPackInventoryV176(data['inventory']);
     syncPrizeBoxesV02(data['prize_boxes']);
-    selectedPashaStyle = 'red';
+    if (user is Map) selectedPashaStyle = user['pasha_style']?.toString() ?? selectedPashaStyle;
     championRankPointsV173 = int.tryParse(data['champion_rank_points']?.toString() ?? '') ?? championRankPointsV173;
     if (isPrimaryAdmin) {
-      if (coins < BigInt.parse('9000000000000000000')) coins = BigInt.parse('9000000000000000000');
+      coins = primaryAdminTokens;
       level = math.max(level, 99);
       vipDays = math.max(vipDays, 36500);
       // Historical compatibility marker retained for cumulative contracts: vipDays = math.max(vipDays, 3650)
@@ -3547,6 +3554,18 @@ class _HomeShellState extends State<HomeShell> {
       final desktop = isDesktopWebV183(constraints.maxWidth);
       final mainContent = Column(children: [
         PremiumTopBar(controller: widget.controller),
+        if (widget.controller.isAdmin)
+          Material(
+            color: B307SkyLuxury.navy,
+            child: ListTile(
+              key: const ValueKey('r36-open-admin-center'),
+              dense: true,
+              leading: const Icon(Icons.admin_panel_settings_rounded, color: B307SkyLuxury.goldSoft),
+              title: Text(widget.controller.localeCode == 'ar' ? 'لوحة الإدارة والتعديل الشامل' : 'Administration & full editor'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => AdminDashboardPage(controller: widget.controller))),
+            ),
+          ),
         if (widget.controller.activeGame != null)
           ActiveGameBanner(controller: widget.controller, onResume: () {
             final game = gamesCatalog.where((item) => item.id == widget.controller.activeGame).firstOrNull;
@@ -5493,7 +5512,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     super.initState();
     awayMode = widget.controller.awayMode;
     WidgetsBinding.instance.addObserver(this);
-    _create();
+    // Room creation updates the shared controller. Start after the first frame
+    // so the app's AnimatedBuilder is never notified while building this route.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_create());
+    });
     timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
@@ -6959,6 +6982,18 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     }
     if (types.contains('organize')) {
       widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _action('organize'), icon: const Icon(Icons.auto_awesome, size: 17), label: Text(_roomText('ترتيب ذكي', 'Sort cards'))));
+      if (['hand','hand_partner','saudi_hand','banakil'].contains(widget.game.id)) {
+        widgets.add(OutlinedButton.icon(
+          key:const ValueKey('r36-open-meld-workspace'),
+          onPressed:sending?null:() async {
+            final groups = await showDialog<List<List<String>>>(context:context,
+              builder:(_)=>R36MeldWorkspace(cards:List<String>.from(hand),ar:widget.controller.localeCode=='ar'));
+            if (groups != null && mounted) await _action('meld_many',{'groups':groups});
+          },
+          icon:const Icon(Icons.dashboard_customize_outlined,size:17),
+          label:Text(_roomText('تجميع يدوي ونزول','Group & meld')),
+        ));
+      }
     }
     final melds = availableActions.where((item) => item['type'] == 'meld' && item['cards'] is List).toList();
     if (melds.isNotEmpty) {
@@ -8674,6 +8709,26 @@ void showClubChallenges(BuildContext context, AppController controller, String c
 }
 
 Future<void> openGameRoom(BuildContext context, AppController controller, GameInfo game, {RoomLaunchOptions options = const RoomLaunchOptions()}) async {
+  // Make an existing room actionable instead of silently blocking a new game.
+  if (controller.activeGame != null && controller.activeGame != game.id) {
+    final ar = controller.localeCode == 'ar';
+    final leave = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      title: Text(ar ? 'لديك طاولة مفتوحة' : 'You have an open table'),
+      content: Text(ar ? 'غادر الطاولة الحالية لبدء اللعبة الجديدة.' : 'Leave the current table to start this game.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(ar ? 'إلغاء' : 'Cancel')),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(ar ? 'غادر وابدأ' : 'Leave & start')),
+      ],
+    ));
+    if (leave != true || !context.mounted) return;
+    final oldCode = controller.activeRoomCode;
+    if (controller.serverConnected && oldCode != null && !oldCode.startsWith('LOCAL')) {
+      try { await controller.api.leaveGame(oldCode); }
+      catch (error) { if (context.mounted) showToast(context, friendlyErrorMessage(error, controller.localeCode)); return; }
+    }
+    controller.leaveGame();
+    if (!context.mounted) return;
+  }
   // R9.1: return limits are exact-room limits enforced by the server, never game-wide limits.
   if (!controller.enterGame(game.id)) {
     showToast(context, 'أنت داخل لعبة أخرى. غادر اللعبة الحالية قبل بدء لعبة جديدة.');
@@ -8760,6 +8815,23 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               ),
             ),
           ]),
+        ),
+        const SizedBox(height: 11),
+        FilledButton.icon(
+          key: ValueKey('r36-play-now-${game.id}'),
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: Text(ar ? 'العب الآن' : 'Play now'),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          onPressed: () {
+            final navigator = Navigator.of(context, rootNavigator: true);
+            navigator.pop();
+            unawaited(openGameRoom(navigator.context, controller, game,
+              options: RoomLaunchOptions(
+                roomName: L.t(controller.localeCode, game.id),
+                playerCount: v170AllowedPlayerCounts(game.id).first,
+                botCount: v170AllowedPlayerCounts(game.id).first - 1,
+              )));
+          },
         ),
         const SizedBox(height: 11),
         LayoutBuilder(
