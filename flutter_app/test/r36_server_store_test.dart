@@ -138,7 +138,8 @@ void main() {
     api.snapshot={'store':[row(product.id)],'inventory':[{'store_item':{'key':product.id},'quantity':1,'active':true}]};
     final controller=AppController(api:api)..serverConnected=true..coins=BigInt.from(1000);
     await controller.refreshServerStoreR36();
-    await tester.pumpWidget(host(Scaffold(body:SingleChildScrollView(child:ProductCardV170(controller:controller,product:product))),'ar'));
+    await tester.pumpWidget(host(Scaffold(body:Center(child:SizedBox(width:320,height:520,
+      child:ProductCardV170(controller:controller,product:product)))),'ar'));
     await tester.tap(find.text('تجديد الباشا'));await tester.pumpAndSettle();
     expect(api.lastExpectedPrice,isNull);
     await tester.tap(find.widgetWithText(FilledButton,'تجديد'));await tester.pumpAndSettle();
