@@ -399,11 +399,11 @@ class R35ArtGameCard extends StatelessWidget {
           ),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
             color: const Color(0xD9042D75),
             child: Text(L.t(locale, game.id), textAlign: TextAlign.center,
               maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+              style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w900)),
           ),
         ]),
       ),
