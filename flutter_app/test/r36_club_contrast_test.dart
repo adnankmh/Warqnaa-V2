@@ -62,7 +62,7 @@ void main() {
       expect(button.child, isA<Row>());
       // The button theme supplies the active font. A local ButtonStyle
       // textStyle without a family falls back to Ahem blocks in review renders.
-      expect(button.style?.textStyle, isNull);
+      expect(button.style?.textStyle?.resolve(<WidgetState>{}), isNull);
       final membershipLabel = tester.widget<Text>(
         find.descendant(
           of: membershipAction,
