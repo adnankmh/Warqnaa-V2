@@ -62,8 +62,16 @@ void main() {
         expect(find.byKey(const ValueKey('r21-club-2')), findsNothing);
         await tester.ensureVisible(find.byKey(const ValueKey('r21-club-join-1')));
         await tester.tap(find.byKey(const ValueKey('r21-club-join-1'))); expect(joined, 1);
-        await tester.pumpWidget(app(locale, R21TournamentDirectory(cups: cups, locale: locale, onOpen: (_) {})));
+        var openedCup = 0;
+        await tester.pumpWidget(app(locale, R21TournamentDirectory(cups: cups, locale: locale, onOpen: (_) => openedCup++)));
         await tester.pump();
+        final detailsFinder = find.byKey(const ValueKey('r21-cup-details-1'));
+        await tester.ensureVisible(detailsFinder);
+        final detailsButton = tester.widget<TextButton>(detailsFinder);
+        expect(detailsButton.style?.foregroundColor?.resolve(<WidgetState>{}), Colors.white);
+        expect(tester.getSize(detailsFinder).height, greaterThanOrEqualTo(44));
+        await tester.tap(detailsFinder);
+        expect(openedCup, 1);
         await tester.tap(find.byKey(const ValueKey('r21-cup-filter-mine'))); await tester.pump();
         expect(find.byKey(const ValueKey('r21-cup-1')), findsOneWidget);
         expect(find.byKey(const ValueKey('r21-cup-2')), findsNothing);
