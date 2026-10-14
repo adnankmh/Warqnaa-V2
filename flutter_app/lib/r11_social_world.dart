@@ -646,7 +646,7 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
                 LinearProgressIndicator(value: capacity > 0 ? (count / capacity).clamp(0.0, 1.0).toDouble() : 0,
                   color: _r11Gold, backgroundColor: Colors.white10, borderRadius: BorderRadius.circular(8)),
                 const SizedBox(height: 16),
-                FilledButton.tonalIcon(key: ValueKey('r21-club-join-$id'),
+                FilledButton(key: ValueKey('r21-club-join-$id'),
                   style: FilledButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
                     backgroundColor: _r11Mint,
@@ -657,8 +657,11 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
                     textStyle: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   onPressed: widget.allowJoin && widget.busyClubId == null && available(club) ? () => widget.onJoin(club) : null,
-                  icon: Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
-                  label: Text(label)),
+                  child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
+                    const SizedBox(width: 8),
+                    Flexible(child: Text(label, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis)),
+                  ])),
               ])),
           )));
         }).toList());
