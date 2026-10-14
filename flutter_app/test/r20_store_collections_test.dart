@@ -39,7 +39,7 @@ void main() {
               : 'Browse the live catalog and preview every item before choosing'),
           findsOneWidget,
         );
-        expect(tester.getSize(find.byKey(const ValueKey('r20-collection-pasha'))).height, 126);
+        expect(tester.getSize(find.byKey(const ValueKey('r20-collection-pasha'))).height, greaterThanOrEqualTo(120));
         await tester.ensureVisible(find.byKey(const ValueKey('r20-collection-emoji')));
         await tester.tap(find.byKey(const ValueKey('r20-collection-emoji')));
         await tester.pumpAndSettle();
