@@ -54,9 +54,11 @@ extension R36ServerStore on AppController {
   String? storeTextR36(StoreProduct product,String field,String language) {
     final row=storeRowR36(product.id);
     if (row==null) return null;
-    final value=field=='name'?row['name']:(row['payload'] as Map?)?['description'];
+    final payload=row['payload'] is Map?Map<String,dynamic>.from(row['payload'] as Map):<String,dynamic>{};
+    final value=field=='name'?row['name']:payload['description'];
     if (value is Map) return (value[language] ?? value['en'] ?? value['ar'])?.toString();
-    return field=='description'?(row['payload'] as Map?)?['description_$language']?.toString():null;
+    if (field=='description') return payload['description_$language']?.toString();
+    return null;
   }
 
   Future<void> saveServerStoreProductR36(StoreProduct product,{int? price,bool? visible,String? name,
