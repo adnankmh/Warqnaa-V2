@@ -140,8 +140,8 @@ class B307TopCounter extends StatelessWidget {
   final Color accent;
 
   @override
-  Widget build(BuildContext context) => Container(
-        constraints: const BoxConstraints(minWidth: 58),
+  Widget build(BuildContext context) => Tooltip(message:value,child:Container(
+        constraints: const BoxConstraints(minWidth: 58, maxWidth: 148),
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: <Color>[Color(0xff0b70b3), Color(0xff07558d)]),
@@ -153,7 +153,7 @@ class B307TopCounter extends StatelessWidget {
           const SizedBox(width: 4),
           Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w900))),
         ]),
-      );
+      ));
 }
 
 class B307BottomNavigation extends StatelessWidget {

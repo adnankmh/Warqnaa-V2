@@ -95,6 +95,8 @@ class MobileApiController extends Controller
             $item->setAttribute('price', $quote['price']);
             $item->setAttribute('discount_percent', $quote['discount_percent']);
             $item->setAttribute('offer_key', $quote['offer_key']);
+            $item->setAttribute('offer_ends_at', $quote['offer_ends_at']);
+            $item->setAttribute('offer_cadence', $quote['offer_cadence']);
         });
         return response()->json([
             'ok' => true,

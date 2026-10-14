@@ -41,6 +41,7 @@ class StoreCatalogService
         $this->deactivateExactDuplicates();
         $this->syncB304VerticalLegend();
         $this->syncR61CuratedTablesAndCardBacks();
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->apply();
         $this->grantPrimaryAdminAllCollectibles();
 
     }

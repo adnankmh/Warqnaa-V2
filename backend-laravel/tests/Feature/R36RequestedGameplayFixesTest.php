@@ -107,4 +107,20 @@ class R36RequestedGameplayFixesTest extends TestCase
         sort($cards);
         return $cards;
     }
+
+    public function test_individual_hand_allows_laying_off_on_other_players_but_banakil_keeps_partnership_scope(): void
+    {
+        foreach(['hand'=>true,'saudi_hand'=>true,'banakil'=>false] as $game=>$allowed) {
+            $engine=GameFactory::make($game);
+            $state=$engine->initialState(['user:1','user:2','user:3','user:4'],['seed'=>3704]);
+            $g=$state['_global_engine'];$g['phase']='discard';$g['currentIndex']=0;$g['starterDiscardPending']=false;
+            $g['hands']['user:1']=['8_C','K_H'];
+            $g['melds']['user:1']=[['cards'=>['9_D','10_D','J_D'],'value'=>29]];
+            $g['melds']['user:2']=[['cards'=>['5_C','6_C','7_C'],'value'=>18]];
+            $state['_global_engine']=$g;$state['turn']='user:1';
+            $state['hands']['user:1']=['8_clubs','K_hearts'];
+            $payload=['target_player'=>'user:2','meld_index'=>0,'cards'=>['8_clubs']];
+            $this->assertSame($allowed,$engine->validate($state,'user:1','layoff',$payload),$game);
+        }
+    }
 }

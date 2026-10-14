@@ -40,12 +40,16 @@ class StoreOfferPricingService
         $discounted = intdiv($price, 100) * $factor
             + intdiv(($price % 100) * $factor + 99, 100);
 
+        $hours = $winner?->starts_at && $winner?->ends_at
+            ? $winner->starts_at->diffInHours($winner->ends_at, true) : null;
         return [
             'price' => $price === 0 ? 0 : max(1, $discounted),
             'original_price' => $price,
             'discount_percent' => $percentage,
             'offer_key' => $winner?->key,
             'offer_id' => $winner?->id,
+            'offer_ends_at' => $winner?->ends_at?->toIso8601String(),
+            'offer_cadence' => $winner === null ? null : ($hours === null ? 'event' : ($hours <= 24 ? 'daily' : ($hours <= 168 ? 'weekly' : 'event'))),
         ];
     }
 

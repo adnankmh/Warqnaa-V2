@@ -79,12 +79,18 @@ class ChallengeService
         $value = (int)($progress?->progress ?? 0);
         $name = (array)$definition->name;
         $description = (array)($definition->description ?? []);
+        $resetsAt = match($definition->cadence) {
+            'weekly'=>now()->startOfWeek()->addWeek(),
+            'seasonal'=>now()->startOfMonth()->addMonth(),
+            default=>now()->startOfDay()->addDay(),
+        };
         return [
             'key'=>$definition->key,'name'=>$name,'description'=>$description,
             'name_ar'=>$name['ar'] ?? $name['en'] ?? $definition->key,
             'description_ar'=>$description['ar'] ?? $description['en'] ?? '',
             'icon'=>data_get($definition->settings,'icon',match($definition->cadence){'daily'=>'⚡','weekly'=>'🏆',default=>'🐉'}),
             'cadence'=>$definition->cadence,'metric'=>$definition->metric,'period_key'=>$period,
+            'resets_at'=>$resetsAt->toIso8601String(),'server_time'=>now()->toIso8601String(),
             'progress'=>$value,'target'=>(int)$definition->target,'activated'=>(bool)$progress,
             'completed'=>$value >= (int)$definition->target,'claimed'=>(bool)$progress?->claimed_at,
             'reward_tokens'=>(int)$definition->reward_tokens,'reward_xp'=>(int)$definition->reward_xp,

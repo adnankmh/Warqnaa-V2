@@ -87,6 +87,7 @@ class MobileAdminController extends Controller
         ]);
         $before = $item->toArray();
         $item->update($data);
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->save($item->fresh());
         $audit->record($request, 'admin.store.update', $item, $before, $item->fresh()->toArray());
         return response()->json(['ok' => true, 'message' => 'تم تحديث عنصر المتجر', 'item' => $item->fresh()]);
     }
@@ -97,6 +98,7 @@ class MobileAdminController extends Controller
         $before=$item->toArray();
         $itemId=$item->id;
         $itemKey=$item->key;
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->delete($itemKey);
         $audit->record($request, 'admin.store.delete', $item, $before, ['deleted'=>true,'key'=>$itemKey]);
         $item->delete();
         return response()->json(['ok'=>true,'message'=>'تم حذف عنصر المتجر نهائيًا','deleted_id'=>$itemId,'deleted_key'=>$itemKey]);

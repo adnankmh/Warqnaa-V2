@@ -296,7 +296,7 @@ class GlobalCardEngineCore
         }
         if ($this->hasRummyOpened($state,$playerId)) {
             foreach (($state['melds'] ?? []) as $targetPlayer=>$meldList) {
-                $sameSide = $targetPlayer === $playerId || (!empty($state['config']['partnership']) && $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId));
+                $sameSide = empty($state['config']['partnership']) || $targetPlayer === $playerId || $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId);
                 if (!$sameSide) continue;
                 foreach ($meldList as $meldIndex=>$existing) {
                     foreach (($state['hands'][$playerId] ?? []) as $card) {
@@ -835,7 +835,6 @@ class GlobalCardEngineCore
         if (!$this->hasRummyOpened($state,$playerId)) throw new GameEngineException('يجب أن يفتح اللاعب أو فريقه قبل التركيب.');
         if (!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
         if (!empty($state['config']['partnership']) && $this->teamOf($state, $targetPlayer) !== $this->teamOf($state, $playerId)) throw new GameEngineException('يمكن التركيب على مجموعاتك أو مجموعات شريكك فقط.');
-        if (empty($state['config']['partnership']) && $targetPlayer !== $playerId) throw new GameEngineException('يمكن التركيب على مجموعاتك فقط في اللعب الفردي.');
 
         $combined = array_merge((array)$state['melds'][$targetPlayer][$meldIndex]['cards'], $cards);
         if (count($combined) > 13 || !$this->isValidMeld($combined)) throw new GameEngineException('هذه الأوراق لا تركب قانونيًا على المجموعة المختارة.');
@@ -1053,7 +1052,6 @@ class GlobalCardEngineCore
         if(!in_array($replacement,$state['hands'][$playerId] ?? [],true)) throw new GameEngineException('ورقة الاستبدال ليست في اليد.');
         if(!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
         if(!empty($state['config']['partnership']) && $this->teamOf($state,$targetPlayer)!==$this->teamOf($state,$playerId)) throw new GameEngineException('لا يمكن استبدال جوكر في مجموعات الخصم.');
-        if(empty($state['config']['partnership']) && $targetPlayer!==$playerId) throw new GameEngineException('يمكن استبدال الجوكر في مجموعاتك فقط.');
         $meld=(array)$state['melds'][$targetPlayer][$meldIndex]['cards'];
         if(!$this->canReplaceJoker($meld,$replacement)) throw new GameEngineException('هذه الورقة لا تستبدل الجوكر قانونيًا في المجموعة المحددة.');
         $jokerIndex=null; foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
@@ -1393,7 +1391,11 @@ class GlobalCardEngineCore
 
     protected function botRummyPotential(array $hand, array $state): int
     {
-        $groups = $this->selectDisjointMeldGroups($this->suggestMelds($hand, 0), $hand, 0, null);
+        $suggested = $this->suggestMelds($hand, 0);
+        $groups = $this->selectDisjointMeldGroups($suggested, $hand, 0, null);
+        // The multi-meld opening helper deliberately returns no single group.
+        // A completed single run must still count when evaluating a draw.
+        if (!$groups && $suggested) $groups = [$suggested[0]['cards']];
         $covered = array_sum(array_map('count', $groups));
         $connections = array_sum(array_map(fn($card)=>min(24, $this->botRummyRetention($card, $hand, $state)), $hand));
         return $covered * 35 + (int)floor($connections / 8) - count($hand) * 12;

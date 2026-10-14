@@ -25,7 +25,7 @@ void main() {
     final controller = AppController();
     await controller.loginAsLocalAdmin();
     expect(controller.coins.toString(),'9999999999999999999');
-    expect(controller.owned, containsAll(products.map((item)=>item.id)));
+    expect(controller.owned, containsAll(products.map((item)=>item.id).toSet()));
     expect(controller.competitionTickets.values.every((count)=>count>=100),isTrue);
     expect(controller.serverConnected,isFalse);
     expect(controller.isPrimaryAdmin,isFalse);
@@ -43,7 +43,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byKey(ValueKey('r36-play-now-$id')));
       await tester.tap(find.byKey(ValueKey('r36-play-now-$id')));
+      await tester.pump();
       await tester.pump(const Duration(seconds:1));
+      expect(controller.activeGame,id);
       expect(find.byType(GameRoomPage),findsOneWidget);
       expect(controller.activeGame,id);
       expect(tester.takeException(),isNull);
@@ -59,10 +61,30 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('r36-open-admin-center')),findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('r36-open-admin-center')));
+    await tester.pump();
     await tester.pump(const Duration(seconds:1));
     expect(find.byType(AdminDashboardPage),findsOneWidget);
     expect(tester.takeException(),isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
+  });
+
+  testWidgets('meld workspace selects two identical physical runs independently',(tester) async {
+    List<List<String>>? submitted;
+    await tester.pumpWidget(host(Scaffold(body:Builder(builder:(context)=>TextButton(
+      onPressed:()async{submitted=await showDialog<List<List<String>>>(context:context,
+        builder:(_)=>const R36MeldWorkspace(cards:['3_spades','3_spades','4_spades','4_spades','5_spades','5_spades'],ar:true));},
+      child:const Text('compose'),
+    ))),'ar'));
+    await tester.tap(find.text('compose'));await tester.pumpAndSettle();
+    for(final indices in [[0,2,4],[1,3,5]]) {
+      for(final index in indices) {await tester.tap(find.byKey(ValueKey('r36-meld-card-$index')));await tester.pump();}
+      await tester.tap(find.byKey(const ValueKey('r36-add-meld-group')));await tester.pump();
+    }
+    await tester.ensureVisible(find.byKey(const ValueKey('r36-submit-meld-groups')));
+    await tester.tap(find.byKey(const ValueKey('r36-submit-meld-groups')));await tester.pumpAndSettle();
+    expect(submitted,[['3_spades','4_spades','5_spades'],['3_spades','4_spades','5_spades']]);
+    expect(tester.takeException(),isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

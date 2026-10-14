@@ -128,6 +128,7 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
   String selectedRoadGame = 'tarneeb';
   int selectedRoadStages = 12;
   List<Map<String, dynamic>> challenges = <Map<String, dynamic>>[];
+  String cadenceFilterR36 = 'all';
 
   bool get ar => widget.controller.localeCode == 'ar';
   String bi(String arText, String enText) => ar ? arText : enText;
@@ -165,15 +166,15 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       }
       if (mounted) {
         setState(() {
-          challenges = parsed.isEmpty ? fallback.map(Map<String,dynamic>.from).toList() : parsed;
+          challenges = parsed;
           loading = false;
           error = null;
         });
       }
     } on ApiException catch (e) {
-      if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=e.message; });
+      if (mounted) setState(() { loading=false; challenges=[]; error=e.message; });
     } catch (_) {
-      if (mounted) setState(() { loading=false; challenges=fallback.map(Map<String,dynamic>.from).toList(); error=bi('تعذر تحديث التحديات الآن.','Could not refresh challenges right now.'); });
+      if (mounted) setState(() { loading=false; challenges=[]; error=bi('تعذر تحديث التحديات الآن.','Could not refresh challenges right now.'); });
     }
   }
 
@@ -225,8 +226,9 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
     final gameId = widget.controller.challengeRoadGame ?? selectedRoadGame;
     final game = gamesCatalog.firstWhere((item) => item.id == gameId, orElse: () => gamesCatalog.first);
     if (!widget.controller.serverConnected) {
+      final navigationContext=Navigator.of(context,rootNavigator:true).context;
       Navigator.pop(context);
-      showCreateRoom(context, widget.controller, game);
+      showCreateRoom(navigationContext, widget.controller, game);
       return;
     }
     setState(() => loading = true);
@@ -300,7 +302,14 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       ]))),
       if(error!=null) Padding(padding:const EdgeInsets.only(top:8),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Colors.orange.withValues(alpha:.12),borderRadius:BorderRadius.circular(14),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text(error!,style:const TextStyle(fontSize:11)))),
       const SizedBox(height:12),
-      ...challenges.map((item){
+      Wrap(spacing:8,runSpacing:8,children:[
+        for(final entry in <(String,String)>[('all',bi('الكل','All')),('daily',bi('اليومية','Daily')),('weekly',bi('الأسبوعية','Weekly')),('seasonal',bi('الموسمية','Seasonal'))])
+          ChoiceChip(key:ValueKey('r36-challenge-filter-${entry.$1}'),label:Text(entry.$2),selected:cadenceFilterR36==entry.$1,
+            onSelected:(_)=>setState(()=>cadenceFilterR36=entry.$1)),
+      ]),
+      const SizedBox(height:10),
+      if(!loading && challenges.isEmpty) TextButton.icon(onPressed:_load,icon:const Icon(Icons.refresh_rounded),label:Text(bi('تحديث المهمات','Refresh missions'))),
+      ...challenges.where((item)=>cadenceFilterR36=='all'||item['cadence']==cadenceFilterR36).map((item){
         final progress=int.tryParse(item['progress']?.toString() ?? '') ?? 0;
         final target=math.max(1,int.tryParse(item['target']?.toString() ?? '') ?? 1).toInt();
         final activated=item['activated']==true || progress>0;
@@ -310,7 +319,7 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
         final icon=item['icon']?.toString() ?? (cadence=='daily'?'⚡':cadence=='weekly'?'🏆':'🐉');
         final name=item[ar?'name_ar':'name_en']?.toString() ?? _label(item['name']);
         final description=item[ar?'description_ar':'description_en']?.toString() ?? _label(item['description']);
-        final tokens=(int.tryParse(item['reward_tokens']?.toString() ?? '') ?? 0).clamp(0,1000).toInt();
+        final tokens=math.max(0,int.tryParse(item['reward_tokens']?.toString() ?? '') ?? 0);
         final rewardXp=int.tryParse(item['reward_xp']?.toString() ?? '') ?? 0;
         final cadenceLabel=cadence=='daily'?bi('يومي','Daily'):cadence=='weekly'?bi('أسبوعي','Weekly'):bi('موسمي','Seasonal');
         final actionLabel=claimed?bi('تم الاستلام','Claimed'):completed?bi('استلام','Claim'):activated?bi('متابعة','Continue'):bi('تفعيل','Activate');

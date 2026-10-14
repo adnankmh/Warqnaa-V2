@@ -154,6 +154,7 @@ class AdminController
             'category'=>$data['category'],'price'=>$data['price'],'duration_days'=>$data['duration_days'],'payload'=>$payload,'active'=>$r->boolean('active'),
         ]);
         app(\App\Services\WarqnaPro\StoreCatalogService::class)->grantPrimaryAdminItem((int)$created->id);
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->save($created);
         return back()->with('ok','تمت إضافة المقتنى إلى المتجر، وأضيف تلقائيًا إلى مقتنيات المدير الرئيسي');
     }
 
@@ -166,6 +167,7 @@ class AdminController
             'name'=>['ar'=>$data['name_ar'],'en'=>$data['name_en'] ?: $data['name_ar']],
             'category'=>$data['category'],'price'=>$data['price'],'duration_days'=>$data['duration_days'],'payload'=>$payload,'active'=>$r->boolean('active'),
         ]);
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->save($item->fresh());
         return back()->with('ok','تم تعديل المقتنى بنجاح');
     }
 
@@ -173,6 +175,7 @@ class AdminController
     {
         $this->guard();
         $item->update(['active'=>false]);
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->save($item->fresh());
         return back()->with('ok','تم إخفاء المقتنى من المتجر. بقي محفوظًا لمن اشتراه سابقًا.');
     }
 
@@ -181,6 +184,7 @@ class AdminController
         $this->guard();
         $name=$item->name['ar'] ?? $item->key;
         $key=$item->key;
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->delete($key);
         $item->delete();
         return back()->with('ok','تم حذف المقتنى نهائيًا من كتالوج المتجر: '.$name.' ('.$key.').');
     }

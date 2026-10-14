@@ -52,6 +52,7 @@ part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
 part 'r36_meld_workspace.dart';
+part 'r36_store_sync.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
@@ -159,7 +160,8 @@ class _WarqnaAppState extends State<WarqnaApp> {
 }
 
 class AppController extends ChangeNotifier {
-  final WarqnaApiClient api = WarqnaApiClient();
+  AppController({WarqnaApiClient? api}) : api=api ?? WarqnaApiClient();
+  final WarqnaApiClient api;
   String? _pendingRoomCodeV174;
   String? _queuedNavigationRouteV175;
   bool _openingNavigationRouteV175 = false;
@@ -280,6 +282,8 @@ class AppController extends ChangeNotifier {
   String clubDescriptionV182 = 'نادي احترافي داخل مجتمع ورقنا.';
   final Set<String> owned = {'emoji_fun'};
   final Map<String, int> storePriceOverrides = <String, int>{};
+  final Map<String,Map<String,dynamic>> serverStoreR36 = <String,Map<String,dynamic>>{};
+  bool serverStoreReadyR36 = false;
   final Map<String, String> storeNameOverrides = <String, String>{};
   final Map<String, String> storeDescriptionOverrides = <String, String>{};
   final Map<String, int> storeDurationOverrides = <String, int>{};
@@ -993,6 +997,7 @@ class AppController extends ChangeNotifier {
       serverConnected = true;
       final prefs = await SharedPreferences.getInstance();
       await _storeOfflineCredentials(prefs, username, email, password, admin: isAdmin);
+      await refreshServerStoreR36();
       unawaited(_refreshPushRegistration());
       unawaited(startConnectivityMonitorV173());
       await _save();
@@ -1129,6 +1134,8 @@ class AppController extends ChangeNotifier {
     currentUserId = null;
     authToken = null;
     api.token = null;
+    serverStoreR36.clear();
+    serverStoreReadyR36=false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
     await prefs.setBool('offlineLoggedIn', false);
@@ -1136,6 +1143,7 @@ class AppController extends ChangeNotifier {
   }
 
   void _applySession(Map<String, dynamic> data) {
+    syncServerStoreR36(data['store']);
     final user = data['user'];
     final wallet = data['wallet'];
     if (user is Map) {
@@ -1187,6 +1195,10 @@ class AppController extends ChangeNotifier {
     if (pack is Map) {
       dailyPackLastOpened = pack['last_opened']?.toString() ?? dailyPackLastOpened;
       dailyPackReward = pack['last_reward']?.toString() ?? dailyPackReward;
+    }
+    if (data['inventory'] is List) {
+      owned.clear();
+      packInventoryExpiriesV176.clear();
     }
     syncPackInventoryV176(data['inventory']);
     syncPrizeBoxesV02(data['prize_boxes']);
@@ -1551,7 +1563,7 @@ class AppController extends ChangeNotifier {
 
     if (serverConnected) {
       try {
-        final data = await api.purchase(product.id);
+        final data = await api.purchase(product.id, expectedPrice: price);
         final wallet = data['wallet'];
         if (wallet is Map) coins = BigInt.tryParse(wallet['tokens']?.toString() ?? '') ?? coins;
         final tickets = data['tickets'];
@@ -1561,6 +1573,7 @@ class AppController extends ChangeNotifier {
             ..addAll(tickets.map((key, value) => MapEntry(int.tryParse(key.toString()) ?? 0, int.tryParse(value.toString()) ?? 0)));
         }
       } on ApiException catch (e) {
+        if (e.statusCode == 409) await refreshServerStoreR36();
         lastStoreError = e.message;
         return false;
       } catch (_) {
@@ -1570,7 +1583,7 @@ class AppController extends ChangeNotifier {
     } else {
       // GitHub Pages/PWA has no Laravel runtime. Keep the local demo economy fully
       // functional and persistent instead of rejecting every purchase.
-      coins -= BigInt.from(price);
+      if (!isPrimaryAdmin && !isLocalAdmin) coins -= BigInt.from(price);
       if (!isPrimaryAdmin) adminRevenueTokensV182 += BigInt.from(price);
     }
 
@@ -1591,19 +1604,23 @@ class AppController extends ChangeNotifier {
     return true;
   }
 
-  int priceFor(StoreProduct product) => storePriceOverrides[product.id] ?? raisedStorePriceV183(product);
-  String nameFor(StoreProduct product, [String? lang]) => storeNameOverrides[product.id]?.trim().isNotEmpty == true
+  int priceFor(StoreProduct product) => int.tryParse(storeRowR36(product.id)?['price']?.toString() ?? '') ?? storePriceOverrides[product.id] ?? raisedStorePriceV183(product);
+  String nameFor(StoreProduct product, [String? lang]) => storeTextR36(product,'name',lang ?? localeCode) ?? (storeNameOverrides[product.id]?.trim().isNotEmpty == true
       ? storeNameOverrides[product.id]!
-      : product.name(lang ?? localeCode);
-  String descriptionFor(StoreProduct product, [String? lang]) => storeDescriptionOverrides[product.id]?.trim().isNotEmpty == true
+      : product.name(lang ?? localeCode));
+  String descriptionFor(StoreProduct product, [String? lang]) => storeTextR36(product,'description',lang ?? localeCode) ?? (storeDescriptionOverrides[product.id]?.trim().isNotEmpty == true
       ? storeDescriptionOverrides[product.id]!
-      : product.description(lang ?? localeCode);
-  int? durationFor(StoreProduct product) => storeDurationOverrides.containsKey(product.id)
+      : product.description(lang ?? localeCode));
+  int? durationFor(StoreProduct product) => int.tryParse(storeRowR36(product.id)?['duration_days']?.toString() ?? '') ?? (storeDurationOverrides.containsKey(product.id)
       ? storeDurationOverrides[product.id]
-      : product.durationDays;
+      : product.durationDays);
   Color color1For(StoreProduct product) => colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
   Color color2For(StoreProduct product) => colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
   bool isStoreProductVisible(StoreProduct product) {
+    if (serverConnected && serverStoreReadyR36) {
+      final row=serverStoreR36[product.id];
+      return row!=null && (row['active']==true || row['active']==1 || row['active']=='1');
+    }
     if (hiddenStoreProducts.contains(product.id)) return false;
     if (const {'badges','effects'}.contains(product.category)) return false;
     if (product.category == 'tables') return isR61CuratedTable(product);
@@ -1621,6 +1638,11 @@ class AppController extends ChangeNotifier {
     String? color1,
     String? color2,
   }) async {
+    if (serverConnected) {
+      await saveServerStoreProductR36(product,price:price,visible:visible,name:name,description:description,
+        durationDays:durationDays,color1:color1,color2:color2);
+      return;
+    }
     if (price != null) storePriceOverrides[product.id] = price.clamp(0, 999999999).toInt();
     if (name != null) {
       if (name.trim().isEmpty) { storeNameOverrides.remove(product.id); } else { storeNameOverrides[product.id] = name.trim(); }
@@ -3830,6 +3852,7 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   String category = 'all';
+  String offerFilterR36 = 'all';
   String tier = 'all';
   String tableCollection = 'all';
   String query = '';
@@ -3839,7 +3862,7 @@ class _StorePageState extends State<StorePage> {
     final lang = widget.controller.localeCode;
     final ar=lang=='ar';
     widget.controller.purgeExpiredPackInventoryV176(DateTime.now());
-    final visible = products.where((p) {
+    final visible = widget.controller.storeProductsR36.where((p) {
       if (p.category == 'pasha_style') return false;
       if (p.id.startsWith('table_reference_')) return false;
       if (!widget.controller.isStoreProductVisible(p)) return false;
@@ -3850,8 +3873,10 @@ class _StorePageState extends State<StorePage> {
       final tableCollectionMatch = category != 'tables' ||
           tableCollection == 'all' ||
           (tableCollection == 'legacy' ? p.collection == null : p.collection == tableCollection);
-      final text = '${p.name(lang)} ${p.description(lang)}'.toLowerCase();
-      return categoryMatch && tierMatch && tableCollectionMatch && text.contains(query.toLowerCase());
+      final text = '${widget.controller.nameFor(p,lang)} ${widget.controller.descriptionFor(p,lang)}'.toLowerCase();
+      final offerMatch=category=='inventory' || offerFilterR36=='all' ||
+        (widget.controller.storeDiscountR36(p.id)>0 && widget.controller.storeRowR36(p.id)?['offer_cadence']==offerFilterR36);
+      return categoryMatch && tierMatch && tableCollectionMatch && offerMatch && text.contains(query.toLowerCase());
     }).toList();
     final categories = <(String,String)>[
       ('all', lang == 'ar' ? 'الكل' : 'All'),
@@ -3883,11 +3908,23 @@ class _StorePageState extends State<StorePage> {
               ),
             ),
             buildMainFileFriendsButton(context, widget.controller),
+            if(widget.controller.serverConnected) IconButton(
+              tooltip:ar?'تحديث المتجر والعروض':'Refresh store & offers',
+              onPressed:() async {await widget.controller.refreshServerStoreR36();if(mounted)setState((){});},
+              icon:const Icon(Icons.refresh_rounded),
+            ),
           ],
         ),
         const SizedBox(height: 10),
         R35StoreTreasureStrip(controller: widget.controller),
         const SizedBox(height: 10),
+        if(widget.controller.serverConnected && widget.controller.serverStoreR36.values.any((row)=>(int.tryParse(row['discount_percent']?.toString() ?? '') ?? 0)>0))
+          Wrap(spacing:8,runSpacing:8,children:[
+            for(final entry in <(String,String)>[('all',ar?'كل العروض':'All offers'),('daily',ar?'العروض اليومية':'Daily offers'),('weekly',ar?'العروض الأسبوعية':'Weekly offers')])
+              ChoiceChip(key:ValueKey('r36-offer-filter-${entry.$1}'),label:Text(entry.$2),selected:offerFilterR36==entry.$1,
+                onSelected:(_)=>setState(()=>offerFilterR36=entry.$1)),
+          ]),
+        const SizedBox(height: 8),
         B307RealMoneyStoreBanner(controller: widget.controller),
         const SizedBox(height: 8),
         R101CommerceShowcase(controller: widget.controller),
@@ -7840,12 +7877,13 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return LayoutBuilder(builder:(context,box)=>Row(
       children: [
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
-        if (action != null) TextButton(onPressed: onTap ?? () {}, child: Text(action!)),
+        Expanded(child: Text(title,maxLines:2,overflow:TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+        if (action != null) ConstrainedBox(constraints:BoxConstraints(maxWidth:box.maxWidth.isFinite?box.maxWidth*.58:160),
+          child:Tooltip(message:action!,child:TextButton(onPressed: onTap ?? () {}, child: Text(action!,maxLines:1,overflow:TextOverflow.ellipsis)))),
       ],
-    );
+    ));
   }
 }
 
@@ -10140,6 +10178,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
     setState(() => loading = true);
     try {
       serverData = await widget.controller.api.adminDashboard();
+      widget.controller.syncServerStoreR36(serverData?['store'],replace:false);
     } catch (e) {
       if (mounted) showToast(context, e.toString());
     }
