@@ -52,21 +52,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('R35 illustrated real-art game card opens actual game action',
-      (tester) async {
-    var selected = false;
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
-      child: SizedBox(width: 160, height: 200,
-        child: R35ArtGameCard(
-          game: const GameInfo('tarneeb', '♠', 4, Color(0xFF0B70B3)),
-          locale: 'ar',
-          onTap: () => selected = true,
-        )),
-    ))));
-    await tester.tap(find.byKey(const ValueKey('r35-game-tarneeb')));
-    expect(selected, isTrue);
-    expect(tester.takeException(), isNull);
-  });
+  for (final locale in ['ar', 'en']) {
+    for (final viewport in [const Size(320, 640), const Size(844, 390)]) {
+      testWidgets('R36 game card keeps larger readable label $locale $viewport',
+          (tester) async {
+        tester.view.physicalSize = viewport;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+        var selected = false;
+        await tester.pumpWidget(MaterialApp(home: Directionality(
+          textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+          child: Scaffold(body: Center(
+            child: SizedBox(
+              width: viewport.width < 400 ? 92 : 130,
+              height: viewport.height < 500 ? 150 : 170,
+              child: R35ArtGameCard(
+                game: const GameInfo('tarneeb', '♠', 4, Color(0xFF0B70B3)),
+                locale: locale,
+                onTap: () => selected = true,
+              ),
+            ),
+          )),
+        )));
+        final label = tester.widget<Text>(find.text(L.t(locale, 'tarneeb')));
+        expect(label.style?.fontSize, 12.5);
+        expect(label.style?.fontWeight, FontWeight.w900);
+        expect(label.style?.color, Colors.white);
+        await tester.tap(find.byKey(const ValueKey('r35-game-tarneeb')));
+        expect(selected, isTrue);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
 
   testWidgets('R35 wide world exposes functional panels without layout overflow',
       (tester) async {
