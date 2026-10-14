@@ -453,7 +453,7 @@ class R19BoosterStatus extends StatelessWidget {
                 ar
                     ? 'يعزّز تقدّم XP المؤهّل فقط. لا يغيّر أوراقك أو ترتيب الأدوار أو نقاط الجولة أو نتيجة المباراة.'
                     : 'Boosts eligible XP progression only. It never changes your cards, turn order, round score, or match result.',
-                style: TextStyle(fontSize: 10.5, height: 1.5, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .72)),
+                style: const TextStyle(fontSize: 11.5, height: 1.5, fontWeight: FontWeight.w600, color: Color(0xffd7eaf4)),
               ),
               const SizedBox(height: 11),
               Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
@@ -467,6 +467,12 @@ class R19BoosterStatus extends StatelessWidget {
                 onPressed: onBrowse,
                 icon: const Icon(Icons.rocket_launch_rounded, size: 18),
                 label: Text(ar ? 'استعراض المسرّعات' : 'Browse boosters'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xffe8f6ff),
+                  backgroundColor: accent.withValues(alpha: .08),
+                  side: BorderSide(color: accent.withValues(alpha: .62)),
+                  minimumSize: const Size(44, 46),
+                ),
               ),
             ],
           );
