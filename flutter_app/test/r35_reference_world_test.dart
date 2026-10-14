@@ -132,7 +132,10 @@ void main() {
         ),
       ));
       expect(tester.widget<Text>(find.text(title)).style?.color, Colors.white);
-      expect(tester.widget<Text>(find.text(subtitle)).style?.color, Colors.white70);
+      final subtitleText = tester.widget<Text>(find.text(subtitle));
+      expect(subtitleText.style?.color, Colors.white70);
+      expect(subtitleText.style?.fontSize, 12);
+      expect(subtitleText.style?.fontWeight, FontWeight.w600);
       expect(tester.takeException(), isNull);
     });
   }
