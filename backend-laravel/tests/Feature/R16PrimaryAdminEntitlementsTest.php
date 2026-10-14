@@ -228,6 +228,28 @@ class R16PrimaryAdminEntitlementsTest extends TestCase
         }
     }
 
+    public function test_primary_admin_pasha_style_survives_mobile_update_and_entitlement_sync(): void
+    {
+        $admin=User::factory()->create(['is_admin'=>true,'admin_role'=>'primary_admin']);
+        Profile::create([
+            'user_id'=>$admin->id,'display_name'=>'Primary',
+            'country_code'=>'PS','country_name'=>'Palestine',
+            'pasha_style'=>'navy',
+        ]);
+        Wallet::create(['user_id'=>$admin->id,'tokens'=>1,'gems'=>1]);
+
+        $admin=app(PrimaryAdminStateService::class)->enforce($admin);
+        $this->assertSame('navy',$admin->profile->pasha_style);
+
+        $this->withToken($admin->createToken('r36-pasha-style')->plainTextToken)
+            ->patchJson('/api/mobile/v1/profile',['pasha_style'=>'gold'])
+            ->assertOk()
+            ->assertJsonPath('user.profile.pasha_style','gold');
+
+        $admin=app(PrimaryAdminStateService::class)->enforce($admin->fresh());
+        $this->assertSame('gold',$admin->profile->pasha_style);
+    }
+
     public function test_primary_admin_wallet_never_spends_down(): void
     {
         $admin = User::factory()->create([
