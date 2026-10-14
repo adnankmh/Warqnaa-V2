@@ -60,6 +60,17 @@ void main() {
       );
       button = tester.widget<FilledButton>(membershipAction);
       expect(button.child, isA<Row>());
+      // The button theme supplies the active font. A local ButtonStyle
+      // textStyle without a family falls back to Ahem blocks in review renders.
+      expect(button.style?.textStyle, isNull);
+      final membershipLabel = tester.widget<Text>(
+        find.descendant(
+          of: membershipAction,
+          matching: find.text(locale == 'ar' ? 'ناديك' : 'Your club'),
+        ),
+      );
+      expect(membershipLabel.style?.fontWeight, FontWeight.w900);
+      expect(membershipLabel.style?.fontFamily, isNull);
       expect(
         find.descendant(
           of: membershipAction,
