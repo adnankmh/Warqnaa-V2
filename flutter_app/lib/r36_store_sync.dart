@@ -1,6 +1,29 @@
 part of 'main.dart';
 
 extension R36ServerStore on AppController {
+  int quantityForR36(String key) => inventoryQuantitiesR36[key] ?? (owned.contains(key)?1:0);
+
+  Future<bool> activateOwnedProductR36(StoreProduct product) async {
+    lastStoreError=null;
+    if(serverConnected && product.category=='boost') {
+      try {
+        final result=await api.activateStoreItemV183(product.id);
+        if(result['inventory_item'] is Map) syncPackInventoryV176([result['inventory_item']]);
+        await refreshServerStoreR36();
+        final profile=result['profile'];
+        if(profile is Map) {
+          activeXpMultiplier=double.tryParse(profile['xp_boost_multiplier']?.toString() ?? '') ?? product.multiplier ?? 1;
+          boosterExpiresAtV173=DateTime.tryParse(profile['xp_boost_expires_at']?.toString() ?? '');
+        }
+        await _save();refreshUi();return true;
+      } catch(error) {
+        lastStoreError=friendlyErrorMessage(error,localeCode);return false;
+      }
+    }
+    activateProduct(product);
+    await _save();return true;
+  }
+
   void syncServerStoreR36(dynamic rows, {bool replace = true}) {
     if (rows is! List) return;
     if (replace) serverStoreR36.clear();

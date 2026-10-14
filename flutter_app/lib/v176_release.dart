@@ -101,28 +101,40 @@ extension WarqnaV176Controller on AppController {
     if (rawInventory is! List) return;
     final now = DateTime.now();
     final seenKeys = <String>{};
+    final evergreenKeys = <String>{};
     for (final raw in rawInventory) {
       if (raw is! Map) continue;
       final item = Map<String, dynamic>.from(raw);
       final storeRaw = item['store_item'];
       final store = storeRaw is Map ? Map<String, dynamic>.from(storeRaw) : <String, dynamic>{};
       final key = (store['key'] ?? item['store_item_key'] ?? item['key'])?.toString().trim();
-      if (key == null || key.isEmpty || !seenKeys.add(key)) continue;
+      if (key == null || key.isEmpty) continue;
+      final booster=store['category']=='xp_booster';
+      final first=seenKeys.add(key);
+      if(!first && !booster)continue;
+      if(first)inventoryQuantitiesR36[key]=0;
       final expiry = DateTime.tryParse(item['expires_at']?.toString() ?? '')?.toLocal();
       final active = item['active'] == true || item['active'] == 1 || item['active']?.toString() == '1';
       // `active` means equipped. A purchased, unequipped cosmetic is still owned.
-      // Consumed boosters have quantity zero; legacy payloads used active alone.
+      // Purchased boosters are consumed through activated_at; primary stock is evergreen.
       final quantity = int.tryParse(item['quantity']?.toString() ?? '');
-      final hasOwnership = quantity == null ? active : quantity > 0;
+      final usedBooster=booster && item['activated_at']!=null && !isPrimaryAdmin;
+      final count=usedBooster?0:quantity ?? (active?1:0);
+      final hasOwnership = count>0;
       if (!hasOwnership || (expiry != null && !expiry.isAfter(now))) {
-        owned.remove(key);
-        packInventoryExpiriesV176.remove(key);
+        if((inventoryQuantitiesR36[key] ?? 0)==0) {
+          owned.remove(key);
+          packInventoryExpiriesV176.remove(key);
+        }
         continue;
       }
+      inventoryQuantitiesR36[key]=(inventoryQuantitiesR36[key] ?? 0)+count;
       owned.add(key);
       if (expiry == null) {
+        evergreenKeys.add(key);
         packInventoryExpiriesV176.remove(key);
-      } else {
+      } else if (!evergreenKeys.contains(key) &&
+          (packInventoryExpiriesV176[key]==null || expiry.isAfter(packInventoryExpiriesV176[key]!))) {
         packInventoryExpiriesV176[key] = expiry;
       }
     }
@@ -135,6 +147,7 @@ extension WarqnaV176Controller on AppController {
         .toList(growable: false);
     for (final productId in expired) {
       packInventoryExpiriesV176.remove(productId);
+      inventoryQuantitiesR36[productId]=0;
       owned.remove(productId);
       if (selectedTable == productId) {
         selectedTable = 'table_premium_01';

@@ -59,7 +59,7 @@ class B307TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
     return LayoutBuilder(builder: (context, constraints) {
-      final compact = constraints.maxWidth < 390;
+      final compact = constraints.maxWidth < 520;
       final avatarSize = compact ? 36.0 : 42.0;
       return Container(
         margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),

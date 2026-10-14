@@ -55,7 +55,10 @@ void main() {
     });
   }
 
-  testWidgets('online administrator has a visible command center from the real home shell', (tester) async {
+  for (final width in [320.0,390.0,800.0]) {
+  testWidgets('administrator opens a usable command center at width $width', (tester) async {
+    tester.view.physicalSize=Size(width,844);tester.view.devicePixelRatio=1;
+    addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
     final controller = AppController()..isAuthenticated=true..isAdmin=true..adminRole='primary_admin';
     await tester.pumpWidget(host(HomeShell(controller:controller),'ar'));
     await tester.pump();
@@ -68,6 +71,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
   });
+  }
 
   testWidgets('meld workspace selects two identical physical runs independently',(tester) async {
     List<List<String>>? submitted;

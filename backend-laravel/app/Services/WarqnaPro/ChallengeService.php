@@ -80,7 +80,7 @@ class ChallengeService
         $name = (array)$definition->name;
         $description = (array)($definition->description ?? []);
         $resetsAt = match($definition->cadence) {
-            'weekly'=>now()->startOfWeek()->addWeek(),
+            'weekly'=>now()->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addWeek(),
             'seasonal'=>now()->startOfMonth()->addMonth(),
             default=>now()->startOfDay()->addDay(),
         };
