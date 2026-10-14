@@ -634,11 +634,11 @@ class R101CommerceShowcase extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(ar ? 'متجر ورقنا المميز' : 'Warqnaa Luxury Store', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text(ar ? 'متجر ورقنا المميز' : 'Warqnaa Luxury Store', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
               const SizedBox(height: 4),
               Text(
                 ar ? 'عروض حقيقية، مقتنيات، مسرّعات وهوية بصرية — مع تحقق خادمي قبل منح أي رصيد.' : 'Real offers, collectibles, boosters and visual identity — server verified before currency is granted.',
-                style: TextStyle(fontSize: 10, height: 1.45, color: scheme.onSurface.withValues(alpha: .70)),
+                style: const TextStyle(fontSize: 10, height: 1.45, color: Colors.white70),
               ),
               const SizedBox(height: 8),
               Wrap(spacing: 6, runSpacing: 6, children: [
