@@ -24,7 +24,10 @@ void main() {
         ..localeCode = locale
         ..selectedPashaStyle = 'blue'
         ..selectedProfileColorB304 = 'r19_profile_sapphire_pasha_30d'
-        ..vipDays = 12;
+        ..vipDays = 12
+        ..username = 'Adnan'
+        ..countryFlag = '🇵🇸'
+        ..countryName = locale == 'ar' ? 'فلسطين' : 'Palestinian Territory';
       addTearDown(() {
         controller.connectivityTimerV173?.cancel();
         controller.dispose();
@@ -49,6 +52,14 @@ void main() {
         expect(find.byKey(const Key('r19-pasha-style')), findsOneWidget);
         expect(find.byKey(const Key('r19-server-state')), findsOneWidget);
         expect(find.byKey(const Key('r19-profile-gradient')), findsOneWidget);
+        final identity = tester.widget<Text>(
+          find.byKey(const Key('r19-profile-identity')),
+        );
+        expect(
+          identity.data,
+          '@Adnan • 🇵🇸 ${locale == 'ar' ? 'فلسطين' : 'Palestinian Territory'}',
+        );
+        expect(identity.maxLines, size.width < 350 ? 2 : 1);
         expect(find.text(locale == 'ar' ? 'أزرق' : 'Blue'), findsOneWidget);
         expect(tester.takeException(), isNull);
       }
