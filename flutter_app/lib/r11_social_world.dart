@@ -14,6 +14,14 @@ String _r11Localized(dynamic value, String locale, [String fallback = '']) {
   return value?.toString() ?? fallback;
 }
 
+String r21ClubCountLabel(String locale, int count) {
+  if (locale != 'ar') return '$count ${count == 1 ? 'club' : 'clubs'}';
+  if (count == 1) return 'نادي واحد';
+  if (count == 2) return 'ناديان';
+  if (count >= 3 && count <= 10) return '$count أندية';
+  return '$count ناديًا';
+}
+
 class R11SocialWorldPage extends StatefulWidget {
   const R11SocialWorldPage({super.key, required this.controller});
   final AppController controller;
@@ -608,7 +616,7 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
         FilterChip(key: const ValueKey('r21-club-available'), selected: availableOnly,
           onSelected: (value) => setState(() => availableOnly = value),
           label: Text(ar ? 'يقبل أعضاء' : 'Available spots')),
-        Text(ar ? '${filtered.length} نادي' : '${filtered.length} clubs', style: const TextStyle(color: Colors.white60)),
+        Text(r21ClubCountLabel(widget.locale, filtered.length), style: const TextStyle(color: Colors.white60)),
       ]),
       const SizedBox(height: 12),
       if (filtered.isEmpty) _R11Notice(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
