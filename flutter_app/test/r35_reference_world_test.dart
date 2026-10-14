@@ -54,7 +54,7 @@ void main() {
 
   for (final locale in ['ar', 'en']) {
     for (final viewport in [const Size(320, 640), const Size(844, 390)]) {
-      testWidgets('R36 game card keeps larger readable label $locale $viewport',
+      testWidgets('R35 illustrated real-art game card opens actual game action; R36 readable label $locale $viewport',
           (tester) async {
         tester.view.physicalSize = viewport;
         tester.view.devicePixelRatio = 1;
