@@ -72,7 +72,10 @@ void main() {
         expect(tester.getSize(detailsFinder).height, greaterThanOrEqualTo(44));
         await tester.tap(detailsFinder);
         expect(openedCup, 1);
-        await tester.tap(find.byKey(const ValueKey('r21-cup-filter-mine'))); await tester.pump();
+        final mineFilter = find.byKey(const ValueKey('r21-cup-filter-mine'));
+        await tester.ensureVisible(mineFilter);
+        await tester.tap(mineFilter);
+        await tester.pump();
         expect(find.byKey(const ValueKey('r21-cup-1')), findsOneWidget);
         expect(find.byKey(const ValueKey('r21-cup-2')), findsNothing);
         await tester.enterText(find.byKey(const ValueKey('r21-cup-search')), 'no-match'); await tester.pump();
