@@ -752,9 +752,10 @@ class R35StoreTreasureTile extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(product.name(controller.localeCode), textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 6),
+              maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 11.5,
+                height: 1.15, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 7),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(
