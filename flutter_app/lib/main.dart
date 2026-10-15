@@ -3610,6 +3610,8 @@ class _HomeShellState extends State<HomeShell> {
             child: ListTile(
               key: const ValueKey('r36-open-admin-center'),
               dense: true,
+              textColor: B307SkyLuxury.text,
+              iconColor: B307SkyLuxury.textMuted,
               leading: const Icon(Icons.admin_panel_settings_rounded, color: B307SkyLuxury.goldSoft),
               title: Text(widget.controller.localeCode == 'ar' ? 'لوحة الإدارة والتعديل الشامل' : 'Administration & full editor'),
               trailing: const Icon(Icons.chevron_right_rounded),
