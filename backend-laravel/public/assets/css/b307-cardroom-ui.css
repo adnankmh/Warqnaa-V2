@@ -573,3 +573,143 @@ body.warqna-b304 .w36-illustrated-hero .w36-game-hero-actions{grid-column:1/-1;j
 #r36-rummy-workspace button:disabled{opacity:.5;cursor:default}
 #r36-rummy-workspace>div{flex-basis:100%;color:#fff;padding:6px}
 .r36-grouped-card{opacity:.45;transform:translateY(-8px)}
+
+
+/* R37 SKY SURFACE LEGIBILITY
+   Shared readable type, contrast, focus and touch targets for the live home,
+   store and game hall. The selectors enhance real controls and navigation. */
+body.warqna-b304{
+  --r37-copy:#f4fcff;
+  --r37-muted:#d9f4ff;
+  --r37-focus:#fff0a3;
+  --r37-control:#063f83;
+}
+body.warqna-b304 :is(.b304-head h1,.w36-grand-copy h2,.w36-game-hall-hero h1){
+  color:var(--r37-copy)!important;
+  line-height:1.16!important;
+  letter-spacing:-.018em;
+  text-wrap:balance;
+  text-shadow:0 2px 12px rgba(0,25,78,.58);
+}
+body.warqna-b304 :is(.b304-head p,.w36-grand-copy p,.w36-game-hall-hero p){
+  color:var(--r37-muted)!important;
+  font-size:clamp(14px,1.2vw,17px)!important;
+  line-height:1.7!important;
+  font-weight:700!important;
+  max-width:72ch;
+}
+body.warqna-b304 :is(.b304-statbar span,.w36-game-hall-stats span){
+  color:var(--r37-copy)!important;
+  font-size:13px!important;
+  line-height:1.45!important;
+  font-weight:800!important;
+}
+body.warqna-b304 .w36-panel-head h2{
+  font-size:clamp(16px,1.45vw,20px)!important;
+  line-height:1.35!important;
+  text-wrap:balance;
+}
+body.warqna-b304 :is(.w36-panel p,.w36-panel small,.w36-empty,.w36-tournament-info small,.w36-club-item small,.w36-store-item small){
+  color:var(--r37-muted)!important;
+  font-size:max(12px,.78rem)!important;
+  line-height:1.55!important;
+  font-weight:700!important;
+}
+body.warqna-b304 :is(.w36-panel-head a,.w36-studio-link,.w36-panel-button){
+  min-height:44px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:12px!important;
+  line-height:1.25!important;
+}
+body.warqna-b304 .store-section-head-v127 h2{
+  color:#fff0ad!important;
+  font-size:clamp(18px,1.55vw,22px)!important;
+  line-height:1.35!important;
+}
+body.warqna-b304 .store-section-head-v127 p{
+  color:var(--r37-muted)!important;
+  font-size:13px!important;
+  line-height:1.6!important;
+  font-weight:700!important;
+}
+body.warqna-b304 .product-info-v127 h3{
+  color:#fff0ad!important;
+  font-size:16px!important;
+  line-height:1.35!important;
+  font-weight:900!important;
+  overflow-wrap:anywhere;
+}
+body.warqna-b304 .product-info-v127 p{
+  color:var(--r37-muted)!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+  font-weight:650!important;
+  -webkit-line-clamp:3;
+}
+body.warqna-b304 :is(.store-category-tabs-v127 button,.store-tier-filters-v127 button,.product-actions-v127 button){
+  min-height:44px!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+  font-weight:850!important;
+}
+body.warqna-b304 .store-search-row-v127 input{
+  min-height:46px!important;
+  color:var(--r37-copy)!important;
+  font-size:16px!important;
+  line-height:1.4!important;
+}
+body.warqna-b304 .store-search-row-v127 input::placeholder{color:#c8eaff!important;opacity:1}
+body.warqna-b304 .w36-game-hall-stats span{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+}
+body.warqna-b304 .w36-game-families button{
+  min-height:44px!important;
+  padding:10px 14px!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+body.warqna-b304 .w36-game-tile-info strong{
+  color:var(--r37-copy)!important;
+  font-size:clamp(15px,1.12vw,17px)!important;
+  line-height:1.35!important;
+}
+body.warqna-b304 .w36-game-tile-info small{
+  color:var(--r37-muted)!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+  font-weight:700!important;
+}
+body.warqna-b304 .w36-game-play-now{
+  min-height:44px!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+body.warqna-b304 :is(a,button,input,select,textarea):focus-visible{
+  outline:3px solid var(--r37-focus)!important;
+  outline-offset:3px!important;
+  box-shadow:0 0 0 5px rgba(4,57,119,.72),0 0 0 8px rgba(255,240,163,.26)!important;
+}
+@media(max-width:520px){
+  body.warqna-b304 :is(.b304-head p,.w36-grand-copy p,.w36-game-hall-hero p){
+    font-size:14px!important;
+    line-height:1.65!important;
+  }
+  body.warqna-b304 .w36-panel-head{align-items:flex-start}
+  body.warqna-b304 .w36-panel-head h2{font-size:17px!important}
+  body.warqna-b304 .store-section-head-v127{align-items:flex-start;flex-direction:column}
+  body.warqna-b304 .store-section-head-v127 p{font-size:13px!important}
+  body.warqna-b304 .w36-game-tile-info{padding:11px 10px 12px!important}
+}
+@media(prefers-contrast:more){
+  body.warqna-b304{
+    --r37-copy:#fff;
+    --r37-muted:#ecfbff;
+  }
+  body.warqna-b304 :is(.w36-panel,.w36-game-tile,.store-product-card-v127){
+    border-color:#c9f3ff!important;
+  }
+}
