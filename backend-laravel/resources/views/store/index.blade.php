@@ -12,9 +12,9 @@ $locale=in_array($locale,['ar','en'],true)?$locale:'en';
 $t=$copy[$locale];
 $isAr=$locale==='ar';
 $ui=$isAr ? [
- 'receipt_verified'=>'إيصال موثّق','search_placeholder'=>'ابحث داخل القسم الحالي فقط...','my_items'=>'مشترياتي','my_items_desc'=>'كل ما تملكه يظهر هنا للتفعيل والمعاينة.','item_fallback'=>'عنصر','preview'=>'معاينة','activate'=>'تفعيل','active'=>'مفعّل','no_purchases'=>'لا توجد مشتريات بعد.','default_description'=>'مقتنى فاخر داخل ورقنا','name_preview'=>'معاينة لون الاسم مباشرة','chat_preview'=>'رسالة دردشة تجريبية','buy'=>'شراء','no_products'=>'لا توجد منتجات في هذا القسم حاليًا.','generic_section'=>'منتجات هذا القسم هنا فقط.',
+ 'receipt_verified'=>'إيصال موثّق','search_placeholder'=>'ابحث داخل القسم الحالي فقط...','search_results'=>'النتائج','search_empty'=>'لا توجد عناصر تطابق البحث أو عوامل التصفية.','my_items'=>'مشترياتي','my_items_desc'=>'كل ما تملكه يظهر هنا للتفعيل والمعاينة.','item_fallback'=>'عنصر','preview'=>'معاينة','activate'=>'تفعيل','active'=>'مفعّل','no_purchases'=>'لا توجد مشتريات بعد.','default_description'=>'مقتنى فاخر داخل ورقنا','name_preview'=>'معاينة لون الاسم مباشرة','chat_preview'=>'رسالة دردشة تجريبية','buy'=>'شراء','no_products'=>'لا توجد منتجات في هذا القسم حاليًا.','generic_section'=>'منتجات هذا القسم هنا فقط.',
 ] : [
- 'receipt_verified'=>'Receipt verified','search_placeholder'=>'Search this category only...','my_items'=>'My Items','my_items_desc'=>'Everything you own appears here for activation and preview.','item_fallback'=>'Item','preview'=>'Preview','activate'=>'Activate','active'=>'Active','no_purchases'=>'No purchases yet.','default_description'=>'A premium Warqnaa collectible','name_preview'=>'Live name color preview','chat_preview'=>'Sample chat message','buy'=>'Buy','no_products'=>'No products are currently available in this category.','generic_section'=>'Products in this category appear here only.',
+ 'receipt_verified'=>'Receipt verified','search_placeholder'=>'Search this category only...','search_results'=>'Results','search_empty'=>'No items match your search or filters.','my_items'=>'My Items','my_items_desc'=>'Everything you own appears here for activation and preview.','item_fallback'=>'Item','preview'=>'Preview','activate'=>'Activate','active'=>'Active','no_purchases'=>'No purchases yet.','default_description'=>'A premium Warqnaa collectible','name_preview'=>'Live name color preview','chat_preview'=>'Sample chat message','buy'=>'Buy','no_products'=>'No products are currently available in this category.','generic_section'=>'Products in this category appear here only.',
 ];
 $sectionDescriptions=$isAr ? [
  'pasha'=>'اشتراكات الباشا وأيام التميز تظهر هنا فقط.','table'=>'كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.','card_back'=>'كل ظهور الورق هنا فقط، وتظهر على أوراقك داخل اللعبة.','text_color'=>'ألوان كتابة الدردشة هنا فقط.','name_color'=>'ألوان الأسماء والـ Glow هنا فقط.','emoji_pack'=>'باقات الإيموجي هنا فقط.','badge'=>'الشارات والهوية هنا فقط.','effect'=>'مؤثرات الفوز والثيمات الأسطورية هنا فقط.','profile_cover'=>'أغلفة البروفايل الفاخرة هنا فقط.','competition_ticket'=>'تذاكر الدخول إلى المنافسات هنا فقط.','xp_booster'=>'مسرعات XP هنا فقط.',
@@ -70,6 +70,8 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
    @foreach($emojiTiers as $ek=>$el)<button type="button" data-emoji-tier-v127="{{$ek}}" class="{{$ek==='all'?'active':''}}">{{$el}}</button>@endforeach
   </div>
  </div>
+ <p id="storeSearchStatusV127" aria-live="polite" style="margin:8px 2px;color:#e7faff;font-weight:800"></p>
+ <div id="storeSearchEmptyV127" class="empty-store-v127" role="status" hidden>{{ $ui['search_empty'] }}</div>
 
  <main class="store-section-frame-v127">
   @foreach($labels as $cat=>$label)
@@ -129,7 +131,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         data-item-key="{{$item->key}}"
         data-animated="{{ !empty($payload['animated']) ? '1' : '0' }}"
         data-sound-key="{{$payload['sound_key'] ?? ''}}"
-        data-name="{{ strtolower($name.' '.$item->key.' '.$cat) }}">
+        data-name="{{ strtolower(($item->name['ar'] ?? '').' '.($item->name['en'] ?? '').' '.$item->key.' '.$cat) }}">
         @csrf
         <input type="hidden" name="expected_price" value="{{ $quote['price'] }}">
         <div class="product-preview-v127 type-{{$cat}}" style="--item-color:{{$color}};--item-color2:{{$color2}};--item-pattern:{{$pattern}}">
@@ -182,6 +184,11 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
  const emojiBtns=[...document.querySelectorAll('[data-emoji-tier-v127]')];
  const tierBox=document.getElementById('storeTierFiltersV127');
  const emojiBox=document.getElementById('emojiTierFiltersV127');
+ const status=document.getElementById('storeSearchStatusV127');
+ const empty=document.getElementById('storeSearchEmptyV127');
+ const resultPrefix=@json($ui['search_results']);
+
+ function normalized(value){ return String(value||'').normalize('NFKD').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase().trim(); }
 
  function activeCat(){ return document.querySelector('[data-store-tab-v127].active')?.dataset.storeTabV127 || 'pasha'; }
  function activeTier(){ return document.querySelector('[data-store-tier-v127].active')?.dataset.storeTierV127 || 'all'; }
@@ -189,7 +196,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 
  function apply(){
   const cat=activeCat();
-  const q=(search?.value||'').trim().toLowerCase();
+  const q=normalized(search?.value);
   const tier=activeTier();
   const emoji=activeEmoji();
   document.querySelectorAll('[data-store-section-v127]').forEach(sec=>{
@@ -201,12 +208,17 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 
   const section=document.querySelector(`[data-store-section-v127="${CSS.escape(cat)}"]`);
   if(!section) return;
-  section.querySelectorAll('.store-product-card-v127').forEach(card=>{
-   const okText=!q||(card.dataset.name||'').includes(q);
+  const cards=[...section.querySelectorAll('.store-product-card-v127')];
+  let visible=0;
+  cards.forEach(card=>{
+   const okText=!q||normalized(card.dataset.name).includes(q);
    const okTier=!['table','card_back','xp_booster','effect','badge','profile_cover'].includes(cat) || tier==='all' || (card.dataset.tier||'pro')===tier;
    const okEmoji=cat!=='emoji_pack' || emoji==='all' || (card.dataset.emojiTier||'vip')===emoji;
    card.hidden=!(okText&&okTier&&okEmoji);
+   if(!card.hidden) visible++;
   });
+  if(status) status.textContent=`${resultPrefix}: ${visible} / ${cards.length}`;
+  if(empty) empty.hidden=cards.length===0||visible>0;
  }
 
  tabs.forEach(btn=>btn.addEventListener('click',()=>{
