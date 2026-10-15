@@ -432,7 +432,25 @@ class R61SocialHubPage extends StatelessWidget {
           ),
         ]),
         const SizedBox(height: 16),
-        SectionTitle(title: ar ? 'متصلون الآن' : 'Online now', action: ar ? 'إدارة الأصدقاء' : 'Manage', onTap: () => showFriends(context, controller)),
+        Row(children: <Widget>[
+          Expanded(child: Text(ar ? 'متصلون الآن' : 'Online now', maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            key: const ValueKey('r36-social-manage-friends'),
+            onPressed: () => showFriends(context, controller),
+            icon: const Icon(Icons.manage_accounts_rounded, size: 20),
+            label: Text(ar ? 'إدارة الأصدقاء' : 'Manage', maxLines: 1, overflow: TextOverflow.ellipsis),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xff075c86),
+              side: const BorderSide(color: Color(0xff63ddff)),
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+            ),
+          ),
+        ]),
         const SizedBox(height: 8),
         if (online.isEmpty)
           PremiumPanel(child: Padding(padding: const EdgeInsets.all(20), child: Center(child: Text(ar ? 'لا يوجد أصدقاء متصلون الآن.' : 'No friends online right now.'))))
