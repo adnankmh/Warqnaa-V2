@@ -70,11 +70,18 @@ class PageController
         if($admin) Notification::create([
             'user_id'=>$admin->id,
             'type'=>'support',
-            'title'=>['ar'=>'رسالة دعم جديدة'],
-            'body'=>['ar'=>auth()->user()->username.': '.$data['subject'].' - '.$data['message']],
+            'title'=>[
+                'ar'=>'رسالة دعم جديدة',
+                'en'=>'New support message',
+            ],
+            'body'=>[
+                'ar'=>auth()->user()->username.': '.$data['subject'].' - '.$data['message'],
+                'en'=>auth()->user()->username.': '.$data['subject'].' — '.$data['message'],
+            ],
             'url'=>route('admin'),
         ]);
-        if($r->ajax()) return response()->json(['ok'=>true,'message'=>'تم إرسال الرسالة للدعم']);
-        return back()->with('ok','تم إرسال الرسالة للدعم');
+        $sent=$this->message('تم إرسال الرسالة للدعم','Your message was sent to support.');
+        if($r->ajax()) return response()->json(['ok'=>true,'message'=>$sent]);
+        return back()->with('ok',$sent);
     }
 }
