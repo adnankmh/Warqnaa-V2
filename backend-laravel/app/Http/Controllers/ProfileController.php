@@ -6,11 +6,16 @@ use Illuminate\Http\Request;
 
 class ProfileController
 {
+    private function message(string $ar, string $en): string
+    {
+        return app()->isLocale('ar') ? $ar : $en;
+    }
+
     public function show(?User $user=null)
     {
         if(!auth()->check()){
-            if(request()->ajax() || request()->expectsJson() || request()->headers->get('X-Requested-With')) return response('<div class="profile-auth-required">يجب تسجيل الدخول أولًا لفتح البروفايل. <a href="'.route('login').'">تسجيل الدخول</a></div>',401);
-            return redirect()->route('login')->withErrors(['msg'=>'يجب تسجيل الدخول أولًا.']);
+            if(request()->ajax() || request()->expectsJson() || request()->headers->get('X-Requested-With')) return response('<div class="profile-auth-required">'.$this->message('يجب تسجيل الدخول أولًا لفتح البروفايل.','Sign in to open the profile.').' <a href="'.route('login').'">'.$this->message('تسجيل الدخول','Sign in').'</a></div>',401);
+            return redirect()->route('login')->withErrors(['msg'=>$this->message('يجب تسجيل الدخول أولًا.','Please sign in first.')]);
         }
         $user=$user?:auth()->user();
         $user->load('profile','wallet','inventoryItems.storeItem');
@@ -56,9 +61,10 @@ class ProfileController
             }
             $profile->save();
         }
+        $updated=$this->message('تم تحديث الملف الشخصي بنجاح','Profile updated successfully');
         if($request->expectsJson() || $request->ajax()){
             $user->load('profile');
-            return response()->json(['ok'=>true,'message'=>'تم تحديث البروفايل بنجاح','profile'=>[
+            return response()->json(['ok'=>true,'message'=>$updated,'profile'=>[
                 'country_code'=>$user->profile?->country_code,
                 'country_name'=>country_name($user->profile?->country_code ?? 'PS'),
                 'flag_url'=>flag_url($user->profile?->country_code ?? 'PS'),
@@ -66,13 +72,13 @@ class ProfileController
                 'display_name'=>$user->profile?->display_name ?: $user->username,
             ]]);
         }
-        return back()->with('ok','تم تحديث البروفايل بنجاح');
+        return back()->with('ok',$updated);
     }
 
     public function search(Request $request)
     {
         if(!auth()->user()?->is_admin){
-            return redirect()->route('friends')->with('ok','بحث اللاعبين متاح للاعبين داخل دردشة الأصدقاء فقط.');
+            return redirect()->route('friends')->with('ok',$this->message('بحث اللاعبين متاح للاعبين داخل دردشة الأصدقاء فقط.','Player search is available inside friends chat.'));
         }
         $q=mb_substr(trim((string)$request->query('q','')),0,60);
         $users=collect();
