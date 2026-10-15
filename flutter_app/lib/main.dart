@@ -3446,13 +3446,13 @@ class _LoginScreenState extends State<LoginScreen> {
     final lightPanel = palette.panel.computeLuminance() > .5;
     final actionColor = lightPanel ? const Color(0xff064777) : const Color(0xffa1ecff);
     final loginTheme = theme.copyWith(
-      textButtonTheme: TextButtonThemeData(style: (theme.textButtonTheme.style ?? const ButtonStyle()).merge(
-        TextButton.styleFrom(foregroundColor: actionColor, disabledForegroundColor: palette.muted),
-      )),
-      outlinedButtonTheme: OutlinedButtonThemeData(style: (theme.outlinedButtonTheme.style ?? const ButtonStyle()).merge(
-        OutlinedButton.styleFrom(foregroundColor: actionColor, disabledForegroundColor: palette.muted,
-          side: BorderSide(color: actionColor.withValues(alpha: .6))),
-      )),
+      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
+        foregroundColor: actionColor, disabledForegroundColor: palette.muted,
+      ).merge(theme.textButtonTheme.style)),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
+        foregroundColor: actionColor, disabledForegroundColor: palette.muted,
+        side: BorderSide(color: actionColor.withValues(alpha: .6)),
+      ).merge(theme.outlinedButtonTheme.style)),
       expansionTileTheme: theme.expansionTileTheme.copyWith(textColor: actionColor,
         collapsedTextColor: actionColor, iconColor: actionColor, collapsedIconColor: actionColor),
       dividerColor: actionColor.withValues(alpha: .3),
