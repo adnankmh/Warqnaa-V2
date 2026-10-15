@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Profile;
+use App\Models\StoreItem;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +23,15 @@ class R36StoreLocalizationTest extends TestCase
             'country_name' => 'Palestine',
         ]);
         Wallet::create(['user_id' => $user->id, 'tokens' => 1000, 'gems' => 0]);
+        StoreItem::create([
+            'key' => 'r36_bilingual_search_probe',
+            'name' => ['ar' => 'اختبار البحث', 'en' => 'Search Probe'],
+            'description' => ['ar' => 'عنصر اختبار', 'en' => 'Test item'],
+            'category' => 'text_color',
+            'price' => 100,
+            'active' => true,
+            'payload' => ['color' => '#25e4df'],
+        ]);
 
         return $user;
     }
@@ -39,7 +49,7 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('No items match your search or filters.')
             ->assertSee('const resultPrefix=', false)
             ->assertSee("replace(/[أإآٱ]/g,'ا')", false)
-            ->assertSee('باشا 7 أيام Pasha 7 Days pasha_7_days_v128 pasha', false)
+            ->assertSee('اختبار البحث Search Probe r36_bilingual_search_probe text_color', false)
             ->assertSee('>Preview<', false)
             ->assertSee('>Buy<', false)
             ->assertDontSee('ابحث داخل القسم الحالي فقط...')
@@ -57,7 +67,7 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('كل ما تملكه يظهر هنا للتفعيل والمعاينة.')
             ->assertSee('كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.')
             ->assertSee('لا توجد عناصر تطابق البحث أو عوامل التصفية.')
-            ->assertSee('باشا 7 أيام Pasha 7 Days pasha_7_days_v128 pasha', false)
+            ->assertSee('اختبار البحث Search Probe r36_bilingual_search_probe text_color', false)
             ->assertSee('>معاينة<', false)
             ->assertSee('>شراء<', false);
     }
