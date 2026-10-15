@@ -22,6 +22,32 @@ void main() {
     }
   }
 
+  testWidgets('R36 top counter preserves the full primary-admin balance on narrow phones',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    const balance = '9,999,999,999,999,999,999';
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(
+        width: 108,
+        child: B307TopCounter(
+          icon: Icons.monetization_on_rounded,
+          value: balance,
+          accent: B307SkyLuxury.goldSoft,
+        ),
+      ),
+    ))));
+    final label = tester.widget<Text>(find.text(balance));
+    expect(label.maxLines, 1);
+    expect(label.softWrap, isFalse);
+    expect(find.ancestor(of: find.text(balance), matching: find.byType(FittedBox)), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('R35 original coastline and trophy render at both orientations',
       (tester) async {
     for (final viewport in <Size>[const Size(390, 844), const Size(1240, 720)]) {
