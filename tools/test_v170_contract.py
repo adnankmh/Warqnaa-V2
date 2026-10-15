@@ -39,7 +39,9 @@ def main() -> int:
         "ProductCardV170(controller: controller, product: product)",
         "showPublicPlayerProfileV170",
         "showChallengesV170",
-        "GroupInnovationHubV170",
+        # The home shortcut now uses the authenticated directory instead of the
+        # old presentation-only group hub. R36 exercises its real join action.
+        "body: R11ClubsWorldPage(controller: controller)",
         "TarneebBidButtonV170",
         "serverAutoNextRoundTimer",
         "Duration(milliseconds: 1700)",
@@ -180,7 +182,9 @@ def main() -> int:
         "sendToUser",
     ])
     require("backend-laravel/app/Http/Controllers/MobileApiController.php", [
-        "DailyRewardClaim::where('user_id', $user->id)->whereDate('claim_date', $today)->exists()",
+        "DailyRewardClaim::where('user_id', $player->id)",
+        "lockForUpdate()->findOrFail($user->id)",
+        "'idempotency_key' => 'daily:'.$today.':player:'.$player->id",
         "تم استلام مكافأة اليوم مسبقاً",
     ])
     require("backend-laravel/app/Http/Controllers/TournamentController.php", [

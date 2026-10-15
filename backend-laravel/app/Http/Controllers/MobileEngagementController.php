@@ -19,7 +19,7 @@ class MobileEngagementController extends Controller
             'daily_pack'=>$this->packStatus($user->id),
             'prize_boxes'=>$prizeBoxes->center($user),
             'lucky_wheel'=>$wheel->center($user),
-            'inventory'=>$user->inventoryItems()->with('storeItem')->latest()->limit(200)->get(),
+            'inventory'=>$user->inventoryItems()->with('storeItem')->latest()->get(),
             'challenges'=>$challenges->center($user),
             'challenge_road'=>app(ChallengeRoadService::class)->state($user),
             'competitions'=>Tournament::whereIn('status', ['open','running'])->withCount('entries')->orderByDesc('featured')->orderBy('starts_at')->get(),

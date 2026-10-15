@@ -117,6 +117,16 @@ class R19BotReview extends StatelessWidget {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    final report=FlutterError.onError;
+    FlutterError.onError=(details) {
+      // Preserve the widget/constraint diagnostics even when capture() consumes
+      // the exception to assert it. The test must still fail normally.
+      debugPrint(details.toString());
+      report?.call(details);
+    };
+    addTearDown(() { FlutterError.onError=report; });
+  });
   setUpAll(() async {
     if (runtimeUrl.isEmpty) return;
     final fontBytes = await File(const String.fromEnvironment('R7_REVIEW_FONT')).readAsBytes();

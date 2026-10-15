@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const {RummyDraft} = require('../backend-laravel/public/assets/js/r36-rummy-workspace.js');
+const draft = new RummyDraft(['3_spades','3_spades','4_spades','5_spades','4_hearts','5_hearts']);
+draft.toggle(0); draft.toggle(2);
+assert.equal(draft.add(),false,'incomplete group must stay a draft');
+draft.toggle(3); assert.equal(draft.add(),true);
+draft.toggle(0); assert.equal(draft.selected.size,0,'a card cannot be reused in another draft');
+draft.toggle(1); draft.toggle(4); draft.toggle(5); assert.equal(draft.add(),true);
+assert.deepEqual(draft.payload(),[['3_spades','4_spades','5_spades'],['3_spades','4_hearts','5_hearts']]);
+draft.undo(0); draft.toggle(0); draft.toggle(2); draft.toggle(3); assert.equal(draft.add(),true);
+const all=draft.payload().flat();
+assert.equal(all.length,6); assert.equal(all.filter(card=>card==='3_spades').length,2);
+draft.toggle(-1); draft.toggle(80); assert.equal(draft.selected.size,0);
+console.log('R36 rummy drafts: duplicate-card selection, grouping, undo and card conservation PASS');

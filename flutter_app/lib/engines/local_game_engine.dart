@@ -401,7 +401,7 @@ class LocalGameSession {
       final totalPairs = candidate.fold<int>(0, (sum, hand) => sum + _pairQuality(hand));
       final totalMelds = candidate.fold<int>(
         0,
-        (sum, hand) => sum + _nonOverlappingMelds(_meldSuggestions(hand)).length,
+        (sum, hand) => sum + _nonOverlappingMelds(_meldSuggestions(hand),hand).length,
       );
       final totalQuality = qualities.fold<int>(0, (sum, value) => sum + value);
       final scenario = attempt % 8;
@@ -448,7 +448,7 @@ class LocalGameSession {
 
   int _rummyDealQuality(List<String> hand) {
     final melds = _meldSuggestions(hand);
-    final nonOverlapping = _nonOverlappingMelds(melds);
+    final nonOverlapping = _nonOverlappingMelds(melds,hand);
     final meldPoints = nonOverlapping.fold<int>(0, (sum, meld) => sum + _rummyPoints(meld));
     final jokers = hand.where((card) => card.startsWith('JOKER')).length;
     return nonOverlapping.length * 6 +
@@ -612,7 +612,7 @@ class LocalGameSession {
       if (_localRummyOpened(0)) {
         for (var meldIndex = 0; meldIndex < _melds.length; meldIndex++) {
           final owner = _meldOwners.length > meldIndex ? _meldOwners[meldIndex] : 0;
-          final sameSide = owner == 0 || (_isHandPartner || gameId == 'banakil') && owner.isEven;
+          final sameSide = (!_isHandPartner && gameId!='banakil') || owner == 0 || owner.isEven;
           if (!sameSide) continue;
           for (final card in _hands[0]) {
             final combined = <String>[..._melds[meldIndex], card];
@@ -1225,12 +1225,12 @@ class LocalGameSession {
     _messages.add(_t('بدأت الجولة $round من مملكة ${_seatName(_kingdomOwnerSeat)}.', 'Round $round started in ${_seatName(_kingdomOwnerSeat)}’s kingdom.'));
   }
 
-  List<List<String>> _nonOverlappingMelds(List<List<String>> suggestions) {
+  List<List<String>> _nonOverlappingMelds(List<List<String>> suggestions,[List<String>? sourceHand]) {
     final selected = <List<String>>[];
     final used = <String>[];
     for (final suggestion in suggestions) {
       final trial = <String>[...used, ...suggestion];
-      if (_containsAll(_hands[0], trial)) {
+      if (_containsAll(sourceHand ?? _hands[0], trial)) {
         selected.add(List<String>.from(suggestion));
         used.addAll(suggestion);
       }
@@ -1423,7 +1423,7 @@ class LocalGameSession {
       final cards = (payload['cards'] as List?)?.map((e) => e.toString()).toList() ?? <String>[];
       if (!_localRummyOpened(0) || index < 0 || index >= _melds.length || cards.isEmpty || !_containsAll(_hands[0], cards)) throw StateError(_t('التركيب غير متاح.', 'Adding to that meld is unavailable.'));
       final owner = _meldOwners.length > index ? _meldOwners[index] : 0;
-      final sameSide = owner == 0 || (_isHandPartner || gameId == 'banakil') && owner.isEven;
+      final sameSide = (!_isHandPartner && gameId!='banakil') || owner == 0 || owner.isEven;
       final combined = <String>[..._melds[index], ...cards];
       if (!sameSide || !_isValidMeld(combined)) throw StateError(_t('لا يمكن تركيب هذه الأوراق على المجموعة المختارة.', 'Those cards cannot be added to the selected meld.'));
       for (final card in cards) {
@@ -1476,41 +1476,62 @@ class LocalGameSession {
     _autoBotsUntilHuman();
   }
 
+  int _rummyBotPotential(List<String> hand) {
+    final groups=_nonOverlappingMelds(_meldSuggestions(hand),hand);
+    return groups.fold<int>(0,(sum,group)=>sum+group.length)*35 +
+      _pairQuality(hand)+_nearRunQuality(hand)-hand.length*12;
+  }
+
   void _runRummyBot(int seat) {
-    _ensureDeckForRummy();
-    if (_deck.isNotEmpty) {
-      _hands[seat].add(_deck.removeLast());
-    }
-    final suggestions = _meldSuggestions(_hands[seat])
-      ..removeWhere((meld) => !_localRummyOpened(seat) && _rummyPoints(meld) < _localRummyOpeningRequired(seat))
-      ..sort((a, b) => _rummyPoints(b).compareTo(_rummyPoints(a)));
-    final meldThreshold = _easyAi ? .72 : _normalAi ? .35 : _masterAi ? .02 : .15;
-    if (suggestions.isNotEmpty && _random.nextDouble() > meldThreshold) {
-      final meld = suggestions.first;
-      for (final card in meld) {
-        _hands[seat].remove(card);
+    var take=0;
+    if (!_easyAi && _discard.isNotEmpty) {
+      final baseline=_rummyBotPotential(_hands[seat]);
+      var best=baseline;
+      for(var count=1;count<=min(gameId=='banakil'?8:1,_discard.length);count++) {
+        final candidate=<String>[..._hands[seat],..._discard.sublist(_discard.length-count)];
+        final groups=_nonOverlappingMelds(_meldSuggestions(candidate),candidate);
+        final canOpen=_localRummyOpened(seat) || groups.fold<int>(0,(sum,group)=>sum+_rummyPoints(group))>=_localRummyOpeningRequired(seat);
+        final score=_rummyBotPotential(candidate);
+        if (score>best && (gameId=='banakil' || (canOpen && groups.isNotEmpty))) {best=score;take=count;}
       }
-      _melds.add(meld);
-      _meldOwners.add(seat);
-      _recordLocalRummyOpening(seat, _rummyPoints(meld));
-      _messages.add(_t('${_seatName(seat)} نزّل مجموعة بقيمة ${_rummyPoints(meld)}.', '${_seatName(seat)} melded a set worth ${_rummyPoints(meld)} points.'));
     }
-    if (_hands[seat].isEmpty) {
-      _finishRummy(seat);
-      return;
+    if(take>0) {
+      final start=_discard.length-take;
+      _hands[seat].addAll(_discard.sublist(start));_discard.removeRange(start,_discard.length);
+      _messages.add(_t('${_seatName(seat)} سحب $take من النار.','${_seatName(seat)} took $take discard cards.'));
+    } else {
+      _ensureDeckForRummy();
+      if (_deck.isNotEmpty) _hands[seat].add(_deck.removeLast());
     }
+    final groups=_nonOverlappingMelds(_meldSuggestions(_hands[seat]),_hands[seat]);
+    final total=groups.fold<int>(0,(sum,group)=>sum+_rummyPoints(group));
+    final threshold=_easyAi ? .72 : _normalAi ? .35 : _masterAi ? 0.0 : .10;
+    if(groups.isNotEmpty && (_localRummyOpened(seat)||total>=_localRummyOpeningRequired(seat)) &&
+      (take>0 || _random.nextDouble()>threshold)) {
+      for(final group in groups) {
+        for(final card in group) {_hands[seat].remove(card);}
+        _melds.add(group);_meldOwners.add(seat);
+      }
+      _recordLocalRummyOpening(seat,total);
+      _messages.add(_t('${_seatName(seat)} نزّل ${groups.length} مجموعات.','${_seatName(seat)} melded ${groups.length} groups.'));
+    }
+    if(!_easyAi && _localRummyOpened(seat)) {
+      for(final card in List<String>.from(_hands[seat])) {
+        for(var index=0;index<_melds.length;index++) {
+          final owner=_meldOwners[index];
+          final canAttach=(!_isHandPartner && gameId!='banakil') || owner%2==seat%2;
+          if(canAttach && _isValidMeld(<String>[..._melds[index],card])) {
+            _melds[index].add(card);_hands[seat].remove(card);break;
+          }
+        }
+      }
+    }
+    if (_hands[seat].isEmpty) {_finishRummy(seat);return;}
     final discard = _easyAi ? _hands[seat][_random.nextInt(_hands[seat].length)] : _smartRummyDiscard(_hands[seat]);
-    _hands[seat].remove(discard);
-    _discard.add(discard);
-    _starterDiscardPending = false;
-    _messages.add(_t('${_seatName(seat)} رمى ${_prettyCard(discard)}', '${_seatName(seat)} discarded ${_prettyCard(discard)}'));
-    if (_hands[seat].isEmpty) {
-      _finishRummy(seat);
-      return;
-    }
-    currentSeat = (seat + 1) % playerCount;
-    phase = 'draw';
-    enginePhase = 'draw';
+    _hands[seat].remove(discard);_discard.add(discard);_starterDiscardPending=false;
+    _messages.add(_t('${_seatName(seat)} رمى ${_prettyCard(discard)}','${_seatName(seat)} discarded ${_prettyCard(discard)}'));
+    if (_hands[seat].isEmpty) {_finishRummy(seat);return;}
+    currentSeat=(seat+1)%playerCount;phase='draw';enginePhase='draw';
   }
 
   void _finishRummy(int winner) {
@@ -1537,7 +1558,20 @@ class LocalGameSession {
     final protected = <String>{for (final meld in suggestions) ...meld};
     final candidates = hand.where((card) => !protected.contains(card)).toList();
     final pool = candidates.isEmpty ? List<String>.from(hand) : candidates;
-    pool.sort((a, b) => _cardPoints(b).compareTo(_cardPoints(a)));
+    int retention(String card) {
+      if(card.startsWith('JOKER') || (gameId=='banakil' && _cardRank(card)=='2')) return 1000;
+      var score=protected.contains(card)?100:0;
+      for(final other in hand) {
+        if(other==card)continue;
+        if(_cardRank(card)==_cardRank(other))score+=10;
+        if(_cardSuit(card)==_cardSuit(other)) {
+          final gap=(_standardRanks.indexOf(_cardRank(card))-_standardRanks.indexOf(_cardRank(other))).abs();
+          if(gap==1)score+=12;if(gap==2)score+=5;
+        }
+      }
+      return score;
+    }
+    pool.sort((a,b)=>retention(a).compareTo(retention(b))!=0?retention(a).compareTo(retention(b)):_cardPoints(b).compareTo(_cardPoints(a)));
     return pool.first;
   }
 
@@ -1564,7 +1598,8 @@ class LocalGameSession {
     }
     for (final cards in byRank.values) {
       if (cards.length >= 3) {
-        suggestions.add(cards.take(4).toList());
+        final unique=<String,String>{for(final card in cards)_cardSuit(card):card};
+        if(unique.length>=3)suggestions.add(unique.values.take(4).toList());
       }
     }
     for (final suit in _suits) {
@@ -1606,7 +1641,7 @@ class LocalGameSession {
       if (card.startsWith('JOKER')) return false;
       return gameId != 'banakil' || _cardRank(card) != '2';
     }).toList();
-    if (natural.isEmpty) {
+    if (natural.length<2) {
       return false;
     }
     final wildCount = jokerCount + twoCount;
@@ -1620,7 +1655,7 @@ class LocalGameSession {
             suits.length == natural.length &&
             natural.length + wildCount <= 4;
       }
-      return true;
+      return natural.length+wildCount<=4 && natural.map(_cardSuit).toSet().length==natural.length;
     }
 
     final sameSuit = natural.every((card) => _cardSuit(card) == _cardSuit(natural.first));

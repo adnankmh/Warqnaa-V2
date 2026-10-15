@@ -6,6 +6,29 @@ const String warqnaaR19LuxuryCommerce = '1.9.5+714-game-art-stage';
 /// R10.1 keeps unfinished server-dependent titles out of the customer lobby.
 List<GameInfo> get customerGamesR101 => gamesCatalog.where((game) => !game.serverOnly && !b304BannedCustomerGames.contains(game.id)).toList(growable: false);
 
+/// Search both catalogue languages regardless of the current UI language.
+String normalizeGameSearchR36(String value) => value.toLowerCase()
+    .replaceAll(RegExp(r'[\u0300-\u036f\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]'), '')
+    .replaceAll(RegExp('[أإآٱ]'), 'ا')
+    .replaceAll('ـ', '')
+    .replaceAll(RegExp('[_-]'), ' ')
+    .trim().replaceAll(RegExp(r'\s+'), ' ');
+
+String gameFamilyR36(String id) {
+  if (id == 'tarneeb' || id == 'tarneeb_400' || id == 'syrian_tarneeb') return 'tarneeb';
+  if (id == 'trix' || id == 'trix_partner' || id == 'trix_complex') return 'trix';
+  if (id == 'hand' || id == 'hand_partner' || id == 'saudi_hand' || id == 'banakil') return 'meld';
+  return id == 'baloot' ? 'gulf' : id;
+}
+
+bool matchesGameSearchR36(GameInfo game, String query, {String family = 'all'}) {
+  if (family != 'all' && gameFamilyR36(game.id) != family) return false;
+  final aliases = game.id == 'basra' ? 'بصرة بصره باصره basrah' : '';
+  final text = normalizeGameSearchR36('${game.id} ${L.t('ar', game.id)} ${L.t('en', game.id)} $aliases');
+  final words = normalizeGameSearchR36(query).split(' ').where((word) => word.isNotEmpty);
+  return words.every(text.contains);
+}
+
 class R101ThemeSpec {
   const R101ThemeSpec({required this.code, required this.accent, required this.accent2, required this.background, required this.surface, required this.light});
   final String code;
@@ -276,7 +299,8 @@ class R19PashaProfileHero extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             '@${controller.username} • ${controller.countryFlag} ${controller.countryName}',
-                            maxLines: 1,
+                            key: const Key('r19-profile-identity'),
+                            maxLines: constraints.maxWidth < 350 ? 2 : 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700),
                           ),
@@ -430,7 +454,7 @@ class R19BoosterStatus extends StatelessWidget {
                 ar
                     ? 'يعزّز تقدّم XP المؤهّل فقط. لا يغيّر أوراقك أو ترتيب الأدوار أو نقاط الجولة أو نتيجة المباراة.'
                     : 'Boosts eligible XP progression only. It never changes your cards, turn order, round score, or match result.',
-                style: TextStyle(fontSize: 10.5, height: 1.5, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .72)),
+                style: const TextStyle(fontSize: 11.5, height: 1.5, fontWeight: FontWeight.w600, color: Color(0xffd7eaf4)),
               ),
               const SizedBox(height: 11),
               Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
@@ -444,6 +468,12 @@ class R19BoosterStatus extends StatelessWidget {
                 onPressed: onBrowse,
                 icon: const Icon(Icons.rocket_launch_rounded, size: 18),
                 label: Text(ar ? 'استعراض المسرّعات' : 'Browse boosters'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xffe8f6ff),
+                  backgroundColor: accent.withValues(alpha: .08),
+                  side: BorderSide(color: accent.withValues(alpha: .62)),
+                  minimumSize: const Size(44, 46),
+                ),
               ),
             ],
           );
@@ -611,11 +641,11 @@ class R101CommerceShowcase extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(ar ? 'متجر ورقنا المميز' : 'Warqnaa Luxury Store', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text(ar ? 'متجر ورقنا المميز' : 'Warqnaa Luxury Store', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
               const SizedBox(height: 4),
               Text(
                 ar ? 'عروض حقيقية، مقتنيات، مسرّعات وهوية بصرية — مع تحقق خادمي قبل منح أي رصيد.' : 'Real offers, collectibles, boosters and visual identity — server verified before currency is granted.',
-                style: TextStyle(fontSize: 10, height: 1.45, color: scheme.onSurface.withValues(alpha: .70)),
+                style: const TextStyle(fontSize: 12, height: 1.45, fontWeight: FontWeight.w600, color: Colors.white70),
               ),
               const SizedBox(height: 8),
               Wrap(spacing: 6, runSpacing: 6, children: [
@@ -731,6 +761,7 @@ class R20StoreCollections extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    final scheme = Theme.of(context).colorScheme;
     final groups = <(String, String, IconData)>[
       ('pasha', ar ? 'الباشا' : 'Pasha', Icons.diamond_rounded),
       ('themes', ar ? 'الثيمات' : 'Themes', Icons.palette_outlined),
@@ -740,28 +771,86 @@ class R20StoreCollections extends StatelessWidget {
       ('covers', ar ? 'الأغلفة' : 'Covers', Icons.wallpaper_outlined),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(ar ? 'مجموعاتك المميزة' : 'Explore your collections', style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 10),
+      Row(children: [
+        Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            gradient: LinearGradient(colors: <Color>[scheme.primary, scheme.secondary]),
+            boxShadow: <BoxShadow>[BoxShadow(color: scheme.primary.withValues(alpha: .20), blurRadius: 16, offset: const Offset(0, 6))],
+          ),
+          child: Icon(Icons.auto_awesome_rounded, size: 20, color: scheme.onPrimary),
+        ),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(ar ? 'مجموعاتك المميزة' : 'Explore your collections', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 2),
+          Text(
+            ar ? 'استعرض الكتالوج الحقيقي وعاين كل عنصر قبل الاختيار' : 'Browse the live catalog and preview every item before choosing',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurface.withValues(alpha: .68), height: 1.25),
+          ),
+        ])),
+      ]),
+      const SizedBox(height: 12),
       LayoutBuilder(builder: (context, box) {
         final columns = box.maxWidth >= 1000 ? 6 : box.maxWidth >= 600 ? 3 : 2;
         final width = (box.maxWidth - (columns - 1) * 8) / columns;
-        return Wrap(spacing: 8, runSpacing: 8, children: [for (final group in groups)
-          SizedBox(width: width, child: Material(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              key: ValueKey('r20-collection-${group.$1}'),
-              borderRadius: BorderRadius.circular(18),
-              onTap: () => browse(context, group.$1, group.$2),
-              child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(group.$3, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 8),
-                Text(group.$2, style: const TextStyle(fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4),
-                Text(ar ? '${items(group.$1).length} عنصر • ${items(group.$1).where((p) => controller.isOwnedActiveV176(p.id)).length} مملوك' : '${items(group.$1).length} items • ${items(group.$1).where((p) => controller.isOwnedActiveV176(p.id)).length} owned', style: Theme.of(context).textTheme.bodySmall),
-              ])),
-            ),
-          )),
+        return Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final group in groups)
+            Builder(builder: (context) {
+              final catalog = items(group.$1);
+              final owned = catalog.where((product) => controller.isOwnedActiveV176(product.id)).length;
+              return SizedBox(width: width, child: Semantics(
+                button: true,
+                label: ar ? '${group.$2}، ${catalog.length} عنصر، $owned مملوك' : '${group.$2}, ${catalog.length} items, $owned owned',
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Ink(
+                    height: 126,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: scheme.primary.withValues(alpha: .28)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: <Color>[scheme.primary.withValues(alpha: .15), scheme.surfaceContainerHighest, scheme.secondary.withValues(alpha: .08)],
+                      ),
+                      boxShadow: <BoxShadow>[BoxShadow(color: scheme.shadow.withValues(alpha: .10), blurRadius: 14, offset: const Offset(0, 7))],
+                    ),
+                    child: InkWell(
+                      key: ValueKey('r20-collection-${group.$1}'),
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => browse(context, group.$1, group.$2),
+                      child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(color: scheme.primary.withValues(alpha: .14), borderRadius: BorderRadius.circular(11), border: Border.all(color: scheme.primary.withValues(alpha: .26))),
+                            child: Icon(group.$3, size: 19, color: scheme.primary),
+                          ),
+                          const Spacer(),
+                          Icon(Icons.arrow_forward_rounded, size: 18, color: scheme.primary),
+                        ]),
+                        const Spacer(),
+                        Text(group.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, height: 1.05)),
+                        const SizedBox(height: 5),
+                        Text(
+                          ar ? '${catalog.length} عنصر  •  $owned مملوك' : '${catalog.length} items  •  $owned owned',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurface.withValues(alpha: .70), fontWeight: FontWeight.w700),
+                        ),
+                      ])),
+                    ),
+                  ),
+                ),
+              ));
+            }),
         ]);
       }),
     ]);

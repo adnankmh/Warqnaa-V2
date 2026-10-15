@@ -179,6 +179,18 @@ class R34GameEmblem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (customerGamesR101.any((game)=>game.id==gameId)) {
+      return ClipRRect(
+        borderRadius:BorderRadius.circular(compact?9:14),
+        child:Image.asset(r101GameArtAsset(gameId),fit:BoxFit.contain,
+          filterQuality:FilterQuality.high,errorBuilder:(_,__,___)=>_fallback(context)),
+      );
+    }
+    return _fallback(context);
+  }
+
+  // Vector fallback is retained for unsupported legacy games and loading errors.
+  Widget _fallback(BuildContext context) {
     final id = gameId.toLowerCase();
     final isTarneeb = id.contains('tarneeb');
     final isTrix = id.contains('trix');

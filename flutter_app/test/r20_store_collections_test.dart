@@ -33,6 +33,13 @@ void main() {
         for (final category in ['pasha', 'themes', 'cards', 'profile_colors', 'emoji', 'covers']) {
           expect(find.byKey(ValueKey('r20-collection-$category')), findsOneWidget);
         }
+        expect(
+          find.text(locale == 'ar'
+              ? 'استعرض الكتالوج الحقيقي وعاين كل عنصر قبل الاختيار'
+              : 'Browse the live catalog and preview every item before choosing'),
+          findsOneWidget,
+        );
+        expect(tester.getSize(find.byKey(const ValueKey('r20-collection-pasha'))).height, greaterThanOrEqualTo(120));
         await tester.ensureVisible(find.byKey(const ValueKey('r20-collection-emoji')));
         await tester.tap(find.byKey(const ValueKey('r20-collection-emoji')));
         await tester.pumpAndSettle();

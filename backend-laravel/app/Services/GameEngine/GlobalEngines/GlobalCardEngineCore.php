@@ -275,6 +275,9 @@ class GlobalCardEngineCore
                 if (!empty($state['config']['banakilScoring']) || $this->canDrawDiscardLegally($state,$playerId)) {
                     $actions[] = ['type'=>'draw_discard'];
                 }
+                if (!empty($state['config']['banakilScoring']) && count($state['discard']) >= 2) {
+                    $actions[] = ['type'=>'draw_discard_stack','max_count'=>count($state['discard'])];
+                }
             }
             return $actions;
         }
@@ -293,7 +296,7 @@ class GlobalCardEngineCore
         }
         if ($this->hasRummyOpened($state,$playerId)) {
             foreach (($state['melds'] ?? []) as $targetPlayer=>$meldList) {
-                $sameSide = $targetPlayer === $playerId || (!empty($state['config']['partnership']) && $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId));
+                $sameSide = empty($state['config']['partnership']) || $targetPlayer === $playerId || $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId);
                 if (!$sameSide) continue;
                 foreach ($meldList as $meldIndex=>$existing) {
                     foreach (($state['hands'][$playerId] ?? []) as $card) {
@@ -331,6 +334,7 @@ class GlobalCardEngineCore
             'pass_trix' => $this->passTrix($state,$playerId),
             'draw_deck' => $this->drawDeck($state, $playerId),
             'draw_discard' => $this->drawDiscard($state, $playerId),
+            'draw_discard_stack' => $this->drawDiscardStack($state, $playerId, (int)($action['count'] ?? 0)),
             'discard' => $this->discardCard($state, $playerId, (string)$action['card']),
             'meld' => $this->meld($state, $playerId, $action['cards'] ?? []),
             'meld_many' => $this->meldMany($state,$playerId,$action['groups'] ?? []),
@@ -742,6 +746,28 @@ class GlobalCardEngineCore
         return $this->finalizeState($state);
     }
 
+    protected function drawDiscardStack(array $state, string $playerId, int $count): array
+    {
+        if (empty($state['config']['banakilScoring']) || $state['phase'] !== 'draw') {
+            throw new GameEngineException('سحب عدة أوراق من النار متاح للبناكل في مرحلة السحب فقط.');
+        }
+        if ($count < 2 || $count > count($state['discard'] ?? [])) {
+            throw new GameEngineException('اختر عددًا صحيحًا من أوراق النار المتاحة.');
+        }
+        // The selected card and every card above it are taken together, in order.
+        // Card multiplicities are conserved across both decks.
+        $picked = array_splice($state['discard'], -$count);
+        $state['hands'][$playerId] = array_merge($state['hands'][$playerId], $picked);
+        $state['phase'] = 'discard';
+        $state['rummyTurnMeta'][$playerId] = [
+            'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'drew_discard'=>true, 'must_meld'=>false, 'melded'=>false, 'layoff'=>false,
+        ];
+        return $this->finalizeState($this->record($state, 'rummy.draw_discard_stack', [
+            'playerId'=>$playerId, 'count'=>$count,
+        ]));
+    }
+
     protected function discardCard(array $state, string $playerId, string $card): array
     {
         if ($state['phase'] !== 'discard') throw new GameEngineException('يجب السحب قبل الرمي.');
@@ -809,7 +835,6 @@ class GlobalCardEngineCore
         if (!$this->hasRummyOpened($state,$playerId)) throw new GameEngineException('يجب أن يفتح اللاعب أو فريقه قبل التركيب.');
         if (!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
         if (!empty($state['config']['partnership']) && $this->teamOf($state, $targetPlayer) !== $this->teamOf($state, $playerId)) throw new GameEngineException('يمكن التركيب على مجموعاتك أو مجموعات شريكك فقط.');
-        if (empty($state['config']['partnership']) && $targetPlayer !== $playerId) throw new GameEngineException('يمكن التركيب على مجموعاتك فقط في اللعب الفردي.');
 
         $combined = array_merge((array)$state['melds'][$targetPlayer][$meldIndex]['cards'], $cards);
         if (count($combined) > 13 || !$this->isValidMeld($combined)) throw new GameEngineException('هذه الأوراق لا تركب قانونيًا على المجموعة المختارة.');
@@ -1027,7 +1052,6 @@ class GlobalCardEngineCore
         if(!in_array($replacement,$state['hands'][$playerId] ?? [],true)) throw new GameEngineException('ورقة الاستبدال ليست في اليد.');
         if(!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
         if(!empty($state['config']['partnership']) && $this->teamOf($state,$targetPlayer)!==$this->teamOf($state,$playerId)) throw new GameEngineException('لا يمكن استبدال جوكر في مجموعات الخصم.');
-        if(empty($state['config']['partnership']) && $targetPlayer!==$playerId) throw new GameEngineException('يمكن استبدال الجوكر في مجموعاتك فقط.');
         $meld=(array)$state['melds'][$targetPlayer][$meldIndex]['cards'];
         if(!$this->canReplaceJoker($meld,$replacement)) throw new GameEngineException('هذه الورقة لا تستبدل الجوكر قانونيًا في المجموعة المحددة.');
         $jokerIndex=null; foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
@@ -1232,6 +1256,29 @@ class GlobalCardEngineCore
     {
         $hand = array_values((array)($state['hands'][$pid] ?? []));
 
+        if (($state['config']['mode'] ?? '') === 'rummy' && ($state['phase'] ?? '') === 'draw') {
+            $base = $this->botRummyPotential($hand, $state);
+            $bestGain = 0;
+            $best = null;
+            foreach ($actions as $action) {
+                if (($action['type'] ?? '') === 'draw_discard') {
+                    $picked = array_slice($state['discard'] ?? [], -1);
+                    $gain = $this->botRummyPotential(array_merge($hand, $picked), $state) - $base;
+                    if ($gain > $bestGain) { $bestGain = $gain; $best = $action; }
+                }
+                if (($action['type'] ?? '') === 'draw_discard_stack') {
+                    // Bounded search uses only this hand and the public fire pile.
+                    for ($count = 2; $count <= min(8, (int)$action['max_count']); $count++) {
+                        $picked = array_slice($state['discard'], -$count);
+                        $gain = $this->botRummyPotential(array_merge($hand, $picked), $state) - $base;
+                        if ($gain > $bestGain) { $bestGain = $gain; $best = ['type'=>'draw_discard_stack','count'=>$count]; }
+                    }
+                }
+            }
+            if ($best !== null) return $best;
+            foreach ($actions as $action) if (($action['type'] ?? '') === 'draw_deck') return $action;
+        }
+
         // Every choice below is selected from availableActions(). The policy is
         // deterministic for a given state so an R13 certification seed always
         // reproduces the same match and never bypasses server validation.
@@ -1304,9 +1351,15 @@ class GlobalCardEngineCore
 
     protected function botChooseCardAction(array $state, string $pid, array $actions, bool $discard): array
     {
-        usort($actions, function(array $a, array $b) use ($state, $discard): int {
+        $hand = (array)($state['hands'][$pid] ?? []);
+        usort($actions, function(array $a, array $b) use ($state, $discard, $hand): int {
             $cardA = (string)($a['card'] ?? '');
             $cardB = (string)($b['card'] ?? '');
+            if ($discard && ($state['config']['mode'] ?? '') === 'rummy') {
+                $keepA = $this->botRummyRetention($cardA, $hand, $state);
+                $keepB = $this->botRummyRetention($cardB, $hand, $state);
+                if ($keepA !== $keepB) return $keepA <=> $keepB;
+            }
             $wildA = str_starts_with($cardA, 'JOKER') || str_starts_with($cardA, '2_');
             $wildB = str_starts_with($cardB, 'JOKER') || str_starts_with($cardB, '2_');
             if ($discard && $wildA !== $wildB) return $wildA ? 1 : -1;
@@ -1316,6 +1369,36 @@ class GlobalCardEngineCore
             return $direction * ($valueA <=> $valueB) ?: strcmp($cardA, $cardB);
         });
         return $actions[0];
+    }
+
+    protected function botRummyRetention(string $card, array $hand, array $state): int
+    {
+        $banakil = !empty($state['config']['banakilScoring']);
+        if (str_starts_with($card, 'JOKER') || ($banakil && $this->rank($card) === '2')) return 1000;
+        $score = 0;
+        foreach ($hand as $other) {
+            if ($other === $card) continue;
+            if ($this->rank($other) === $this->rank($card)
+                && (!$banakil || in_array($this->rank($card), ['3','A'], true))) $score += 12;
+            if ($this->suit($other) === $this->suit($card)) {
+                $gap = abs($this->rankValue($other) - $this->rankValue($card));
+                if ($gap === 1) $score += 12;
+                if ($gap === 2) $score += 5;
+            }
+        }
+        return $score;
+    }
+
+    protected function botRummyPotential(array $hand, array $state): int
+    {
+        $suggested = $this->suggestMelds($hand, 0);
+        $groups = $this->selectDisjointMeldGroups($suggested, $hand, 0, null);
+        // The multi-meld opening helper deliberately returns no single group.
+        // A completed single run must still count when evaluating a draw.
+        if (!$groups && $suggested) $groups = [$suggested[0]['cards']];
+        $covered = array_sum(array_map('count', $groups));
+        $connections = array_sum(array_map(fn($card)=>min(24, $this->botRummyRetention($card, $hand, $state)), $hand));
+        return $covered * 35 + (int)floor($connections / 8) - count($hand) * 12;
     }
 
     protected function handPower(array $hand): int { return array_sum(array_map(fn($c)=>$this->rankValue($c), $hand)); }

@@ -51,6 +51,8 @@ part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
+part 'r36_meld_workspace.dart';
+part 'r36_store_sync.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
 part 'r6_4_world_championship.dart';
@@ -158,7 +160,8 @@ class _WarqnaAppState extends State<WarqnaApp> {
 }
 
 class AppController extends ChangeNotifier {
-  final WarqnaApiClient api = WarqnaApiClient();
+  AppController({WarqnaApiClient? api}) : api=api ?? WarqnaApiClient();
+  final WarqnaApiClient api;
   String? _pendingRoomCodeV174;
   String? _queuedNavigationRouteV175;
   bool _openingNavigationRouteV175 = false;
@@ -170,6 +173,7 @@ class AppController extends ChangeNotifier {
   bool isAdmin = false;
   String adminRole = 'player';
   bool get isPrimaryAdmin => isAdmin && adminRole == 'primary_admin';
+  static final BigInt primaryAdminTokens = BigInt.parse('9999999999999999999');
   bool get isLocalAdmin => isAuthenticated && adminRole == 'local_admin' && authToken == null && !serverConnected;
   int? currentUserId;
   bool serverConnected = false;
@@ -277,7 +281,10 @@ class AppController extends ChangeNotifier {
   String clubImageEmojiV182 = '🛡️';
   String clubDescriptionV182 = 'نادي احترافي داخل مجتمع ورقنا.';
   final Set<String> owned = {'emoji_fun'};
+  final Map<String,int> inventoryQuantitiesR36 = <String,int>{};
   final Map<String, int> storePriceOverrides = <String, int>{};
+  final Map<String,Map<String,dynamic>> serverStoreR36 = <String,Map<String,dynamic>>{};
+  bool serverStoreReadyR36 = false;
   final Map<String, String> storeNameOverrides = <String, String>{};
   final Map<String, String> storeDescriptionOverrides = <String, String>{};
   final Map<String, int> storeDurationOverrides = <String, int>{};
@@ -433,6 +440,9 @@ class AppController extends ChangeNotifier {
     owned
       ..clear()
       ..addAll(prefs.getStringList(_accountKey('owned')) ?? const <String>['emoji_fun']);
+    inventoryQuantitiesR36
+      ..clear()
+      ..addAll(decodeIntMap(prefs.getString(_accountKey('inventoryQuantitiesR36'))));
     gameExitCounts
       ..clear()
       ..addAll(decodeIntMap(prefs.getString(_accountKey('gameExitCounts'))));
@@ -523,6 +533,7 @@ class AppController extends ChangeNotifier {
     await prefs.setInt(_accountKey('activeRoomTurnSeconds'), activeRoomTurnSeconds);
     await prefs.setBool(_accountKey('activeRoomSingleRound'), activeRoomSingleRound);
     await prefs.setStringList(_accountKey('owned'), owned.toList());
+    await prefs.setString(_accountKey('inventoryQuantitiesR36'),jsonEncode(inventoryQuantitiesR36));
     await prefs.setString(_accountKey('gameExitCounts'), jsonEncode(gameExitCounts));
     await prefs.setString(_accountKey('roomExitCountsV210'), jsonEncode(roomExitCountsV210));
     await prefs.setBool(_accountKey('awayMode'), awayMode);
@@ -591,7 +602,7 @@ class AppController extends ChangeNotifier {
       defaultVipDays: isAdmin ? 3650 : 0,
       defaultAvatar: demoAvatarFor(username),
     );
-    if (isAdmin) { level = math.max(level, 99); vipDays = math.max(vipDays, 36500); coins = coins < BigInt.parse('9000000000000000000') ? BigInt.parse('9000000000000000000') : coins; }
+    if (isPrimaryAdmin) { level = math.max(level, 99); vipDays = math.max(vipDays, 36500); coins = primaryAdminTokens; }
     _applyLocalLoginStreak();
     authToken = null;
     api.token = null;
@@ -991,6 +1002,7 @@ class AppController extends ChangeNotifier {
       serverConnected = true;
       final prefs = await SharedPreferences.getInstance();
       await _storeOfflineCredentials(prefs, username, email, password, admin: isAdmin);
+      await refreshServerStoreR36();
       unawaited(_refreshPushRegistration());
       unawaited(startConnectivityMonitorV173());
       await _save();
@@ -1081,6 +1093,12 @@ class AppController extends ChangeNotifier {
     email = 'adnan@device.local';
     final prefs = await SharedPreferences.getInstance();
     await _loadAccountState(prefs, defaultCoins: '1000000', defaultLevel: 99, defaultVipDays: 36500, defaultAvatar: '👑');
+    coins = primaryAdminTokens;
+    owned.addAll(products.map((product) => product.id));
+    for(final product in products) {inventoryQuantitiesR36[product.id]=100;}
+    for (final denomination in competitionTicketValuesV173) {
+      competitionTickets[denomination] = math.max(100, competitionTickets[denomination] ?? 0);
+    }
     isAuthenticated = true;
     await _save();
     refreshUi();
@@ -1122,6 +1140,8 @@ class AppController extends ChangeNotifier {
     currentUserId = null;
     authToken = null;
     api.token = null;
+    serverStoreR36.clear();
+    serverStoreReadyR36=false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
     await prefs.setBool('offlineLoggedIn', false);
@@ -1129,6 +1149,7 @@ class AppController extends ChangeNotifier {
   }
 
   void _applySession(Map<String, dynamic> data) {
+    syncServerStoreR36(data['store']);
     final user = data['user'];
     final wallet = data['wallet'];
     if (user is Map) {
@@ -1154,6 +1175,11 @@ class AppController extends ChangeNotifier {
       final serverTotalXp = int.tryParse(user['xp']?.toString() ?? '');
       if (serverTotalXp != null) xp = xpProgressFromTotal(serverTotalXp, level);
       vipDays = int.tryParse(user['pasha_days']?.toString() ?? '') ?? vipDays;
+      if(user.containsKey('xp_boost_multiplier')) {
+        activeXpMultiplier=math.max(1.0,double.tryParse(user['xp_boost_multiplier']?.toString() ?? '') ?? 1.0);
+        boosterExpiresAtV173=DateTime.tryParse(user['xp_boost_expires_at']?.toString() ?? '');
+        if(boosterExpiresAtV173?.isAfter(DateTime.now())==false)activeXpMultiplier=1.0;
+      }
       selectedCover = user['active_cover']?.toString() ?? selectedCover;
       botDifficultyCode = user['bot_difficulty']?.toString() ?? botDifficultyCode;
       final uiPreferences = user['ui_preferences'];
@@ -1181,12 +1207,17 @@ class AppController extends ChangeNotifier {
       dailyPackLastOpened = pack['last_opened']?.toString() ?? dailyPackLastOpened;
       dailyPackReward = pack['last_reward']?.toString() ?? dailyPackReward;
     }
+    if (data['inventory'] is List) {
+      owned.clear();
+      inventoryQuantitiesR36.clear();
+      packInventoryExpiriesV176.clear();
+    }
     syncPackInventoryV176(data['inventory']);
     syncPrizeBoxesV02(data['prize_boxes']);
-    selectedPashaStyle = 'red';
+    if (user is Map) selectedPashaStyle = user['pasha_style']?.toString() ?? selectedPashaStyle;
     championRankPointsV173 = int.tryParse(data['champion_rank_points']?.toString() ?? '') ?? championRankPointsV173;
     if (isPrimaryAdmin) {
-      if (coins < BigInt.parse('9000000000000000000')) coins = BigInt.parse('9000000000000000000');
+      coins = primaryAdminTokens;
       level = math.max(level, 99);
       vipDays = math.max(vipDays, 36500);
       // Historical compatibility marker retained for cumulative contracts: vipDays = math.max(vipDays, 3650)
@@ -1534,8 +1565,7 @@ class AppController extends ChangeNotifier {
     final reusable = product.reusable;
     final price = priceFor(product);
     if (!reusable && isOwnedActiveV176(product.id)) {
-      activateProduct(product);
-      return true;
+      return activateOwnedProductR36(product);
     }
     if (coins < BigInt.from(price)) {
       lastStoreError = 'رصيدك غير كافٍ. تحتاج إلى ${formatNumber(price)} توكن، ورصيدك الحالي ${formatNumber(coins)}.';
@@ -1544,7 +1574,7 @@ class AppController extends ChangeNotifier {
 
     if (serverConnected) {
       try {
-        final data = await api.purchase(product.id);
+        final data = await api.purchase(product.id, expectedPrice: price);
         final wallet = data['wallet'];
         if (wallet is Map) coins = BigInt.tryParse(wallet['tokens']?.toString() ?? '') ?? coins;
         final tickets = data['tickets'];
@@ -1554,6 +1584,7 @@ class AppController extends ChangeNotifier {
             ..addAll(tickets.map((key, value) => MapEntry(int.tryParse(key.toString()) ?? 0, int.tryParse(value.toString()) ?? 0)));
         }
       } on ApiException catch (e) {
+        if (e.statusCode == 409) await refreshServerStoreR36();
         lastStoreError = e.message;
         return false;
       } catch (_) {
@@ -1563,7 +1594,7 @@ class AppController extends ChangeNotifier {
     } else {
       // GitHub Pages/PWA has no Laravel runtime. Keep the local demo economy fully
       // functional and persistent instead of rejecting every purchase.
-      coins -= BigInt.from(price);
+      if (!isPrimaryAdmin && !isLocalAdmin) coins -= BigInt.from(price);
       if (!isPrimaryAdmin) adminRevenueTokensV182 += BigInt.from(price);
     }
 
@@ -1584,19 +1615,23 @@ class AppController extends ChangeNotifier {
     return true;
   }
 
-  int priceFor(StoreProduct product) => storePriceOverrides[product.id] ?? raisedStorePriceV183(product);
-  String nameFor(StoreProduct product, [String? lang]) => storeNameOverrides[product.id]?.trim().isNotEmpty == true
+  int priceFor(StoreProduct product) => int.tryParse(storeRowR36(product.id)?['price']?.toString() ?? '') ?? storePriceOverrides[product.id] ?? raisedStorePriceV183(product);
+  String nameFor(StoreProduct product, [String? lang]) => storeTextR36(product,'name',lang ?? localeCode) ?? (storeNameOverrides[product.id]?.trim().isNotEmpty == true
       ? storeNameOverrides[product.id]!
-      : product.name(lang ?? localeCode);
-  String descriptionFor(StoreProduct product, [String? lang]) => storeDescriptionOverrides[product.id]?.trim().isNotEmpty == true
+      : product.name(lang ?? localeCode));
+  String descriptionFor(StoreProduct product, [String? lang]) => storeTextR36(product,'description',lang ?? localeCode) ?? (storeDescriptionOverrides[product.id]?.trim().isNotEmpty == true
       ? storeDescriptionOverrides[product.id]!
-      : product.description(lang ?? localeCode);
-  int? durationFor(StoreProduct product) => storeDurationOverrides.containsKey(product.id)
+      : product.description(lang ?? localeCode));
+  int? durationFor(StoreProduct product) => int.tryParse(storeRowR36(product.id)?['duration_days']?.toString() ?? '') ?? (storeDurationOverrides.containsKey(product.id)
       ? storeDurationOverrides[product.id]
-      : product.durationDays;
-  Color color1For(StoreProduct product) => colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
-  Color color2For(StoreProduct product) => colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
+      : product.durationDays);
+  Color color1For(StoreProduct product) => storeGradientR36(product,0) ?? colorFromHex(storeColor1Overrides[product.id] ?? colorToHex(product.previewColor1 ?? const Color(0xff0b4731)));
+  Color color2For(StoreProduct product) => storeGradientR36(product,1) ?? colorFromHex(storeColor2Overrides[product.id] ?? colorToHex(product.previewColor2 ?? const Color(0xffd6aa59)));
   bool isStoreProductVisible(StoreProduct product) {
+    if (serverConnected && serverStoreReadyR36) {
+      final row=serverStoreR36[product.id];
+      return row!=null && (row['active']==true || row['active']==1 || row['active']=='1');
+    }
     if (hiddenStoreProducts.contains(product.id)) return false;
     if (const {'badges','effects'}.contains(product.category)) return false;
     if (product.category == 'tables') return isR61CuratedTable(product);
@@ -1614,6 +1649,11 @@ class AppController extends ChangeNotifier {
     String? color1,
     String? color2,
   }) async {
+    if (serverConnected) {
+      await saveServerStoreProductR36(product,price:price,visible:visible,name:name,description:description,
+        durationDays:durationDays,color1:color1,color2:color2);
+      return;
+    }
     if (price != null) storePriceOverrides[product.id] = price.clamp(0, 999999999).toInt();
     if (name != null) {
       if (name.trim().isEmpty) { storeNameOverrides.remove(product.id); } else { storeNameOverrides[product.id] = name.trim(); }
@@ -1696,9 +1736,11 @@ class AppController extends ChangeNotifier {
       case 'boost':
         activeXpMultiplier = product.multiplier ?? 1.0;
         boosterExpiresAtV173 = DateTime.now().add(const Duration(hours: 24));
-        owned.remove(product.id);
+        if (!isPrimaryAdmin && !isLocalAdmin) {
+          owned.remove(product.id);
+          inventoryQuantitiesR36[product.id]=0;
+        }
         packInventoryExpiriesV176.remove(product.id);
-        if (serverConnected) unawaited(api.activateStoreItemV183(product.id).catchError((_) => <String, dynamic>{}));
         AppSounds.fire('booster_activate');
         break;
     }
@@ -3400,9 +3442,24 @@ class _LoginScreenState extends State<LoginScreen> {
     final palette = AppPalette.fromCode(widget.controller.themeCode);
     final lang = widget.controller.localeCode;
     final ar = lang == 'ar';
+    final theme = Theme.of(context);
+    final lightPanel = palette.panel.computeLuminance() > .5;
+    final actionColor = lightPanel ? const Color(0xff064777) : const Color(0xffa1ecff);
+    final loginTheme = theme.copyWith(
+      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(
+        foregroundColor: actionColor, disabledForegroundColor: palette.muted,
+      ).merge(theme.textButtonTheme.style)),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
+        foregroundColor: actionColor, disabledForegroundColor: palette.muted,
+        side: BorderSide(color: actionColor.withValues(alpha: .6)),
+      ).merge(theme.outlinedButtonTheme.style)),
+      expansionTileTheme: theme.expansionTileTheme.copyWith(textColor: actionColor,
+        collapsedTextColor: actionColor, iconColor: actionColor, collapsedIconColor: actionColor),
+      dividerColor: actionColor.withValues(alpha: .3),
+    );
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, const Color(0xff030810)])),
+      body: Theme(data: loginTheme, child: DecoratedBox(
+        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, lightPanel ? palette.bg : const Color(0xff030810)])),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -3414,9 +3471,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Image.asset('assets/images/brand/warqna_logo.png', width: 88, height: 76, fit: BoxFit.contain),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: TextStyle(color: palette.text, fontSize: 20, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: TextStyle(color: palette.muted, fontSize: 12)),
                     ])),
                   ]),
                   const SizedBox(height: 16),
@@ -3424,9 +3481,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(color: palette.panel.withValues(alpha: .95), borderRadius: BorderRadius.circular(24), border: Border.all(color: palette.gold.withValues(alpha: .2))),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: TextStyle(color: palette.text, fontSize: 22, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: TextStyle(color: palette.muted, fontSize: 12)),
                       const SizedBox(height: 18),
                       TextField(
                         key: const ValueKey('r81-login-name'), controller: loginController, enabled: !busy,
@@ -3453,7 +3510,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       if (!registerMode) Align(alignment: AlignmentDirectional.centerEnd, child: TextButton(onPressed: busy ? null : forgotPassword, child: Text(ar ? 'نسيت كلمة المرور؟' : 'Forgot password?'))),
-                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: const TextStyle(color: Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
+                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: TextStyle(color: lightPanel ? const Color(0xff9d174d) : const Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
                       const SizedBox(height: 8),
                       FilledButton.icon(
                         key: const ValueKey('r81-login-submit'), onPressed: busy ? null : () => submit(),
@@ -3473,7 +3530,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                         ),
                         const SizedBox(height: 6),
-                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: TextStyle(color: palette.muted, fontSize: 11)),
                       ],
                     ]),
                   ),
@@ -3502,7 +3559,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       if (!registerMode && !warqnaProductionMode) TextButton.icon(onPressed: busy ? null : chooseDemoAccount, icon: const Icon(Icons.groups_2_outlined), label: Text(authTextV151(lang, 'chooseDemo'))),
                       if (!registerMode) ...[
-                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: TextStyle(color: palette.muted, fontSize: 11))),
                         Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 6, children: [
                           for (final provider in ['google', 'apple', 'facebook'])
                             OutlinedButton(onPressed: busy ? null : () => socialLogin(provider), child: Text(provider == 'google' ? 'Google' : provider == 'apple' ? 'Apple' : 'Facebook')),
@@ -3515,7 +3572,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }
@@ -3547,6 +3604,20 @@ class _HomeShellState extends State<HomeShell> {
       final desktop = isDesktopWebV183(constraints.maxWidth);
       final mainContent = Column(children: [
         PremiumTopBar(controller: widget.controller),
+        if (widget.controller.isAdmin)
+          Material(
+            color: B307SkyLuxury.navy,
+            child: ListTile(
+              key: const ValueKey('r36-open-admin-center'),
+              dense: true,
+              textColor: B307SkyLuxury.text,
+              iconColor: B307SkyLuxury.textMuted,
+              leading: const Icon(Icons.admin_panel_settings_rounded, color: B307SkyLuxury.goldSoft),
+              title: Text(widget.controller.localeCode == 'ar' ? 'لوحة الإدارة والتعديل الشامل' : 'Administration & full editor'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => AdminDashboardPage(controller: widget.controller))),
+            ),
+          ),
         if (widget.controller.activeGame != null)
           ActiveGameBanner(controller: widget.controller, onResume: () {
             final game = gamesCatalog.where((item) => item.id == widget.controller.activeGame).firstOrNull;
@@ -3663,14 +3734,34 @@ class GamesPage extends StatefulWidget {
 
 class _GamesPageState extends State<GamesPage> {
   String query = '';
+  String family = 'all';
+  final searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void clearFilters() {
+    searchController.clear();
+    setState(() { query = ''; family = 'all'; });
+  }
 
   @override
   Widget build(BuildContext context) {
     final lang = widget.controller.localeCode;
-    final visible = customerGamesR101.where((g) {
-      final name = L.t(lang, g.id).toLowerCase();
-      return name.contains(query.toLowerCase());
-    }).toList();
+    final ar = lang == 'ar';
+    final visible = customerGamesR101.where((g) =>
+      matchesGameSearchR36(g, query, family: family)).toList(growable: false);
+    final families = <(String, String)>[
+      ('all', ar ? 'جميع الألعاب' : 'All games'),
+      ('tarneeb', ar ? 'طرنيب' : 'Tarneeb'),
+      ('trix', ar ? 'تركس' : 'Trix'),
+      ('meld', ar ? 'هاند وبناكل' : 'Hand and Banakil'),
+      ('gulf', ar ? 'بلوت' : 'Baloot'),
+      ('basra', ar ? 'بصرة' : 'Basra'),
+    ];
     return ListView(
       padding: const EdgeInsets.all(13),
       children: [
@@ -3681,13 +3772,61 @@ class _GamesPageState extends State<GamesPage> {
         ),
         const SizedBox(height: 10),
         TextField(
+          key: const ValueKey('r36-game-search'),
+          controller: searchController,
           onChanged: (value) => setState(() => query = value),
           decoration: InputDecoration(
             hintText: L.t(lang, 'search'),
             prefixIcon: const Icon(Icons.search),
+            suffixIcon: query.isEmpty ? null : IconButton(
+              tooltip: ar ? 'مسح البحث' : 'Clear search',
+              onPressed: () {
+                searchController.clear();
+                setState(() => query = '');
+              },
+              icon: const Icon(Icons.close_rounded),
+            ),
           ),
         ),
+        const SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(children: <Widget>[
+            for (final entry in families) Padding(
+              padding: const EdgeInsetsDirectional.only(end: 7),
+              child: ChoiceChip(
+                key: ValueKey('r36-family-${entry.$1}'),
+                label: Text(entry.$2),
+                selected: family == entry.$1,
+                selectedColor: R35ReferenceColors.gold,
+                labelStyle: TextStyle(color: family == entry.$1 ? R35ReferenceColors.navy : null),
+                onSelected: (_) => setState(() => family = entry.$1),
+              ),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 8),
+        Semantics(
+          liveRegion: true,
+          child: Text(ar ? 'النتائج: ${visible.length} / ${customerGamesR101.length}'
+                        : 'Results: ${visible.length} / ${customerGamesR101.length}',
+            key: const ValueKey('r36-game-results'),
+            style: const TextStyle(fontWeight: FontWeight.w700)),
+        ),
         const SizedBox(height: 12),
+        if (visible.isEmpty) PremiumPanel(
+          child: Column(children: <Widget>[
+            const Icon(Icons.search_off_rounded, size: 38, color: R35ReferenceColors.paleGold),
+            const SizedBox(height: 8),
+            Text(ar ? 'لم نجد لعبة بهذه المواصفات' : 'No matching games',
+              key: const ValueKey('r36-games-empty'),
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            TextButton.icon(onPressed: clearFilters,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(ar ? 'عرض جميع الألعاب' : 'Show all games')),
+          ]),
+        ),
         LayoutBuilder(builder: (context, constraints) {
           final columns = constraints.maxWidth < 430 ? 2 : constraints.maxWidth < 850 ? 3 : 4;
           return GridView.builder(
@@ -3700,9 +3839,9 @@ class _GamesPageState extends State<GamesPage> {
               childAspectRatio: columns == 2 ? .92 : .82,
             ),
             itemCount: visible.length,
-            itemBuilder: (_, i) => GameCard(
+            itemBuilder: (_, i) => R35ArtGameCard(
               game: visible[i],
-              lang: lang,
+              locale: lang,
               onTap: () => showGameLobby(context, widget.controller, visible[i]),
             ),
           );
@@ -3743,6 +3882,7 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   String category = 'all';
+  String offerFilterR36 = 'all';
   String tier = 'all';
   String tableCollection = 'all';
   String query = '';
@@ -3752,7 +3892,7 @@ class _StorePageState extends State<StorePage> {
     final lang = widget.controller.localeCode;
     final ar=lang=='ar';
     widget.controller.purgeExpiredPackInventoryV176(DateTime.now());
-    final visible = products.where((p) {
+    final visible = widget.controller.storeProductsR36.where((p) {
       if (p.category == 'pasha_style') return false;
       if (p.id.startsWith('table_reference_')) return false;
       if (!widget.controller.isStoreProductVisible(p)) return false;
@@ -3763,8 +3903,10 @@ class _StorePageState extends State<StorePage> {
       final tableCollectionMatch = category != 'tables' ||
           tableCollection == 'all' ||
           (tableCollection == 'legacy' ? p.collection == null : p.collection == tableCollection);
-      final text = '${p.name(lang)} ${p.description(lang)}'.toLowerCase();
-      return categoryMatch && tierMatch && tableCollectionMatch && text.contains(query.toLowerCase());
+      final text = '${widget.controller.nameFor(p,lang)} ${widget.controller.descriptionFor(p,lang)}'.toLowerCase();
+      final offerMatch=category=='inventory' || offerFilterR36=='all' ||
+        (widget.controller.storeDiscountR36(p.id)>0 && widget.controller.storeRowR36(p.id)?['offer_cadence']==offerFilterR36);
+      return categoryMatch && tierMatch && tableCollectionMatch && offerMatch && text.contains(query.toLowerCase());
     }).toList();
     final categories = <(String,String)>[
       ('all', lang == 'ar' ? 'الكل' : 'All'),
@@ -3796,11 +3938,23 @@ class _StorePageState extends State<StorePage> {
               ),
             ),
             buildMainFileFriendsButton(context, widget.controller),
+            if(widget.controller.serverConnected) IconButton(
+              tooltip:ar?'تحديث المتجر والعروض':'Refresh store & offers',
+              onPressed:() async {await widget.controller.refreshServerStoreR36();if(mounted)setState((){});},
+              icon:const Icon(Icons.refresh_rounded),
+            ),
           ],
         ),
         const SizedBox(height: 10),
         R35StoreTreasureStrip(controller: widget.controller),
         const SizedBox(height: 10),
+        if(widget.controller.serverConnected && widget.controller.serverStoreR36.values.any((row)=>(int.tryParse(row['discount_percent']?.toString() ?? '') ?? 0)>0))
+          Wrap(spacing:8,runSpacing:8,children:[
+            for(final entry in <(String,String)>[('all',ar?'كل العروض':'All offers'),('daily',ar?'العروض اليومية':'Daily offers'),('weekly',ar?'العروض الأسبوعية':'Weekly offers')])
+              ChoiceChip(key:ValueKey('r36-offer-filter-${entry.$1}'),label:Text(entry.$2),selected:offerFilterR36==entry.$1,
+                onSelected:(_)=>setState(()=>offerFilterR36=entry.$1)),
+          ]),
+        const SizedBox(height: 8),
         B307RealMoneyStoreBanner(controller: widget.controller),
         const SizedBox(height: 8),
         R101CommerceShowcase(controller: widget.controller),
@@ -3936,93 +4090,13 @@ class _StorePageState extends State<StorePage> {
 
 class ClubsPage extends StatelessWidget {
   final AppController controller;
-
   const ClubsPage({super.key, required this.controller});
 
   @override
-  Widget build(BuildContext context) {
-    final lang = controller.localeCode;
-    const clubs = [
-      ('falcons', '🦅', 'صقور العرب', 18, 46, 315000, 'متصدر دوري المجموعات'),
-      ('kings', '👑', 'ملوك الورق', 25, 50, 728000, 'مجموعة احترافية • دخول بالباشا'),
-      ('friends', '🤝', 'رفاق اللعب', 12, 31, 146000, 'مجتمع ودي وتحديات يومية'),
-      ('aces', '🂡', 'نخبة الآسات', 31, 48, 910000, 'بطولات أسبوعية وجوائز كبيرة'),
-    ];
-    final currentMatches = clubs.where((c) => c.$1 == controller.activeClub).toList();
-    final current = currentMatches.isEmpty ? null : currentMatches.first;
-    return ListView(
-      padding: const EdgeInsets.all(13),
-      children: [
-        SectionTitle(title: L.t(lang, 'clubs'), action: controller.vipDays > 0 ? '👑 باشا فعّال' : 'ترقية للباشا', onTap: () => showPashaBenefits(context, controller)),
-        const SizedBox(height: 10),
-        if (current != null)
-          PremiumPanel(
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                gradient: LinearGradient(colors: [Theme.of(context).colorScheme.primary.withValues(alpha: .18), Colors.transparent]),
-              ),
-              child: Column(
-                children: [
-                  Text(current.$2, style: const TextStyle(fontSize: 64)),
-                  Text(current.$3, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 5),
-                  Text(current.$7, style: const TextStyle(color: Colors.white60)),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: _ClubMetric(icon: '👥', value: '${current.$5}/50', label: 'الأعضاء')),
-                    const SizedBox(width: 8),
-                    Expanded(child: _ClubMetric(icon: '🪙', value: formatNumber(current.$6), label: 'الخزينة')),
-                    const SizedBox(width: 8),
-                    Expanded(child: _ClubMetric(icon: '⭐', value: 'LV.${current.$4}', label: 'المستوى')),
-                  ]),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: FilledButton.icon(onPressed: () => showClubChallenges(context, controller, current.$3), icon: const Icon(Icons.emoji_events_outlined), label: const Text('تحديات المجموعة'))),
-                    const SizedBox(width: 8),
-                    Expanded(child: FilledButton.tonalIcon(onPressed: controller.leaveClub, icon: const Icon(Icons.logout), label: Text(L.t(lang, 'leaveClub')))),
-                  ]),
-                ],
-              ),
-            ),
-          ),
-        const SizedBox(height: 12),
-        // Legacy v170 contract symbol retained: GroupInnovationHubV170
-        GroupCommandCenterV173(controller: controller),
-        const SizedBox(height: 14),
-        Row(children: [
-          const Expanded(child: SectionTitle(title: 'المجموعات المقترحة')),
-          FilledButton.tonalIcon(onPressed: controller.vipDays > 0 ? () => showCreateGroupV151(context, controller) : () => showPashaBenefits(context, controller), icon: PashaHatV173(controller: controller, width: 30, height: 22), label: Text(controller.vipDays > 0 ? 'إنشاء مجموعة' : 'يتطلب باشا')),
-        ]),
-        const SizedBox(height: 8),
-        ...clubs.map((club) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: PremiumPanel(
-            child: InkWell(
-              onTap: () => showGroupDetailV151(context, controller, club.$1, club.$2, club.$3, club.$4, club.$5, club.$6),
-              borderRadius: BorderRadius.circular(22),
-              child: Padding(
-              padding: const EdgeInsets.all(13),
-              child: Row(children: [
-                Container(width: 58, height: 58, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(18)), child: Text(club.$2, style: const TextStyle(fontSize: 31))),
-                const SizedBox(width: 11),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('${club.$3} • LV.${club.$4}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 3),
-                  Text(club.$7, style: const TextStyle(color: Colors.white60, fontSize: 10)),
-                  const SizedBox(height: 3),
-                  Text('${club.$5}/50 عضو • خزينة ${formatNumber(club.$6)}', style: const TextStyle(color: Colors.white54, fontSize: 9)),
-                ])),
-                FilledButton.tonal(onPressed: controller.activeClub == club.$1 ? () => controller.leaveClub() : () { final ok = controller.joinClub(club.$1); if (!ok) showToast(context, 'غادر المجموعة الحالية قبل الانضمام إلى مجموعة أخرى.'); }, child: Text(controller.activeClub == club.$1 ? 'مغادرة' : L.t(lang, 'joinClub'))),
-              ]),
-            ),
-            ),
-          ),
-        )),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(L.t(controller.localeCode, 'clubs'))),
+    body: R11ClubsWorldPage(controller: controller),
+  );
 }
 
 class _ClubMetric extends StatelessWidget {
@@ -5425,7 +5499,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     super.initState();
     awayMode = widget.controller.awayMode;
     WidgetsBinding.instance.addObserver(this);
-    _create();
+    // Room creation updates the shared controller. Start after the first frame
+    // so the app's AnimatedBuilder is never notified while building this route.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_create());
+    });
     timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
@@ -6891,6 +6969,18 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     }
     if (types.contains('organize')) {
       widgets.add(OutlinedButton.icon(onPressed: sending ? null : () => _action('organize'), icon: const Icon(Icons.auto_awesome, size: 17), label: Text(_roomText('ترتيب ذكي', 'Sort cards'))));
+      if (['hand','hand_partner','saudi_hand','banakil'].contains(widget.game.id)) {
+        widgets.add(OutlinedButton.icon(
+          key:const ValueKey('r36-open-meld-workspace'),
+          onPressed:sending?null:() async {
+            final groups = await showDialog<List<List<String>>>(context:context,
+              builder:(_)=>R36MeldWorkspace(cards:List<String>.from(hand),ar:widget.controller.localeCode=='ar'));
+            if (groups != null && mounted) await _action('meld_many',{'groups':groups});
+          },
+          icon:const Icon(Icons.dashboard_customize_outlined,size:17),
+          label:Text(_roomText('تجميع يدوي ونزول','Group & meld')),
+        ));
+      }
     }
     final melds = availableActions.where((item) => item['type'] == 'meld' && item['cards'] is List).toList();
     if (melds.isNotEmpty) {
@@ -7737,12 +7827,13 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return LayoutBuilder(builder:(context,box)=>Row(
       children: [
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
-        if (action != null) TextButton(onPressed: onTap ?? () {}, child: Text(action!)),
+        Expanded(child: Text(title,maxLines:2,overflow:TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+        if (action != null) ConstrainedBox(constraints:BoxConstraints(maxWidth:box.maxWidth.isFinite?box.maxWidth*.58:160),
+          child:Tooltip(message:action!,child:TextButton(onPressed: onTap ?? () {}, child: Text(action!,maxLines:1,overflow:TextOverflow.ellipsis)))),
       ],
-    );
+    ));
   }
 }
 
@@ -8606,6 +8697,26 @@ void showClubChallenges(BuildContext context, AppController controller, String c
 }
 
 Future<void> openGameRoom(BuildContext context, AppController controller, GameInfo game, {RoomLaunchOptions options = const RoomLaunchOptions()}) async {
+  // Make an existing room actionable instead of silently blocking a new game.
+  if (controller.activeGame != null && controller.activeGame != game.id) {
+    final ar = controller.localeCode == 'ar';
+    final leave = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      title: Text(ar ? 'لديك طاولة مفتوحة' : 'You have an open table'),
+      content: Text(ar ? 'غادر الطاولة الحالية لبدء اللعبة الجديدة.' : 'Leave the current table to start this game.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(ar ? 'إلغاء' : 'Cancel')),
+        FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(ar ? 'غادر وابدأ' : 'Leave & start')),
+      ],
+    ));
+    if (leave != true || !context.mounted) return;
+    final oldCode = controller.activeRoomCode;
+    if (controller.serverConnected && oldCode != null && !oldCode.startsWith('LOCAL')) {
+      try { await controller.api.leaveGame(oldCode); }
+      catch (error) { if (context.mounted) showToast(context, friendlyErrorMessage(error, controller.localeCode)); return; }
+    }
+    controller.leaveGame();
+    if (!context.mounted) return;
+  }
   // R9.1: return limits are exact-room limits enforced by the server, never game-wide limits.
   if (!controller.enterGame(game.id)) {
     showToast(context, 'أنت داخل لعبة أخرى. غادر اللعبة الحالية قبل بدء لعبة جديدة.');
@@ -8692,6 +8803,23 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               ),
             ),
           ]),
+        ),
+        const SizedBox(height: 11),
+        FilledButton.icon(
+          key: ValueKey('r36-play-now-${game.id}'),
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: Text(ar ? 'العب الآن' : 'Play now'),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+          onPressed: () {
+            final navigator = Navigator.of(context, rootNavigator: true);
+            navigator.pop();
+            unawaited(openGameRoom(navigator.context, controller, game,
+              options: RoomLaunchOptions(
+                roomName: L.t(controller.localeCode, game.id),
+                playerCount: v170AllowedPlayerCounts(game.id).first,
+                botCount: v170AllowedPlayerCounts(game.id).first - 1,
+              )));
+          },
         ),
         const SizedBox(height: 11),
         LayoutBuilder(
@@ -9318,10 +9446,11 @@ class _StorePreviewContentV183 extends StatelessWidget {
       const SizedBox(height: 13),
       FilledButton.icon(
         onPressed: controller.isOwnedActiveV176(product.id) && !product.reusable
-            ? () {
-                controller.activateProduct(product);
-                Navigator.pop(context);
-                showToast(context, product.category == 'boost' ? 'تم تفعيل ${controller.nameFor(product)} لمدة 24 ساعة.' : 'تم تفعيل ${controller.nameFor(product)}.');
+            ? () async {
+                final ok=await controller.activateOwnedProductR36(product);
+                if(!context.mounted)return;
+                if(ok)Navigator.pop(context);
+                showToast(context,ok?'تم تفعيل ${controller.nameFor(product)}.':controller.lastStoreError ?? 'تعذر التفعيل.');
               }
             : () async {
                 final confirmed = await showDialog<bool>(
@@ -10000,6 +10129,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
     setState(() => loading = true);
     try {
       serverData = await widget.controller.api.adminDashboard();
+      widget.controller.syncServerStoreR36(serverData?['store'],replace:false);
     } catch (e) {
       if (mounted) showToast(context, e.toString());
     }
@@ -10010,6 +10140,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
   Widget build(BuildContext context) {
     if (!widget.controller.isAdmin) return const Scaffold(body: Center(child: Text('غير مصرح.')));
     final scheme = Theme.of(context).colorScheme;
+    final compact = MediaQuery.sizeOf(context).width < 600;
     return Scaffold(
       backgroundColor: scheme.surface,
       appBar: AppBar(
@@ -10019,17 +10150,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
         titleSpacing: 18,
         flexibleSpace: DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors:[scheme.surfaceContainerHighest,scheme.surface]))),
         title: Row(children:[
-          Container(width:44,height:44,decoration:BoxDecoration(borderRadius:BorderRadius.circular(15),gradient:LinearGradient(colors:[scheme.primary,scheme.secondary])),child:const Icon(Icons.admin_panel_settings_rounded,color:Colors.black)),
-          const SizedBox(width:12),
-          const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Warqnaa Command Center',style:TextStyle(fontWeight:FontWeight.w900,fontSize:18)),Text('إدارة موحدة بنفس هوية التطبيق',style:TextStyle(fontSize:10,fontWeight:FontWeight.w600))])),
+          Container(width:compact?32:44,height:compact?32:44,decoration:BoxDecoration(borderRadius:BorderRadius.circular(15),gradient:LinearGradient(colors:[scheme.primary,scheme.secondary])),child:const Icon(Icons.admin_panel_settings_rounded,color:Colors.black)),
+          SizedBox(width:compact?8:12),
+          Expanded(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text(compact?(widget.controller.localeCode=='ar'?'لوحة الإدارة':'Admin'):'Warqnaa Command Center',maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontWeight:FontWeight.w900,fontSize:compact?16:18)),if(!compact)const Text('إدارة موحدة بنفس هوية التطبيق',maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:10,fontWeight:FontWeight.w600))])),
         ]),
         actions: [
           IconButton(tooltip: widget.controller.localeCode == 'ar' ? 'مركز التشغيل' : 'Operations', onPressed: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => R65OperationsPage(controller: widget.controller))), icon: const Icon(Icons.monitor_heart_outlined)),
-          if(widget.controller.serverConnected) const Padding(padding:EdgeInsetsDirectional.only(end:4),child:Chip(avatar:Icon(Icons.cloud_done_rounded,size:16),label:Text('LIVE'))),
+          if(widget.controller.serverConnected && !compact) const Padding(padding:EdgeInsetsDirectional.only(end:4),child:Chip(avatar:Icon(Icons.cloud_done_rounded,size:16),label:Text('LIVE'))),
           IconButton.filledTonal(onPressed: _load, tooltip:'تحديث', icon: const Icon(Icons.refresh_rounded)),
           const SizedBox(width:10),
         ],
-        bottom: PreferredSize(preferredSize:const Size.fromHeight(54),child:Container(height:54,margin:const EdgeInsets.fromLTRB(12,0,12,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),color:scheme.surfaceContainerHighest.withValues(alpha:.72),border:Border.all(color:scheme.primary.withValues(alpha:.12))),child:TabBar(controller:tabs,isScrollable:true,dividerColor:Colors.transparent,tabAlignment:TabAlignment.start,indicatorSize:TabBarIndicatorSize.tab,indicator:BoxDecoration(borderRadius:BorderRadius.circular(14),color:scheme.primary.withValues(alpha:.18),border:Border.all(color:scheme.primary.withValues(alpha:.28))),tabs:const [Tab(icon:Icon(Icons.dashboard_rounded,size:18),text:'نظرة عامة'),Tab(icon:Icon(Icons.sports_esports_rounded,size:18),text:'الألعاب'),Tab(icon:Icon(Icons.storefront_rounded,size:18),text:'المتجر'),Tab(icon:Icon(Icons.people_alt_rounded,size:18),text:'اللاعبون'),Tab(icon:Icon(Icons.tune_rounded,size:18),text:'المصمم'),Tab(icon:Icon(Icons.public_rounded,size:18),text:'Social'),Tab(icon:Icon(Icons.emoji_events_rounded,size:18),text:'Competitive'),Tab(icon:Icon(Icons.monitor_heart_rounded,size:18),text:'WORLD OPS'),Tab(icon:Icon(Icons.settings_rounded,size:18),text:'النظام')]))),
+        bottom: PreferredSize(preferredSize:const Size.fromHeight(80),child:Container(height:80,margin:const EdgeInsets.fromLTRB(12,0,12,8),decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),color:scheme.surfaceContainerHighest.withValues(alpha:.72),border:Border.all(color:scheme.primary.withValues(alpha:.12))),child:TabBar(controller:tabs,isScrollable:true,dividerColor:Colors.transparent,tabAlignment:TabAlignment.start,indicatorSize:TabBarIndicatorSize.tab,indicator:BoxDecoration(borderRadius:BorderRadius.circular(14),color:scheme.primary.withValues(alpha:.18),border:Border.all(color:scheme.primary.withValues(alpha:.28))),tabs:const [Tab(icon:Icon(Icons.dashboard_rounded,size:18),text:'نظرة عامة'),Tab(icon:Icon(Icons.sports_esports_rounded,size:18),text:'الألعاب'),Tab(icon:Icon(Icons.storefront_rounded,size:18),text:'المتجر'),Tab(icon:Icon(Icons.people_alt_rounded,size:18),text:'اللاعبون'),Tab(icon:Icon(Icons.tune_rounded,size:18),text:'المصمم'),Tab(icon:Icon(Icons.public_rounded,size:18),text:'Social'),Tab(icon:Icon(Icons.emoji_events_rounded,size:18),text:'Competitive'),Tab(icon:Icon(Icons.monitor_heart_rounded,size:18),text:'WORLD OPS'),Tab(icon:Icon(Icons.settings_rounded,size:18),text:'النظام')]))),
       ),
       body: DecoratedBox(
         decoration:BoxDecoration(gradient:LinearGradient(begin:Alignment.topCenter,end:Alignment.bottomCenter,colors:[scheme.surface,scheme.surfaceContainerLowest])),
@@ -10076,7 +10207,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> with SingleTick
           const SizedBox(height:12),
           GridView.count(
             shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),
-            crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,childAspectRatio:wide?1.55:1.35,
+            crossAxisCount:wide?4:2,crossAxisSpacing:10,mainAxisSpacing:10,mainAxisExtent:160,
             children:[
               _AdminMetric(icon:'👥',label:'اللاعبون',value:stats['users']?.toString() ?? 'محلي'),
               _AdminMetric(icon:'🎮',label:'الغرف النشطة',value:stats['active_rooms']?.toString() ?? '—'),

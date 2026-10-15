@@ -1,8 +1,7 @@
 name: R27 Admin Economy Store Localization Gate
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:

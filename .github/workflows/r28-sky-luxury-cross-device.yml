@@ -1,8 +1,7 @@
 name: R28 Sky Luxury Cross Device Gate
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
   workflow_dispatch:
 
 permissions:

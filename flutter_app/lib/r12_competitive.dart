@@ -501,7 +501,22 @@ class R21TournamentCard extends StatelessWidget {
           const SizedBox(height: 12),
           Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
             Text(r21CompetitiveLabel(locale, cup['status']?.toString() ?? ''), style: const TextStyle(color: _r12Gold)),
-            TextButton.icon(onPressed: onTap, icon: const Icon(Icons.arrow_forward_rounded), label: Text(ar ? 'التفاصيل والجدول' : 'Details and bracket')),
+            TextButton.icon(
+              key: ValueKey('r21-cup-details-${cup['id']}'),
+              onPressed: onTap,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white.withValues(alpha: .07),
+                minimumSize: const Size(0, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: _r12Mint.withValues(alpha: .32)),
+                ),
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: Text(ar ? 'التفاصيل والجدول' : 'Details and bracket', style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
           ]),
         ]),
       )));

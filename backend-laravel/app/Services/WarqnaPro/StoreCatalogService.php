@@ -41,6 +41,7 @@ class StoreCatalogService
         $this->deactivateExactDuplicates();
         $this->syncB304VerticalLegend();
         $this->syncR61CuratedTablesAndCardBacks();
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->apply();
         $this->grantPrimaryAdminAllCollectibles();
 
     }
@@ -52,7 +53,7 @@ class StoreCatalogService
         if(!Schema::hasTable('users') || !Schema::hasTable('store_items') || !Schema::hasTable('inventory_items')) return;
         $admins=\App\Models\User::where('admin_role','primary_admin')->get();
         if($admins->isEmpty()) return;
-        $items=\App\Models\StoreItem::where('active',true)->whereNotIn('category',['pasha','competition_ticket'])->get();
+        $items=\App\Models\StoreItem::where('active',true)->where('category', '!=', 'competition_ticket')->get();
         foreach($admins as $admin) foreach($items as $item) $this->grantPrimaryAdminItem((int)$item->id, $admin);
     }
 
@@ -61,14 +62,21 @@ class StoreCatalogService
         if(!Schema::hasTable('inventory_items')) return;
         $admin ??= \App\Models\User::where('is_admin',true)->where('admin_role','primary_admin')->first() ?: \App\Models\User::whereRaw('LOWER(username) = ?', ['adnan'])->where('is_admin',true)->first();
         $item=\App\Models\StoreItem::find($storeItemId);
-        if(!$admin || !$item || !$item->active || in_array($item->category,['pasha','competition_ticket'],true)) return;
+        if(!$admin || !$item || !$item->active || $item->category === 'competition_ticket') return;
         // Keep every active non-consumable collectible in the primary admin inventory.
         // Do not deactivate an existing selection or reset its expiry on catalog sync.
         $owned=\App\Models\InventoryItem::firstOrCreate(
             ['user_id'=>$admin->id,'store_item_id'=>$item->id],
-            ['quantity'=>1,'active'=>false,'activated_at'=>null,'expires_at'=>null]
+            ['quantity'=>\App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY,'active'=>false,'activated_at'=>null,'expires_at'=>null]
         );
-        if ((int)$owned->quantity < 1) $owned->update(['quantity'=>1]);
+        // Every primary-admin catalog item, including each XP booster and Pasha plan,
+        // remains stocked at 100+ with no purchased entitlement expiry.
+        if ((int)$owned->quantity < \App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY || $owned->expires_at !== null) {
+            $owned->update([
+                'quantity'=>max(\App\Services\Admin\PrimaryAdminStateService::INVENTORY_QUANTITY, (int)$owned->quantity),
+                'expires_at'=>null,
+            ]);
+        }
     }
 
     private function upsert(array $item): void

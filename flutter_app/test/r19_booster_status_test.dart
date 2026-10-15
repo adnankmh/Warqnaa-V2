@@ -46,7 +46,19 @@ void main() {
         expect(find.byKey(const Key('r19-premium-booster-status')), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'مسرّعات التقدّم' : 'Progress boosters'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'لا أفضلية داخل اللعب' : 'No in-match advantage'), findsOneWidget);
-        expect(find.textContaining(locale == 'ar' ? 'ترتيب الأدوار' : 'turn order'), findsOneWidget);
+        final descriptionFinder =
+            find.textContaining(locale == 'ar' ? 'ترتيب الأدوار' : 'turn order');
+        expect(descriptionFinder, findsOneWidget);
+        final description = tester.widget<Text>(descriptionFinder);
+        expect(description.style?.fontSize, 11.5);
+        expect(description.style?.fontWeight, FontWeight.w600);
+        expect(description.style?.color, const Color(0xffd7eaf4));
+        final browseButton = tester.widget<OutlinedButton>(
+            find.byKey(const Key('r19-browse-boosters')));
+        expect(browseButton.style?.foregroundColor?.resolve(<WidgetState>{}),
+            const Color(0xffe8f6ff));
+        expect(browseButton.style?.minimumSize?.resolve(<WidgetState>{})?.height,
+            greaterThanOrEqualTo(46));
         expect(find.text('×2.5'), findsOneWidget);
         expect(tester.takeException(), isNull);
       }

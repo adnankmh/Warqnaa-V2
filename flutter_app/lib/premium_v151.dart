@@ -418,7 +418,7 @@ class _AdminStoreStudioV151State extends State<AdminStoreStudioV151> {
   @override
   Widget build(BuildContext context) {
     final normalizedQuery = query.trim().toLowerCase();
-    final items = products.where((product) {
+    final items = widget.controller.storeProductsR36.where((product) {
       if (product.category != category) return false;
       if (product.id.startsWith('table_reference_')) return false;
       if (normalizedQuery.isEmpty) return true;
@@ -565,7 +565,10 @@ class _AdminStoreItemCard extends StatelessWidget {
             Row(children: [
               Expanded(child: OutlinedButton.icon(onPressed: () => _edit(context), icon: const Icon(Icons.edit_outlined, size: 17), label: const Text('تعديل'))),
               const SizedBox(width: 5),
-              IconButton.filledTonal(onPressed: () async { await controller.updateStoreProductAdmin(product, visible: !visible); onChanged(); }, tooltip: visible ? 'إخفاء' : 'إظهار', icon: Icon(visible ? Icons.visibility : Icons.visibility_off)),
+              IconButton.filledTonal(onPressed: () async {
+                try {await controller.updateStoreProductAdmin(product, visible: !visible); onChanged();}
+                catch(error) {if(context.mounted)showToast(context,friendlyErrorMessage(error,controller.localeCode));}
+              }, tooltip: visible ? 'إخفاء' : 'إظهار', icon: Icon(visible ? Icons.visibility : Icons.visibility_off)),
             ]),
           ],
         ),
@@ -626,6 +629,7 @@ class _AdminStoreItemCard extends StatelessWidget {
         ) ??
         false;
     if (saved) {
+      try {
       await controller.updateStoreProductAdmin(
         product,
         price: int.tryParse(price.text) ?? controller.priceFor(product),
@@ -637,6 +641,7 @@ class _AdminStoreItemCard extends StatelessWidget {
       );
       onChanged();
       if (context.mounted) showToast(context, 'تم حفظ جميع خصائص العنصر وتطبيقها مباشرة.');
+      } catch(error) {if(context.mounted)showToast(context,friendlyErrorMessage(error,controller.localeCode));}
     }
     price.dispose();
     name.dispose();

@@ -59,7 +59,7 @@ class B307TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
     return LayoutBuilder(builder: (context, constraints) {
-      final compact = constraints.maxWidth < 390;
+      final compact = constraints.maxWidth < 520;
       final avatarSize = compact ? 36.0 : 42.0;
       return Container(
         margin: const EdgeInsets.fromLTRB(8, 6, 8, 4),
@@ -140,8 +140,8 @@ class B307TopCounter extends StatelessWidget {
   final Color accent;
 
   @override
-  Widget build(BuildContext context) => Container(
-        constraints: const BoxConstraints(minWidth: 58),
+  Widget build(BuildContext context) => Tooltip(message:value,child:Container(
+        constraints: const BoxConstraints(minWidth: 58, maxWidth: 148),
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: <Color>[Color(0xff0b70b3), Color(0xff07558d)]),
@@ -151,9 +151,20 @@ class B307TopCounter extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
           Icon(icon, size: 14, color: accent),
           const SizedBox(width: 4),
-          Flexible(child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w900))),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                value,
+                maxLines: 1,
+                softWrap: false,
+                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w900),
+              ),
+            ),
+          ),
         ]),
-      );
+      ));
 }
 
 class B307BottomNavigation extends StatelessWidget {
@@ -481,6 +492,16 @@ class B307HomeDashboard extends StatelessWidget {
     }
     final games = customerGamesR101;
     final featured = games.take(6).toList(growable: false);
+    // Distinct original card-room palettes mirror the illustrated game
+    // families from the sky/gold reference while preserving real game art.
+    const gameTileGradients = <List<Color>>[
+      <Color>[Color(0xffc52b53), Color(0xff5e145c)],
+      <Color>[Color(0xff14b7e6), Color(0xff064b98)],
+      <Color>[Color(0xff9042de), Color(0xff3e126d)],
+      <Color>[Color(0xffd83e62), Color(0xff6b1a53)],
+      <Color>[Color(0xff086fcc), Color(0xff053e8e)],
+      <Color>[Color(0xffba6a27), Color(0xff694022)],
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 16),
       children: <Widget>[
@@ -535,15 +556,19 @@ class B307HomeDashboard extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .78),
           itemBuilder: (context, index) {
             final game = featured[index];
+            final tilePalette = gameTileGradients[index % gameTileGradients.length];
             return InkWell(
               borderRadius: BorderRadius.circular(15),
               onTap: () => showGameLobby(context, controller, game),
               child: Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  gradient: B307SkyLuxury.panelGradient,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: tilePalette,
+                  ),
                   borderRadius: BorderRadius.circular(15),
-                  border: B307SkyLuxury.border(alpha: .34),
+                  border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .55)),
                   boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
                 ),
                 child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
@@ -623,6 +648,92 @@ class B307HomeDashboard extends StatelessWidget {
               ],
             );
           },
+        ),
+
+        const SizedBox(height: 12),
+        R35StoreTreasureStrip(controller: controller),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'ردود الفعل والباقات' : 'Reactions and packs',
+          icon: Icons.emoji_emotions_rounded,
+          actionLabel: ar ? 'المتجر' : 'Store',
+          onAction: () => onTab(0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
+            Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: <Widget>[
+              for (final emoji in const <String>['😂','😍','🥳','😭','😎','👍','💙','🔥','👏','👑','💎','🏆'])
+                Container(
+                  width: 43, height: 43, alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: B307SkyLuxury.panelGradient,
+                    borderRadius: BorderRadius.circular(11),
+                    border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .57))),
+                  child: Text(emoji, style: const TextStyle(fontSize: 25)),
+                ),
+            ]),
+            const SizedBox(height: 10),
+            Text(ar ? 'معاينة للباقات. أرسل ردود الفعل من داخل غرفة اللعبة.' :
+              'Pack preview. Send reactions inside an actual game room.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 11)),
+            const SizedBox(height: 8),
+            R35GoldAction(
+              label: ar ? 'استعرض باقات الإيموجي' : 'Browse emoji packs',
+              icon: Icons.shopping_bag_rounded, onTap: () => onTab(0)),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'ملفي الشخصي ومظهر الباشا' : 'Profile and Pasha style',
+          icon: Icons.auto_awesome_rounded,
+          actionLabel: ar ? 'تخصيص' : 'Customize',
+          onAction: () => showAvatarPicker(context, controller),
+          child: Row(children: <Widget>[
+            Container(
+              width: 76, height: 76,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: R35ReferenceColors.gold, width: 3),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(color: R35ReferenceColors.gold.withValues(alpha: .23), blurRadius: 14)],
+              ),
+              child: ClipOval(child: AccountAvatar(controller: controller, size: 66)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 3),
+              Text("${ar ? 'المستوى' : 'Level'} ${controller.level} · VIP ${controller.vipDays}",
+                style: const TextStyle(color: R35ReferenceColors.paleGold, fontSize: 11)),
+              const SizedBox(height: 9),
+              R35GoldAction(label: ar ? 'تغيير الصورة والإطار' : 'Change avatar and frame',
+                icon: Icons.photo_camera_rounded,
+                onTap: () => showAvatarPicker(context, controller)),
+            ])),
+          ]),
+        ),
+        const SizedBox(height: 12),
+        R35ReferencePanel(
+          title: ar ? 'التدريب مع الروبوتات' : 'Bot practice',
+          icon: Icons.smart_toy_rounded,
+          actionLabel: ar ? 'الألعاب' : 'Games',
+          onAction: () => onTab(1),
+          child: Column(children: <Widget>[
+            R35FeatureLine(
+              icon: Icons.sports_esports_rounded,
+              title: ar ? 'خصوم تدريب داخل غرف حقيقية' : 'Practice opponents in real rooms',
+              detail: ar ? 'ابدأ من صالة اللعبة، ثم استخدم خيارات الروبوتات المتاحة.' :
+                'Open a game lobby and choose its available bot features.',
+            ),
+            if (featured.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 10),
+              R35GoldAction(
+                label: ar ? 'ابدأ التدريب' : 'Start practicing',
+                icon: Icons.play_arrow_rounded,
+                onTap: () => showGameLobby(context, controller, featured.first)),
+            ],
+          ]),
         ),
         const SizedBox(height: 10),
         B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),

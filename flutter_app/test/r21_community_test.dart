@@ -48,6 +48,15 @@ class FakeController extends AppController {
 
 void main() {
   setUp(() { SharedPreferences.setMockInitialValues({}); AppSounds.enabled = false; });
+  test('R21 club count grammar stays localized', () {
+    expect(r21ClubCountLabel('en', 0), '0 clubs');
+    expect(r21ClubCountLabel('en', 1), '1 club');
+    expect(r21ClubCountLabel('en', 2), '2 clubs');
+    expect(r21ClubCountLabel('ar', 1), 'نادي واحد');
+    expect(r21ClubCountLabel('ar', 2), 'ناديان');
+    expect(r21ClubCountLabel('ar', 3), '3 أندية');
+    expect(r21ClubCountLabel('ar', 11), '11 ناديًا');
+  });
   for (final locale in ['ar', 'en']) {
     for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
       testWidgets('R21 directories $locale $size preserve server states and filters', (tester) async {
@@ -59,12 +68,24 @@ void main() {
         expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r21-club-join-2'))).onPressed, isNull);
         expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r21-club-join-3'))).onPressed, isNull);
         await tester.enterText(find.byKey(const ValueKey('r21-club-search')), 'Majlis'); await tester.pump();
+        expect(find.text(locale == 'ar' ? 'نادي واحد' : '1 club'), findsOneWidget);
         expect(find.byKey(const ValueKey('r21-club-2')), findsNothing);
         await tester.ensureVisible(find.byKey(const ValueKey('r21-club-join-1')));
         await tester.tap(find.byKey(const ValueKey('r21-club-join-1'))); expect(joined, 1);
-        await tester.pumpWidget(app(locale, R21TournamentDirectory(cups: cups, locale: locale, onOpen: (_) {})));
+        var openedCup = 0;
+        await tester.pumpWidget(app(locale, R21TournamentDirectory(cups: cups, locale: locale, onOpen: (_) => openedCup++)));
         await tester.pump();
-        await tester.tap(find.byKey(const ValueKey('r21-cup-filter-mine'))); await tester.pump();
+        final detailsFinder = find.byKey(const ValueKey('r21-cup-details-1'));
+        await tester.ensureVisible(detailsFinder);
+        final detailsButton = tester.widget<TextButton>(detailsFinder);
+        expect(detailsButton.style?.foregroundColor?.resolve(<WidgetState>{}), Colors.white);
+        expect(tester.getSize(detailsFinder).height, greaterThanOrEqualTo(44));
+        await tester.tap(detailsFinder);
+        expect(openedCup, 1);
+        final mineFilter = find.byKey(const ValueKey('r21-cup-filter-mine'));
+        await tester.ensureVisible(mineFilter);
+        await tester.tap(mineFilter);
+        await tester.pump();
         expect(find.byKey(const ValueKey('r21-cup-1')), findsOneWidget);
         expect(find.byKey(const ValueKey('r21-cup-2')), findsNothing);
         await tester.enterText(find.byKey(const ValueKey('r21-cup-search')), 'no-match'); await tester.pump();

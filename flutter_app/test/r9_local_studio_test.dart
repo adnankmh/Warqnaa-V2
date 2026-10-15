@@ -28,7 +28,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('warqna.account.adnan.coins'), '345');
     expect(prefs.getString('warqna.offline.hash.adnan'), 'existing-credential');
-    expect(prefs.getString('warqna.device-admin.adnan.coins'), '1000000');
+    expect(prefs.getString('warqna.device-admin.adnan.coins'), '9999999999999999999');
     expect(prefs.getString('authToken'), isNull);
     controller.dispose();
   });

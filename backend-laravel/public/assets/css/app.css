@@ -1903,11 +1903,11 @@ body.tarneeb-v132 .trump-card span{font-size:10px!important}
 .store-category-tabs-v127 button{min-width:150px!important}.store-tier-filters-v127 button{min-width:86px!important}
 .store-products-grid-v127{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))!important}
 .product-preview-v127{min-height:190px!important}.product-table-v127{width:230px!important;height:132px!important;border-width:10px!important}.product-table-v127 i{font-size:34px!important}
-.pasha-3d-fez-v132,.type-pasha .product-generic-v127{background:url('/assets/store/basha1.png') center/contain no-repeat!important;color:transparent!important;width:120px!important;height:120px!important}
+.pasha-3d-fez-v132,.type-pasha .product-generic-v127{background:url('/assets/store/basha1.png?v=36-luxury') center/contain no-repeat!important;color:transparent!important;width:120px!important;height:120px!important}
 
 /* pasha red fez icon */
 .type-pasha .shop-icon,.type-pasha .product-generic-v127{font-size:0!important}
-.type-pasha .shop-icon::before,.type-pasha .product-generic-v127::before{content:'';display:block;width:118px;height:118px;background:url('/assets/store/basha1.png') center/contain no-repeat}
+.type-pasha .shop-icon::before,.type-pasha .product-generic-v127::before{content:'';display:block;width:118px;height:118px;background:url('/assets/store/basha1.png?v=36-luxury') center/contain no-repeat}
 
 /* Admin/store emphasis */
 .admin-store-note-v132{border-radius:16px;padding:10px;background:rgba(247,201,72,.12);border:1px solid rgba(247,201,72,.24);color:#fde68a}
@@ -1923,7 +1923,7 @@ body.tarneeb-v132 .trump-card span{font-size:10px!important}
 
 /* v133 uploaded Basha image */
 .type-pasha .shop-icon::before,.type-pasha .product-generic-v127::before,
-.pasha-3d-fez-v132{background:url('/assets/store/basha1.png') center/contain no-repeat!important;width:150px!important;height:150px!important;filter:drop-shadow(0 18px 30px rgba(239,68,68,.36)) drop-shadow(0 0 14px rgba(247,201,72,.20))!important}
+.pasha-3d-fez-v132{background:url('/assets/store/basha1.png?v=36-luxury') center/contain no-repeat!important;width:150px!important;height:150px!important;filter:drop-shadow(0 18px 30px rgba(239,68,68,.36)) drop-shadow(0 0 14px rgba(247,201,72,.20))!important}
 .type-pasha .product-preview-v127{min-height:210px!important}
 
 
@@ -1954,7 +1954,7 @@ body.tarneeb-v132 .trump-card span{font-size:10px!important}
 
 /* Pasha uploaded image in every preview */
 .type-pasha{display:grid!important;place-items:center!important}
-.type-pasha .shop-icon,.type-pasha .product-generic-v127{width:170px!important;height:170px!important;background:url('/assets/store/basha1.png') center/contain no-repeat!important;color:transparent!important;font-size:0!important}
+.type-pasha .shop-icon,.type-pasha .product-generic-v127{width:170px!important;height:170px!important;background:url('/assets/store/basha1.png?v=36-luxury') center/contain no-repeat!important;color:transparent!important;font-size:0!important}
 .type-pasha .shop-icon::before,.type-pasha .product-generic-v127::before{display:none!important}
 
 /* Game categories removed: only All tab should appear */

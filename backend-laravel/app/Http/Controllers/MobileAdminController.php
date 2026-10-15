@@ -32,7 +32,7 @@ class MobileAdminController extends Controller
                 'rooms' => Room::whereIn('status', ['waiting', 'bidding', 'playing'])->count(),
                 'active_rooms' => Room::whereIn('status', ['waiting', 'bidding', 'playing'])->count(),
                 'tournaments' => \App\Models\Tournament::whereIn('status', ['open', 'running'])->count(),
-                'wallet_reserve' => (string)($request->user()?->wallet?->tokens ?? 0),
+                'wallet_reserve' => $request->user()?->displayTokenBalance() ?? '0',
                 'ticket_types' => $request->user()?->competitionTickets()->where('quantity', '>=', 100)->count() ?? 0,
                 'store_items' => StoreItem::where('active', true)->count(),
                 'open_reports' => UserReport::whereIn('status', ['open','reviewing'])->count(),
@@ -44,7 +44,7 @@ class MobileAdminController extends Controller
                 'is_admin' => (bool) $user->is_admin,
                 'is_banned' => (bool) $user->is_banned,
                 'level' => (int) ($user->profile?->level ?? 1),
-                'tokens' => (string) ($user->wallet?->tokens ?? 0),
+                'tokens' => $user->displayTokenBalance(),
             ]),
             'games' => Game::orderBy('id')->get(),
             'store' => StoreItem::orderBy('category')->orderBy('price')->get(),
@@ -87,6 +87,7 @@ class MobileAdminController extends Controller
         ]);
         $before = $item->toArray();
         $item->update($data);
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->save($item->fresh());
         $audit->record($request, 'admin.store.update', $item, $before, $item->fresh()->toArray());
         return response()->json(['ok' => true, 'message' => 'تم تحديث عنصر المتجر', 'item' => $item->fresh()]);
     }
@@ -97,6 +98,7 @@ class MobileAdminController extends Controller
         $before=$item->toArray();
         $itemId=$item->id;
         $itemKey=$item->key;
+        app(\App\Services\Admin\StoreCatalogOverrides::class)->delete($itemKey);
         $audit->record($request, 'admin.store.delete', $item, $before, ['deleted'=>true,'key'=>$itemKey]);
         $item->delete();
         return response()->json(['ok'=>true,'message'=>'تم حذف عنصر المتجر نهائيًا','deleted_id'=>$itemId,'deleted_key'=>$itemKey]);

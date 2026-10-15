@@ -155,6 +155,11 @@ jobs:
         run: php artisan warqna:competitive-tick --dry-run
       - name: Run Laravel tests
         run: php artisan test
+      - name: Exercise bilingual game hall interactions
+        run: |
+          node ../tools/test_r36_game_discovery.cjs
+          node ../tools/test_r36_requested_fixes.cjs
+          node ../tools/test_r36_live_progress.cjs
       - name: Production preflight in non-strict mode
         run: php artisan warqna:production-check
 

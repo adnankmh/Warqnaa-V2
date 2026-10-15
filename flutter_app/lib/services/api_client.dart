@@ -205,8 +205,8 @@ class WarqnaApiClient {
       post('/clubs-world/$clubId/announcements', {'title': title, 'body': body, 'pinned': pinned});
   Future<Map<String, dynamic>> respondClubJoinRequestR11(int requestId, String status) =>
       patch('/clubs-world/join-requests/$requestId', {'status': status});
-  Future<Map<String, dynamic>> purchase(String key) =>
-      post('/store/purchase', {'key': key, 'confirmed': true});
+  Future<Map<String, dynamic>> purchase(String key, {int? expectedPrice}) =>
+      post('/store/purchase', {'key': key, 'confirmed': true, if(expectedPrice!=null)'expected_price':expectedPrice});
   Future<Map<String, dynamic>> activateStoreItemV183(String key) =>
       post('/store/activate', {'key': key});
   Future<Map<String, dynamic>> claimDaily() => post('/rewards/daily', const {});

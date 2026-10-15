@@ -13,6 +13,7 @@ class PrimaryAdminStateService
     public const GEMS = 100000000;
     public const INVENTORY_QUANTITY = 100;
     public const TICKET_QUANTITY = 100;
+    public const COLOR_VALIDITY_DAYS = 365;
 
     /** @var array<string,bool> */
     public const FULL_PERMISSIONS = [
@@ -75,8 +76,25 @@ class PrimaryAdminStateService
             'xp' => max(self::XP_FLOOR, (int)($profile->xp ?? 0)),
             'pasha_days' => max(self::PASHA_DAYS, (int)($profile->pasha_days ?? 0)),
             'badge' => $profile->badge ?: 'king',
-            'pasha_style' => 'red',
+            // Preserve the owner's selected fez instead of resetting it on every
+            // login/catalog sync. Red remains the safe default for new profiles.
+            'pasha_style' => $profile->pasha_style ?: 'red',
         ])->save();
+
+        // Primary-admin color and text cosmetics always have at least one full
+        // year of active display time, without changing purchased inventory expiry.
+        // A later valid expiry is never shortened. Renewal is idempotent on login.
+        $annualFloor = now()->addDays(self::COLOR_VALIDITY_DAYS);
+        foreach ([
+            'name_color_expires_at' => !empty($profile->name_color) || !empty($profile->active_name_frame),
+            'chat_color_expires_at' => !empty($profile->chat_color) || !empty($profile->text_color),
+            'profile_color_expires_at' => !empty($profile->active_profile_color),
+        ] as $column => $isEquipped) {
+            if ($isEquipped && (!$profile->{$column} || $profile->{$column}->lt($annualFloor))) {
+                $profile->{$column} = $annualFloor->copy();
+            }
+        }
+        if ($profile->isDirty()) $profile->save();
 
         $wallet = $user->wallet()->firstOrCreate([], ['tokens' => 50, 'gems' => 0]);
         $wallet->forceFill([
@@ -99,7 +117,7 @@ class PrimaryAdminStateService
         $hasQuantity = Schema::hasColumn('inventory_items', 'quantity');
         StoreItem::query()
             ->where('active', true)
-            ->whereNotIn('category', ['pasha','competition_ticket'])
+            ->where('category', '!=', 'competition_ticket')
             ->orderBy('id')
             ->chunkById(100, function ($items) use ($user, $hasQuantity): void {
                 foreach ($items as $item) {

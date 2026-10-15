@@ -5,8 +5,7 @@ on:
   push:
     branches:
       - 'codex/r20-*'
-  pull_request:
-    branches: [main]
+  workflow_call:
 
 permissions:
   contents: read

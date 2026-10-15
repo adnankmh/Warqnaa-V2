@@ -544,6 +544,11 @@ class RoomController
    $copy['plain_room_password'], $copy['kicked_user_ids'], $copy['banned_user_ids'], $copy['disconnected_replacements']
   );
   $copy['legal_cards']=[];
+  $copy['available_actions']=[];
+  if (($state['turn'] ?? null) === $myKey) {
+   $engine=\App\Services\GameEngine\GameFactory::make($state['game'] ?? ($state['game_type'] ?? 'tarneeb'));
+   if (method_exists($engine,'availableActions')) $copy['available_actions']=$engine->availableActions($state,$myKey);
+  }
   if(($state['phase'] ?? '')==='playing' && !empty($copy['hand'])){
    try{ $engine=\App\Services\GameEngine\GameFactory::make($state['game'] ?? ($state['game_type'] ?? 'tarneeb')); foreach($copy['hand'] as $c){ if($engine->validate($state,$myKey,'play_card',['card'=>$c]) || in_array(($state['game_type']??''),['hand','banakil','konkan'],true)) $copy['legal_cards'][]=$c; } }catch(\Throwable $e){ $copy['legal_cards']=$copy['hand']; }
   }

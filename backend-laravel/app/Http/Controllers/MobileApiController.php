@@ -8,6 +8,7 @@ use App\Services\Platform\ProductionConfigService;
 use App\Services\Account\AccountCancellationService;
 use App\Services\Admin\PrimaryAdminStateService;
 use App\Services\WarqnaPro\StoreCatalogService;
+use App\Services\Commerce\StoreOfferPricingService;
 use App\Services\Games\GameCatalog;
 use App\Services\WarqnaPro\AssetDeliveryService;
 use App\Support\AuthenticatedActor;
@@ -77,18 +78,32 @@ class MobileApiController extends Controller
         ]);
     }
 
-    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery)
+    public function bootstrap(Request $request, ProductionConfigService $productionConfig, StoreCatalogService $catalog, AssetDeliveryService $assetDelivery, StoreOfferPricingService $pricing)
     {
         $catalog->sync();
         $user = $this->ensurePrimaryAdmin(AuthenticatedActor::resolve($request));
         $user->update(['last_seen_at'=>now()]);
         $user->load('profile', 'wallet');
+        $storeItems = StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get();
+        $quotes = $pricing->quotesFor($storeItems);
+        // The customer bootstrap surfaces the same discounted amount that
+        // the server purchase endpoint will charge after confirmation.
+        $storeItems->each(function (StoreItem $item) use ($quotes): void {
+            $quote = $quotes[$item->id] ?? null;
+            if ($quote === null) return;
+            $item->setAttribute('original_price', $quote['original_price']);
+            $item->setAttribute('price', $quote['price']);
+            $item->setAttribute('discount_percent', $quote['discount_percent']);
+            $item->setAttribute('offer_key', $quote['offer_key']);
+            $item->setAttribute('offer_ends_at', $quote['offer_ends_at']);
+            $item->setAttribute('offer_cadence', $quote['offer_cadence']);
+        });
         return response()->json([
             'ok' => true,
             'user' => $this->selfProfile($user),
             'wallet' => $this->walletPayload($user),
             'games' => Game::where('active', true)->whereIn('key', GameCatalog::customerKeys())->orderBy('id')->get(),
-            'store' => StoreItem::where('active', true)->orderBy('category')->orderBy('price')->get(),
+            'store' => $storeItems,
             // Bootstrap is a lobby summary, never a game-state transport. The
             // session endpoint supplies the server-filtered hand for each seat.
             'rooms' => Room::query()->with('game')
@@ -105,7 +120,7 @@ class MobileApiController extends Controller
             'clubs' => Club::query()->latest()->limit(20)->get(),
             'competition_tickets' => CompetitionTicket::where('user_id', $user->id)->pluck('quantity', 'denomination')->map(fn($value)=>(int)$value)->all(),
             'daily_pack' => $this->dailyPackPayload($user->id),
-            'inventory' => $user->inventoryItems()->with('storeItem')->latest()->limit(200)->get(),
+            'inventory' => $user->inventoryItems()->with('storeItem')->latest()->get(),
             'challenges' => ChallengeDefinition::where('active', true)->orderBy('sort_order')->get(),
             'designer_config' => AdminDesignerEntity::where('active', true)->orderBy('entity_type')->orderBy('sort_order')->get()->groupBy('entity_type'),
             'champion_rank_points' => (int)($user->profile?->champion_rank_points ?? 0),
@@ -125,7 +140,7 @@ class MobileApiController extends Controller
                 'offline_login' => true,
                 'offline_gameplay' => true,
                 'server_sync_when_online' => true,
-                'rewarded_ads' => true,
+                'rewarded_ads' => false, // Disabled until signed network SSV is implemented.
                 'competition_tickets' => true,
                 'daily_packs' => true,
                 'universal_designer' => true,
@@ -177,7 +192,7 @@ class MobileApiController extends Controller
         if (isset($data['active_cover'])) $profile->active_profile_cover = $data['active_cover'];
         if (isset($data['bot_difficulty'])) $profile->bot_difficulty = $data['bot_difficulty'];
         if (array_key_exists('ui_preferences',$data)) $profile->ui_preferences = $data['ui_preferences'];
-        if (isset($data['pasha_style'])) $profile->pasha_style = 'red';
+        if (isset($data['pasha_style'])) $profile->pasha_style = $data['pasha_style'];
         $profile->save();
 
         return response()->json(['ok' => true, 'message' => 'تم تحديث الملف الشخصي', 'user' => $this->selfProfile($request->user()->fresh('profile'))]);
@@ -201,66 +216,106 @@ class MobileApiController extends Controller
         ]);
     }
 
-    public function purchase(Request $request, WalletService $wallet, StoreCatalogService $catalog)
+    public function purchase(Request $request, WalletService $wallet, StoreCatalogService $catalog, StoreOfferPricingService $pricing)
     {
-        $data = $request->validate(['key' => 'required|string|max:120', 'confirmed' => 'required|accepted']);
+        $data = $request->validate(['key' => 'required|string|max:120', 'confirmed' => 'required|accepted', 'expected_price'=>'sometimes|integer|min:0']);
         $user = $request->user();
         $catalog->sync();
         $item = StoreItem::where('key', $data['key'])->where('active', true)->first();
         if (!$item) return response()->json(['ok'=>false,'message'=>'هذا العنصر غير متاح حالياً أو لم تتم مزامنته مع المتجر.'], 404);
+        $quote = $pricing->quote($item);
+        if (isset($data['expected_price']) && (int)$data['expected_price'] !== (int)$quote['price'])
+            return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج. حدّث المتجر ثم أكّد السعر من جديد.','pricing'=>$quote], 409);
         if ($item->category === 'competition_ticket') {
             $denomination = (int) data_get($item->payload, 'denomination', 0);
             abort_if($denomination <= 0, 422, 'فئة التذكرة غير صحيحة.');
             try {
-                DB::transaction(function () use ($user, $item, $wallet, $denomination) {
-                    $wallet->debit($user, (int)$item->price, 'competition_ticket_purchase', [
+                DB::transaction(function () use ($user, $item, $wallet, $denomination, $quote, $pricing) {
+                    // Consistent lock order: player, product, wallet, ticket.
+                    User::query()->lockForUpdate()->findOrFail($user->id);
+                    $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                    $liveQuote = $pricing->quote($lockedItem);
+                    if (!$lockedItem->active || $liveQuote !== $quote
+                        || $lockedItem->category !== 'competition_ticket'
+                        || (int) data_get($lockedItem->payload, 'denomination', 0) !== $denomination)
+                        throw new \DomainException('price_changed');
+                    $wallet->debit($user, (int)$quote['price'], 'competition_ticket_purchase', [
                         'store_item_id'=>$item->id,'key'=>$item->key,'denomination'=>$denomination,
+                        'original_price'=>$quote['original_price'],'discount_percent'=>$quote['discount_percent'],'offer_key'=>$quote['offer_key'],
                     ]);
                     $ticket = CompetitionTicket::firstOrCreate(
                         ['user_id'=>$user->id,'denomination'=>$denomination],
                         ['quantity'=>0,'total_used'=>0]
                     );
                     $ticket->increment('quantity');
-                    $wallet->creditPrimaryAdminRevenue($user, (int)$item->price, 'store_revenue', ['store_item_id'=>$item->id,'key'=>$item->key]);
+                    $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_revenue', ['store_item_id'=>$item->id,'key'=>$item->key]);
                 });
+            } catch (\DomainException $e) {
+                return response()->json(['ok'=>false,'message'=>'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.'],409);
             } catch (\RuntimeException) {
                 return response()->json(['ok'=>false,'message'=>'رصيد التوكنز غير كافٍ'], 422);
             }
             return response()->json([
                 'ok'=>true,'message'=>'تم شراء تذكرة المنافسة','wallet'=>$this->walletPayload($user->fresh()),
                 'tickets'=>CompetitionTicket::where('user_id',$user->id)->pluck('quantity','denomination')->map(fn($value)=>(int)$value)->all(),
+                'pricing'=>$quote,
             ]);
         }
         $renewable = (bool) $item->duration_days || in_array($item->category, ['pasha','xp_booster'], true);
-        $existingInventory = $user->inventoryItems()->where('store_item_id', $item->id)->latest('id')->first();
-        if ($existingInventory && !$renewable) return response()->json(['ok' => false, 'message' => 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'], 409);
-
         try {
-            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $existingInventory) {
-                $wallet->debit($user, (int) $item->price, 'store_purchase', [
+            $inventory = DB::transaction(function () use ($user, $item, $wallet, $renewable, $quote, $pricing) {
+                // Serialize purchases for this player before checking permanent ownership.
+                User::query()->lockForUpdate()->findOrFail($user->id);
+                $lockedItem = StoreItem::query()->lockForUpdate()->findOrFail($item->id);
+                $existingInventory = $user->inventoryItems()
+                    ->where('store_item_id', $lockedItem->id)
+                    ->lockForUpdate()->latest('id')->first();
+                // Source-of-truth product terms must remain identical from quote to charge.
+                // Price-only checks miss changes to category, duration, or entitlements.
+                if ($lockedItem->category !== $item->category
+                    || $lockedItem->key !== $item->key
+                    || (int) $lockedItem->duration_days !== (int) $item->duration_days
+                    || $lockedItem->payload !== $item->payload) {
+                    throw new \DomainException('price_changed');
+                }
+                if ($existingInventory && !$renewable) throw new \DomainException('already_owned');
+                $liveQuote = $pricing->quote($lockedItem);
+                if (!$lockedItem->active || $liveQuote !== $quote)
+                    throw new \DomainException('price_changed');
+                $wallet->debit($user, (int) $quote['price'], 'store_purchase', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
                     'category' => $item->category,
+                    'original_price'=>$quote['original_price'],
+                    'discount_percent'=>$quote['discount_percent'],
+                    'offer_key'=>$quote['offer_key'],
                 ]);
 
-                $wallet->creditPrimaryAdminRevenue($user, (int)$item->price, 'store_revenue', [
+                $wallet->creditPrimaryAdminRevenue($user, (int)$quote['price'], 'store_revenue', [
                     'store_item_id' => $item->id,
                     'key' => $item->key,
                 ]);
 
                 // Only one cosmetic from the same category remains active.
-                if (in_array($item->category, ['name_color','text_color','badge','table','pasha_style','xp_booster','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
+                if (in_array($item->category, ['name_color','text_color','profile_color','badge','table','pasha_style','card_back','name_frame','profile_frame','effect','emoji_pack','profile_cover'], true)) {
                     $user->inventoryItems()
                         ->whereHas('storeItem', fn ($query) => $query->where('category', $item->category))
                         ->update(['active' => false]);
                 }
 
-                $baseExpiry = $existingInventory?->expires_at && $existingInventory->expires_at->isFuture()
+                $isBooster = $item->category === 'xp_booster';
+                // Each purchased booster has its own independent redemption window.
+                $baseExpiry = !$isBooster && $existingInventory?->expires_at && $existingInventory->expires_at->isFuture()
                     ? $existingInventory->expires_at->copy()
                     : now();
                 $expiresAt = $item->duration_days ? $baseExpiry->addDays((int) $item->duration_days) : null;
-                $isBooster = $item->category === 'xp_booster';
-                if ($renewable && $existingInventory) {
+                // Every paid XP booster purchase creates a separate unspent entitlement.
+                // Reusing the last row would silently erase a previously purchased activation.
+                // Never overwrite an expired entitlement: keep its original ledger trail.
+                // Only a still-valid paid term can be extended in place.
+                $canExtend = $existingInventory && $existingInventory->expires_at
+                    && $existingInventory->expires_at->isFuture();
+                if ($renewable && !$isBooster && $canExtend) {
                     $existingInventory->update([
                         'active'=>!$isBooster,
                         'activated_at'=>$isBooster ? null : now(),
@@ -277,9 +332,14 @@ class MobileApiController extends Controller
                 }
 
                 // V183 boosters remain in inventory until the player explicitly activates them.
-                if (!$isBooster) $this->activateStoreItem($user, $item);
+                if (!$isBooster) $this->activateStoreItem($user, $item, $expiresAt);
                 return $inventory;
             });
+        } catch (\DomainException $e) {
+            $message = $e->getMessage() === 'already_owned'
+                ? 'العنصر مملوك مسبقاً ويمكن تفعيله من المقتنيات.'
+                : 'تغير سعر المنتج أو توقف عرضه. حدّث المتجر وأكّد السعر مجدداً.';
+            return response()->json(['ok'=>false,'message'=>$message],409);
         } catch (\RuntimeException) {
             return response()->json(['ok' => false, 'message' => 'رصيد التوكنز غير كافٍ'], 422);
         }
@@ -290,6 +350,7 @@ class MobileApiController extends Controller
             'wallet' => $this->walletPayload($user->fresh()),
             'profile' => $user->profile?->fresh(),
             'inventory_item' => $inventory->load('storeItem'),
+            'pricing'=>$quote,
         ]);
     }
 
@@ -314,90 +375,63 @@ class MobileApiController extends Controller
     public function claimDaily(Request $request, WalletService $wallet)
     {
         $user = $request->user();
-        $today = now()->toDateString();
-        if (DailyRewardClaim::where('user_id', $user->id)->whereDate('claim_date', $today)->exists()) {
+        // R36: unique(user_id, claim_date) plus an authoritative user-row lock
+        // ensures even simultaneous API calls can never mint the daily reward twice.
+        $result = DB::transaction(function () use ($user, $wallet) {
+            $player = User::query()->lockForUpdate()->findOrFail($user->id);
+            $today = now()->toDateString();
+            if (DailyRewardClaim::where('user_id', $player->id)
+                ->whereDate('claim_date', $today)->exists()) return null;
+
+            $coins = 100;
+            $xp = 20;
+            // Claim row precedes the reward; an outer rollback undoes every grant.
+            DailyRewardClaim::create([
+                'user_id' => $player->id,
+                'claim_date' => $today,
+                'streak' => 1,
+                'coins' => $coins,
+                'payload' => ['xp' => $xp, 'source' => 'verified_daily_claim'],
+            ]);
+            $wallet->credit($player, $coins, 'daily_reward', [
+                'claim_date' => $today,
+                'idempotency_key' => 'daily:'.$today.':player:'.$player->id,
+            ]);
+            $profile = $player->profile()->lockForUpdate()->first();
+            if ($profile) {
+                $profile->increment('xp', $xp);
+                $profile->update(['last_daily_reward_at' => now()]);
+            }
+            return ['coins' => $coins, 'xp' => $xp];
+        });
+
+        if ($result === null) {
             return response()->json(['ok' => false, 'message' => 'تم استلام مكافأة اليوم مسبقاً'], 409);
-        }
-        $coins = 100;
-        $xp = 20;
-        $wallet->credit($user, $coins, 'daily_reward', ['claim_date' => $today]);
-        DailyRewardClaim::create(['user_id' => $user->id, 'claim_date' => $today, 'streak' => 1, 'coins' => $coins, 'payload' => ['xp' => $xp]]);
-        if ($user->profile) {
-            $user->profile->increment('xp', $xp);
-            $user->profile->update(['last_daily_reward_at' => now()]);
         }
         return response()->json([
             'ok' => true,
             'message' => 'تم استلام المكافأة اليومية',
-            'coins' => $coins,
-            'xp' => $xp,
+            'coins' => $result['coins'],
+            'xp' => $result['xp'],
             'wallet' => $this->walletPayload($user->fresh()),
             'profile' => $user->profile?->fresh(),
         ]);
     }
 
+    /**
+     * Rewarded-ad grants are intentionally unavailable until we integrate and
+     * verify the ad network's signed server-to-server callback. A client-supplied
+     * verification_id or network name is NOT evidence of a completed ad.
+     *
+     * Enabling a feature flag cannot override this integrity requirement.
+     * Do not credit the wallet, XP, tickets, or inventory from this endpoint.
+     */
     public function claimRewardedAd(Request $request, WalletService $wallet, ProductionConfigService $productionConfig)
     {
-        abort_unless($productionConfig->enabled('rewarded_ads', true), 503, 'Rewarded ads are temporarily unavailable.');
-        $data = $request->validate([
-            'verification_id'=>'required|string|min:8|max:190',
-            'network'=>'nullable|string|max:40',
-        ]);
-        $user = $request->user();
-        $today = now()->toDateString();
-        $dailyCount = RewardedAdClaim::where('user_id',$user->id)->whereDate('claim_date',$today)->count();
-        $dailyLimit = min(8, max(0, (int) data_get($productionConfig->flags(), 'rewarded_ads.payload.daily_limit', 8)));
-        if ($dailyLimit === 0 || $dailyCount >= $dailyLimit) return response()->json(['ok'=>false,'message'=>'Daily rewarded-ad limit reached.'],429);
-        if (RewardedAdClaim::where('verification_id',$data['verification_id'])->exists()) {
-            return response()->json(['ok'=>false,'message'=>'This ad verification was already used.'],409);
-        }
-
-        $ladder = [
-            1=>['tokens'=>50,'xp'=>15],
-            2=>['tokens'=>75,'xp'=>25],
-            3=>['tokens'=>100,'xp'=>40,'ticket'=>50],
-            4=>['tokens'=>150,'xp'=>60],
-            5=>['tokens'=>200,'xp'=>90,'store_key'=>'b304_profile_aurora_30d','duration_days'=>2],
-            6=>['tokens'=>250,'xp'=>120,'ticket'=>100],
-            7=>['tokens'=>350,'xp'=>160,'store_key'=>'b304_profile_emerald_30d','duration_days'=>2],
-            8=>['tokens'=>500,'xp'=>250,'store_key'=>'b304_profile_legend_30d','duration_days'=>7],
-        ];
-        $claimNumber = min(8, $dailyCount + 1);
-        $reward = $ladder[$claimNumber];
-        $tokens = (int)$reward['tokens'];
-        $xp = (int)$reward['xp'];
-        $temporary = null;
-
-        DB::transaction(function () use ($user,$wallet,$data,$today,$tokens,$xp,$reward,$claimNumber,&$temporary) {
-            $wallet->credit($user,$tokens,'rewarded_ad',['verification_id'=>$data['verification_id'],'claim_number'=>$claimNumber]);
-            $user->profile?->increment('xp',$xp);
-            if (!empty($reward['ticket'])) {
-                $ticket = CompetitionTicket::query()->firstOrCreate(
-                    ['user_id'=>$user->id,'denomination'=>(int)$reward['ticket']],
-                    ['quantity'=>0]
-                );
-                $ticket->increment('quantity');
-            }
-            if (!empty($reward['store_key'])) {
-                $item = StoreItem::where('key',$reward['store_key'])->where('active',true)->first();
-                if ($item) {
-                    $days=(int)($reward['duration_days'] ?? 2);
-                    $inventory=InventoryItem::create(['user_id'=>$user->id,'store_item_id'=>$item->id,'active'=>true,'activated_at'=>now(),'expires_at'=>now()->addDays($days)]);
-                    $temporary=['store_key'=>$item->key,'duration_days'=>$days,'expires_at'=>$inventory->expires_at?->toIso8601String()];
-                }
-            }
-            RewardedAdClaim::create([
-                'user_id'=>$user->id,'claim_date'=>$today,'reward_tokens'=>$tokens,'reward_xp'=>$xp,
-                'network'=>$data['network'] ?? 'admob','verification_id'=>$data['verification_id'],
-                'payload'=>['claim_number'=>$claimNumber,'temporary'=>$temporary,'ticket'=>$reward['ticket'] ?? null],
-            ]);
-        });
         return response()->json([
-            'ok'=>true,'message'=>'Reward added','claim_number'=>$claimNumber,'tokens'=>$tokens,'xp'=>$xp,
-            'ticket'=>$reward['ticket'] ?? null,'temporary_reward'=>$temporary,
-            'remaining'=>max(0,$dailyLimit-$dailyCount-1),'wallet'=>$this->walletPayload($user->fresh()),
-            'profile'=>$user->profile?->fresh(),
-        ]);
+            'ok' => false,
+            'message' => 'Rewarded ads are unavailable until provider verification is configured.',
+        ], 503);
     }
 
     public function deleteAccount(Request $request, AccountCancellationService $cancellation)
@@ -445,73 +479,128 @@ class MobileApiController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function activateStoreInventoryV183(Request $request)
+    public function activateStoreInventoryV183(Request $request, WalletService $wallet)
     {
-        $data=$request->validate(['key'=>'required|string|max:120']);
-        $user=$request->user();
-        $inventory=$user->inventoryItems()
-            ->whereHas('storeItem',fn($q)=>$q->where('key',$data['key'])->where('category','xp_booster')->where('active',true))
-            ->with('storeItem')->latest('id')->first();
-        if(!$inventory) return response()->json(['ok'=>false,'message'=>'المسرّع غير موجود في مخزونك.'],404);
-        if($inventory->expires_at && $inventory->expires_at->isPast()) {
-            $inventory->delete();
-            return response()->json(['ok'=>false,'message'=>'انتهت صلاحية المسرّع قبل التفعيل.'],410);
-        }
-        $item=$inventory->storeItem;
-        $payload=$item->payload ?: [];
-        $hours=max(1,(int)($payload['activate_hours'] ?? 24));
-        DB::transaction(function() use($user,$inventory,$item,$payload,$hours){
-            $user->inventoryItems()
-                ->where('id','!=',$inventory->id)
-                ->whereHas('storeItem',fn($q)=>$q->where('category','xp_booster'))
-                ->update(['active'=>false]);
-            $inventory->update(['active'=>true,'activated_at'=>now(),'expires_at'=>now()->addHours($hours)]);
-            $profile=$user->profile()->lockForUpdate()->firstOrCreate(['user_id'=>$user->id],[
-                'display_name'=>$user->username,'country_code'=>'PS','country_name'=>'Palestine',
+        $data = $request->validate(['key' => 'required|string|max:120']);
+        $user = $request->user();
+
+        $result = DB::transaction(function () use ($user, $data, $wallet) {
+            // The user row serializes same-account mobile and web entitlement changes.
+            User::query()->lockForUpdate()->findOrFail($user->id);
+            $owned = $user->inventoryItems()
+                ->whereHas('storeItem', fn ($query) => $query
+                    ->where('key', $data['key'])->where('category', 'xp_booster'));
+
+            // A purchased entitlement remains usable after its catalog SKU is delisted.
+            // The primary admin's 100+ evergreen units can be activated repeatedly;
+            // normal players still consume each paid XP booster exactly once.
+            $primary = $user->isPrimaryAdmin();
+            $available = clone $owned;
+            if ($primary) $available->where('quantity', '>', 0);
+            else $available->whereNull('activated_at');
+            $inventory = $available
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })->with('storeItem')->lockForUpdate()->latest('id')->first();
+            if (!$inventory) {
+                $unused = (clone $owned)->whereNull('activated_at')->exists();
+                return ['status' => $unused ? 410 : ((clone $owned)->exists() ? 409 : 404)];
+            }
+
+            $payload = $inventory->storeItem->payload ?: [];
+            $hours = max(1, min(168, (int) ($payload['activate_hours'] ?? 24)));
+            $expiry = now()->addHours($hours);
+
+            $user->inventoryItems()->where('id', '!=', $inventory->id)
+                ->whereHas('storeItem', fn ($query) => $query->where('category', 'xp_booster'))
+                ->update(['active' => false]);
+            $inventory->update([
+                'active' => true,
+                'activated_at' => now(),
+                // Primary-admin stock is permanently owned even while its
+                // configured XP multiplier still runs for the chosen hours.
+                'expires_at' => $primary ? null : $expiry,
             ]);
-            $profile->xp_boost_multiplier=(float)($payload['multiplier'] ?? 1.25);
-            $profile->xp_boost_expires_at=now()->addHours($hours);
+            $profile = $user->profile()->lockForUpdate()->firstOrCreate(
+                ['user_id' => $user->id],
+                ['display_name' => $user->username, 'country_code' => 'PS', 'country_name' => 'Palestine']
+            );
+            $profile->xp_boost_multiplier = max(1.0, (float) ($payload['multiplier'] ?? 1.25));
+            $profile->xp_boost_expires_at = $expiry;
             $profile->save();
+
+            // Ownership and usage are separate facts. Keep the evergreen admin
+            // row untouched while recording every activation as an immutable
+            // zero-value ledger event. Ordinary paid boosts use the same trail.
+            $wallet->debit($user, 0, 'xp_booster_activation', [
+                'inventory_item_id' => $inventory->id,
+                'store_item_id' => $inventory->store_item_id,
+                'key' => $inventory->storeItem->key,
+                'channel' => 'mobile',
+                'effect_expires_at' => $expiry->toIso8601String(),
+            ]);
+
+            return ['status' => 200, 'hours' => $hours, 'inventory_id' => $inventory->id];
         });
+
+        if ($result['status'] !== 200) {
+            $message = match ($result['status']) {
+                409 => 'تم استخدام هذا المسرّع مسبقاً. اشترِ مسرّعاً جديداً لإعادة التفعيل.',
+                410 => 'انتهت صلاحية المسرّع قبل التفعيل.',
+                default => 'المسرّع غير موجود في مخزونك.',
+            };
+            return response()->json(['ok' => false, 'message' => $message], $result['status']);
+        }
+
         return response()->json([
-            'ok'=>true,'message'=>'تم تفعيل المسرّع لمدة '.$hours.' ساعة.',
-            'profile'=>$user->profile?->fresh(),
-            'inventory_item'=>$inventory->fresh()->load('storeItem'),
+            'ok' => true, 'message' => 'تم تفعيل المسرّع لمدة '.$result['hours'].' ساعة.',
+            'profile' => $user->profile?->fresh(),
+            'inventory_item' => $user->inventoryItems()
+                ->with('storeItem')->findOrFail($result['inventory_id']),
         ]);
     }
 
-    private function activateStoreItem(User $user, StoreItem $item): void
+    private function activateStoreItem(User $user, StoreItem $item, ?\DateTimeInterface $paidExpiry = null): void
     {
         $profile = $user->profile()->firstOrCreate(
             ['user_id' => $user->id],
             ['display_name' => $user->username, 'country_code' => 'PS', 'country_name' => 'Palestine']
         );
         $payload = $item->payload ?: [];
+        if ($user->isPrimaryAdmin() && in_array($item->category, [
+            'name_color', 'name_frame', 'text_color', 'profile_color',
+        ], true)) {
+            // Catalog ownership has no expiry. A selected color is guaranteed
+            // an independent one-year appearance term.
+            $paidExpiry = now()->addDays(\App\Services\Admin\PrimaryAdminStateService::COLOR_VALIDITY_DAYS);
+        }
 
         switch ($item->category) {
             case 'pasha':
                 $profile->increment('pasha_days', (int) ($item->duration_days ?: ($payload['days'] ?? 30)));
                 return;
             case 'pasha_style':
-                // V0.2 keeps the original red Pasha fez and removes color variants.
-                $profile->pasha_style = 'red';
+                // Server-authored store payloads and the profile API now agree on
+                // the selected fez style. Legacy items without a style stay red.
+                $profile->pasha_style = (string) ($payload['style'] ?? 'red');
                 break;
             case 'name_color':
                 if (isset($payload['color'])) $profile->name_color = (string) $payload['color'];
-                $profile->name_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
+                $profile->name_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 $profile->active_name_frame = $payload['frame'] ?? $payload['glow'] ?? $profile->active_name_frame;
                 break;
             case 'text_color':
                 if (isset($payload['color'])) {
                     $profile->text_color = (string) $payload['color'];
                     $profile->chat_color = (string) $payload['color'];
-                    $profile->chat_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
                 }
+                $profile->chat_color_expires_at = $paidExpiry;
                 break;
             case 'profile_color':
                 $gradient = (array) ($payload['gradient'] ?? []);
                 $profile->active_profile_color = count($gradient) >= 2 ? implode('|', array_slice($gradient, 0, 2)) : (string) ($payload['color'] ?? $item->key);
-                $profile->profile_color_expires_at = now()->addDays((int) ($item->duration_days ?: ($payload['duration_days'] ?? 30)));
+                // NULL means a permanent cosmetic, never invent a 30-day timeout.
+                $profile->profile_color_expires_at = $paidExpiry;
                 break;
             case 'badge':
                 $profile->badge = $payload['badge'] ?? $item->key;
@@ -525,7 +614,7 @@ class MobileApiController extends Controller
             case 'name_frame':
                 $profile->active_name_frame = $payload['frame'] ?? $item->key;
                 if (isset($payload['color'])) $profile->name_color = (string) $payload['color'];
-                $profile->name_color_expires_at = $item->duration_days ? now()->addDays((int)$item->duration_days) : null;
+                $profile->name_color_expires_at = $paidExpiry ?? ($item->duration_days ? now()->addDays((int)$item->duration_days) : null);
                 break;
             case 'xp_booster':
                 $profile->xp_boost_multiplier = (float) ($payload['multiplier'] ?? 1.25);
@@ -561,7 +650,7 @@ class MobileApiController extends Controller
         return [
             'id' => $wallet->id,
             'tokens' => $displayTokens,
-            'tokens_formatted' => number_format((int) $displayTokens),
+            'tokens_formatted' => format_token_balance($displayTokens),
             'gems' => (string) $wallet->gems,
         ];
     }
@@ -569,7 +658,16 @@ class MobileApiController extends Controller
     /** Email is returned only on authenticated self endpoints, never in public profiles. */
     private function selfProfile(User $user): array
     {
-        return $user->publicProfile() + ['email' => (string)$user->email];
+        $boostExpiry=$user->profile?->xp_boost_expires_at;
+        $boostActive=!$boostExpiry || $boostExpiry->gte(now());
+        return $user->publicProfile() + [
+            'email' => (string)$user->email,
+            'xp_boost_multiplier'=>$boostActive ? max(1.0,(float)($user->profile?->xp_boost_multiplier ?? 1)) : 1.0,
+            'xp_boost_expires_at'=>$boostExpiry?->toIso8601String(),
+            'admin_permissions' => $user->isPrimaryAdmin()
+                ? PrimaryAdminStateService::FULL_PERMISSIONS
+                : (array)($user->admin_permissions ?? []),
+        ];
     }
 
     /** Keep the durable primary-admin role authoritative on every self endpoint. */

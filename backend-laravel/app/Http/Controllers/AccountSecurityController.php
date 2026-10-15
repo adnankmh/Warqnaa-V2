@@ -9,6 +9,11 @@ use Illuminate\Validation\Rules\Password;
 
 final class AccountSecurityController extends Controller
 {
+    private function message(string $ar, string $en): string
+    {
+        return app()->getLocale()==='ar' ? $ar : $en;
+    }
+
     public function show(Request $request)
     {
         return view('account.security', ['user' => $request->user()]);
@@ -19,7 +24,10 @@ final class AccountSecurityController extends Controller
         $this->updateAccount($request);
         $request->session()->regenerate();
 
-        return back()->with('ok', 'تم تحديث البريد وكلمة المرور وإغلاق الجلسات الأخرى بأمان.');
+        return back()->with('ok', $this->message(
+            'تم تحديث أمان الحساب وإغلاق الجلسات الأخرى بأمان.',
+            'Account security updated and other sessions were signed out safely.'
+        ));
     }
 
     public function updateMobile(Request $request)
@@ -28,7 +36,7 @@ final class AccountSecurityController extends Controller
 
         return response()->json([
             'ok' => true,
-            'message' => 'تم تحديث أمان الحساب بنجاح.',
+            'message' => $this->message('تم تحديث أمان الحساب بنجاح.', 'Account security updated successfully.'),
             'user' => $user->publicProfile() + ['email' => $user->email],
         ]);
     }
@@ -43,7 +51,11 @@ final class AccountSecurityController extends Controller
             'password' => ['nullable', 'confirmed', 'different:current_password', Password::min(10)->mixedCase()->numbers()],
         ]);
 
-        abort_unless(Hash::check($data['current_password'], $user->password), 422, 'كلمة المرور الحالية غير صحيحة.');
+        abort_unless(
+            Hash::check($data['current_password'], $user->password),
+            422,
+            $this->message('كلمة المرور الحالية غير صحيحة.', 'The current password is incorrect.')
+        );
 
         $newUsername = trim((string)($data['username'] ?? $user->username));
         if ($newUsername !== '' && $newUsername !== $user->username) {

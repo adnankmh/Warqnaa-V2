@@ -11,6 +11,16 @@ $copy=[
 $locale=in_array($locale,['ar','en'],true)?$locale:'en';
 $t=$copy[$locale];
 $isAr=$locale==='ar';
+$ui=$isAr ? [
+ 'receipt_verified'=>'إيصال موثّق','search_placeholder'=>'ابحث داخل القسم الحالي فقط...','search_results'=>'النتائج','search_empty'=>'لا توجد عناصر تطابق البحث أو عوامل التصفية.','my_items'=>'مشترياتي','my_items_desc'=>'كل ما تملكه يظهر هنا للتفعيل والمعاينة.','item_fallback'=>'عنصر','preview'=>'معاينة','activate'=>'تفعيل','active'=>'مفعّل','no_purchases'=>'لا توجد مشتريات بعد.','default_description'=>'مقتنى فاخر داخل ورقنا','name_preview'=>'معاينة لون الاسم مباشرة','chat_preview'=>'رسالة دردشة تجريبية','buy'=>'شراء','no_products'=>'لا توجد منتجات في هذا القسم حاليًا.','generic_section'=>'منتجات هذا القسم هنا فقط.',
+] : [
+ 'receipt_verified'=>'Receipt verified','search_placeholder'=>'Search this category only...','search_results'=>'Results','search_empty'=>'No items match your search or filters.','my_items'=>'My Items','my_items_desc'=>'Everything you own appears here for activation and preview.','item_fallback'=>'Item','preview'=>'Preview','activate'=>'Activate','active'=>'Active','no_purchases'=>'No purchases yet.','default_description'=>'A premium Warqnaa collectible','name_preview'=>'Live name color preview','chat_preview'=>'Sample chat message','buy'=>'Buy','no_products'=>'No products are currently available in this category.','generic_section'=>'Products in this category appear here only.',
+];
+$sectionDescriptions=$isAr ? [
+ 'pasha'=>'اشتراكات الباشا وأيام التميز تظهر هنا فقط.','table'=>'كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.','card_back'=>'كل ظهور الورق هنا فقط، وتظهر على أوراقك داخل اللعبة.','text_color'=>'ألوان كتابة الدردشة هنا فقط.','name_color'=>'ألوان الأسماء والـ Glow هنا فقط.','emoji_pack'=>'باقات الإيموجي هنا فقط.','badge'=>'الشارات والهوية هنا فقط.','effect'=>'مؤثرات الفوز والثيمات الأسطورية هنا فقط.','profile_cover'=>'أغلفة البروفايل الفاخرة هنا فقط.','competition_ticket'=>'تذاكر الدخول إلى المنافسات هنا فقط.','xp_booster'=>'مسرعات XP هنا فقط.',
+] : [
+ 'pasha'=>'Pasha subscriptions and premium days appear here only.','table'=>'All tables appear here, with a preview before purchase.','card_back'=>'All card backs appear here and are applied to your cards in game.','text_color'=>'Chat text colors appear here only.','name_color'=>'Name colors and glow effects appear here only.','emoji_pack'=>'Emoji packs appear here only.','badge'=>'Badges and identity items appear here only.','effect'=>'Victory effects and legendary themes appear here only.','profile_cover'=>'Premium profile covers appear here only.','competition_ticket'=>'Competition entry tickets appear here only.','xp_booster'=>'XP boosters appear here only.',
+];
 $labels=[];
 foreach(['pasha','table','card_back','text_color','name_color','emoji_pack','badge','effect','profile_cover','competition_ticket','xp_booster','inventory'] as $key) $labels[$key]=$t[$key];
 $icons=['pasha'=>'👑','table'=>'🟩','card_back'=>'🂠','text_color'=>'✍️','name_color'=>'🌈','emoji_pack'=>'😄','badge'=>'🏅','effect'=>'✨','profile_cover'=>'🖼️','competition_ticket'=>'🎟️','xp_booster'=>'🚀','inventory'=>'🎒'];
@@ -32,7 +42,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 
  @if(!empty($commerceOffers) || !empty($commerceCatalog['packages']))
  <section class="pro-card r101-web-commerce" style="margin:14px 0">
-  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span class="v127-kicker">R10.1 LIVE ECONOMY</span><h2>{{ $isAr?'العروض والشراء الحقيقي':'Offers & real-money store' }}</h2><p>{{ $isAr?'الدفع الحقيقي لا يمنح أي رصيد إلا بعد تحقق الخادم من الإيصال.':'Paid rewards are granted only after server-side receipt verification.' }}</p></div><span class="btn">🔒 Receipt verified</span></div>
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><div><span class="v127-kicker">R10.1 LIVE ECONOMY</span><h2>{{ $isAr?'العروض والشراء الحقيقي':'Offers & real-money store' }}</h2><p>{{ $isAr?'الدفع الحقيقي لا يمنح أي رصيد إلا بعد تحقق الخادم من الإيصال.':'Paid rewards are granted only after server-side receipt verification.' }}</p></div><span class="btn">🔒 {{ $ui['receipt_verified'] }}</span></div>
   <div class="r101-commerce-grid">
    @foreach(($commerceCatalog['packages'] ?? []) as $pack)
     <div class="r101-commerce-stat"><small>{{$pack['badge'] ?? 'PACK'}}</small><b>{{$pack['icon'] ?? '🪙'}} {{number_format($pack['tokens'] ?? 0)}} {{ $isAr?'توكن':'Tokens' }}</b><span>{{($pack['currency'] ?? 'USD')}} {{number_format(($pack['price_minor'] ?? 0)/100,2)}}</span></div>
@@ -52,7 +62,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
  </nav>
 
  <div class="store-search-row-v127">
-  <input id="storeSearchV127" placeholder="ابحث داخل القسم الحالي فقط...">
+  <input id="storeSearchV127" placeholder="{{ $ui['search_placeholder'] }}">
   <div id="storeTierFiltersV127" class="store-tier-filters-v127">
    @foreach($tierLabels as $tk=>$tl)<button type="button" data-store-tier-v127="{{$tk}}" class="{{$tk==='all'?'active':''}}">{{$tl}}</button>@endforeach
   </div>
@@ -60,30 +70,32 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
    @foreach($emojiTiers as $ek=>$el)<button type="button" data-emoji-tier-v127="{{$ek}}" class="{{$ek==='all'?'active':''}}">{{$el}}</button>@endforeach
   </div>
  </div>
+ <p id="storeSearchStatusV127" aria-live="polite" style="margin:8px 2px;color:#e7faff;font-weight:800"></p>
+ <div id="storeSearchEmptyV127" class="empty-store-v127" role="status" hidden>{{ $ui['search_empty'] }}</div>
 
  <main class="store-section-frame-v127">
   @foreach($labels as $cat=>$label)
    @if($cat==='inventory')
     <section class="store-category-section-v127" data-store-section-v127="inventory" hidden>
-     <div class="store-section-head-v127"><h2>🎒 مشترياتي</h2><p>كل ما تملكه يظهر هنا للتفعيل والمعاينة.</p></div>
+     <div class="store-section-head-v127"><h2>🎒 {{ $ui['my_items'] }}</h2><p>{{ $ui['my_items_desc'] }}</p></div>
      <div class="store-products-grid-v127 inventory-grid-v127">
       @forelse(($inventory ?? collect()) as $inv)
        @php $si=$inv->storeItem; @endphp
-       <article class="store-product-card-v127 inventory-owned" data-category="inventory" data-name="{{ strtolower(($si?->name['ar'] ?? '').' '.($si?->key ?? '')) }}">
+       <article class="store-product-card-v127 inventory-owned" data-category="inventory" data-name="{{ strtolower(($si?->name['ar'] ?? '').' '.($si?->name['en'] ?? '').' '.($si?->key ?? '')) }}">
         @php $ownedAsset=$si?->payload['asset_url'] ?? $si?->payload['table_image'] ?? $si?->payload['card_back_image'] ?? null; @endphp
         <div class="product-preview-v127">@if($ownedAsset)<div class="admin-uploaded-cosmetic-preview" style="background-image:url('{{$ownedAsset}}')"></div>@else<div class="shop-icon product-generic-v127">{{ $si?->payload['preview_icon'] ?? '🎁' }}</div>@endif</div>
-        <div class="product-info-v127"><h3>{{ $si?->name['ar'] ?? 'عنصر' }}</h3><p>{{ $si?->category ?? '' }}</p></div>
+        <div class="product-info-v127"><h3>{{ $si?->name[$locale] ?? $si?->name['en'] ?? $si?->name['ar'] ?? $ui['item_fallback'] }}</h3><p>{{ $si?->category ?? '' }}</p></div>
         <div class="product-actions-v127">
-         <button type="button" onclick="previewStoreItem(this)">معاينة</button>
+         <button type="button" onclick="previewStoreItem(this)">{{ $ui['preview'] }}</button>
          @if($inv && !$inv->active)
-          <form method="post" action="{{ route('inventory.activate',$inv) }}">@csrf<button class="primary" type="submit">تفعيل</button></form>
+          <form method="post" action="{{ route('inventory.activate',$inv) }}">@csrf<button class="primary" type="submit">{{ $ui['activate'] }}</button></form>
          @else
-          <span class="active-owned-v131">مفعّل</span>
+          <span class="active-owned-v131">{{ $ui['active'] }}</span>
          @endif
         </div>
        </article>
       @empty
-       <div class="empty-store-v127">لا توجد مشتريات بعد.</div>
+       <div class="empty-store-v127">{{ $ui['no_purchases'] }}</div>
       @endforelse
      </div>
     </section>
@@ -92,21 +104,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
     <section class="store-category-section-v127 {{$cat===$firstActive?'active':''}}" data-store-section-v127="{{$cat}}" {{$cat===$firstActive?'':'hidden'}}>
      <div class="store-section-head-v127">
       <h2>{{$icons[$cat]}} {{$label}}</h2>
-      <p>
-       @if($cat==='pasha') اشتراكات الباشا وأيام التميز تظهر هنا فقط.
-       @elseif($cat==='table') كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.
-       @elseif($cat==='card_back') كل ظهور الورق هنا فقط، وتظهر على أوراقك داخل اللعبة.
-       @elseif($cat==='text_color') ألوان كتابة الدردشة هنا فقط.
-       @elseif($cat==='name_color') ألوان الأسماء والـ Glow هنا فقط.
-       @elseif($cat==='emoji_pack') باقات الإيموجي هنا فقط.
-       @elseif($cat==='badge') الشارات والهوية هنا فقط.
-       @elseif($cat==='effect') مؤثرات الفوز والثيمات الأسطورية هنا فقط.
-       @elseif($cat==='profile_cover') أغلفة البروفايل الفاخرة هنا فقط.
-       @elseif($cat==='competition_ticket') تذاكر الدخول إلى المنافسات هنا فقط.
-       @elseif($cat==='xp_booster') مسرعات XP هنا فقط.
-       @else منتجات هذا القسم هنا فقط.
-       @endif
-      </p>
+      <p>{{ $sectionDescriptions[$cat] ?? $ui['generic_section'] }}</p>
      </div>
 
      <div class="store-products-grid-v127">
@@ -120,6 +118,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         $tier=$payload['tier'] ?? $payload['tab'] ?? 'pro';
         $emojiTier=$payload['emoji_tier'] ?? (($item->price==0)?'free':'vip');
         $name=$item->name[$locale] ?? $item->name['en'] ?? $item->name['ar'] ?? $item->key;
+        $quote=$priceQuotes[$item->id] ?? ['price'=>(int)$item->price,'original_price'=>(int)$item->price,'discount_percent'=>0];
         $previewIcon=$payload['preview_icon'] ?? $payload['icon'] ?? $icons[$cat] ?? '🎁';
         $assetUrl=$payload['asset_url'] ?? $payload['table_image'] ?? $payload['card_back_image'] ?? null;
        @endphp
@@ -132,8 +131,9 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
         data-item-key="{{$item->key}}"
         data-animated="{{ !empty($payload['animated']) ? '1' : '0' }}"
         data-sound-key="{{$payload['sound_key'] ?? ''}}"
-        data-name="{{ strtolower($name.' '.$item->key.' '.$cat) }}">
+        data-name="{{ strtolower(($item->name['ar'] ?? '').' '.($item->name['en'] ?? '').' '.$item->key.' '.$cat) }}">
         @csrf
+        <input type="hidden" name="expected_price" value="{{ $quote['price'] }}">
         <div class="product-preview-v127 type-{{$cat}}" style="--item-color:{{$color}};--item-color2:{{$color2}};--item-pattern:{{$pattern}}">
          @if($cat==='table')
           <div class="product-table-v127 table-real-preview-v128 r101-inlay {{$payload['table_class'] ?? $payload['table'] ?? ''}}" @if($assetUrl) style="--r101-table-art:url('{{$assetUrl}}')" @endif><i>{{$assetUrl?'':$emblem}}</i></div>
@@ -147,26 +147,26 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
           <div class="name-color-live-preview-v136" style="--sample-color:{{$color}}">
            <img loading="lazy" decoding="async" src="{{ auth()->user()?->profile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
            <b>{{ auth()->user()?->profile?->display_name ?: auth()->user()?->username }}</b>
-           <small>معاينة لون الاسم مباشرة</small>
+           <small>{{ $ui['name_preview'] }}</small>
           </div>
          @elseif($cat==='text_color')
-          <div class="product-color-v127 text-color-live-preview-v136" style="--sample-color:{{$color}}"><b>رسالة دردشة تجريبية</b></div>
+          <div class="product-color-v127 text-color-live-preview-v136" style="--sample-color:{{$color}}"><b>{{ $ui['chat_preview'] }}</b></div>
          @else
           <div class="shop-icon product-generic-v127">{{ $previewIcon }}</div>
          @endif
         </div>
         <div class="product-info-v127">
          <h3>{{ $name }}</h3>
-         <p>{{ $item->description['ar'] ?? 'مقتنى فاخر داخل Warqnaa' }}</p>
+         <p>{{ $item->description[$locale] ?? $item->description['en'] ?? $item->description['ar'] ?? $ui['default_description'] }}</p>
         </div>
         <div class="product-actions-v127">
-         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png" alt="باشا">@endif 🪙 {{ number_format($item->price) }}</span>
-         @unless($cat==='pasha')<button type="button" onclick="previewStoreItem(this)">معاينة</button>@endunless
-         <button class="primary" type="submit">شراء</button>
+         <span class="price">@if($cat==='pasha')<img loading="lazy" decoding="async" class="pasha-price-icon-v134" src="/assets/store/basha1.png?v=36-luxury" alt="باشا">@endif 🪙 {{ number_format($quote['price']) }}@if(($quote['discount_percent'] ?? 0)>0)<small style="display:block;color:#ffe996;font-weight:800"><del>{{ number_format($quote['original_price']) }}</del> −{{ $quote['discount_percent'] }}%</small>@endif</span>
+         @unless($cat==='pasha')<button type="button" onclick="previewStoreItem(this)">{{ $ui['preview'] }}</button>@endunless
+         <button class="primary" type="submit">{{ $ui['buy'] }}</button>
         </div>
        </form>
       @empty
-       <div class="empty-store-v127">لا توجد منتجات في هذا القسم حاليًا.</div>
+       <div class="empty-store-v127">{{ $ui['no_products'] }}</div>
       @endforelse
      </div>
     </section>
@@ -184,6 +184,11 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
  const emojiBtns=[...document.querySelectorAll('[data-emoji-tier-v127]')];
  const tierBox=document.getElementById('storeTierFiltersV127');
  const emojiBox=document.getElementById('emojiTierFiltersV127');
+ const status=document.getElementById('storeSearchStatusV127');
+ const empty=document.getElementById('storeSearchEmptyV127');
+ const resultPrefix=@json($ui['search_results']);
+
+ function normalized(value){ return String(value||'').normalize('NFKD').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase().trim(); }
 
  function activeCat(){ return document.querySelector('[data-store-tab-v127].active')?.dataset.storeTabV127 || 'pasha'; }
  function activeTier(){ return document.querySelector('[data-store-tier-v127].active')?.dataset.storeTierV127 || 'all'; }
@@ -191,7 +196,7 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 
  function apply(){
   const cat=activeCat();
-  const q=(search?.value||'').trim().toLowerCase();
+  const q=normalized(search?.value);
   const tier=activeTier();
   const emoji=activeEmoji();
   document.querySelectorAll('[data-store-section-v127]').forEach(sec=>{
@@ -203,12 +208,17 @@ foreach($labels as $k=>$v){ if($k!=='inventory' && (($items[$k] ?? collect())->c
 
   const section=document.querySelector(`[data-store-section-v127="${CSS.escape(cat)}"]`);
   if(!section) return;
-  section.querySelectorAll('.store-product-card-v127').forEach(card=>{
-   const okText=!q||(card.dataset.name||'').includes(q);
+  const cards=[...section.querySelectorAll('.store-product-card-v127')];
+  let visible=0;
+  cards.forEach(card=>{
+   const okText=!q||normalized(card.dataset.name).includes(q);
    const okTier=!['table','card_back','xp_booster','effect','badge','profile_cover'].includes(cat) || tier==='all' || (card.dataset.tier||'pro')===tier;
    const okEmoji=cat!=='emoji_pack' || emoji==='all' || (card.dataset.emojiTier||'vip')===emoji;
    card.hidden=!(okText&&okTier&&okEmoji);
+   if(!card.hidden) visible++;
   });
+  if(status) status.textContent=`${resultPrefix}: ${visible} / ${cards.length}`;
+  if(empty) empty.hidden=cards.length===0||visible>0;
  }
 
  tabs.forEach(btn=>btn.addEventListener('click',()=>{

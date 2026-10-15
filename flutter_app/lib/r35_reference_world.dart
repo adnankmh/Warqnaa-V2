@@ -293,13 +293,16 @@ class R35ChampionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final compact = MediaQuery.sizeOf(context).width < 600;
+    final viewport = MediaQuery.sizeOf(context);
+    final compact = viewport.width < 600 || viewport.height < 480;
+    final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final bannerHeight = (compact ? 188.0 : 240.0) * (textScale < 1 ? 1 : textScale);
     return Semantics(
       container: true,
       label: ar ? 'بطولات ورقنا الكبرى' : 'Warqnaa grand championships',
       child: Container(
         key: const ValueKey('r35-sky-grand-tournament-banner'),
-        height: compact ? 176 : 212,
+        height: bannerHeight,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
@@ -308,20 +311,22 @@ class R35ChampionBanner extends StatelessWidget {
             color: R35ReferenceColors.deep.withValues(alpha: .36), blurRadius: 23, offset: const Offset(0, 8))],
         ),
         child: Stack(fit: StackFit.expand, children: <Widget>[
-          const CustomPaint(painter: R35CoastalBannerPainter()),
+          Image.asset('assets/optimized/r36/championship_hero.webp',
+            key: const ValueKey('r36-championship-art'),
+            fit: BoxFit.cover, alignment: Alignment.centerLeft,
+            filterQuality: FilterQuality.high, excludeFromSemantics: true,
+            errorBuilder: (_, __, ___) => const CustomPaint(painter: R35CoastalBannerPainter())),
           Container(decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: <Color>[Color(0xEE07376E), Color(0xBB0C5EA8), Color(0x2000B9FF)],
+              begin: Alignment.centerRight, end: Alignment.centerLeft,
+              colors: <Color>[Color(0xD903285F), Color(0x70043E80), Color(0x00043E80)],
               stops: <double>[0, .55, 1],
             ),
           )),
-          PositionedDirectional(
-            end: compact ? 1 : 9, bottom: 3,
-            child: SizedBox(width: compact ? 112 : 184, height: compact ? 156 : 194,
-              child: CustomPaint(painter: R35GoldTrophyPainter())),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(compact ? 11 : 19, 13, compact ? 112 : 188, 13),
+          Align(alignment: Alignment.centerRight, child: FractionallySizedBox(
+            widthFactor: compact ? .65 : .60,
+            child: Padding(
+            padding: EdgeInsets.fromLTRB(8, 13, compact ? 11 : 19, 13),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
               Text(ar ? '🏆 بطولات ورقنا الكبرى' : '🏆 WARQNAA CHAMPIONSHIPS',
@@ -348,7 +353,7 @@ class R35ChampionBanner extends StatelessWidget {
                   )),
                 )),
             ]),
-          ),
+          ))),
         ]),
       ),
     );
@@ -394,11 +399,11 @@ class R35ArtGameCard extends StatelessWidget {
           ),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
             color: const Color(0xD9042D75),
             child: Text(L.t(locale, game.id), textAlign: TextAlign.center,
               maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+              style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w900)),
           ),
         ]),
       ),
@@ -746,10 +751,24 @@ class R35StoreTreasureTile extends StatelessWidget {
                 style: const TextStyle(fontSize: 26))),
             ),
             const SizedBox(height: 8),
-            Text(product.name(controller.localeCode), textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 6),
+            SizedBox(
+              height: 40,
+              child: Center(
+                child: Text(
+                  product.name(controller.localeCode),
+                  textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    height: 1.15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 7),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(

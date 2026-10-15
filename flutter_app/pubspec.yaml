@@ -42,6 +42,7 @@ flutter:
     # Historical source artwork remains in the repository but is not packaged.
     - assets/images/brand/warqna_logo.png
     - assets/images/pasha.png
+    - assets/optimized/r36/championship_hero.webp
     - assets/images/boosters/v183/
     # Flutter directory declarations are not recursive; include each leaf.
     - assets/optimized/r10/

@@ -14,6 +14,14 @@ String _r11Localized(dynamic value, String locale, [String fallback = '']) {
   return value?.toString() ?? fallback;
 }
 
+String r21ClubCountLabel(String locale, int count) {
+  if (locale != 'ar') return '$count ${count == 1 ? 'club' : 'clubs'}';
+  if (count == 1) return 'نادي واحد';
+  if (count == 2) return 'ناديان';
+  if (count >= 3 && count <= 10) return '$count أندية';
+  return '$count ناديًا';
+}
+
 class R11SocialWorldPage extends StatefulWidget {
   const R11SocialWorldPage({super.key, required this.controller});
   final AppController controller;
@@ -608,7 +616,7 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
         FilterChip(key: const ValueKey('r21-club-available'), selected: availableOnly,
           onSelected: (value) => setState(() => availableOnly = value),
           label: Text(ar ? 'يقبل أعضاء' : 'Available spots')),
-        Text(ar ? '${filtered.length} نادي' : '${filtered.length} clubs', style: const TextStyle(color: Colors.white60)),
+        Text(r21ClubCountLabel(widget.locale, filtered.length), style: const TextStyle(color: Colors.white60)),
       ]),
       const SizedBox(height: 12),
       if (filtered.isEmpty) _R11Notice(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
@@ -646,10 +654,22 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
                 LinearProgressIndicator(value: capacity > 0 ? (count / capacity).clamp(0.0, 1.0).toDouble() : 0,
                   color: _r11Gold, backgroundColor: Colors.white10, borderRadius: BorderRadius.circular(8)),
                 const SizedBox(height: 16),
-                FilledButton.tonalIcon(key: ValueKey('r21-club-join-$id'),
+                FilledButton(key: ValueKey('r21-club-join-$id'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    backgroundColor: _r11Mint,
+                    foregroundColor: _r11Deep,
+                    disabledBackgroundColor: const Color(0xFF24483A),
+                    disabledForegroundColor: Colors.white70,
+                    side: BorderSide(color: _r11Mint.withValues(alpha: .42)),
+                  ),
                   onPressed: widget.allowJoin && widget.busyClubId == null && available(club) ? () => widget.onJoin(club) : null,
-                  icon: Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
-                  label: Text(label)),
+                  child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
+                    const SizedBox(width: 8),
+                    Flexible(child: Text(label, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900))),
+                  ])),
               ])),
           )));
         }).toList());
