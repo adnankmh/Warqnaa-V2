@@ -4,6 +4,7 @@
 @php
   $ar=app()->getLocale()==='ar';
   $isAuthed=auth()->check();
+  $currentUser=auth()->user();
   $keys=\App\Services\Games\GameCatalog::customerKeys();
   $games=\App\Models\Game::where('active',true)->whereIn('key',$keys)->orderBy('id')->take(12)->get();
   $rooms=\App\Models\Room::whereIn('status',['waiting','bidding','playing'])->count();
