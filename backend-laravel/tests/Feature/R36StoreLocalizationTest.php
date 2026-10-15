@@ -36,6 +36,10 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('Search this category only...')
             ->assertSee('Everything you own appears here for activation and preview.')
             ->assertSee('All tables appear here, with a preview before purchase.')
+            ->assertSee('No items match your search or filters.')
+            ->assertSee('const resultPrefix=', false)
+            ->assertSee("replace(/[أإآٱ]/g,'ا')", false)
+            ->assertSee('باشا 7 أيام Pasha 7 Days pasha_7_days_v128 pasha', false)
             ->assertSee('>Preview<', false)
             ->assertSee('>Buy<', false)
             ->assertDontSee('ابحث داخل القسم الحالي فقط...')
@@ -52,6 +56,8 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('ابحث داخل القسم الحالي فقط...')
             ->assertSee('كل ما تملكه يظهر هنا للتفعيل والمعاينة.')
             ->assertSee('كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.')
+            ->assertSee('لا توجد عناصر تطابق البحث أو عوامل التصفية.')
+            ->assertSee('باشا 7 أيام Pasha 7 Days pasha_7_days_v128 pasha', false)
             ->assertSee('>معاينة<', false)
             ->assertSee('>شراء<', false);
     }
