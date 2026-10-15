@@ -85,7 +85,7 @@ class R36SettingsLocalizationTest extends TestCase
         $profile=$user->profile->fresh();
         $this->assertSame('Updated player',$profile->display_name);
         $this->assertSame('JO',$profile->country_code);
-        $this->assertFalse($profile->sound_enabled);
+        $this->assertSame(0,(int) $profile->sound_enabled);
         $this->assertSame('gold',$profile->active_site_theme);
     }
 
