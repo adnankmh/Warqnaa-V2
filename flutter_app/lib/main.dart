@@ -3442,9 +3442,24 @@ class _LoginScreenState extends State<LoginScreen> {
     final palette = AppPalette.fromCode(widget.controller.themeCode);
     final lang = widget.controller.localeCode;
     final ar = lang == 'ar';
+    final theme = Theme.of(context);
+    final lightPanel = palette.panel.computeLuminance() > .5;
+    final actionColor = lightPanel ? const Color(0xff064777) : const Color(0xffa1ecff);
+    final loginTheme = theme.copyWith(
+      textButtonTheme: TextButtonThemeData(style: (theme.textButtonTheme.style ?? const ButtonStyle()).merge(
+        TextButton.styleFrom(foregroundColor: actionColor, disabledForegroundColor: palette.muted),
+      )),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: (theme.outlinedButtonTheme.style ?? const ButtonStyle()).merge(
+        OutlinedButton.styleFrom(foregroundColor: actionColor, disabledForegroundColor: palette.muted,
+          side: BorderSide(color: actionColor.withValues(alpha: .6))),
+      )),
+      expansionTileTheme: theme.expansionTileTheme.copyWith(textColor: actionColor,
+        collapsedTextColor: actionColor, iconColor: actionColor, collapsedIconColor: actionColor),
+      dividerColor: actionColor.withValues(alpha: .3),
+    );
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, const Color(0xff030810)])),
+      body: Theme(data: loginTheme, child: DecoratedBox(
+        decoration: BoxDecoration(gradient: RadialGradient(center: const Alignment(.8, -.9), radius: 1.5, colors: [palette.green.withValues(alpha: .3), palette.bg, lightPanel ? palette.bg : const Color(0xff030810)])),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -3456,9 +3471,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Image.asset('assets/images/brand/warqna_logo.png', width: 88, height: 76, fit: BoxFit.contain),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                      Text(ar ? 'أهلاً بك في ورقنا' : 'Welcome to Warqnaa', style: TextStyle(color: palette.text, fontSize: 20, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      Text(ar ? 'لمّة حلوة… وورقة رابحة' : 'Good company. Great games.', style: TextStyle(color: palette.muted, fontSize: 12)),
                     ])),
                   ]),
                   const SizedBox(height: 16),
@@ -3466,9 +3481,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(color: palette.panel.withValues(alpha: .95), borderRadius: BorderRadius.circular(24), border: Border.all(color: palette.gold.withValues(alpha: .2))),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      Text(authTextV151(lang, registerMode ? 'newAccount' : 'login'), style: TextStyle(color: palette.text, fontSize: 22, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
-                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      Text(authTextV151(lang, registerMode ? 'registerSubtitle' : 'loginSubtitle'), style: TextStyle(color: palette.muted, fontSize: 12)),
                       const SizedBox(height: 18),
                       TextField(
                         key: const ValueKey('r81-login-name'), controller: loginController, enabled: !busy,
@@ -3495,7 +3510,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       if (!registerMode) Align(alignment: AlignmentDirectional.centerEnd, child: TextButton(onPressed: busy ? null : forgotPassword, child: Text(ar ? 'نسيت كلمة المرور؟' : 'Forgot password?'))),
-                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: const TextStyle(color: Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
+                      if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Semantics(liveRegion: true, child: Text(error!, style: TextStyle(color: lightPanel ? const Color(0xff9d174d) : const Color(0xffffa6a6), fontSize: 12, height: 1.5)))),
                       const SizedBox(height: 8),
                       FilledButton.icon(
                         key: const ValueKey('r81-login-submit'), onPressed: busy ? null : () => submit(),
@@ -3515,7 +3530,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                         ),
                         const SizedBox(height: 6),
-                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                        Text(ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device', textAlign: TextAlign.center, style: TextStyle(color: palette.muted, fontSize: 11)),
                       ],
                     ]),
                   ),
@@ -3544,7 +3559,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       if (!registerMode && !warqnaProductionMode) TextButton.icon(onPressed: busy ? null : chooseDemoAccount, icon: const Icon(Icons.groups_2_outlined), label: Text(authTextV151(lang, 'chooseDemo'))),
                       if (!registerMode) ...[
-                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11))),
+                        Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(authTextV151(lang, 'providerNote'), textAlign: TextAlign.center, style: TextStyle(color: palette.muted, fontSize: 11))),
                         Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 6, children: [
                           for (final provider in ['google', 'apple', 'facebook'])
                             OutlinedButton(onPressed: busy ? null : () => socialLogin(provider), child: Text(provider == 'google' ? 'Google' : provider == 'apple' ? 'Apple' : 'Facebook')),
@@ -3557,7 +3572,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }
