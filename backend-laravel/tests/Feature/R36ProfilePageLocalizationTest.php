@@ -29,8 +29,7 @@ class R36ProfilePageLocalizationTest extends TestCase
             'pasha_days'=>2,
         ]);
         Wallet::create(['user_id'=>$user->id,'tokens'=>1000,'gems'=>5]);
-        Game::create([
-            'key'=>'baloot',
+        Game::updateOrCreate(['key'=>'baloot'],[
             'name'=>['ar'=>'بلوت','en'=>'Baloot'],
             'min_players'=>4,
             'max_players'=>4,
