@@ -23,16 +23,6 @@ class R36StoreLocalizationTest extends TestCase
             'country_name' => 'Palestine',
         ]);
         Wallet::create(['user_id' => $user->id, 'tokens' => 1000, 'gems' => 0]);
-        StoreItem::create([
-            'key' => 'r36_bilingual_search_probe',
-            'name' => ['ar' => 'اختبار البحث', 'en' => 'Search Probe'],
-            'description' => ['ar' => 'عنصر اختبار', 'en' => 'Test item'],
-            'category' => 'text_color',
-            'price' => 100,
-            'active' => true,
-            'payload' => ['color' => '#25e4df'],
-        ]);
-
         return $user;
     }
 
@@ -40,6 +30,8 @@ class R36StoreLocalizationTest extends TestCase
     {
         app()->setLocale('en');
         $response = $this->actingAs($this->authenticatedUser())->get('/store');
+        $item = StoreItem::where('active', true)->where('category', 'pasha')->orderBy('id')->firstOrFail();
+        $searchMetadata = strtolower(($item->name['ar'] ?? '').' '.($item->name['en'] ?? '').' '.$item->key.' '.$item->category);
 
         $response->assertOk()
             ->assertSee('dir="ltr"', false)
@@ -49,7 +41,7 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('No items match your search or filters.')
             ->assertSee('const resultPrefix=', false)
             ->assertSee("replace(/[أإآٱ]/g,'ا')", false)
-            ->assertSee('اختبار البحث Search Probe r36_bilingual_search_probe text_color', false)
+            ->assertSee($searchMetadata, false)
             ->assertSee('>Preview<', false)
             ->assertSee('>Buy<', false)
             ->assertDontSee('ابحث داخل القسم الحالي فقط...')
@@ -60,6 +52,8 @@ class R36StoreLocalizationTest extends TestCase
     {
         app()->setLocale('ar');
         $response = $this->actingAs($this->authenticatedUser())->get('/store');
+        $item = StoreItem::where('active', true)->where('category', 'pasha')->orderBy('id')->firstOrFail();
+        $searchMetadata = strtolower(($item->name['ar'] ?? '').' '.($item->name['en'] ?? '').' '.$item->key.' '.$item->category);
 
         $response->assertOk()
             ->assertSee('dir="rtl"', false)
@@ -67,7 +61,7 @@ class R36StoreLocalizationTest extends TestCase
             ->assertSee('كل ما تملكه يظهر هنا للتفعيل والمعاينة.')
             ->assertSee('كل الطاولات هنا فقط، مع معاينة شكل الطاولة قبل الشراء.')
             ->assertSee('لا توجد عناصر تطابق البحث أو عوامل التصفية.')
-            ->assertSee('اختبار البحث Search Probe r36_bilingual_search_probe text_color', false)
+            ->assertSee($searchMetadata, false)
             ->assertSee('>معاينة<', false)
             ->assertSee('>شراء<', false);
     }
