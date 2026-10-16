@@ -222,4 +222,51 @@ void main() {
     }
   }
 
+  testWidgets('R37 compact sky navigation keeps readable labels', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      bottomNavigationBar: B307BottomNavigation(
+        controller: controller,
+        selectedIndex: 2,
+        onSelected: (_) {},
+      ),
+    )));
+    final store = tester.widget<Text>(find.text('Store'));
+    final home = tester.widget<Text>(find.text('Home'));
+    expect(store.style?.fontSize, 11);
+    expect(home.style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 sky world tile and section action keep readable controls',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Column(children: <Widget>[
+      B307SectionHeader(title: 'Warqnaa world', action: 'Explore', onTap: () {}),
+      SizedBox(
+        width: 180,
+        height: 150,
+        child: B307WorldTile(
+          icon: Icons.groups_2_rounded,
+          title: 'Friends',
+          subtitle: 'Invites and chat',
+          accent: B307SkyLuxury.cyan,
+          onTap: () {},
+        ),
+      ),
+    ]))));
+    expect(tester.widget<Text>(find.text('Explore')).style?.fontSize, 12);
+    expect(tester.getSize(find.byType(TextButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('Friends')).style?.fontSize, 13);
+    expect(tester.widget<Text>(find.text('Invites and chat')).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+
 }
