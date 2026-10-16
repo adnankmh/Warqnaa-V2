@@ -211,7 +211,7 @@ class LuckyWheelHomeCardV182 extends StatelessWidget {
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:<Widget>[
             const Text('دولاب الحظ الملكي',style:TextStyle(fontWeight:FontWeight.w900,fontSize:18,color:Colors.white)),
             const SizedBox(height:4),
-            const Text('8 جوائز منتقاة • دوران سينمائي • والجائزة تظهر بنفس شكلها الحقيقي',style:TextStyle(color:Colors.white70,fontSize:10,height:1.45)),
+            const Text('8 جوائز منتقاة • دوران سينمائي • والجائزة تظهر بنفس شكلها الحقيقي',style:TextStyle(color:Colors.white,fontSize:11,height:1.45)),
             const SizedBox(height:8),
             Row(children:<Widget>[
               Icon(controller.luckyWheelFreeAvailableV182 ? Icons.card_giftcard_rounded : Icons.schedule_rounded,size:17,color:Colors.amberAccent),
@@ -336,7 +336,7 @@ class LuckyWheelPainterV182 extends CustomPainter {
         textAlign:TextAlign.center,
         text:TextSpan(
           text:'${segment['icon']}\n${segment['label_ar']}',
-          style:const TextStyle(color:Colors.white,fontSize:10.2,fontWeight:FontWeight.w900,height:1.18,shadows:<Shadow>[Shadow(color:Colors.black54,blurRadius:4)]),
+          style:const TextStyle(color:Colors.white,fontSize:11,fontWeight:FontWeight.w900,height:1.18,shadows:<Shadow>[Shadow(color:Colors.black54,blurRadius:4)]),
         ),
       )..layout(maxWidth:radius*.44);
       painter.paint(canvas,Offset(radius*.47,-painter.height/2));
@@ -411,7 +411,7 @@ class _ClubManagementPageV182State extends State<ClubManagementPageV182>{
           const SizedBox(width:10),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:<Widget>[
             Text(c.activeClub ?? 'نادي ورقنا الملكي',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17)),
-            Text(c.clubDescriptionV182,style:TextStyle(color:muted,fontSize:10,height:1.4)),
+            Text(c.clubDescriptionV182,style:TextStyle(color:muted,fontSize:11,height:1.4,fontWeight:FontWeight.w600)),
           ])),
         ]),
         const SizedBox(height:12),
@@ -448,7 +448,7 @@ class _ClubManagementPageV182State extends State<ClubManagementPageV182>{
       for(final entry in c.clubActivityV182) ListTile(
         leading:CircleAvatar(child:Text(entry['icon']?.toString() ?? '•')),
         title:Text(entry['title']?.toString() ?? ''),
-        trailing:Text(entry['time']?.toString() ?? '',style:TextStyle(fontSize:10,color:muted)),
+        trailing:Text(entry['time']?.toString() ?? '',style:TextStyle(fontSize:11,color:muted,fontWeight:FontWeight.w700)),
       ),
     ]));
   }
