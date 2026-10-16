@@ -45,6 +45,7 @@ void main() {
     expect(label.maxLines, 1);
     expect(label.softWrap, isFalse);
     expect(find.ancestor(of: find.text(balance), matching: find.byType(FittedBox)), findsOneWidget);
+    expect(label.style?.fontSize, 11);
     expect(tester.takeException(), isNull);
   });
 
@@ -265,6 +266,65 @@ void main() {
     expect(tester.getSize(find.byType(TextButton)).height, greaterThanOrEqualTo(44));
     expect(tester.widget<Text>(find.text('Friends')).style?.fontSize, 13);
     expect(tester.widget<Text>(find.text('Invites and chat')).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('R37 compact top bar keeps account status readable', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: B307TopBar(controller: controller))));
+    expect(tester.widget<Text>(find.text(controller.displayName)).style?.fontSize, 13);
+    expect(tester.widget<Text>(find.text('Local mode')).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 game HUD keeps score context readable', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: B307TarneebHud(
+      weLabel: 'Us',
+      theyLabel: 'Them',
+      weScore: 31,
+      theyScore: 24,
+      roundLabel: 'Round 4',
+      trickScore: 'Tricks 5–3',
+      xpMultiplier: 2,
+      connected: true,
+    ))));
+    expect(tester.widget<Text>(find.text('Us')).style?.fontSize, 11);
+    expect(tester.widget<Text>(find.text('Round 4')).style?.fontSize, 11.5);
+    expect(tester.widget<Text>(find.text('Tricks 5–3')).style?.fontSize, 12);
+    expect(tester.widget<Text>(find.text('LIVE')).style?.fontSize, 10);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 checkout trust strip keeps safety copy readable',
+      (tester) async {
+    const catalog = <String, dynamic>{
+      'sandbox': true,
+      'production_ready': false,
+      'providers': <String, dynamic>{
+        'test': <String, dynamic>{'verification_ready': true},
+      },
+    };
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(width: 390, child: B307CommerceTrustStrip(
+        catalog: catalog,
+        localeCode: 'en',
+      )),
+    ))));
+    expect(tester.widget<Text>(find.text('Safe sandbox mode')).style?.fontSize, 12.5);
+    expect(
+      tester.widget<Text>(find.text(
+        '1 verified payment provider(s) ready • raw card details are not stored',
+      )).style?.fontSize,
+      11,
+    );
     expect(tester.takeException(), isNull);
   });
 
