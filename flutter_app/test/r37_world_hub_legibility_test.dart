@@ -7,14 +7,17 @@ void main() {
     const paths = <String>[
       'lib/r5_world_class.dart',
       'lib/r6_4_world_championship.dart',
+      'lib/r9_release.dart',
       'lib/v300_world_experience.dart',
     ];
     final sources = paths.map((path) => File(path).readAsStringSync()).toList();
 
     expect(sources[0], contains("'Primary Administrator'"));
     expect(sources[1], contains("'World play center'"));
-    expect(sources[2], contains('_V300HubCard'));
-    expect(sources[2], contains('withValues(alpha:.74)'));
+    expect(sources[2], contains('class R9HomeDashboard'));
+    expect(sources[2], contains("'ONLINE • API'"));
+    expect(sources[3], contains('_V300HubCard'));
+    expect(sources[3], contains('withValues(alpha:.74)'));
 
     final undersized = RegExp(
       r'fontSize:\s*(?:[0-9](?:\.[0-9]+)?|10(?:\.[0-9]+)?)(?![0-9])',
