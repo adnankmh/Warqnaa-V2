@@ -8,7 +8,7 @@ void main() {
 
     expect(source, contains("t('productionCenter')"));
     expect(source, contains("warqnaProductionMode ? 'PRODUCTION' : 'PREVIEW'"));
-    expect(source, contains("'API: ${c.api.baseUrl}'"));
+    expect(source, contains(r"'API: ${c.api.baseUrl}'"));
     expect(source, contains("'الجلسات النشطة'"));
     expect(source, contains('fontSize: 11, color: Colors.white70'));
 
