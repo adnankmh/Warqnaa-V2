@@ -9,6 +9,8 @@ void main() {
     expect(source, contains('class BotRosterShowcase'));
     expect(source, contains("'Warqnaa computer player'"));
     expect(source, contains("'Reaction sound'"));
+    expect(source, contains('constraints: const BoxConstraints(maxWidth: 220)'));
+    expect(source, contains('childAspectRatio: columns == 2 ? .70 : .74'));
 
     final undersized = RegExp(
       r'fontSize:\s*(?:[0-9](?:\.[0-9]+)?|10(?:\.[0-9]+)?)(?![0-9])',
