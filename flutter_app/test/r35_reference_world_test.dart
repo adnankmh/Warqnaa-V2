@@ -299,7 +299,7 @@ void main() {
     expect(tester.widget<Text>(find.text('Us')).style?.fontSize, 11);
     expect(tester.widget<Text>(find.text('Round 4')).style?.fontSize, 11.5);
     expect(tester.widget<Text>(find.text('Tricks 5–3')).style?.fontSize, 12);
-    expect(tester.widget<Text>(find.text('LIVE')).style?.fontSize, 10);
+    expect(tester.widget<Text>(find.text('LIVE')).style?.fontSize, 11.5);
     expect(tester.takeException(), isNull);
   });
 
@@ -325,6 +325,37 @@ void main() {
       )).style?.fontSize,
       11,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('R37 cash offer badge stays legible on a compact card',
+      (tester) async {
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(
+        width: 180,
+        height: 250,
+        child: B307CashOfferCard(
+          controller: controller,
+          data: const <String, dynamic>{
+            'key': 'starter',
+            'tokens': 500,
+            'price_minor': 199,
+            'currency': 'USD',
+            'badge': 'Featured',
+            'icon': '🪙',
+          },
+        ),
+      ),
+    ))));
+    final badge = tester.widget<Text>(find.text('Featured'));
+    expect(badge.style?.fontSize, 11.5);
+    expect(badge.style?.height, 1.2);
+    expect(badge.style?.fontWeight, FontWeight.w900);
+    expect(tester.getSize(find.widgetWithText(FilledButton, 'Buy')).height,
+        greaterThanOrEqualTo(44));
     expect(tester.takeException(), isNull);
   });
 

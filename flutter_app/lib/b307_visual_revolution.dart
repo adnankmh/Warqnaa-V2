@@ -980,9 +980,9 @@ class _B307HudBadge extends StatelessWidget {
           border: Border.all(color: accent.withValues(alpha: .48)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          Icon(icon, size: 9, color: accent),
+          Icon(icon, size: 12, color: accent),
           const SizedBox(width: 2),
-          Text(label, style: TextStyle(color: accent, fontSize: 10, height: 1.15, fontWeight: FontWeight.w900)),
+          Text(label, style: TextStyle(color: accent, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w900)),
         ]),
       );
 }
@@ -1245,7 +1245,7 @@ class B307CashOfferCard extends StatelessWidget {
         boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(children: <Widget>[
-        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: B307SkyLuxury.gold, borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(color: B307SkyLuxury.navy, fontSize: 10, height: 1.15, fontWeight: FontWeight.w900)))),
+        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: B307SkyLuxury.gold, borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(color: B307SkyLuxury.navy, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w900)))),
         const Spacer(),
         Text(data['icon']?.toString() ?? '🪙', style: const TextStyle(fontSize: 36)),
         const SizedBox(height: 7),
