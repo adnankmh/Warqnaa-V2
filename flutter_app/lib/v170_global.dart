@@ -45,7 +45,7 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
                     '${controller.countryFlag} ${controller.level} LV • ${controller.serverConnected ? 'LIVE' : 'LOCAL'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 9, color: Colors.white60),
+                    style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -277,11 +277,11 @@ class _AccountMetricV170 extends StatelessWidget {
       constraints:const BoxConstraints(minHeight:94),
       padding:const EdgeInsets.all(11),
       child:Column(crossAxisAlignment:CrossAxisAlignment.start,mainAxisAlignment:MainAxisAlignment.center,children:[
-        Row(children:[Icon(icon, size: 20, color: accent ?? Theme.of(context).colorScheme.primary),const SizedBox(width:5),Expanded(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:10,fontWeight:FontWeight.w800)))]),
+        Row(children:[Icon(icon, size: 20, color: accent ?? Theme.of(context).colorScheme.primary),const SizedBox(width:5),Expanded(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:11,fontWeight:FontWeight.w800)))]),
         const SizedBox(height:4),
         FittedBox(fit:BoxFit.scaleDown,alignment:AlignmentDirectional.centerStart,child:Text(value,maxLines:1,style:TextStyle(fontWeight:FontWeight.w900,fontSize:17,color:accent))),
         const SizedBox(height:3),
-        Text(details,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:9)),
+        Text(details,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:11,fontWeight:FontWeight.w600)),
         if(progress!=null)...[const SizedBox(height:6),ClipRRect(borderRadius:BorderRadius.circular(20),child:LinearProgressIndicator(value:progress,minHeight:6))],
       ]),
     )),
@@ -359,7 +359,7 @@ class ProductCardV170 extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(children: [
           Row(children: [
-            Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.07),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white12)),child:Text(product.tierLabel(controller.localeCode),style:const TextStyle(fontSize:10,fontWeight:FontWeight.w900))),
+            Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.07),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white12)),child:Text(product.tierLabel(controller.localeCode),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))),
             const Spacer(),
             if (owned) const Icon(Icons.verified_rounded,color:Colors.greenAccent,size:20),
           ]),
@@ -373,7 +373,7 @@ class ProductCardV170 extends StatelessWidget {
           Text(controller.descriptionFor(product),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white60,fontSize:12,height:1.45)),
           const SizedBox(height:8),
           FittedBox(fit:BoxFit.scaleDown,child:Text(controller.priceFor(product) == 0 && owned ? '🎁 هدية الحزمة اليومية' : '🪙 ${formatNumber(controller.priceFor(product))}${owned && controller.quantityForR36(product.id)>1 ? '  ×${controller.quantityForR36(product.id)}' : ''}${controller.storeDiscountR36(product.id)>0 ? '  −${controller.storeDiscountR36(product.id)}%' : ''}',style:TextStyle(color:Theme.of(context).colorScheme.primary,fontWeight:FontWeight.w900,fontSize:15))),
-          if (expiryLabel != null) ...[const SizedBox(height:5), Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.orangeAccent.withValues(alpha:.12),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text('⌛ $expiryLabel',textAlign:TextAlign.center,style:const TextStyle(color:Colors.orangeAccent,fontSize:10,fontWeight:FontWeight.w900)))],
+          if (expiryLabel != null) ...[const SizedBox(height:5), Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.orangeAccent.withValues(alpha:.12),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text('⌛ $expiryLabel',textAlign:TextAlign.center,style:const TextStyle(color:Colors.orangeAccent,fontSize:11,fontWeight:FontWeight.w900)))],
           const SizedBox(height:8),
           if (isPasha)
             SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:() async { if(owned && !product.reusable){ final ok=await controller.activateOwnedProductR36(product); if(context.mounted)showToast(context,ok?'تم تفعيل ${controller.nameFor(product)}.':controller.lastStoreError ?? 'تعذر التفعيل.'); return; } final confirmed=await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(icon:Image.asset('assets/images/pasha.png',height:100,fit:BoxFit.contain),title:Text(controller.nameFor(product)),content:Text('${controller.descriptionFor(product)}\n\nالسعر: ${formatNumber(controller.priceFor(product))} توكن'),actions:[TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:Text(owned && product.reusable?'تجديد':owned?'تفعيل':'شراء'))])); if(confirmed==true && context.mounted){final ok=await controller.buy(product);if(context.mounted)showToast(context,ok?'تم شراء الباشا وتفعيله.':(controller.lastStoreError ?? 'تعذر الشراء. تحقق من الاتصال والرصيد.'));} },icon:const Icon(Icons.workspace_premium),label:Text(owned && product.reusable?'تجديد الباشا':owned?'تفعيل الباشا':'شراء الباشا'),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(50))))
@@ -520,7 +520,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
               const Icon(Icons.auto_graph_rounded, color: Colors.lightBlueAccent),
               const SizedBox(width: 7),
               Expanded(child: Text(ar ? 'تقدم المستوى ${visible.level}' : 'Level ${visible.level} progress', style: const TextStyle(fontWeight: FontWeight.w900))),
-              Text('${formatNumber(visible.xp)} / ${formatNumber(visible.xpNext)} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 10)),
+              Text('${formatNumber(visible.xp)} / ${formatNumber(visible.xpNext)} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 11)),
             ]),
             const SizedBox(height: 8),
             ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: visible.xpNext <= 0 ? 0 : (visible.xp / visible.xpNext).clamp(0, 1).toDouble(), minHeight: 8)),
@@ -543,7 +543,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
             child: Row(children: [
               Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(14)), child: Text(visible.clubLogo?.isNotEmpty == true ? visible.clubLogo! : '🛡️', style: const TextStyle(fontSize: 24))),
               const SizedBox(width: 9),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي' : 'Club', style: const TextStyle(color: Colors.white54, fontSize: 9)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي' : 'Club', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
               const Icon(Icons.groups_rounded, color: Colors.lightBlueAccent),
             ]),
           ),
@@ -562,7 +562,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
         ),
       ),
       const SizedBox(height: 10),
-      Text(ar ? 'رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.' : 'Token balance is private and never appears on a public profile.', style: const TextStyle(color: Colors.white54, fontSize: 10)),
+      Text(ar ? 'رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.' : 'Token balance is private and never appears on a public profile.', style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4)),
     ]),
   );
 }
@@ -651,7 +651,7 @@ class OpenRoomCardV170 extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(room['name']?.toString() ?? room['code']?.toString() ?? 'غرفة', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
             const SizedBox(height: 4),
-            Text('${voice ? '🎙️ صوتية' : '🃏 عادية'} • ${room['players'] ?? 1}/${room['max_players'] ?? 4} • LV.${room['min_level'] ?? 1}+', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
+            Text('${voice ? '🎙️ صوتية' : '🃏 عادية'} • ${room['players'] ?? 1}/${room['max_players'] ?? 4} • LV.${room['min_level'] ?? 1}+', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
             const SizedBox(height: 7),
             SizedBox(height: 30, child: Stack(children: [
               for (var index = 0; index < rawAvatars.length && index < 4; index++)
@@ -663,7 +663,7 @@ class OpenRoomCardV170 extends StatelessWidget {
                     child: Text(((rawAvatars[index] is Map ? rawAvatars[index]['name'] : null)?.toString() ?? '؟').characters.first, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
                   ),
                 ),
-              if (rawAvatars.isEmpty) const Text('بانتظار لاعبين…', style: TextStyle(color: Colors.white38, fontSize: 10)),
+              if (rawAvatars.isEmpty) const Text('بانتظار لاعبين…', style: TextStyle(color: Colors.white70, fontSize: 11)),
             ])),
           ])),
           FilledButton(onPressed: onJoin, child: Text(L.t(controller.localeCode, 'join'))),
@@ -736,7 +736,7 @@ Future<void> showChallengesV170(BuildContext context, AppController controller) 
                   const SizedBox(width: 9),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
                     Text(challenge['title']!.toString(), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-                    Text('${challenge['tier']} • ${L.t(controller.localeCode, challenge['game']!.toString())}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
+                    Text('${challenge['tier']} • ${L.t(controller.localeCode, challenge['game']!.toString())}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
                   ])),
                   Container(padding: const EdgeInsets.symmetric(horizontal:9,vertical:5), decoration: BoxDecoration(color: Colors.amber.withValues(alpha:.12), borderRadius: BorderRadius.circular(14)), child: Text('🪙 ${challenge['reward']}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 11))),
                 ]),
@@ -744,7 +744,7 @@ Future<void> showChallengesV170(BuildContext context, AppController controller) 
                 ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: (challenge['progress'] as int)/(challenge['target'] as int), minHeight: 9)),
                 const SizedBox(height: 6),
                 Row(children:[
-                  Expanded(child: Text('${challenge['progress']}/${challenge['target']} • +${challenge['xp']} XP', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10))),
+                  Expanded(child: Text('${challenge['progress']}/${challenge['target']} • +${challenge['xp']} XP', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600))),
                   FilledButton.tonal(
                     onPressed: () {
                       final id=challenge['id']!.toString();
@@ -798,7 +798,7 @@ class GroupInnovationHubV170 extends StatelessWidget {
                 const SizedBox(height:6),
                 FittedBox(child:Text(item.title,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:12))),
                 const SizedBox(height:5),
-                Text(item.subtitle,textAlign:TextAlign.center,maxLines:3,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white54,fontSize:9,height:1.35)),
+                Text(item.subtitle,textAlign:TextAlign.center,maxLines:3,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white70,fontSize:11,height:1.35,fontWeight:FontWeight.w600)),
               ])),
             ));
           },
@@ -830,7 +830,7 @@ class TarneebBidButtonV170 extends StatelessWidget {
         padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),
         child:Column(mainAxisSize:MainAxisSize.min,children:[
           Text(label,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:15)),
-          if(subtitle!=null) Text(subtitle!,style:const TextStyle(fontSize:9,color:Colors.white60)),
+          if(subtitle!=null) Text(subtitle!,style:const TextStyle(fontSize:11,color:Colors.white70,fontWeight:FontWeight.w600)),
         ]),
       ),
     ),
