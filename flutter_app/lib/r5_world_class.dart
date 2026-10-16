@@ -46,7 +46,7 @@ class R5TopBar extends StatelessWidget {
                         ? (ar ? 'مدير النظام الرئيسي' : 'Primary Administrator')
                         : (ar ? 'إدارة النظام' : 'Administrator'),
                     style: const TextStyle(
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -54,7 +54,7 @@ class R5TopBar extends StatelessWidget {
                 Text(
                   'LV ${controller.level}',
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                     color: Color(0xffffd76a),
                   ),
@@ -143,7 +143,7 @@ class R5RuntimeBadge extends StatelessWidget {
             healthy
                 ? (ar ? 'متصل بالخادم' : 'Server connected')
                 : (ar ? 'غير متصل بالخادم' : 'Server offline'),
-            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
           ),
         ],
       ),
