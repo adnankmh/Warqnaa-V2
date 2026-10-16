@@ -75,6 +75,25 @@ void main() {
     ))));
     await tester.tap(find.text('Explore tournaments'));
     expect(activated, isTrue);
+    expect(tester.getSize(find.byType(FilledButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('Explore tournaments')).style?.fontSize, 13);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 native panel action keeps readable type and a 44px target',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(width: 360, child: R35ReferencePanel(
+        title: 'All games',
+        icon: Icons.style_rounded,
+        actionLabel: 'View all',
+        onAction: () {},
+        child: const Text('Playable cards'),
+      )),
+    ))));
+    expect(tester.getSize(find.byType(TextButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('All games')).style?.fontSize, 16.5);
+    expect(tester.widget<Text>(find.text('View all')).style?.fontSize, 12);
     expect(tester.takeException(), isNull);
   });
 
@@ -104,7 +123,7 @@ void main() {
           )),
         )));
         final label = tester.widget<Text>(find.text(L.t(locale, 'tarneeb')));
-        expect(label.style?.fontSize, 12.5);
+        expect(label.style?.fontSize, 13.5);
         expect(label.style?.fontWeight, FontWeight.w900);
         expect(label.style?.color, Colors.white);
         await tester.tap(find.byKey(const ValueKey('r35-game-tarneeb')));
@@ -194,8 +213,8 @@ void main() {
         final label =
             tester.widget<Text>(find.text(sample.name(controller.localeCode)));
         expect(label.maxLines, 3);
-        expect(label.style?.fontSize, 11.5);
-        expect(label.style?.height, 1.15);
+        expect(label.style?.fontSize, 12.5);
+        expect(label.style?.height, 1.2);
         expect(label.style?.fontWeight, FontWeight.w900);
         expect(label.style?.color, Colors.white);
         expect(tester.takeException(), isNull);
