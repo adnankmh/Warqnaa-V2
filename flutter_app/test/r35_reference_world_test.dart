@@ -45,6 +45,7 @@ void main() {
     expect(label.maxLines, 1);
     expect(label.softWrap, isFalse);
     expect(find.ancestor(of: find.text(balance), matching: find.byType(FittedBox)), findsOneWidget);
+    expect(label.style?.fontSize, 11);
     expect(tester.takeException(), isNull);
   });
 
@@ -75,6 +76,25 @@ void main() {
     ))));
     await tester.tap(find.text('Explore tournaments'));
     expect(activated, isTrue);
+    expect(tester.getSize(find.byType(FilledButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('Explore tournaments')).style?.fontSize, 13);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 native panel action keeps readable type and a 44px target',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(width: 360, child: R35ReferencePanel(
+        title: 'All games',
+        icon: Icons.style_rounded,
+        actionLabel: 'View all',
+        onAction: () {},
+        child: const Text('Playable cards'),
+      )),
+    ))));
+    expect(tester.getSize(find.byType(TextButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('All games')).style?.fontSize, 16.5);
+    expect(tester.widget<Text>(find.text('View all')).style?.fontSize, 12);
     expect(tester.takeException(), isNull);
   });
 
@@ -104,7 +124,7 @@ void main() {
           )),
         )));
         final label = tester.widget<Text>(find.text(L.t(locale, 'tarneeb')));
-        expect(label.style?.fontSize, 12.5);
+        expect(label.style?.fontSize, 13.5);
         expect(label.style?.fontWeight, FontWeight.w900);
         expect(label.style?.color, Colors.white);
         await tester.tap(find.byKey(const ValueKey('r35-game-tarneeb')));
@@ -194,13 +214,150 @@ void main() {
         final label =
             tester.widget<Text>(find.text(sample.name(controller.localeCode)));
         expect(label.maxLines, 3);
-        expect(label.style?.fontSize, 11.5);
-        expect(label.style?.height, 1.15);
+        expect(label.style?.fontSize, 12.5);
+        expect(label.style?.height, 1.2);
         expect(label.style?.fontWeight, FontWeight.w900);
         expect(label.style?.color, Colors.white);
         expect(tester.takeException(), isNull);
       });
     }
   }
+
+  testWidgets('R37 compact sky navigation keeps readable labels', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      bottomNavigationBar: B307BottomNavigation(
+        controller: controller,
+        selectedIndex: 2,
+        onSelected: (_) {},
+      ),
+    )));
+    final store = tester.widget<Text>(find.text('Store'));
+    final home = tester.widget<Text>(find.text('Home'));
+    expect(store.style?.fontSize, 11);
+    expect(home.style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 sky world tile and section action keep readable controls',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Column(children: <Widget>[
+      B307SectionHeader(title: 'Warqnaa world', action: 'Explore', onTap: () {}),
+      SizedBox(
+        width: 180,
+        height: 150,
+        child: B307WorldTile(
+          icon: Icons.groups_2_rounded,
+          title: 'Friends',
+          subtitle: 'Invites and chat',
+          accent: B307SkyLuxury.cyan,
+          onTap: () {},
+        ),
+      ),
+    ]))));
+    expect(tester.widget<Text>(find.text('Explore')).style?.fontSize, 12);
+    expect(tester.getSize(find.byType(TextButton)).height, greaterThanOrEqualTo(44));
+    expect(tester.widget<Text>(find.text('Friends')).style?.fontSize, 13);
+    expect(tester.widget<Text>(find.text('Invites and chat')).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('R37 compact top bar keeps account status readable', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: B307TopBar(controller: controller))));
+    expect(tester.widget<Text>(find.text(controller.displayName)).style?.fontSize, 13);
+    expect(tester.widget<Text>(find.text('Local mode')).style?.fontSize, 11);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 game HUD keeps score context readable', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: B307TarneebHud(
+      weLabel: 'Us',
+      theyLabel: 'Them',
+      weScore: 31,
+      theyScore: 24,
+      roundLabel: 'Round 4',
+      trickScore: 'Tricks 5–3',
+      xpMultiplier: 2,
+      connected: true,
+    ))));
+    expect(tester.widget<Text>(find.text('Us')).style?.fontSize, 11);
+    expect(tester.widget<Text>(find.text('Round 4')).style?.fontSize, 11.5);
+    expect(tester.widget<Text>(find.text('Tricks 5–3')).style?.fontSize, 12);
+    expect(tester.widget<Text>(find.text('LIVE')).style?.fontSize, 11.5);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('R37 checkout trust strip keeps safety copy readable',
+      (tester) async {
+    const catalog = <String, dynamic>{
+      'sandbox': true,
+      'production_ready': false,
+      'providers': <String, dynamic>{
+        'test': <String, dynamic>{'verification_ready': true},
+      },
+    };
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(width: 390, child: B307CommerceTrustStrip(
+        catalog: catalog,
+        localeCode: 'en',
+      )),
+    ))));
+    expect(tester.widget<Text>(find.text('Safe sandbox mode')).style?.fontSize, 12.5);
+    expect(
+      tester.widget<Text>(find.text(
+        '1 verified payment provider(s) ready • raw card details are not stored',
+      )).style?.fontSize,
+      11,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('R37 cash offer badge stays legible on a compact card',
+      (tester) async {
+    final controller = AppController()..localeCode = 'en';
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(
+      child: SizedBox(
+        width: 180,
+        height: 250,
+        child: B307CashOfferCard(
+          controller: controller,
+          data: const <String, dynamic>{
+            'key': 'starter',
+            'tokens': 500,
+            'price_minor': 199,
+            'currency': 'USD',
+            'badge': 'Featured',
+            'icon': '🪙',
+          },
+        ),
+      ),
+    ))));
+    final badge = tester.widget<Text>(find.text('Featured'));
+    expect(badge.style?.fontSize, 11.5);
+    expect(badge.style?.height, 1.2);
+    expect(badge.style?.fontWeight, FontWeight.w900);
+    expect(tester.getSize(find.widgetWithText(FilledButton, 'Buy')).height,
+        greaterThanOrEqualTo(44));
+    expect(tester.takeException(), isNull);
+  });
+
 
 }

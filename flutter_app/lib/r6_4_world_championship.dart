@@ -99,7 +99,7 @@ class _R64PlayCommandBar extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(ar ? 'مركز اللعب العالمي' : 'World play center', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
+              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
             ]),
           ),
           _R64NetworkBadge(online: controller.serverConnected, ar: ar),
@@ -141,7 +141,7 @@ class _R64NetworkBadge extends StatelessWidget {
     child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
       Icon(online ? Icons.cloud_done_outlined : Icons.offline_bolt_outlined, size: 13, color: online ? B307SkyLuxury.emerald : B307SkyLuxury.goldSoft),
       const SizedBox(width: 4),
-      Text(online ? (ar ? 'متصل' : 'Online') : (ar ? 'محلي' : 'Local'), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900)),
+      Text(online ? (ar ? 'متصل' : 'Online') : (ar ? 'محلي' : 'Local'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
     ]),
   );
 }

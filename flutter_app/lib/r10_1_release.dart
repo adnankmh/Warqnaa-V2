@@ -302,7 +302,7 @@ class R19PashaProfileHero extends StatelessWidget {
                             key: const Key('r19-profile-identity'),
                             maxLines: constraints.maxWidth < 350 ? 2 : 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700),
+                            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 8),
                           Wrap(spacing: 7, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: <Widget>[
@@ -519,7 +519,7 @@ class _R19BoosterOrb extends StatelessWidget {
         Icon(active ? Icons.rocket_launch_rounded : Icons.rocket_launch_outlined, color: accent, size: compact ? 30 : 38),
         const SizedBox(height: 5),
         Text('×$multiplier', style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.w900)),
-        Text('XP', style: TextStyle(color: accent, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+        Text('XP', style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
       ]),
     );
   }
@@ -547,7 +547,7 @@ class _R19BoosterBoundary extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Colors.white70),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white70),
             ),
           ),
         ]),
@@ -574,7 +574,7 @@ class R101CommerceShowcase extends StatelessWidget {
           ar
               ? 'اختر مسرّع التقدّم المناسب. التفعيل مؤقت ولا يغيّر أي قرار أو نتيجة داخل المباراة.'
               : 'Choose a progression booster. Activation is temporary and never changes an in-match decision or result.',
-          style: const TextStyle(color: Colors.white60, fontSize: 10.5, height: 1.5),
+          style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.5),
         ),
         const SizedBox(height: 12),
         for (final product in boosters)
@@ -597,7 +597,7 @@ class R101CommerceShowcase extends StatelessWidget {
                   ar
                       ? '24 ساعة بعد التفعيل • مخزون ${boosterValidityDaysV183(product.id)} أيام'
                       : '24h after activation • ${boosterValidityDaysV183(product.id)}-day inventory',
-                  style: const TextStyle(fontSize: 9.5, color: Colors.white60),
+                  style: const TextStyle(fontSize: 11, color: Colors.white70),
                 ),
                 trailing: Text('×${_multiplierLabelV183(product.multiplier).replaceFirst('×', '')}', style: TextStyle(color: controller.color1For(product), fontSize: 16, fontWeight: FontWeight.w900)),
               ),
@@ -693,12 +693,12 @@ class R101CommerceShowcase extends StatelessWidget {
                     Row(children: [
                       Container(width: 42, height: 42, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .13), border: Border.all(color: accent.withValues(alpha: .32))), child: Text(offer.icon, style: const TextStyle(fontSize: 24))),
                       const Spacer(),
-                      Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: accent.withValues(alpha: .15), border: Border.all(color: accent.withValues(alpha: .28))), child: Text(offer.badge, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: accent))),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: accent.withValues(alpha: .15), border: Border.all(color: accent.withValues(alpha: .28))), child: Text(offer.badge, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: accent))),
                     ]),
                     const SizedBox(height: 9),
                     Text(ar ? offer.titleAr : offer.titleEn, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text(ar ? offer.subtitleAr : offer.subtitleEn, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9.5, height: 1.35, color: scheme.onSurface.withValues(alpha: .68))),
+                    Text(ar ? offer.subtitleAr : offer.subtitleEn, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.35, color: scheme.onSurface.withValues(alpha: .78))),
                     const Spacer(),
                     Row(children: [
                       Text(offer.priceLabel, style: TextStyle(fontWeight: FontWeight.w900, color: accent, fontSize: 13)),
@@ -719,7 +719,7 @@ class R101CommerceShowcase extends StatelessWidget {
         Text(
           ar ? 'الدفع الحقيقي لا يمنح التوكنز من نجاح العميل وحده؛ الاعتماد النهائي يتم بعد تحقق الخادم من الإيصال.' : 'Real-money purchases remain server receipt-verified. Client success alone never grants tokens.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 9, color: scheme.onSurface.withValues(alpha: .50), fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 11, color: scheme.onSurface.withValues(alpha: .68), fontWeight: FontWeight.w700),
         ),
       ]),
     );
@@ -881,7 +881,7 @@ class _R19StorePill extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               softWrap: false,
-              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: color),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color),
             ),
           ),
         ]),

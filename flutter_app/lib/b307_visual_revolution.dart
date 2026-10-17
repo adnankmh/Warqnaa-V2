@@ -88,7 +88,7 @@ class B307TopBar extends StatelessWidget {
           SizedBox(width: compact ? 6 : 9),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: <Widget>[
-              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: compact ? 11.5 : 13)),
+              Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: compact ? 13 : 14)),
               const SizedBox(height: 2),
               Row(children: <Widget>[
                 Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.gold)),
@@ -98,7 +98,7 @@ class B307TopBar extends StatelessWidget {
                     controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'وضع محلي' : 'Local mode'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 9, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
+                    style: const TextStyle(fontSize: 11, height: 1.2, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
                   ),
                 ),
               ]),
@@ -159,7 +159,7 @@ class B307TopCounter extends StatelessWidget {
                 value,
                 maxLines: 1,
                 softWrap: false,
-                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w900),
+                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11, fontWeight: FontWeight.w900),
               ),
             ),
           ),
@@ -210,7 +210,7 @@ class B307BottomNavigation extends StatelessWidget {
                 onTap: () => onSelected(i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(vertical: 7),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(13),
                     gradient: selected
@@ -223,7 +223,7 @@ class B307BottomNavigation extends StatelessWidget {
                   child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
                     Icon(icons[i], size: 21, color: selected ? Colors.black : B307SkyLuxury.textMuted),
                     const SizedBox(height: 2),
-                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 8.5, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
+                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.15, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
                   ]),
                 ),
               ),
@@ -298,7 +298,7 @@ class B307DesktopNavigation extends StatelessWidget {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                   const Text('WARQNAA', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: .9)),
-                  Text(ar ? 'مجتمع ألعاب الورق' : 'Social card games', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, fontWeight: FontWeight.w700)),
+                  Text(ar ? 'مجتمع ألعاب الورق' : 'Social card games', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w700)),
                 ]),
               ),
             ]),
@@ -321,7 +321,7 @@ class B307DesktopNavigation extends StatelessWidget {
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(8, 2, 0, 7),
                 child: Text(ar ? 'استكشف ورقنا' : 'Explore Warqnaa',
-                  style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 10.5, fontWeight: FontWeight.w900))),
+                  style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 12.5, fontWeight: FontWeight.w900))),
               _B307DesktopDestination(
                 icon: Icons.leaderboard_rounded,
                 label: ar ? 'المتصدرون' : 'Leaderboards',
@@ -397,8 +397,8 @@ class B307DesktopNavigation extends StatelessWidget {
               const SizedBox(width: 9),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                  Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
-                  Text(ar ? 'المستوى ${controller.level}' : 'Level ${controller.level}', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9, fontWeight: FontWeight.w700)),
+                  Text(controller.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 13, fontWeight: FontWeight.w900)),
+                  Text(ar ? 'المستوى ${controller.level}' : 'Level ${controller.level}', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11, height: 1.2, fontWeight: FontWeight.w700)),
                 ]),
               ),
               IconButton(
@@ -465,7 +465,7 @@ class _B307DesktopDestination extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: selected ? Colors.black : B307SkyLuxury.textMuted,
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: selected ? FontWeight.w900 : FontWeight.w800,
                   ),
                 ),
@@ -533,8 +533,8 @@ class B307HomeDashboard extends StatelessWidget {
                 const SizedBox(width: 9),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                    Text(ar ? 'استوديو Adnan' : 'Adnan studio', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11.5, fontWeight: FontWeight.w900)),
-                    Text(ar ? 'إدارة وتخصيص محلي سريع لهذا الجهاز' : 'Quick local management and customization for this device', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.8, fontWeight: FontWeight.w700)),
+                    Text(ar ? 'استوديو Adnan' : 'Adnan studio', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 13, fontWeight: FontWeight.w900)),
+                    Text(ar ? 'إدارة وتخصيص محلي سريع لهذا الجهاز' : 'Quick local management and customization for this device', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11.5, height: 1.3, fontWeight: FontWeight.w700)),
                   ]),
                 ),
                 const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.text),
@@ -583,7 +583,7 @@ class B307HomeDashboard extends StatelessWidget {
                      ]),
                   )),
                   const SizedBox(height: 5),
-                  Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10, fontWeight: FontWeight.w900)),
+                  Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12.5, height: 1.2, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -591,7 +591,7 @@ class B307HomeDashboard extends StatelessWidget {
                       gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.emerald, Color(0xff15a981)]),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(ar ? 'العب' : 'Play', style: const TextStyle(color: Color(0xff062f36), fontSize: 8.5, fontWeight: FontWeight.w900)),
+                    child: Text(ar ? 'العب' : 'Play', style: const TextStyle(color: Color(0xff062f36), fontSize: 11, height: 1.15, fontWeight: FontWeight.w900)),
                   ),
                 ]),
               ),
@@ -795,7 +795,7 @@ class B307PageHero extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
             Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 16, fontWeight: FontWeight.w900)),
             const SizedBox(height: 3),
-            Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, height: 1.35, fontWeight: FontWeight.w700)),
+            Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 12, height: 1.4, fontWeight: FontWeight.w700)),
           ])),
           if (trailing != null) ...<Widget>[const SizedBox(width: 8), trailing!],
         ]),
@@ -859,14 +859,14 @@ class B307WorldTile extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 11.5),
+                  style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13, height: 1.2),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700, fontSize: 8.8, height: 1.25),
+                  style: const TextStyle(color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700, fontSize: 11, height: 1.35),
                 ),
               ],
             ),
@@ -910,7 +910,7 @@ class B307TarneebHud extends StatelessWidget {
             child: Column(
               crossAxisAlignment: alignment,
               children: <Widget>[
-                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.5, fontWeight: FontWeight.w800)),
+                Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11, height: 1.2, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text('$value', style: const TextStyle(color: B307SkyLuxury.text, fontSize: 18, fontWeight: FontWeight.w900, height: 1)),
               ],
@@ -934,9 +934,9 @@ class B307TarneebHud extends StatelessWidget {
         Flexible(
           flex: 2,
           child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-            Text(roundLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 9.5, fontWeight: FontWeight.w900)),
+            Text(roundLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w900)),
             const SizedBox(height: 2),
-            Text(trickScore, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11, fontWeight: FontWeight.w900)),
+            Text(trickScore, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12, fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
             Wrap(
               alignment: WrapAlignment.center,
@@ -980,9 +980,9 @@ class _B307HudBadge extends StatelessWidget {
           border: Border.all(color: accent.withValues(alpha: .48)),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-          Icon(icon, size: 9, color: accent),
+          Icon(icon, size: 12, color: accent),
           const SizedBox(width: 2),
-          Text(label, style: TextStyle(color: accent, fontSize: 7.5, fontWeight: FontWeight.w900)),
+          Text(label, style: TextStyle(color: accent, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w900)),
         ]),
       );
 }
@@ -1005,7 +1005,7 @@ class B307StatCard extends StatelessWidget {
           Icon(icon, size: 18, color: B307SkyLuxury.gold),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 13)),
-          Text(label, style: const TextStyle(fontSize: 8.5, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700)),
+          Text(label, style: const TextStyle(fontSize: 11, height: 1.2, color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700)),
         ]),
       );
 }
@@ -1020,7 +1020,10 @@ class B307SectionHeader extends StatelessWidget {
         Container(width: 4, height: 20, decoration: BoxDecoration(color: B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
         const SizedBox(width: 7),
         Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900))),
-        if (action != null) TextButton(onPressed: onTap, child: Text(action!, style: const TextStyle(fontSize: 9, color: B307SkyLuxury.sky))),
+        if (action != null) TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
+          child: Text(action!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: B307SkyLuxury.sky))),
       ]);
 }
 
@@ -1045,7 +1048,7 @@ class B307QuickAction extends StatelessWidget {
             child: Column(children: <Widget>[
               Icon(icon, size: 20, color: B307SkyLuxury.goldSoft),
               const SizedBox(height: 5),
-              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9, fontWeight: FontWeight.w800)),
+              Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 11, height: 1.2, fontWeight: FontWeight.w800)),
             ]),
           ),
         ),
@@ -1075,7 +1078,7 @@ class B307RealMoneyStoreBanner extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
             Text(ar ? 'متجر العروض المميزة' : 'Premium offers', style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, fontSize: 14)),
             const SizedBox(height: 3),
-            Text(ar ? 'حزم وتوكنز وعروض موسمية مع شراء موثّق وآمن عبر مزود الدفع.' : 'Bundles, tokens and seasonal offers with verified provider checkout.', style: const TextStyle(fontSize: 9.5, color: B307SkyLuxury.textMuted)),
+            Text(ar ? 'حزم وتوكنز وعروض موسمية مع شراء موثّق وآمن عبر مزود الدفع.' : 'Bundles, tokens and seasonal offers with verified provider checkout.', style: const TextStyle(fontSize: 11.5, height: 1.35, fontWeight: FontWeight.w700, color: B307SkyLuxury.textMuted)),
           ])),
           const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.text),
         ]),
@@ -1211,9 +1214,9 @@ class B307CommerceTrustStrip extends StatelessWidget {
           Icon(productionReady ? Icons.verified_rounded : Icons.shield_outlined, color: productionReady ? B307SkyLuxury.emerald : B307SkyLuxury.cyan, size: 20),
           const SizedBox(width: 8),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-            Text(statusLabel, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 10.5, fontWeight: FontWeight.w900)),
+            Text(statusLabel, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12.5, fontWeight: FontWeight.w900)),
             const SizedBox(height: 2),
-            Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 8.5, height: 1.3, fontWeight: FontWeight.w700)),
+            Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11, height: 1.35, fontWeight: FontWeight.w700)),
           ])),
           if (sandbox) const Padding(padding: EdgeInsetsDirectional.only(start: 6), child: Icon(Icons.science_outlined, color: B307SkyLuxury.goldSoft, size: 18)),
         ]),
@@ -1242,7 +1245,7 @@ class B307CashOfferCard extends StatelessWidget {
         boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(children: <Widget>[
-        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: B307SkyLuxury.gold, borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(color: B307SkyLuxury.navy, fontSize: 8, fontWeight: FontWeight.w900)))),
+        Align(alignment: AlignmentDirectional.topEnd, child: badge.isEmpty ? const SizedBox(height: 22) : Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: B307SkyLuxury.gold, borderRadius: BorderRadius.circular(99)), child: Text(badge, style: const TextStyle(color: B307SkyLuxury.navy, fontSize: 11.5, height: 1.2, fontWeight: FontWeight.w900)))),
         const Spacer(),
         Text(data['icon']?.toString() ?? '🪙', style: const TextStyle(fontSize: 36)),
         const SizedBox(height: 7),

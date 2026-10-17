@@ -208,7 +208,7 @@ class BotIdentityShowcase extends StatelessWidget {
         Bot3DAvatar(profile: profile, size: avatarSize, showLevel: true, locale: locale),
         SizedBox(height: compact ? 8 : 12),
         Text(profile.name(locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: compact ? 16 : 24, fontWeight: FontWeight.w900, color: profile.secondary)),
-        Text(rtl ? 'لاعب ورقنا الآلي' : 'Warqnaa computer player', style: const TextStyle(fontSize: 9, color: Colors.white60, fontWeight: FontWeight.w700)),
+        Text(rtl ? 'لاعب ورقنا الآلي' : 'Warqnaa computer player', style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w700)),
       ],
     );
     final details = Column(
@@ -232,7 +232,7 @@ class BotIdentityShowcase extends StatelessWidget {
           Row(children: [
             const Icon(Icons.gpp_good_outlined, size: 16, color: Color(0xff5de7ff)),
             const SizedBox(width: 6),
-            Expanded(child: Text(rtl ? 'قرارات اللعب تأتي من المحرك المعتمد، لا من واجهة العرض.' : 'Gameplay decisions come from the authoritative engine, not this presentation layer.', style: const TextStyle(fontSize: 9, color: Colors.white60, height: 1.35))),
+            Expanded(child: Text(rtl ? 'قرارات اللعب تأتي من المحرك المعتمد، لا من واجهة العرض.' : 'Gameplay decisions come from the authoritative engine, not this presentation layer.', style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.35))),
           ]),
         ],
       ],
@@ -266,7 +266,7 @@ class BotIdentityShowcase extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 9, height: 1.2, color: Colors.white70, fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontSize: 11, height: 1.2, color: Colors.white70, fontWeight: FontWeight.w800),
                   ),
                 ],
               )
@@ -287,9 +287,14 @@ class _BotIdentityPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(maxWidth: 220),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(color: color.withValues(alpha: .10), borderRadius: BorderRadius.circular(999), border: Border.all(color: color.withValues(alpha: .28))),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 13, color: color), const SizedBox(width: 4), Text(label, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w900))]),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w900))),
+        ]),
       );
 }
 
@@ -308,13 +313,13 @@ class BotRosterShowcase extends StatelessWidget {
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(rtl ? 'خصوم ورقنا الآليون' : 'Warqnaa computer players', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 3),
-          Text(rtl ? 'شخصيات عربية أصلية وواضحة الهوية؛ لكل شخصية أسلوب ومستوى مستقل.' : 'Original Arabic personas with clear identity, individual play style and level.', style: const TextStyle(fontSize: 10, color: Colors.white60, height: 1.4)),
+          Text(rtl ? 'شخصيات عربية أصلية وواضحة الهوية؛ لكل شخصية أسلوب ومستوى مستقل.' : 'Original Arabic personas with clear identity, individual play style and level.', style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.4)),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: math.min(profiles.length, columns * 2),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .74 : .78, crossAxisSpacing: 8, mainAxisSpacing: 8),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .70 : .74, crossAxisSpacing: 8, mainAxisSpacing: 8),
             itemBuilder: (context, index) => BotIdentityShowcase(profile: profiles[index], locale: locale, compact: true),
           ),
         ]);
@@ -650,7 +655,7 @@ class _ReactionDockState extends State<ReactionDock> {
                         const SizedBox(width: 4),
                         Text(
                           soundEnabled ? (rtl ? 'صوت وحركة' : 'Sound & motion') : (rtl ? 'حركة فقط' : 'Motion only'),
-                          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xffbdf7ff)),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xffbdf7ff)),
                         ),
                       ],
                     ),
@@ -670,7 +675,7 @@ class _ReactionDockState extends State<ReactionDock> {
                         selected: category == key,
                         onSelected: unlocked ? (_) => setState(() => category = key) : null,
                         avatar: unlocked ? null : const Icon(Icons.lock_outline, size: 14),
-                        label: Text((rtl ? labelsAr : labelsEn)[key]!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                        label: Text((rtl ? labelsAr : labelsEn)[key]!, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
                       ),
                     );
                   }).toList(),
@@ -730,7 +735,7 @@ class _ReactionDockState extends State<ReactionDock> {
                                 const SizedBox(height: 1),
                                 SizedBox(
                                   height: 12,
-                                  child: Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white70, fontWeight: FontWeight.w800)),
+                                  child: Text(item.label(widget.locale), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w800)),
                                 ),
                               ],
                             ),
@@ -1136,7 +1141,7 @@ class _FloatingReactionState extends State<FloatingReaction> with SingleTickerPr
                     Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(soundEnabled ? Icons.graphic_eq_rounded : Icons.motion_photos_on_outlined, size: 13, color: const Color(0xff5de7ff)),
                       const SizedBox(width: 4),
-                      Text(soundEnabled ? (rtl ? 'صوت تفاعلي' : 'Reaction sound') : (rtl ? 'حركة فقط' : 'Motion only'), style: const TextStyle(color: Color(0xffbdf7ff), fontSize: 8, fontWeight: FontWeight.w800)),
+                      Text(soundEnabled ? (rtl ? 'صوت تفاعلي' : 'Reaction sound') : (rtl ? 'حركة فقط' : 'Motion only'), style: const TextStyle(color: Color(0xffbdf7ff), fontSize: 11, fontWeight: FontWeight.w800)),
                     ]),
                   ]),
                 ]),

@@ -60,7 +60,7 @@ class R9HomeDashboard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 L.t(controller.localeCode, 'worldStatus'),
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFFF0D486), letterSpacing: .8),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFF0D486), letterSpacing: .8),
               ),
             ],
           ),
@@ -206,7 +206,7 @@ class R9HomeDashboard extends StatelessWidget {
                     Text(L.t(controller.localeCode, 'liveNetwork'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                     Text(
                       connected ? 'ONLINE • API' : 'LOCAL • READY',
-                      style: TextStyle(fontSize: 8, color: connected ? const Color(0xFF70E6BF) : Colors.white54, fontWeight: FontWeight.w800),
+                      style: TextStyle(fontSize: 11, color: connected ? const Color(0xFF70E6BF) : Colors.white70, fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -230,7 +230,7 @@ class R9HomeDashboard extends StatelessWidget {
               children: [
                 const Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF70E6BF)),
                 const SizedBox(width: 7),
-                Expanded(child: Text(L.t(controller.localeCode, 'serverFair'), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800))),
+                Expanded(child: Text(L.t(controller.localeCode, 'serverFair'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800))),
               ],
             ),
           ),
@@ -246,7 +246,7 @@ class R9HomeDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white54)),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white70)),
           ],
         ),
       );
@@ -273,7 +273,7 @@ class R9HomeDashboard extends StatelessWidget {
           const SizedBox(width: 7),
           Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
-            Text(label, style: const TextStyle(fontSize: 9, color: Colors.white54)),
+            Text(label, style: const TextStyle(fontSize: 11, color: Colors.white70)),
           ]),
         ],
       );

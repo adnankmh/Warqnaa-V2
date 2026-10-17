@@ -4,6 +4,7 @@
 @php
   $ar=app()->getLocale()==='ar';
   $isAuthed=auth()->check();
+  $currentUser=auth()->user();
   $keys=\App\Services\Games\GameCatalog::customerKeys();
   $games=\App\Models\Game::where('active',true)->whereIn('key',$keys)->orderBy('id')->take(12)->get();
   $rooms=\App\Models\Room::whereIn('status',['waiting','bidding','playing'])->count();
@@ -18,7 +19,7 @@
   <a class="primary" href="{{ $isAuthed?route('competitive'):route('login') }}">🏆 {{ $ar?'المسابقات':'Competitions' }}</a>
   <a href="{{ $isAuthed?route('store'):route('login') }}">🛍️ {{ $ar?'المتجر':'Store' }}</a>
   <a href="{{ $isAuthed?route('rewards'):route('login') }}">🎁 {{ $ar?'الجوائز':'Rewards' }}</a>
-  <a href="{{ $isAuthed?route('games.index'):route('register') }}">▶ {{ $ar?'كل الألعاب':'All games' }}</a>
+  <a href="{{ $isAuthed?route('games'):route('register') }}">▶ {{ $ar?'كل الألعاب':'All games' }}</a>
  </section>
  <section class="b304-section"><div class="b304-title"><h2>{{ $ar?'مركز الألعاب':'Game Hub' }}</h2><span>{{ $ar?'اختر بطاقة اللعبة':'Pick a game card' }}</span></div>
   <div class="b304-grid">
