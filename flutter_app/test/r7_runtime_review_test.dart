@@ -313,4 +313,30 @@ void main() {
     }
   }
 
+
+  for (final locale in ['ar','en']) {
+    for (final size in [const Size(320,640),const Size(390,844)]) {
+      for (final gameId in ['backgammon','jackaroo']) {
+        testWidgets('R41 readable $gameId board $locale $size',(tester) async {
+          SharedPreferences.setMockInitialValues({}); AppSounds.enabled=false;
+          tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+          addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+          final controller=AppController()..localeCode=locale;
+          addTearDown(() { controller.connectivityTimerV173?.cancel(); controller.dispose(); });
+          final game=<GameInfo>[...gamesCatalog,...customerGamesR101].firstWhere((item)=>item.id==gameId);
+          final key=GlobalKey();
+          await tester.pumpWidget(reviewApp(ServerEngineRoomPage(controller:controller,game:game),controller,key));
+          await tester.pump();await tester.pump(const Duration(seconds:2));
+          expect(tester.takeException(),isNull);
+          if(gameId=='backgammon'){
+            final point=tester.widget<Text>(find.text('24').first);
+            expect(point.style?.fontSize,11);
+          }
+          if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r41-$gameId-${size.width.toInt()}x${size.height.toInt()}');
+          await tester.pumpWidget(const SizedBox.shrink());await tester.pump(const Duration(seconds:5));
+        });
+      }
+    }
+  }
+
 }
