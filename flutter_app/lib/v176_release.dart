@@ -244,7 +244,7 @@ class PackInventoryStripV176 extends StatelessWidget {
             const SizedBox(width: 8),
             const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('مقتنيات الحزم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-              Text('الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.', style: TextStyle(color: Colors.white60, fontSize: 10)),
+              Text('الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700, height: 1.35)),
             ])),
             TextButton.icon(onPressed: onOpenInventory, icon: const Icon(Icons.inventory_2_outlined, size: 18), label: const Text('عرض الكل')),
           ]),
@@ -272,7 +272,7 @@ class PackInventoryStripV176 extends StatelessWidget {
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                       Text(reward['label_ar']?.toString() ?? 'هدية', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
                       const SizedBox(height: 4),
-                      Text(active ? controller.historyRewardStatusV176(reward) : 'انتهت الصلاحية', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: active ? Colors.lightGreenAccent : Colors.redAccent, fontSize: 9, fontWeight: FontWeight.w800)),
+                      Text(active ? controller.historyRewardStatusV176(reward) : 'انتهت الصلاحية', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: active ? Colors.lightGreenAccent : Colors.redAccent, fontSize: 11, fontWeight: FontWeight.w800)),
                     ])),
                   ]),
                 );
