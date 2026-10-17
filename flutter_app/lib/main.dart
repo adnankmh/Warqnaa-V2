@@ -6698,10 +6698,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('$number', style: const TextStyle(fontSize: 7, color: Colors.black54)),
+                          Semantics(label: 'Point $number', child: Text('$number', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xff2d2118)))),
                           if (count > 0) ...[
                             Text(owner.startsWith('user:') ? '●' : '○', style: const TextStyle(fontSize: 14, color: Colors.white)),
-                            Text('$count', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900)),
+                            Semantics(label: '$count checkers', child: Text('$count', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
                           ],
                         ],
                       ),
@@ -6728,7 +6728,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(children: [
-                  SizedBox(width: 75, child: Text(entry.key.toString().replaceAll('user:', '').replaceAll('bot:', ''), overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800))),
+                  SizedBox(width: 86, child: Text(entry.key.toString().replaceAll('user:', '').replaceAll('bot:', ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800))),
                   Expanded(
                     child: Row(
                       children: values.asMap().entries.map((piece) {
@@ -6743,7 +6743,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.white10),
                             ),
-                            child: Text(progress < 0 ? 'بيت' : progress >= 56 ? '✓' : '$progress', style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900)),
+                            child: Semantics(label: progress < 0 ? _roomText('حجر في البيت', 'Piece at home') : progress >= 56 ? _roomText('حجر في الأمان', 'Piece safe') : _roomText('حجر عند $progress', 'Piece at $progress'), child: Text(progress < 0 ? _roomText('بيت', 'Home') : progress >= 56 ? '✓' : '$progress', maxLines: 1, overflow: TextOverflow.fade, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
                           ),
                         );
                       }).toList(),
