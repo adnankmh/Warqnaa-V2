@@ -7045,21 +7045,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(_roomText('كم ورقة تريد أخذها من النار؟', 'How many discard cards do you want?')),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360, maxHeight: 320),
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                for (var value = 2; value <= maxCount; value++)
-                  FilledButton.tonal(
-                    onPressed: () => Navigator.pop(dialogContext, value),
-                    child: Text('$value'),
-                  ),
-              ],
-            ),
-          ),
+        content: R40DiscardStackPicker(
+          maxCount: maxCount,
+          cards: (state['discard'] as List?)?.whereType<String>().toList() ?? const [],
+          ar: widget.controller.localeCode == 'ar',
         ),
       ),
     );

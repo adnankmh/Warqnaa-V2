@@ -275,4 +275,38 @@ void main() {
       expect(controller.currentUserId, int.parse(const String.fromEnvironment('R7_ADMIN_ID')));
     });
   }, skip: runtimeUrl.isEmpty);
+
+  for (final locale in ['ar','en']) {
+    for (final size in [const Size(320,640),const Size(390,844)]) {
+      testWidgets('R40 public fire-pile preview and confirmed count $locale $size',(tester) async {
+        SharedPreferences.setMockInitialValues({}); AppSounds.enabled=false;
+        tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+        addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+        final controller=AppController()..localeCode=locale;
+        addTearDown(controller.dispose);
+        final key=GlobalKey(); int? submitted;
+        await tester.pumpWidget(reviewApp(Scaffold(body:Builder(builder:(context)=>TextButton(
+          onPressed:()async{submitted=await showDialog<int>(context:context,builder:(_)=>AlertDialog(
+            title:Text(locale=='ar'?'السحب من النار':'Take discard cards'),
+            content:R40DiscardStackPicker(maxCount:4,cards:const ['J_spades','Q_spades','K_spades','A_spades'],ar:locale=='ar'),
+          ));},child:const Text('open-preview')))),controller,key));
+        await tester.tap(find.text('open-preview'));await tester.pumpAndSettle();
+        expect(tester.widgetList<PlayingCard>(find.byType(PlayingCard)).map((card)=>card.label),['K♠','A♠']);
+        await tester.tap(find.byKey(const ValueKey('r40-discard-count')));await tester.pumpAndSettle();
+        await tester.tap(find.text('3').last);await tester.pumpAndSettle();
+        expect(tester.widgetList<PlayingCard>(find.byType(PlayingCard)).map((card)=>card.label),['Q♠','K♠','A♠']);
+        expect(submitted,isNull,reason:'Changing the preview must not submit a draw.');
+        if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r40-fire-preview-${size.width.toInt()}x${size.height.toInt()}');
+        await tester.ensureVisible(find.byKey(const ValueKey('r40-confirm-discard-stack')));
+        await tester.tap(find.byKey(const ValueKey('r40-confirm-discard-stack')));await tester.pumpAndSettle();
+        expect(submitted,3);expect(tester.takeException(),isNull);
+        submitted=null;
+        await tester.tap(find.text('open-preview'));await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();await tester.pumpAndSettle();
+        expect(submitted,isNull,reason:'Closing the preview must not draw cards.');
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
 }
