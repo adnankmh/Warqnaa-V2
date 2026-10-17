@@ -342,7 +342,7 @@ class DesignerQuickControlsV183 extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Text('مركز التعديل المباشر V183', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
         const SizedBox(height: 5),
-        Text('تعديل الأسعار، الإتاحة، النصوص، الألوان، المدة، المعاينات، المسرعات، الإيموت والأصوات مع حفظ محلي ومزامنة الخادم.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, height: 1.5)),
+        Text('تعديل الأسعار، الإتاحة، النصوص، الألوان، المدة، المعاينات، المسرعات، الإيموت والأصوات مع حفظ محلي ومزامنة الخادم.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600, height: 1.5)),
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 8, children: [
           FilledButton.tonalIcon(
