@@ -50,13 +50,13 @@ for(const language of ['ar','en']) for(const game of ['hand','hand_partner','sau
   const ui=fixture(language,game);
   const hand=['3_spades','3_spades','4_spades','5_spades','K_hearts','A_clubs'];
   const state={game,round:1,you:'user:1',turn:'user:1',hand,phase:'playing',deck_count:70,
-    discard:['J_hearts','Q_hearts','K_hearts'],available_actions:[{type:'draw_deck'},{type:'draw_discard'},{type:'draw_discard_stack',max_count:3}]};
+    discard:['JOKER_R','Q_hearts','K_hearts'],available_actions:[{type:'draw_deck'},{type:'draw_discard'},{type:'draw_discard_stack',max_count:3}]};
   ui.render(state);
   assert.equal(ui.elements().find(e=>e.id==='r40-discard-selected').disabled,true);
   const chooser=ui.elements().find(e=>e.tagName==='select');
   chooser.value='3';chooser.onchange();
   const preview=ui.elements().find(e=>e.id==='r40-fire-preview');
-  assert.deepEqual(preview.children.slice(1).map(e=>e.textContent),['J♥','Q♥','K♥']);
+  assert.deepEqual(preview.children.slice(1).map(e=>e.textContent),['🃏','Q♥','K♥']);
   ui.button('اسحب عدة أوراق من النار','Take discard stack').onclick();
   assert.deepEqual(ui.calls.pop(),{type:'draw_discard_stack',payload:{count:3}});
   const layoff={type:'layoff',target_player:'user:2',meld_index:0,cards:['A_clubs']};

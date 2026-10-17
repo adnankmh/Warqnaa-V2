@@ -7454,8 +7454,10 @@ class PlayingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final suit = label.isNotEmpty ? label.substring(label.length - 1) : '';
-    final rank = label.length > 1 ? label.substring(0, label.length - 1) : label;
+    // A joker is a full Unicode symbol, not a rank followed by a suit.
+    final joker = label == '🃏' || label.startsWith('JOKER');
+    final suit = joker ? '★' : label.isNotEmpty ? label.substring(label.length - 1) : '';
+    final rank = joker ? 'JK' : label.length > 1 ? label.substring(0, label.length - 1) : label;
     final red = suit == '♥' || suit == '♦';
     final ink = red ? const Color(0xffb42335) : const Color(0xff101419);
     final compactCard = width < 34;

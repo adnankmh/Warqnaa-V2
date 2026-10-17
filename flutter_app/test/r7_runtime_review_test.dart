@@ -288,7 +288,7 @@ void main() {
         await tester.pumpWidget(reviewApp(Scaffold(body:Builder(builder:(context)=>TextButton(
           onPressed:()async{submitted=await showDialog<int>(context:context,builder:(_)=>AlertDialog(
             title:Text(locale=='ar'?'السحب من النار':'Take discard cards'),
-            content:R40DiscardStackPicker(maxCount:4,cards:const ['J_spades','Q_spades','K_spades','A_spades'],ar:locale=='ar'),
+            content:R40DiscardStackPicker(maxCount:4,cards:const ['JOKER_R','Q_spades','K_spades','A_spades'],ar:locale=='ar'),
           ));},child:const Text('open-preview')))),controller,key));
         await tester.tap(find.text('open-preview'));await tester.pumpAndSettle();
         expect(tester.widgetList<PlayingCard>(find.byType(PlayingCard)).map((card)=>card.label),['K♠','A♠']);
@@ -296,10 +296,14 @@ void main() {
         await tester.tap(find.text('3').last);await tester.pumpAndSettle();
         expect(tester.widgetList<PlayingCard>(find.byType(PlayingCard)).map((card)=>card.label),['Q♠','K♠','A♠']);
         expect(submitted,isNull,reason:'Changing the preview must not submit a draw.');
+        await tester.tap(find.byKey(const ValueKey('r40-discard-count')));await tester.pumpAndSettle();
+        await tester.tap(find.text('4').last);await tester.pumpAndSettle();
+        expect(tester.widgetList<PlayingCard>(find.byType(PlayingCard)).map((card)=>card.label),['🃏','Q♠','K♠','A♠']);
+        expect(find.text('JK'),findsNWidgets(2),reason:'The Joker has a readable identity at both corners.');
         if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r40-fire-preview-${size.width.toInt()}x${size.height.toInt()}');
         await tester.ensureVisible(find.byKey(const ValueKey('r40-confirm-discard-stack')));
         await tester.tap(find.byKey(const ValueKey('r40-confirm-discard-stack')));await tester.pumpAndSettle();
-        expect(submitted,3);expect(tester.takeException(),isNull);
+        expect(submitted,4);expect(tester.takeException(),isNull);
         submitted=null;
         await tester.tap(find.text('open-preview'));await tester.pumpAndSettle();
         await tester.binding.handlePopRoute();await tester.pumpAndSettle();
