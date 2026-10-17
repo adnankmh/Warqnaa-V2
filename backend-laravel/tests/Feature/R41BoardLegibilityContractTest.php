@@ -8,19 +8,14 @@ class R41BoardLegibilityContractTest extends TestCase
 {
     public function test_flutter_board_surfaces_keep_readable_labels_and_semantic_piece_state(): void
     {
-        $source=file_get_contents(base_path('../flutter_app/lib/main.dart'));
-        $start=strpos($source,'Widget _backgammonBoard');
-        $end=strpos($source,'Future<void> _reorderServerHand');
+        $board=file_get_contents(base_path('../flutter_app/lib/r41_board_legibility.dart'));
 
-        $this->assertNotFalse($start);
-        $this->assertNotFalse($end);
-        $board=substr($source,$start,$end-$start);
-
-        $this->assertStringContainsString("Semantics(label: 'Point \$number'",$board);
-        $this->assertStringContainsString("Semantics(label: '\$count checkers'",$board);
-        $this->assertStringContainsString("_roomText('حجر في البيت', 'Piece at home')",$board);
-        $this->assertStringContainsString("_roomText('حجر في الأمان', 'Piece safe')",$board);
-        $this->assertStringContainsString("_roomText('حجر عند \$progress', 'Piece at \$progress')",$board);
+        $this->assertStringContainsString("text('النقطة \$number', 'Point \$number')",$board);
+        $this->assertStringContainsString("text('\$count أحجار', '\$count checkers')",$board);
+        $this->assertStringContainsString("text('حجر في البيت', 'Piece at home')",$board);
+        $this->assertStringContainsString("text('حجر في الأمان', 'Piece safe')",$board);
+        $this->assertStringContainsString("'حجر عند \$progress'",$board);
+        $this->assertStringContainsString("'Piece at \$progress'",$board);
         $this->assertDoesNotMatchRegularExpression(
             '/fontSize:\\s*(?:[0-9](?:\\.[0-9]+)?|10(?:\\.[0-9]+)?)(?![0-9])/',
             $board
