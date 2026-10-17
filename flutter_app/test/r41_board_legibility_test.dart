@@ -65,7 +65,7 @@ void main() {
       final point = tester.widget<Text>(find.text('24'));
       expect(point.style?.fontSize, 11);
       expect(point.style?.fontWeight, FontWeight.w700);
-      expect(find.bySemanticsLabel(locale == 'ar' ? 'النقطة 24' : 'Point 24'),
+      expect(find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == (locale == 'ar' ? 'النقطة 24' : 'Point 24')),
           findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -93,11 +93,9 @@ void main() {
         find.text(locale == 'ar' ? 'بيت' : 'Home').first,
       );
       expect(home.style?.fontSize, 11);
-      expect(find.bySemanticsLabel(
-              locale == 'ar' ? 'حجر في البيت' : 'Piece at home'),
+      expect(find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == (locale == 'ar' ? 'حجر في البيت' : 'Piece at home')),
           findsWidgets);
-      expect(find.bySemanticsLabel(
-              locale == 'ar' ? 'حجر في الأمان' : 'Piece safe'),
+      expect(find.byWidgetPredicate((widget) => widget is Semantics && widget.properties.label == (locale == 'ar' ? 'حجر في الأمان' : 'Piece safe')),
           findsWidgets);
       expect(tester.takeException(), isNull);
     });
