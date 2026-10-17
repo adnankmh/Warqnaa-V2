@@ -713,3 +713,10 @@ body.warqna-b304 :is(a,button,input,select,textarea):focus-visible{
     border-color:#c9f3ff!important;
   }
 }
+
+/* R40: public discard preview; no hidden stock or opponent cards. */
+#r36-rummy-workspace .r40-pile-status{font-size:14px;font-weight:800;color:#fff}
+#r36-rummy-workspace select{max-width:100%;min-width:0}
+#r40-fire-preview{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}
+#r40-fire-preview .r40-preview-card{display:inline-grid;place-items:center;background:#fff;color:#092f53;border:1px solid #ffd166;border-radius:6px;padding:6px;min-width:32px;font-size:16px;font-weight:800;direction:ltr}
+#r36-rummy-workspace button:focus-visible,#r36-rummy-workspace select:focus-visible{outline:3px solid #fff;outline-offset:2px}

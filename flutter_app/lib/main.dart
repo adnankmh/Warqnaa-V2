@@ -7045,21 +7045,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(_roomText('كم ورقة تريد أخذها من النار؟', 'How many discard cards do you want?')),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360, maxHeight: 320),
-          child: SingleChildScrollView(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                for (var value = 2; value <= maxCount; value++)
-                  FilledButton.tonal(
-                    onPressed: () => Navigator.pop(dialogContext, value),
-                    child: Text('$value'),
-                  ),
-              ],
-            ),
-          ),
+        content: R40DiscardStackPicker(
+          maxCount: maxCount,
+          cards: (state['discard'] as List?)?.whereType<String>().toList() ?? const [],
+          ar: widget.controller.localeCode == 'ar',
         ),
       ),
     );
@@ -7465,8 +7454,10 @@ class PlayingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final suit = label.isNotEmpty ? label.substring(label.length - 1) : '';
-    final rank = label.length > 1 ? label.substring(0, label.length - 1) : label;
+    // A joker is a full Unicode symbol, not a rank followed by a suit.
+    final joker = label == '🃏' || label.startsWith('JOKER');
+    final suit = joker ? '★' : label.isNotEmpty ? label.substring(label.length - 1) : '';
+    final rank = joker ? 'JK' : label.length > 1 ? label.substring(0, label.length - 1) : label;
     final red = suit == '♥' || suit == '♦';
     final ink = red ? const Color(0xffb42335) : const Color(0xff101419);
     final compactCard = width < 34;
@@ -7511,7 +7502,9 @@ class PlayingCard extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   key: ValueKey('r19-card-face-$label'),
-                  painter: _WarqnaaCardFacePainter(rank: rank, suit: suit, ink: ink, compact: compactCard, referenceSize: centerSize),
+                  painter: _WarqnaaCardFacePainter(rank: rank, suit: suit, ink: ink, compact: compactCard, referenceSize: centerSize,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamilyFallback: Theme.of(context).textTheme.bodyMedium?.fontFamilyFallback),
                 ),
               ),
               Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
@@ -7544,11 +7537,15 @@ class _WarqnaaCardFacePainter extends CustomPainter {
   final Color ink;
   final bool compact;
   final double referenceSize;
-  const _WarqnaaCardFacePainter({required this.rank, required this.suit, required this.ink, required this.compact, required this.referenceSize});
+  final String? fontFamily;
+  final List<String>? fontFamilyFallback;
+  const _WarqnaaCardFacePainter({required this.rank, required this.suit, required this.ink, required this.compact, required this.referenceSize,
+    this.fontFamily, this.fontFamilyFallback});
 
   void _glyph(Canvas canvas, String value, Offset point, double fontSize, {Color? color, FontWeight weight = FontWeight.w900}) {
     final painter = TextPainter(
-      text: TextSpan(text: value, style: TextStyle(color: color ?? ink, fontSize: fontSize, fontWeight: weight, height: 1)),
+      text: TextSpan(text: value, style: TextStyle(color: color ?? ink, fontSize: fontSize, fontWeight: weight, height: 1,
+        fontFamily: fontFamily, fontFamilyFallback: fontFamilyFallback)),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
     )..layout();
@@ -7604,7 +7601,8 @@ class _WarqnaaCardFacePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _WarqnaaCardFacePainter oldDelegate) => oldDelegate.rank != rank || oldDelegate.suit != suit || oldDelegate.ink != ink || oldDelegate.compact != compact;
+  bool shouldRepaint(covariant _WarqnaaCardFacePainter oldDelegate) => oldDelegate.rank != rank || oldDelegate.suit != suit || oldDelegate.ink != ink || oldDelegate.compact != compact ||
+    oldDelegate.referenceSize != referenceSize || oldDelegate.fontFamily != fontFamily || !listEquals(oldDelegate.fontFamilyFallback, fontFamilyFallback);
 }
 
 class PlayerSeat extends StatelessWidget {

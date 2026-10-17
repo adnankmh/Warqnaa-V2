@@ -154,7 +154,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
    @endif
    <div class="hand-label">أوراقك</div>
    <div class="hand-row pro-hand" id="myHand"></div>
-   @if($handLike)<div class="hand-quick-controls"><button type="button" onclick="roomAction('draw_deck')">اسحب من الدك</button><button type="button" onclick="roomAction('draw_discard')">اسحب من الرمي</button><button type="button" onclick="sortHandVisual()">رتّب الورق</button><button type="button" onclick="meldSelectedCards()">نزّل مجموعة</button></div>@endif
+   @if($handLike)<div class="hand-quick-controls"><button type="button" data-action="draw_deck">اسحب من الدك</button><button type="button" data-action="draw_discard">اسحب من الرمي</button><button type="button" onclick="sortHandVisual()">رتّب الورق</button><button type="button" onclick="meldSelectedCards()">نزّل مجموعة</button></div>@endif
    <div class="game-log" id="gameLog"></div>
 </div>
   </div>

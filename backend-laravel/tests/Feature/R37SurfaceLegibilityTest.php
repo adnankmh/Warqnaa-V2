@@ -64,7 +64,7 @@ class R37SurfaceLegibilityTest extends TestCase
         $this->assertStringContainsString('font-size:16px!important',$css);
         $this->assertStringContainsString('outline:3px solid var(--r37-focus)!important',$css);
         $this->assertStringContainsString('@media(prefers-contrast:more)',$css);
-        $this->assertStringContainsString('?v=37-surface-legibility',$layout);
+        $this->assertStringContainsString('?v=40-rummy-turn-controls',$layout);
         $this->assertStringNotContainsString('?v=36-sky-world-game-hall-discovery-art',$layout);
     }
 }
