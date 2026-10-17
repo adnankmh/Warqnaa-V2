@@ -7500,7 +7500,9 @@ class PlayingCard extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   key: ValueKey('r19-card-face-$label'),
-                  painter: _WarqnaaCardFacePainter(rank: rank, suit: suit, ink: ink, compact: compactCard, referenceSize: centerSize),
+                  painter: _WarqnaaCardFacePainter(rank: rank, suit: suit, ink: ink, compact: compactCard, referenceSize: centerSize,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamilyFallback: Theme.of(context).textTheme.bodyMedium?.fontFamilyFallback),
                 ),
               ),
               Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
@@ -7533,11 +7535,15 @@ class _WarqnaaCardFacePainter extends CustomPainter {
   final Color ink;
   final bool compact;
   final double referenceSize;
-  const _WarqnaaCardFacePainter({required this.rank, required this.suit, required this.ink, required this.compact, required this.referenceSize});
+  final String? fontFamily;
+  final List<String>? fontFamilyFallback;
+  const _WarqnaaCardFacePainter({required this.rank, required this.suit, required this.ink, required this.compact, required this.referenceSize,
+    this.fontFamily, this.fontFamilyFallback});
 
   void _glyph(Canvas canvas, String value, Offset point, double fontSize, {Color? color, FontWeight weight = FontWeight.w900}) {
     final painter = TextPainter(
-      text: TextSpan(text: value, style: TextStyle(color: color ?? ink, fontSize: fontSize, fontWeight: weight, height: 1)),
+      text: TextSpan(text: value, style: TextStyle(color: color ?? ink, fontSize: fontSize, fontWeight: weight, height: 1,
+        fontFamily: fontFamily, fontFamilyFallback: fontFamilyFallback)),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
     )..layout();
@@ -7593,7 +7599,8 @@ class _WarqnaaCardFacePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _WarqnaaCardFacePainter oldDelegate) => oldDelegate.rank != rank || oldDelegate.suit != suit || oldDelegate.ink != ink || oldDelegate.compact != compact;
+  bool shouldRepaint(covariant _WarqnaaCardFacePainter oldDelegate) => oldDelegate.rank != rank || oldDelegate.suit != suit || oldDelegate.ink != ink || oldDelegate.compact != compact ||
+    oldDelegate.referenceSize != referenceSize || oldDelegate.fontFamily != fontFamily || !listEquals(oldDelegate.fontFamilyFallback, fontFamilyFallback);
 }
 
 class PlayerSeat extends StatelessWidget {
