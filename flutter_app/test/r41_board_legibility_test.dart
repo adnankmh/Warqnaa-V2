@@ -60,10 +60,9 @@ void main() {
           controller.connectivityTimerV173?.cancel();
           controller.dispose();
         });
-        final game = <GameInfo>[
-          ...gamesCatalog,
-          ...customerGamesR101,
-        ].firstWhere((item) => item.id == gameId);
+        final game = gameId == 'jackaroo'
+            ? const GameInfo('jackaroo', '🎲', 0, Colors.orange, serverOnly: true)
+            : gamesCatalog.firstWhere((item) => item.id == gameId);
 
         await tester.pumpWidget(
           _host(
