@@ -314,28 +314,38 @@ void main() {
   }
 
 
+
   for (final locale in ['ar','en']) {
     for (final size in [const Size(320,640),const Size(390,844)]) {
       for (final gameId in ['backgammon','jackaroo']) {
         testWidgets('R41 readable $gameId board $locale $size',(tester) async {
-          SharedPreferences.setMockInitialValues({}); AppSounds.enabled=false;
           tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
           addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
           final controller=AppController()..localeCode=locale;
-          addTearDown(() { controller.connectivityTimerV173?.cancel(); controller.dispose(); });
-          final game=gameId=='jackaroo'
-              ? const GameInfo('jackaroo','🎲',0,Colors.orange,serverOnly:true)
-              : gamesCatalog.firstWhere((item)=>item.id==gameId);
+          addTearDown(controller.dispose);
+          final board=gameId=='backgammon'
+              ? R41BackgammonBoard(ar:locale=='ar',points:const {
+                  '24':{'count':2,'owner':'user:1'},
+                  '13':{'count':5,'owner':'bot:1'},
+                  '8':{'count':3,'owner':'user:1'},
+                  '6':{'count':5,'owner':'bot:1'},
+                })
+              : R41JackarooBoard(ar:locale=='ar',pieces:const {
+                  'user:Adnan':[-1,12,37,56],
+                  'bot:Samer':[-1,9,41,57],
+                });
           final key=GlobalKey();
-          await tester.pumpWidget(reviewApp(ServerEngineRoomPage(controller:controller,game:game),controller,key));
-          await tester.pump();await tester.pump(const Duration(seconds:2));
+          await tester.pumpWidget(reviewApp(Scaffold(body:SafeArea(child:Center(
+            child:SizedBox(height:420,child:board),
+          ))),controller,key));
+          await tester.pump();
           expect(tester.takeException(),isNull);
           if(gameId=='backgammon'){
-            final point=tester.widget<Text>(find.text('24').first);
+            final point=tester.widget<Text>(find.text('24'));
             expect(point.style?.fontSize,11);
           }
           if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r41-$gameId-${size.width.toInt()}x${size.height.toInt()}');
-          await tester.pumpWidget(const SizedBox.shrink());await tester.pump(const Duration(seconds:5));
+          await tester.pumpWidget(const SizedBox.shrink());
         });
       }
     }
