@@ -89,7 +89,7 @@ def main() -> None:
         "prefers-reduced-motion", "focus-visible",
     ):
         check(web_style, needle, "original responsive visual design")
-    check(web_shell, "?v=37-surface-legibility", "R37 versioned production theme")
+    check(web_shell, "?v=40-rummy-turn-controls", "R40 versioned production theme")
     for needle in (
         "R35StoreTreasureStrip(controller: controller)",
         "'ردود الفعل والباقات'", "'ملفي الشخصي ومظهر الباشا'",
@@ -129,7 +129,7 @@ def main() -> None:
         "@media(max-width:560px)",
     ):
         check(web_style, needle, "responsive honest progress display")
-    check(web_shell, "?v=37-surface-legibility", "refresh R37 legibility CSS")
+    check(web_shell, "?v=40-rummy-turn-controls", "refresh shared legibility and rummy CSS")
     for needle in (
         "R37 SKY SURFACE LEGIBILITY",
         "--r37-copy:#f4fcff",
