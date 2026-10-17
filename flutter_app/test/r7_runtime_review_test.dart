@@ -323,7 +323,9 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
           final controller=AppController()..localeCode=locale;
           addTearDown(() { controller.connectivityTimerV173?.cancel(); controller.dispose(); });
-          final game=<GameInfo>[...gamesCatalog,...customerGamesR101].firstWhere((item)=>item.id==gameId);
+          final game=gameId=='jackaroo'
+              ? const GameInfo('jackaroo','🎲',0,Colors.orange,serverOnly:true)
+              : gamesCatalog.firstWhere((item)=>item.id==gameId);
           final key=GlobalKey();
           await tester.pumpWidget(reviewApp(ServerEngineRoomPage(controller:controller,game:game),controller,key));
           await tester.pump();await tester.pump(const Duration(seconds:2));
