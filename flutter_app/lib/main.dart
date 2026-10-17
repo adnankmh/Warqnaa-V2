@@ -52,6 +52,7 @@ part 'v305_single_table.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
 part 'r36_meld_workspace.dart';
+part 'r41_board_legibility.dart';
 part 'r36_store_sync.dart';
 part 'r5_world_class.dart';
 part 'r6_1_world_class.dart';
@@ -6677,86 +6678,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     });
   }
 
-  Widget _backgammonBoard(Map<String, dynamic> points) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 430),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final range in [List.generate(12, (i) => 24 - i), List.generate(12, (i) => i + 1)])
-            Expanded(
-              child: Row(
-                children: range.map((number) {
-                  final raw = points[number.toString()];
-                  final point = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
-                  final count = int.tryParse(point['count']?.toString() ?? '') ?? 0;
-                  final owner = point['owner']?.toString() ?? '';
-                  return Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.all(1),
-                      decoration: BoxDecoration(color: number.isEven ? const Color(0xff7d5635) : const Color(0xffd5b47a), borderRadius: BorderRadius.circular(4)),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Semantics(label: 'Point $number', child: Text('$number', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xff2d2118)))),
-                          if (count > 0) ...[
-                            Text(owner.startsWith('user:') ? '●' : '○', style: const TextStyle(fontSize: 14, color: Colors.white)),
-                            Semantics(label: '$count checkers', child: Text('$count', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
-                          ],
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  Widget _backgammonBoard(Map<String, dynamic> points) =>
+      R41BackgammonBoard(points: points, ar: widget.controller.localeCode == 'ar');
 
-  Widget _jackarooBoard(Map<String, dynamic> pieces) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 390),
-      child: PremiumPanel(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: pieces.entries.map((entry) {
-              final values = entry.value is List ? entry.value as List : const [];
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(children: [
-                  SizedBox(width: 86, child: Text(entry.key.toString().replaceAll('user:', '').replaceAll('bot:', ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800))),
-                  Expanded(
-                    child: Row(
-                      children: values.asMap().entries.map((piece) {
-                        final progress = int.tryParse(piece.value.toString()) ?? -1;
-                        return Expanded(
-                          child: Container(
-                            height: 28,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: progress >= 56 ? Colors.green.withValues(alpha: .45) : progress < 0 ? Colors.white.withValues(alpha: .06) : Theme.of(context).colorScheme.primary.withValues(alpha: .16),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white10),
-                            ),
-                            child: Semantics(label: progress < 0 ? _roomText('حجر في البيت', 'Piece at home') : progress >= 56 ? _roomText('حجر في الأمان', 'Piece safe') : _roomText('حجر عند $progress', 'Piece at $progress'), child: Text(progress < 0 ? _roomText('بيت', 'Home') : progress >= 56 ? '✓' : '$progress', maxLines: 1, overflow: TextOverflow.fade, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ]),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _jackarooBoard(Map<String, dynamic> pieces) =>
+      R41JackarooBoard(pieces: pieces, ar: widget.controller.localeCode == 'ar');
 
   Future<void> _reorderServerHand(int fromIndex, int toIndex) async {
     if (sending || fromIndex == toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= hand.length || toIndex >= hand.length) return;
