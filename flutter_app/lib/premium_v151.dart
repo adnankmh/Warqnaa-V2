@@ -278,7 +278,7 @@ Future<void> showGroupDetailV151(
               action: Row(mainAxisSize: MainAxisSize.min, children: [
                 Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: member.$3 ? Colors.greenAccent : Colors.white24)),
                 const SizedBox(width: 5),
-                Text(member.$3 ? 'متصل' : 'غير متصل', style: TextStyle(fontSize: 9, color: member.$3 ? Colors.greenAccent : Colors.white54)),
+                Text(member.$3 ? 'متصل' : 'غير متصل', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: member.$3 ? Colors.greenAccent : Colors.white70)),
               ]),
             )),
         const SizedBox(height: 10),
@@ -347,7 +347,7 @@ Future<void> showCreateCompetitionV151(BuildContext context, AppController contr
               ),
             ),
             const SizedBox(height: 9),
-            const Text('التوزيع المقترح: الأول 60%، الثاني 30%، والمربع الذهبي أو رسوم الإدارة 10%. تتغير القيم حسب حجم المنافسة.', style: TextStyle(color: Colors.white60, fontSize: 10, height: 1.5)),
+            const Text('التوزيع المقترح: الأول 60%، الثاني 30%، والمربع الذهبي أو رسوم الإدارة 10%. تتغير القيم حسب حجم المنافسة.', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600, height: 1.5)),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: () {
@@ -614,7 +614,7 @@ class _AdminStoreItemCard extends StatelessWidget {
                       Expanded(child: TextField(controller: color2, decoration: const InputDecoration(labelText: 'اللون الثاني HEX', prefixIcon: Icon(Icons.gradient_outlined)))),
                     ]),
                     const SizedBox(height: 10),
-                    Text('المعرّف: ${product.id} • الفئة: ${product.category}', style: const TextStyle(color: Colors.white60, fontSize: 10)),
+                    Text('المعرّف: ${product.id} • الفئة: ${product.category}', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 14),
                     Row(children: [
                       Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء'))),
@@ -679,7 +679,7 @@ class PashaStatCardV151 extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(L.t(controller.localeCode, 'vip'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, color: Colors.white60)),
+                    Text(L.t(controller.localeCode, 'vip'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white70)),
                     const SizedBox(height: 3),
                     Text('${controller.vipDays} ${L.t(controller.localeCode, 'days')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xffffcf67))),
                   ],
