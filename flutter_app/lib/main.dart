@@ -4440,9 +4440,9 @@ class GameRoomPage extends StatelessWidget {
         final choice = await showDialog<int>(context: context, builder: (dialogContext) => AlertDialog(
           icon: const Icon(Icons.sports_esports_rounded, size: 42),
           title: Text(L.t(controller.localeCode, 'activeGame')),
-          content: const Text('أنت موجود في لعبة حالياً. يمكنك العودة للرئيسية مع البقاء في الغرفة، أو مغادرة اللعبة نهائياً.'),
+          content: Text(L.t(controller.localeCode, 'leaveGamePrompt')),
           actions: [
-            TextButton(onPressed:()=>Navigator.pop(dialogContext,0),child:const Text('البقاء في اللعبة')),
+            TextButton(onPressed:()=>Navigator.pop(dialogContext,0),child:Text(L.t(controller.localeCode,'keepPlaying'))),
             TextButton(onPressed:()=>Navigator.pop(dialogContext,1),child:Text(L.t(controller.localeCode,'stayInRoom'))),
             FilledButton(onPressed:()=>Navigator.pop(dialogContext,2),style:FilledButton.styleFrom(backgroundColor:Colors.redAccent),child:Text(L.t(controller.localeCode,'leaveGameNow'))),
           ],

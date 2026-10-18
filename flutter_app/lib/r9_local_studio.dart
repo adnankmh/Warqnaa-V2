@@ -16,7 +16,7 @@ class R9SessionBanner extends StatelessWidget {
         const SizedBox(width: 9),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(localAdmin ? (ar ? 'Adnan • مدير هذا الجهاز' : 'Adnan • device administrator') : controller.serverConnected ? (ar ? 'متصل بالإنترنت' : 'Connected online') : (ar ? 'اللعب دون إنترنت' : 'Offline play'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-          Text(localAdmin ? (ar ? 'ألعابك وتصميمك محفوظة هنا' : 'Your games and design are saved here') : controller.serverConnected ? (ar ? 'الغرف والأصدقاء متاحون' : 'Rooms and friends are available') : (ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device'), style: const TextStyle(fontSize: 10, color: Color(0xffb2c7ba))),
+          Text(localAdmin ? (ar ? 'ألعابك وتصميمك محفوظة هنا' : 'Your games and design are saved here') : controller.serverConnected ? (ar ? 'الغرف والأصدقاء متاحون' : 'Rooms and friends are available') : (ar ? 'تدريب مع الكمبيوتر على هذا الجهاز' : 'Practice with the computer on this device'), style: const TextStyle(fontSize: 11, color: Color(0xffc4d8cc), height: 1.3)),
         ])),
         if (localAdmin) TextButton(key: const ValueKey('r9-open-studio'), onPressed: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R9LocalStudio(controller: controller))), child: Text(ar ? 'الإدارة' : 'Studio')),
       ]),

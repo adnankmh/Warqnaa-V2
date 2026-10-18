@@ -432,4 +432,40 @@ void main() {
     });
   }
 
+  for (final locale in ['ar','en']) {
+    testWidgets('R44 readable session continuity $locale 320x640',(tester) async {
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()
+        ..localeCode=locale
+        ..activeGame='tarneeb'
+        ..activeRoomCode='R44-7K2';
+      addTearDown(() {
+        controller.connectivityTimerV173?.cancel();
+        controller.dispose();
+      });
+      final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(
+        Scaffold(
+          body:SafeArea(
+            child:Column(children:[
+              R9SessionBanner(controller:controller),
+              ActiveGameBanner(controller:controller,onResume:(){ }),
+            ]),
+          ),
+        ),
+        controller,
+        key,
+      ));
+      await tester.pump();
+      expect(find.text(locale=='ar'?'العودة إلى اللعبة':'Return to game'),findsOneWidget);
+      expect(find.byTooltip(locale=='ar'?'الخروج من اللعبة':'Exit game'),findsOneWidget);
+      expect(tester.takeException(),isNull);
+      if(reviewDirectory.isNotEmpty) {
+        await capture(tester,key,'$locale-r44-session-continuity-320x640');
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
 }
