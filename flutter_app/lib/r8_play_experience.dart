@@ -74,7 +74,7 @@ class _R18BrandHeader extends StatelessWidget {
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(ar ? 'ورقنا' : 'WARQNAA', style: const TextStyle(fontSize: 25, height: 1, fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
-        Text(ar ? 'أكثر من لعبة… مجتمع واحد' : 'More than a game — one community', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xff9bb6c8), fontSize: 10.5, fontWeight: FontWeight.w700)),
+        Text(ar ? 'أكثر من لعبة… مجتمع واحد' : 'More than a game — one community', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xff9bb6c8), fontSize: 11, fontWeight: FontWeight.w700)),
       ])),
       if (width > 430) _R18Pill(icon: Icons.shield_outlined, label: ar ? 'بيئة آمنة' : 'Safe play', color: const Color(0xff28d7e9)),
       if (width > 700) ...[const SizedBox(width: 6), _R18Pill(icon: Icons.emoji_events_outlined, label: ar ? 'بطولات مستمرة' : 'Tournaments', color: const Color(0xffffc04d))],
@@ -86,7 +86,7 @@ class _R18Pill extends StatelessWidget {
   const _R18Pill({required this.icon, required this.label, required this.color});
   final IconData icon; final String label; final Color color;
   @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), decoration: BoxDecoration(color: const Color(0xff0c2435), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: .28))), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 15, color: color), const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xffd7e7f0)))]));
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7), decoration: BoxDecoration(color: const Color(0xff0c2435), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: .28))), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 15, color: color), const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xffd7e7f0)))]));
 }
 
 class _R18Hero extends StatelessWidget {
@@ -105,11 +105,11 @@ class _R18Hero extends StatelessWidget {
         PositionedDirectional(end: 92, bottom: -18, child: Transform.rotate(angle: -.18, child: const PlayingCard(label: 'K♥', width: 58, height: 86))),
         Padding(padding: const EdgeInsets.all(18), child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(ar ? 'بطولات ورقنا الكبرى' : 'WARQNAA GRAND EVENTS', style: const TextStyle(fontSize: 10.5, color: Color(0xffffd56e), fontWeight: FontWeight.w900)),
+            Text(ar ? 'بطولات ورقنا الكبرى' : 'WARQNAA GRAND EVENTS', style: const TextStyle(fontSize: 11, color: Color(0xffffd56e), fontWeight: FontWeight.w900)),
             const SizedBox(height: 5),
             Text(ar ? 'العب • تحدّى • تواصل • استمتع' : 'Play • Compete • Connect • Enjoy', style: TextStyle(fontSize: narrow ? 17 : 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 5),
-            Text(ar ? 'بطولات يومية وأسبوعية، جوائز، أندية ومواسم تنافسية في مكان واحد.' : 'Daily and weekly events, rewards, clubs and competitive seasons in one place.', style: const TextStyle(fontSize: 10, height: 1.4, color: Color(0xffe8d9cf))),
+            Text(ar ? 'بطولات يومية وأسبوعية، جوائز، أندية ومواسم تنافسية في مكان واحد.' : 'Daily and weekly events, rewards, clubs and competitive seasons in one place.', style: const TextStyle(fontSize: 11, height: 1.4, color: Color(0xffe8d9cf))),
             const SizedBox(height: 10),
             FilledButton.icon(onPressed: onTap, icon: const Icon(Icons.emoji_events_rounded, size: 17), label: Text(ar ? 'شاهد البطولات' : 'Explore events'), style: FilledButton.styleFrom(backgroundColor: const Color(0xffffc64e), foregroundColor: const Color(0xff251400))),
           ])),
@@ -126,7 +126,7 @@ class _R18FeaturePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    Widget row(IconData icon, Color color, String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .11), border: Border.all(color: color.withValues(alpha: .25))), child: Icon(icon, size: 16, color: color)), const SizedBox(width: 8), Expanded(child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xffcbdce6))))]));
+    Widget row(IconData icon, Color color, String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Row(children: [Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .11), border: Border.all(color: color.withValues(alpha: .25))), child: Icon(icon, size: 16, color: color)), const SizedBox(width: 8), Expanded(child: Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xffcbdce6))))]));
     return Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), gradient: const LinearGradient(colors: [Color(0xff0b2738), Color(0xff0b1726)]), border: Border.all(color: const Color(0xff22c8df).withValues(alpha: .24))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(ar ? 'أسلوبك داخل ورقنا' : 'Your Warqnaa style', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)), const SizedBox(height: 9),
       row(Icons.palette_outlined, const Color(0xff2ce0d3), ar ? 'ألوان بروفايل وثيمات متدرجة' : 'Profile gradients & themes'),
@@ -147,7 +147,7 @@ class _R8WelcomeTable extends StatelessWidget {
       final narrow = box.maxWidth < 340;
       return Padding(padding: EdgeInsets.all(narrow ? 16 : 20), child: Row(children: [
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [const DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: Color(0xff5dffab)), child: SizedBox(width: 7, height: 7)), const SizedBox(width: 6), Text(ar ? 'اللعب السريع' : 'QUICK PLAY', style: const TextStyle(fontSize: 9, color: Color(0xffa4f6d1), fontWeight: FontWeight.w900))]),
+          Row(children: [const DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: Color(0xff5dffab)), child: SizedBox(width: 7, height: 7)), const SizedBox(width: 6), Text(ar ? 'اللعب السريع' : 'QUICK PLAY', style: const TextStyle(fontSize: 11, color: Color(0xffa4f6d1), fontWeight: FontWeight.w900))]),
           const SizedBox(height: 6), Text(ar ? 'طاولتك بانتظارك' : 'Your table awaits', style: TextStyle(fontSize: narrow ? 19 : 23, fontWeight: FontWeight.w900, color: const Color(0xffffebbf))),
           const SizedBox(height: 6), Text(controller.serverConnected ? (ar ? 'اختر مجلسك وابدأ اللعب مع لاعبين حقيقيين.' : 'Find a room and play with real players.') : (ar ? 'تدرّب مع الكمبيوتر واصقل لعبك.' : 'Practice your next winning hand.'), style: const TextStyle(color: Color(0xffbbd2c6), fontSize: 11, height: 1.4)),
           const SizedBox(height: 12), FilledButton.icon(onPressed: () => showGameLobby(context, controller, game), icon: const Icon(Icons.play_arrow_rounded, size: 20), label: Text('${ar ? 'العب' : 'Play'} ${L.t(controller.localeCode, game.id)}'), style: FilledButton.styleFrom(backgroundColor: const Color(0xffffc84d), foregroundColor: const Color(0xff172319), minimumSize: const Size(0, 44))),
@@ -167,7 +167,7 @@ class _R8Portal extends StatelessWidget {
   const _R8Portal({required this.icon, required this.label, required this.onTap, this.accent = const Color(0xff27d7e9)});
   final IconData icon; final String label; final VoidCallback onTap; final Color accent;
   @override
-  Widget build(BuildContext context) => Material(color: const Color(0xff0b1c2a), borderRadius: BorderRadius.circular(16), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: Container(constraints: const BoxConstraints(minHeight: 76), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: accent.withValues(alpha: .24)), gradient: LinearGradient(colors: [accent.withValues(alpha: .08), Colors.transparent])), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .10), boxShadow: [BoxShadow(color: accent.withValues(alpha: .18), blurRadius: 16)]), child: Icon(icon, size: 20, color: accent)), const SizedBox(height: 6), Text(label, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w900))]))));
+  Widget build(BuildContext context) => Material(color: const Color(0xff0b1c2a), borderRadius: BorderRadius.circular(16), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: Container(constraints: const BoxConstraints(minHeight: 76), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: accent.withValues(alpha: .24)), gradient: LinearGradient(colors: [accent.withValues(alpha: .08), Colors.transparent])), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .10), boxShadow: [BoxShadow(color: accent.withValues(alpha: .18), blurRadius: 16)]), child: Icon(icon, size: 20, color: accent)), const SizedBox(height: 6), Text(label, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))]))));
 }
 
 /// R34 original Warqnaa illustrated game emblems, vector-built for crisp Web/Android.
@@ -279,8 +279,8 @@ class R8GameTile extends StatelessWidget {
       const SizedBox.expand(child: ColoredBox(color: Colors.transparent)),
        R34GameEmblem(gameId: game.id),
       const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x08000000), Color(0x22000000), Color(0xe3071119)], stops: [0, .48, 1]))),
-      PositionedDirectional(top: 9, start: 9, child: Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4), decoration: BoxDecoration(color: const Color(0xcc07131e), borderRadius: BorderRadius.circular(99), border: Border.all(color: p.$2.withValues(alpha: .4))), child: Text(p.$3, style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: p.$2)))),
-      PositionedDirectional(start: 11, end: 11, bottom: 9, child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [Text(L.t(locale, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black, blurRadius: 8)])), const SizedBox(height: 2), Text(ar ? 'ابدأ اللعب الآن' : 'Play now', style: const TextStyle(fontSize: 9, color: Color(0xffc6d8e3), fontWeight: FontWeight.w700))])), Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: p.$2.withValues(alpha: .16), border: Border.all(color: p.$2.withValues(alpha: .52))), child: Icon(ar ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, color: p.$2, size: 20))])),
+      PositionedDirectional(top: 9, start: 9, child: Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4), decoration: BoxDecoration(color: const Color(0xcc07131e), borderRadius: BorderRadius.circular(99), border: Border.all(color: p.$2.withValues(alpha: .4))), child: Text(p.$3, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: p.$2)))),
+      PositionedDirectional(start: 11, end: 11, bottom: 9, child: Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [Text(L.t(locale, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, shadows: [Shadow(color: Colors.black, blurRadius: 8)])), const SizedBox(height: 2), Text(ar ? 'ابدأ اللعب الآن' : 'Play now', style: const TextStyle(fontSize: 11, color: Color(0xffc6d8e3), fontWeight: FontWeight.w700))])), Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: p.$2.withValues(alpha: .16), border: Border.all(color: p.$2.withValues(alpha: .52))), child: Icon(ar ? Icons.chevron_left_rounded : Icons.chevron_right_rounded, color: p.$2, size: 20))])),
     ]))));
   }
 }
@@ -297,7 +297,7 @@ class _R18DiscoveryShelf extends StatelessWidget {
       (Icons.rocket_launch_rounded, const Color(0xffffc34d), ar ? 'مسرعات لامعة' : 'Glow boosters', ar ? 'ألوان واضحة ومكافآت XP متعددة.' : 'Distinct colors and XP multipliers.', onStore),
     ];
     return LayoutBuilder(builder: (context, box) {
-      Widget card((IconData, Color, String, String, VoidCallback) d) => InkWell(onTap: d.$5, borderRadius: BorderRadius.circular(18), child: Container(padding: const EdgeInsets.all(13), decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: LinearGradient(colors: [d.$2.withValues(alpha: .10), const Color(0xff0a1825)]), border: Border.all(color: d.$2.withValues(alpha: .25))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Icon(d.$1, color: d.$2, size: 24), const Spacer(), Icon(Icons.auto_awesome_rounded, size: 15, color: d.$2)]), const SizedBox(height: 9), Text(d.$3, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)), const SizedBox(height: 3), Text(d.$4, style: const TextStyle(fontSize: 9.5, height: 1.4, color: Color(0xff9fb4c2)))])));
+      Widget card((IconData, Color, String, String, VoidCallback) d) => InkWell(onTap: d.$5, borderRadius: BorderRadius.circular(18), child: Container(padding: const EdgeInsets.all(13), decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: LinearGradient(colors: [d.$2.withValues(alpha: .10), const Color(0xff0a1825)]), border: Border.all(color: d.$2.withValues(alpha: .25))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Row(children: [Icon(d.$1, color: d.$2, size: 24), const Spacer(), Icon(Icons.auto_awesome_rounded, size: 15, color: d.$2)]), const SizedBox(height: 9), Text(d.$3, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)), const SizedBox(height: 3), Text(d.$4, style: const TextStyle(fontSize: 11, height: 1.4, color: Color(0xff9fb4c2)))])));
       if (box.maxWidth < 660) return Column(children: [for (var i = 0; i < data.length; i++) ...[card(data[i]), if (i < data.length - 1) const SizedBox(height: 8)]]);
       return Row(children: [for (var i = 0; i < data.length; i++) ...[Expanded(child: card(data[i])), if (i < data.length - 1) const SizedBox(width: 8)]]);
     });
