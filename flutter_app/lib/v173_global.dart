@@ -255,26 +255,54 @@ class _OnlineRequiredScreenV173State extends State<OnlineRequiredScreenV173> {
 }
 
 void showPashaStyleSelectorV173(BuildContext context, AppController controller) {
-  showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    const Text('ألوان طربوش الباشا', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+  showPremiumSheet(context, child: PashaStyleSelectorV173(controller: controller));
+}
+
+class PashaStyleSelectorV173 extends StatelessWidget {
+  final AppController controller;
+
+  const PashaStyleSelectorV173({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    Text(ar ? 'ألوان طربوش الباشا' : 'Pasha fez colors', key: const ValueKey('r46-pasha-selector-title'), style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
     const SizedBox(height: 5),
-    const Text('اختيار اللون يطبّق هوية اللون على الطربوش والوهج والاسم والدردشة واللون الرئيسي للتطبيق.', style: TextStyle(color: Colors.white60, height: 1.5)),
+    Text(
+      ar
+          ? 'اختيار اللون يطبّق هوية اللون على الطربوش والوهج والاسم والدردشة واللون الرئيسي للتطبيق.'
+          : 'Your chosen color updates the fez, glow, name, chat and the app accent.',
+      style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
+    ),
     const SizedBox(height: 12),
     GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: pashaStylesV173.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.18, crossAxisSpacing: 8, mainAxisSpacing: 8), itemBuilder: (_, i) {
       final style = pashaStylesV173[i];
       final selected = controller.selectedPashaStyle == style.key;
       final product = storeProductById('pasha_style_${style.key}_v173');
       final owned = product != null && controller.isOwnedActiveV176(product.id);
+      final status = selected
+          ? (ar ? 'مفعّل' : 'Active')
+          : owned
+              ? (ar ? 'اختيار' : 'Select')
+              : product == null
+                  ? '—'
+                  : '🪙 ${formatNumber(controller.priceFor(product))}';
       return InkWell(onTap: () {
         if (product == null) return;
-        if (owned || controller.isAdmin) { controller.activateProduct(product); showToast(context, 'تم اعتماد الطربوش ${style.nameAr}.'); } else { showProductPreview(context, controller, product); }
+        if (owned || controller.isAdmin) { controller.activateProduct(product); showToast(context, ar ? 'تم اعتماد الطربوش ${style.nameAr}.' : '${style.nameEn} Pasha fez selected.'); } else { showProductPreview(context, controller, product); }
       }, borderRadius: BorderRadius.circular(18), child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: LinearGradient(colors: [colorFromHex(style.darkHex), colorFromHex(style.primaryHex).withValues(alpha:.55)]), border: Border.all(color: selected ? Colors.white : Colors.white24, width: selected ? 3 : 1)),
-        child: Column(children: [Expanded(child: Image.asset(style.asset, fit: BoxFit.contain)), Text(style.nameAr, style: const TextStyle(fontWeight: FontWeight.w900)), Text(selected ? 'مفعّل' : owned ? 'اختيار' : '🪙 6,500', style: const TextStyle(fontSize: 10, color: Colors.white70))]),
+        child: Column(children: [
+          Expanded(child: Image.asset(style.asset, fit: BoxFit.contain)),
+          Text(ar ? style.nameAr : style.nameEn, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+          Text(status, key: ValueKey('r46-pasha-status-${style.key}'), maxLines: 1, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
+        ]),
       ));
     }),
-  ]));
+  ]);
+  }
 }
 
 Future<void> showDailyPackV173(BuildContext context, AppController controller) => showDailyPackV176(context, controller);
