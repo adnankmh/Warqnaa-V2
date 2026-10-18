@@ -247,6 +247,18 @@ void main() {
           ),
           ('local-reaction', R19ReactionReview(locale: locale)),
           ('local-bots', R19BotReview(locale: locale)),
+          if (size == const Size(320, 640))
+            (
+              'r46-pasha-selector',
+              Scaffold(
+                body: SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(12),
+                    child: PashaStyleSelectorV173(controller: controller),
+                  ),
+                ),
+              ),
+            ),
         ]) {
           final key = GlobalKey();
           await tester.pumpWidget(reviewApp(page.$2, controller, key));
