@@ -109,36 +109,49 @@ class ActiveGameBanner extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final game = gamesCatalog.where((item)=>item.id==controller.activeGame).firstOrNull;
     if (game == null) return const SizedBox.shrink();
+    final identity = Row(children:[
+      ClipRRect(borderRadius:BorderRadius.circular(10),child:Image.asset(gameArtAsset(game.id),width:42,height:42,fit:BoxFit.contain)),
+      const SizedBox(width:10),
+      Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(L.t(controller.localeCode,'activeGame'),style:const TextStyle(fontWeight:FontWeight.w900)),
+        Text('${L.t(controller.localeCode,game.id)}${controller.activeRoomCode==null?'':' • ${controller.activeRoomCode}'}',style:TextStyle(fontSize:11,color:Theme.of(context).colorScheme.onSurfaceVariant)),
+      ])),
+    ]);
+    final exitButton = IconButton.filledTonal(
+      tooltip:L.t(controller.localeCode,'exitGameTooltip'),
+      onPressed:() async {
+        final leave = await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(
+          title:Text(L.t(controller.localeCode,'exitGameTooltip')),
+          content:Text(L.t(controller.localeCode,'leaveGamePrompt')),
+          actions:<Widget>[
+            TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:Text(L.t(controller.localeCode,'cancel'))),
+            FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:Text(L.t(controller.localeCode,'leaveGameNow'))),
+          ],
+        ));
+        if(leave==true) await controller.exitActiveGameV182();
+      },
+      icon:const Icon(Icons.logout_rounded,size:18),
+    );
+    final resumeButton = FilledButton.tonalIcon(
+      onPressed:onResume,
+      icon:const Icon(Icons.play_arrow_rounded,size:18),
+      label:Text(L.t(controller.localeCode,'resumeGame'),style:const TextStyle(fontSize:11)),
+    );
     return Material(
       color: Colors.transparent,
       child: InkWell(onTap:onResume, child: Container(
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 3), padding: const EdgeInsets.symmetric(horizontal:12,vertical:9),
         decoration: BoxDecoration(gradient: LinearGradient(colors:[Theme.of(context).colorScheme.primary.withValues(alpha:.28),Colors.greenAccent.withValues(alpha:.08)]),borderRadius:BorderRadius.circular(16),border:Border.all(color:Theme.of(context).colorScheme.primary.withValues(alpha:.45))),
-        child: Row(children:[
-          ClipRRect(borderRadius:BorderRadius.circular(10),child:Image.asset(gameArtAsset(game.id),width:42,height:42,fit:BoxFit.contain)),
-          const SizedBox(width:10),
-          Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-            Text(L.t(controller.localeCode,'activeGame'),style:const TextStyle(fontWeight:FontWeight.w900)),
-            Text('${L.t(controller.localeCode,game.id)}${controller.activeRoomCode==null?'':' • ${controller.activeRoomCode}'}',style:TextStyle(fontSize:11,color:Theme.of(context).colorScheme.onSurfaceVariant)),
-          ])),
-          IconButton.filledTonal(
-            tooltip:L.t(controller.localeCode,'exitGameTooltip'),
-            onPressed:() async {
-              final leave = await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(
-                title:Text(L.t(controller.localeCode,'exitGameTooltip')),
-                content:Text(L.t(controller.localeCode,'leaveGamePrompt')),
-                actions:<Widget>[
-                  TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:Text(L.t(controller.localeCode,'cancel'))),
-                  FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:Text(L.t(controller.localeCode,'leaveGameNow'))),
-                ],
-              ));
-              if(leave==true) await controller.exitActiveGameV182();
-            },
-            icon:const Icon(Icons.logout_rounded,size:18),
-          ),
-          const SizedBox(width:5),
-          FilledButton.tonalIcon(onPressed:onResume,icon:const Icon(Icons.play_arrow_rounded,size:18),label:Text(L.t(controller.localeCode,'resumeGame'),style:const TextStyle(fontSize:11))),
-        ])
+        child: LayoutBuilder(builder:(context,constraints) {
+          if(constraints.maxWidth<420) {
+            return Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+              identity,
+              const SizedBox(height:7),
+              Row(mainAxisAlignment:MainAxisAlignment.end,children:[exitButton,const SizedBox(width:5),Flexible(child:resumeButton)]),
+            ]);
+          }
+          return Row(children:[Expanded(child:identity),exitButton,const SizedBox(width:5),resumeButton]);
+        })
       )),
     );
   }
