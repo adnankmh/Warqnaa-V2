@@ -3960,17 +3960,7 @@ class _StorePageState extends State<StorePage> {
         const SizedBox(height: 8),
         R101CommerceShowcase(controller: widget.controller),
         const SizedBox(height: 10),
-        PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Row(children:[Expanded(child:Text(ar?'تقدم المستوى ${widget.controller.level}':'Level progress ${widget.controller.level}',style:const TextStyle(fontWeight:FontWeight.w900))),Text('${widget.controller.xp} / ${widget.controller.xpNext} XP',style:const TextStyle(color:Colors.amber,fontWeight:FontWeight.w900,fontSize:11))]),
-          const SizedBox(height:8),
-          ClipRRect(borderRadius:BorderRadius.circular(20),child:LinearProgressIndicator(value:widget.controller.levelProgress,minHeight:12,backgroundColor:Colors.white10)),
-          const SizedBox(height:6),
-          Text(ar?'تحتاج ${widget.controller.pointsToNextLevel} نقطة XP للمستوى التالي':'${widget.controller.pointsToNextLevel} XP needed for the next level',style:const TextStyle(color:Colors.white60,fontSize:10)),
-          const SizedBox(height:10),
-          Row(children:[Expanded(child:ProfileMetric(value:'${widget.controller.roundPoints}',label:ar?'نقاط الجولات':'Round points')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.tournamentPoints}',label:ar?'نقاط المسابقات':'Tournament points')),const SizedBox(width:6),Expanded(child:ProfileMetric(value:'${widget.controller.clubPoints}',label:ar?'نقاط النادي':'Club points'))]),
-          const SizedBox(height:7),
-          Text(ar?'المضاعف الحالي ×${((widget.controller.vipDays>0?2.0:1.0)*math.max(1.0,widget.controller.activeXpMultiplier)).toStringAsFixed(2)} • المسابقات أعلى من اللعب العادي • المدعومة/الموسمية حتى ×3':'Current multiplier ×${((widget.controller.vipDays>0?2.0:1.0)*math.max(1.0,widget.controller.activeXpMultiplier)).toStringAsFixed(2)} • Competitions reward more • Seasonal up to ×3',style:const TextStyle(color:Colors.lightGreenAccent,fontSize:9,fontWeight:FontWeight.w800)),
-        ]))),
+        R47StoreProgressPanel(controller: widget.controller),
         const SizedBox(height: 10),
         PremiumPanel(
           child: Padding(
@@ -8226,7 +8216,60 @@ class ProfileMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PremiumPanel(child: Padding(padding: const EdgeInsets.all(11), child: Column(children: [Text(value, style: const TextStyle(fontWeight: FontWeight.w900)), Text(label, style: const TextStyle(fontSize: 8, color: Colors.white60))])));
+    return PremiumPanel(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 11), child: Column(children: [
+      Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      Text(label, key: ValueKey('r47-store-metric-$label'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, height: 1.15, color: Colors.white70, fontWeight: FontWeight.w700)),
+    ])));
+  }
+}
+
+class R47StoreProgressPanel extends StatelessWidget {
+  final AppController controller;
+
+  const R47StoreProgressPanel({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final multiplier = (controller.vipDays > 0 ? 2.0 : 1.0) *
+        math.max(1.0, controller.activeXpMultiplier);
+    return PremiumPanel(
+      key: const ValueKey('r47-store-progress-panel'),
+      child: Padding(
+        padding: const EdgeInsets.all(13),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Expanded(child: Text(
+              ar ? 'تقدم المستوى ${controller.level}' : 'Level progress ${controller.level}',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            )),
+            Text('${controller.xp} / ${controller.xpNext} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 11)),
+          ]),
+          const SizedBox(height: 8),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: controller.levelProgress, minHeight: 12, backgroundColor: Colors.white10)),
+          const SizedBox(height: 6),
+          Text(
+            ar ? 'تحتاج ${controller.pointsToNextLevel} نقطة XP للمستوى التالي' : '${controller.pointsToNextLevel} XP needed for the next level',
+            key: const ValueKey('r47-store-next-level'),
+            style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+          ),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: ProfileMetric(value: '${controller.roundPoints}', label: ar ? 'نقاط الجولات' : 'Round points')),
+            const SizedBox(width: 6),
+            Expanded(child: ProfileMetric(value: '${controller.tournamentPoints}', label: ar ? 'نقاط المسابقات' : 'Tournament points')),
+            const SizedBox(width: 6),
+            Expanded(child: ProfileMetric(value: '${controller.clubPoints}', label: ar ? 'نقاط النادي' : 'Club points')),
+          ]),
+          const SizedBox(height: 7),
+          Text(
+            ar ? 'المضاعف الحالي ×${multiplier.toStringAsFixed(2)} • المسابقات أعلى من اللعب العادي • المدعومة/الموسمية حتى ×3' : 'Current multiplier ×${multiplier.toStringAsFixed(2)} • Competitions reward more • Seasonal up to ×3',
+            key: const ValueKey('r47-store-multiplier'),
+            style: const TextStyle(color: Colors.lightGreenAccent, fontSize: 11, height: 1.35, fontWeight: FontWeight.w800),
+          ),
+        ]),
+      ),
+    );
   }
 }
 

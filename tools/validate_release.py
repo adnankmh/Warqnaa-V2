@@ -936,18 +936,37 @@ def check_v163_ci_regressions() -> None:
     if start < 0:
         fail("Store page state is missing")
     store = main[start:] if end < 0 else main[start:end]
-    for needle in [
-        "widget.controller.level",
-        "widget.controller.xp",
-        "widget.controller.levelProgress",
-        "widget.controller.roundPoints",
-        "widget.controller.tournamentPoints",
-        "widget.controller.clubPoints",
-    ]:
-        if needle not in store:
-            fail(f"v163 StorePage controller binding missing: {needle}")
+    extracted_binding = "R47StoreProgressPanel(controller: widget.controller)"
+    if extracted_binding not in store:
+        for needle in [
+            "widget.controller.level",
+            "widget.controller.xp",
+            "widget.controller.levelProgress",
+            "widget.controller.roundPoints",
+            "widget.controller.tournamentPoints",
+            "widget.controller.clubPoints",
+        ]:
+            if needle not in store:
+                fail(f"v163 StorePage controller binding missing: {needle}")
     if re.search(r"(?<!widget\.)\bcontroller\.(?:level|xp|xpNext|levelProgress|pointsToNextLevel|roundPoints|tournamentPoints|clubPoints|vipDays|activeXpMultiplier)", store):
         fail("Unqualified StorePage controller reference returned")
+
+    if extracted_binding in store:
+        progress_start = main.find("class R47StoreProgressPanel")
+        progress_end = main.find("\nvoid showNotifications", progress_start)
+        if progress_start < 0 or progress_end < 0:
+            fail("Extracted StorePage progression panel is missing")
+        progress = main[progress_start:progress_end]
+        for needle in [
+            "controller.level",
+            "controller.xp",
+            "controller.levelProgress",
+            "controller.roundPoints",
+            "controller.tournamentPoints",
+            "controller.clubPoints",
+        ]:
+            if needle not in progress:
+                fail(f"v163 extracted StorePage binding missing: {needle}")
 
     api = read("flutter_app/lib/services/api_client.dart")
     if "'confirmation': true" not in api:

@@ -509,4 +509,39 @@ void main() {
     });
   }
 
+  for (final locale in ['ar','en']) {
+    testWidgets('R47 readable store progression $locale 320x640',(tester) async {
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()
+        ..localeCode=locale
+        ..roundPoints=125
+        ..tournamentPoints=45
+        ..clubPoints=30
+        ..activeXpMultiplier=1.5;
+      addTearDown(() {
+        controller.connectivityTimerV173?.cancel();
+        controller.dispose();
+      });
+      final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(
+        Scaffold(
+          body:SafeArea(child:SingleChildScrollView(
+            padding:const EdgeInsets.all(12),
+            child:R47StoreProgressPanel(controller:controller),
+          )),
+        ),
+        controller,
+        key,
+      ));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('r47-store-progress-panel')),findsOneWidget);
+      expect(tester.takeException(),isNull);
+      if(reviewDirectory.isNotEmpty) {
+        await capture(tester,key,'$locale-r47-store-progression-320x640');
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
 }
