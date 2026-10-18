@@ -9208,6 +9208,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ],
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: visibility,
             decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomVisibility'), prefixIcon: const Icon(Icons.public_rounded)),
             items: [
@@ -9222,6 +9223,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ],
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
+            isExpanded: true,
             initialValue: turnSeconds,
             decoration: InputDecoration(labelText: L.t(controller.localeCode, 'turnSpeed'), prefixIcon: const Icon(Icons.timer_outlined)),
             items: [
@@ -9233,6 +9235,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
+            isExpanded: true,
             initialValue: playerCount,
             decoration: InputDecoration(labelText: ar ? 'عدد اللاعبين' : 'Players', prefixIcon: const Icon(Icons.groups_rounded)),
             items: v170AllowedPlayerCounts(game.id).map((count) => DropdownMenuItem(value: count, child: Text(ar ? '$count لاعبين' : '$count players'))).toList(),
@@ -9288,6 +9291,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
               ],
               const SizedBox(height: 10),
               DropdownButtonFormField<int>(
+                isExpanded: true,
                 initialValue: botCount,
                 decoration: InputDecoration(labelText: ar ? 'عدد لاعبي البوت' : 'Computer players', prefixIcon: const Icon(Icons.smart_toy_rounded)),
                 items: List<int>.generate(((playerCount - 1) - selectedInviteeIds.length).clamp(0, 7).toInt() + 1, (index) => index)
@@ -9301,6 +9305,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
+            isExpanded: true,
             initialValue: minLevel,
             decoration: InputDecoration(labelText: ar ? 'الحد الأدنى لمستوى الدخول' : 'Minimum entry level', prefixIcon: const Icon(Icons.military_tech_rounded)),
             items: v170MinLevelOptions(controller.level)

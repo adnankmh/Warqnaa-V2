@@ -36,7 +36,11 @@ void main() {
           final single=find.text(locale=='ar'?'مباراة من جولة واحدة فقط':'Single-round match');
           await tester.ensureVisible(single);await tester.tap(single);await tester.pump();
           final submit=find.byKey(const ValueKey('r48-create-room-submit'));
-          await tester.ensureVisible(submit);await tester.tap(submit);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(submit);
+          await tester.pumpAndSettle();
+          await tester.tap(submit);
           await tester.pump();await tester.pump(const Duration(seconds:1));
           final room=tester.widget<GameRoomPage>(find.byType(GameRoomPage));
           expect(room.game.id,gameId);expect(room.options.roomName,'R48 actual room');
