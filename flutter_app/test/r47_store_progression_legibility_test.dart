@@ -13,6 +13,7 @@ void main() {
 
       final controller = AppController()
         ..localeCode = locale
+        ..vipDays = 0
         ..roundPoints = 125
         ..tournamentPoints = 45
         ..clubPoints = 30
