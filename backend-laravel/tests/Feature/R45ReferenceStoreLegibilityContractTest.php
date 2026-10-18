@@ -15,6 +15,7 @@ class R45ReferenceStoreLegibilityContractTest extends TestCase
         $this->assertStringContainsString("constraints.maxWidth < 420", $source);
         $this->assertStringContainsString("ValueKey('r45-store-treasure-scroll')", $source);
         $this->assertStringContainsString("width: 136", $source);
+        $this->assertStringContainsString("height: 166", $source);
         $this->assertStringContainsString("fontSize: 12, height: 1.25", $source);
         $this->assertStringNotContainsString("fontSize: 10.5", $source);
         $this->assertStringNotContainsString("fontSize: 10)", $source);
