@@ -36,7 +36,13 @@ def main():
     ok('assets/optimized/r10/' in pub and 'assets/sounds/r10/' in pub,'Flutter ships R10 WebP/OGG derivative bundle')
     ok('assets/images/tables/' not in pub and 'assets/images/v02/prize_boxes/' not in pub and 'assets/images/v02/tickets/' not in pub,'heavy historical image directories are not packaged in Flutter')
     bundled=declared_flutter_asset_bytes()
-    ok(bundled < 15*1024*1024,f'R10 declared Flutter visual/audio assets stay below 15 MiB ({bundled/1024/1024:.2f} MiB)')
+    premium_assets=sorted((ROOT/'flutter_app/assets/optimized/r48').glob('*.webp'))
+    premium_bytes=sum(p.stat().st_size for p in premium_assets)
+    ok(len(premium_assets)==6,'R48 includes three approved tables in portrait and landscape')
+    ok(premium_bytes < 2*1024*1024,f'R48 premium art stays below its 2 MiB allowance ({premium_bytes/1024/1024:.2f} MiB)')
+    legacy_bytes=bundled-premium_bytes
+    ok(legacy_bytes < 15*1024*1024,f'R10 legacy Flutter assets retain the 15 MiB budget ({legacy_bytes/1024/1024:.2f} MiB)')
+    ok(bundled < 17*1024*1024,f'Flutter total including approved R48 art stays below 17 MiB ({bundled/1024/1024:.2f} MiB)')
     ok((ROOT/'flutter_app/assets/images/tables/reference/table_reference_01.png').is_file(),'historical source artwork is preserved outside the release bundle')
     ogg=list((ROOT/'flutter_app/assets/sounds/r10').glob('*.ogg'))
     ok(len(ogg)>=50,'R10 compressed OGG sound set is present')
@@ -72,7 +78,18 @@ def main():
 
     web_public=ROOT/'backend-laravel/public'
     web_bytes=sum(p.stat().st_size for p in web_public.rglob('*') if p.is_file())
-    ok(web_bytes < 12*1024*1024,f'Laravel public runtime stays below 12 MiB ({web_bytes/1024/1024:.2f} MiB)')
+    premium_public=web_public/'assets/store/r48'
+    web_premium_assets=sorted(premium_public.glob('*.webp'))
+    ok(len(web_premium_assets)==len(premium_assets),'Laravel ships the same six R48 table orientations')
+    for src in premium_assets:
+        dst=premium_public/src.name
+        ok(dst.is_file() and hashlib.sha256(dst.read_bytes()).digest()==hashlib.sha256(src.read_bytes()).digest(),
+           f'R48 Flutter and Laravel table artwork match: {src.name}')
+    web_premium_bytes=sum(p.stat().st_size for p in web_premium_assets)
+    ok(web_premium_bytes < 2*1024*1024,f'R48 Laravel art stays below 2 MiB ({web_premium_bytes/1024/1024:.2f} MiB)')
+    web_legacy_bytes=web_bytes-web_premium_bytes
+    ok(web_legacy_bytes < 12*1024*1024,f'Laravel legacy public runtime retains the 12 MiB budget ({web_legacy_bytes/1024/1024:.2f} MiB)')
+    ok(web_bytes < 14*1024*1024,f'Laravel public runtime including R48 art stays below 14 MiB ({web_bytes/1024/1024:.2f} MiB)')
     ok(not (web_public/'assets/store/tables/v173').exists() and not (web_public/'assets/store/pasha/v173').exists(),'superseded heavy V173 web originals are removed from public runtime')
     catalog_text=text('backend-laravel/resources/data/v173_store_catalog.json')
     catalog_data=json.loads(catalog_text)
