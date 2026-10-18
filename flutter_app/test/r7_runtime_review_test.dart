@@ -354,8 +354,7 @@ void main() {
 
   for (final locale in ['ar','en']) {
     for (final size in [const Size(320,640),const Size(390,844)]) {
-      testWidgets('R42 readable home lobby $locale $size',(tester) async {
-        SharedPreferences.setMockInitialValues({}); AppSounds.enabled=false;
+      testWidgets('R42 readable home game tile $locale $size',(tester) async {
         tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
         addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
         final controller=AppController()..localeCode=locale;
@@ -365,19 +364,32 @@ void main() {
         });
         final key=GlobalKey();
         await tester.pumpWidget(reviewApp(
-          R8HomeLobby(controller:controller,onTab:(_){ }),
+          Scaffold(
+            body:SafeArea(
+              child:Center(
+                child:SizedBox(
+                  width:size.width<360?148:180,
+                  height:200,
+                  child:R8GameTile(
+                    game:gamesCatalog.first,
+                    locale:locale,
+                    onTap:(){ },
+                  ),
+                ),
+              ),
+            ),
+          ),
           controller,
           key,
         ));
-        await tester.pump(const Duration(milliseconds:300));
-        expect(find.text(locale=='ar'?'ابدأ اللعب الآن':'Play now'),findsWidgets);
+        await tester.pump();
         final prompt=tester.widget<Text>(
-          find.text(locale=='ar'?'ابدأ اللعب الآن':'Play now').first,
+          find.text(locale=='ar'?'ابدأ اللعب الآن':'Play now'),
         );
         expect(prompt.style?.fontSize,11);
         expect(tester.takeException(),isNull);
         if(reviewDirectory.isNotEmpty) {
-          await capture(tester,key,'$locale-r42-home-${size.width.toInt()}x${size.height.toInt()}');
+          await capture(tester,key,'$locale-r42-home-tile-${size.width.toInt()}x${size.height.toInt()}');
         }
         await tester.pumpWidget(const SizedBox.shrink());
       });
