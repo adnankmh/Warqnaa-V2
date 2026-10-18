@@ -676,7 +676,7 @@ class R35StoreTreasureStrip extends StatelessWidget {
           if (constraints.maxWidth < 420) {
             return SizedBox(
               key: const ValueKey('r45-store-treasure-scroll'),
-              height: 151,
+              height: 166,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: samples.length,
