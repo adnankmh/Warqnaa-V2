@@ -396,4 +396,40 @@ void main() {
     }
   }
 
+
+  for (final locale in ['ar','en']) {
+    testWidgets('R43 readable social navigation $locale 320x640',(tester) async {
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;
+      addTearDown(() {
+        controller.connectivityTimerV173?.cancel();
+        controller.dispose();
+      });
+      final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(
+        Scaffold(
+          body:R61SocialHubPage(controller:controller),
+          bottomNavigationBar:R61BottomNavigation(
+            controller:controller,
+            selectedIndex:3,
+            onSelected:(_){ },
+          ),
+        ),
+        controller,
+        key,
+      ));
+      await tester.pump();
+      final friends=tester.widget<Text>(
+        find.text(locale=='ar'?'الأصدقاء':'Friends').first,
+      );
+      expect(friends.style?.fontSize,11);
+      expect(tester.takeException(),isNull);
+      if(reviewDirectory.isNotEmpty) {
+        await capture(tester,key,'$locale-r43-social-navigation-320x640');
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
 }
