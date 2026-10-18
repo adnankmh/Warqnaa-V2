@@ -5,7 +5,9 @@ const Map<String, Map<String, String>> v166Translations = <String, Map<String, S
     'preview': 'معاينة', 'connectionCheck': 'فحص الاتصال', 'voiceStatus': 'حالة الصوت والميكروفون',
     'privacyPolicy': 'سياسة الخصوصية', 'gameChat': 'دردشة اللعبة', 'friendsChat': 'دردشة الأصدقاء',
     'activeGame': 'أنت موجود في لعبة', 'resumeGame': 'العودة إلى اللعبة', 'stayInRoom': 'العودة للرئيسية والبقاء في الغرفة',
-    'leaveGameNow': 'مغادرة اللعبة', 'font': 'نوع الخط', 'fontSize': 'حجم الخط', 'server': 'الخادم',
+    'leaveGameNow': 'مغادرة اللعبة', 'exitGameTooltip': 'الخروج من اللعبة', 'keepPlaying': 'البقاء في اللعبة',
+    'leaveGamePrompt': 'أنت موجود في لعبة حالياً. يمكنك العودة للرئيسية مع البقاء في الغرفة، أو مغادرة اللعبة نهائياً.',
+    'font': 'نوع الخط', 'fontSize': 'حجم الخط', 'server': 'الخادم',
     'microphone': 'الميكروفون', 'speaker': 'مكبر الصوت', 'retry': 'إعادة المحاولة', 'openSettings': 'فتح الإعدادات',
     'roundReport': 'تقرير نقاط الجولة', 'totalMultiplier': 'المضاعف الكلي', 'xpEarned': 'خبرة مكتسبة',
     'roundPoints': 'نقاط الجولة', 'tournamentPoints': 'نقاط المسابقات', 'clubPoints': 'نقاط النادي',
@@ -16,7 +18,9 @@ const Map<String, Map<String, String>> v166Translations = <String, Map<String, S
     'preview': 'Preview', 'connectionCheck': 'Connection check', 'voiceStatus': 'Voice & microphone status',
     'privacyPolicy': 'Privacy policy', 'gameChat': 'Game chat', 'friendsChat': 'Friends chat',
     'activeGame': 'You are currently in a game', 'resumeGame': 'Return to game', 'stayInRoom': 'Go home and stay in room',
-    'leaveGameNow': 'Leave game', 'font': 'Font', 'fontSize': 'Font size', 'server': 'Server',
+    'leaveGameNow': 'Leave game', 'exitGameTooltip': 'Exit game', 'keepPlaying': 'Keep playing',
+    'leaveGamePrompt': 'You are currently in a game. You can return home while staying in the room, or leave the game completely.',
+    'font': 'Font', 'fontSize': 'Font size', 'server': 'Server',
     'microphone': 'Microphone', 'speaker': 'Speaker', 'retry': 'Retry', 'openSettings': 'Open settings',
     'roundReport': 'Round points report', 'totalMultiplier': 'Total multiplier', 'xpEarned': 'XP earned',
     'roundPoints': 'Round points', 'tournamentPoints': 'Competition points', 'clubPoints': 'Club points',
@@ -115,17 +119,17 @@ class ActiveGameBanner extends StatelessWidget {
           const SizedBox(width:10),
           Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
             Text(L.t(controller.localeCode,'activeGame'),style:const TextStyle(fontWeight:FontWeight.w900)),
-            Text('${L.t(controller.localeCode,game.id)}${controller.activeRoomCode==null?'':' • ${controller.activeRoomCode}'}',style:TextStyle(fontSize:10,color:Theme.of(context).colorScheme.onSurfaceVariant)),
+            Text('${L.t(controller.localeCode,game.id)}${controller.activeRoomCode==null?'':' • ${controller.activeRoomCode}'}',style:TextStyle(fontSize:11,color:Theme.of(context).colorScheme.onSurfaceVariant)),
           ])),
           IconButton.filledTonal(
-            tooltip:'الخروج من اللعبة',
+            tooltip:L.t(controller.localeCode,'exitGameTooltip'),
             onPressed:() async {
               final leave = await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(
-                title:const Text('الخروج من اللعبة'),
-                content:const Text('هل تريد الخروج من اللعبة الحالية؟ يمكنك العودة ما لم تسجل خمس مرات خروج يدوي من نفس الغرفة.'),
+                title:Text(L.t(controller.localeCode,'exitGameTooltip')),
+                content:Text(L.t(controller.localeCode,'leaveGamePrompt')),
                 actions:<Widget>[
-                  TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:const Text('إلغاء')),
-                  FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:const Text('خروج')),
+                  TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:Text(L.t(controller.localeCode,'cancel'))),
+                  FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:Text(L.t(controller.localeCode,'leaveGameNow'))),
                 ],
               ));
               if(leave==true) await controller.exitActiveGameV182();
@@ -133,7 +137,7 @@ class ActiveGameBanner extends StatelessWidget {
             icon:const Icon(Icons.logout_rounded,size:18),
           ),
           const SizedBox(width:5),
-          FilledButton.tonalIcon(onPressed:onResume,icon:const Icon(Icons.play_arrow_rounded,size:18),label:Text(L.t(controller.localeCode,'resumeGame'),style:const TextStyle(fontSize:10))),
+          FilledButton.tonalIcon(onPressed:onResume,icon:const Icon(Icons.play_arrow_rounded,size:18),label:Text(L.t(controller.localeCode,'resumeGame'),style:const TextStyle(fontSize:11))),
         ])
       )),
     );
@@ -234,7 +238,7 @@ class _DiagnosticsDialogState extends State<_DiagnosticsDialog> {
                 ),
                 const Text(
                   'مهم للهاتف: لا تستخدم 127.0.0.1 أو localhost إلا عند تشغيل الخادم على الهاتف نفسه. استخدم رابط HTTPS عام حتى تعمل الغرف الصوتية والإشعارات خارج التطبيق.',
-                  style: TextStyle(fontSize: 10, color: Colors.white60, height: 1.5),
+                  style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.5),
                 ),
               ],
             ),
