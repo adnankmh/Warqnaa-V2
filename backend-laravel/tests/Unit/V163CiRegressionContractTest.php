@@ -13,8 +13,15 @@ class V163CiRegressionContractTest extends TestCase
         $end = strpos($source, 'class ', $start + 20);
         $store = substr($source, $start, $end === false ? null : $end - $start);
 
-        $this->assertStringContainsString('widget.controller.level', $store);
+        $this->assertStringContainsString('R47StoreProgressPanel(controller: widget.controller)', $store);
         $this->assertStringNotContainsString('${controller.level}', $store);
+
+        $progressStart = strpos($source, 'class R47StoreProgressPanel');
+        $progressEnd = strpos($source, 'void showNotifications', $progressStart);
+        $progress = substr($source, $progressStart, $progressEnd - $progressStart);
+        foreach (['controller.level', 'controller.xp', 'controller.levelProgress', 'controller.roundPoints', 'controller.tournamentPoints', 'controller.clubPoints'] as $binding) {
+            $this->assertStringContainsString($binding, $progress);
+        }
     }
 
     public function test_mobile_client_sends_the_confirmation_flag(): void
