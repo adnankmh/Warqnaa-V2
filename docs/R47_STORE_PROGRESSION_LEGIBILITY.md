@@ -20,6 +20,8 @@ top of the Flutter store.
   verify the live multiplier and typography floors.
 - A Laravel source contract locks the controller-backed values and prevents
   the former 8px metric labels from returning.
+- The legacy V163 CI regression guard now follows the extracted production
+  widget and still verifies every live controller binding.
 - Isolated R7 review captures both phone-width locales for manual inspection.
 
 GitHub Pages remains a static Flutter Web demonstration. A public Laravel
