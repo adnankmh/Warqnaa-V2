@@ -351,4 +351,37 @@ void main() {
     }
   }
 
+
+  for (final locale in ['ar','en']) {
+    for (final size in [const Size(320,640),const Size(390,844)]) {
+      testWidgets('R42 readable home lobby $locale $size',(tester) async {
+        SharedPreferences.setMockInitialValues({}); AppSounds.enabled=false;
+        tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+        addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+        final controller=AppController()..localeCode=locale;
+        addTearDown(() {
+          controller.connectivityTimerV173?.cancel();
+          controller.dispose();
+        });
+        final key=GlobalKey();
+        await tester.pumpWidget(reviewApp(
+          R8HomeLobby(controller:controller,onTab:(_){ }),
+          controller,
+          key,
+        ));
+        await tester.pump(const Duration(milliseconds:300));
+        expect(find.text(locale=='ar'?'ابدأ اللعب الآن':'Play now'),findsWidgets);
+        final prompt=tester.widget<Text>(
+          find.text(locale=='ar'?'ابدأ اللعب الآن':'Play now').first,
+        );
+        expect(prompt.style?.fontSize,11);
+        expect(tester.takeException(),isNull);
+        if(reviewDirectory.isNotEmpty) {
+          await capture(tester,key,'$locale-r42-home-${size.width.toInt()}x${size.height.toInt()}');
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+      });
+    }
+  }
+
 }
