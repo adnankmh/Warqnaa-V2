@@ -8216,7 +8216,7 @@ class ProfileMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PremiumPanel(child: Padding(padding: const EdgeInsets.all(11), child: Column(children: [
+    return PremiumPanel(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 11), child: Column(children: [
       Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
       Text(label, key: ValueKey('r47-store-metric-$label'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, height: 1.15, color: Colors.white70, fontWeight: FontWeight.w700)),
     ])));
