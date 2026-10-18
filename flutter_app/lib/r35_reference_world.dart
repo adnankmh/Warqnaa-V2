@@ -522,7 +522,7 @@ class R35CategoryAction extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12.5, height: 1.2)),
             const SizedBox(height: 4),
             Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 10.5, height: 1.25, fontWeight: FontWeight.w700)),
+              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 12, height: 1.25, fontWeight: FontWeight.w700)),
           ])),
       ),
     ),
@@ -672,16 +672,41 @@ class R35StoreTreasureStrip extends StatelessWidget {
           Padding(padding: const EdgeInsets.all(12),
             child: Text(ar ? 'لا توجد عروض متاحة حاليًا' : 'No offers available right now',
               style: const TextStyle(color: Colors.white70)))
-        else Row(children: <Widget>[
-          for (var i = 0; i < samples.length; i++) ...<Widget>[
-            if (i != 0) const SizedBox(width: 8),
-            Expanded(child: R35StoreTreasureTile(
-              product: samples[i],
-              controller: controller,
-              onTap: () => showProductPreview(context, controller, samples[i]),
-            )),
-          ],
-        ]),
+        else LayoutBuilder(builder: (context, constraints) {
+          if (constraints.maxWidth < 420) {
+            return SizedBox(
+              key: const ValueKey('r45-store-treasure-scroll'),
+              height: 166,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: samples.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) => SizedBox(
+                  key: ValueKey('r45-store-item-${samples[i].id}'),
+                  width: 136,
+                  child: R35StoreTreasureTile(
+                    product: samples[i],
+                    controller: controller,
+                    onTap: () => showProductPreview(context, controller, samples[i]),
+                  ),
+                ),
+              ),
+            );
+          }
+          return Row(
+            key: const ValueKey('r45-store-treasure-grid'),
+            children: <Widget>[
+              for (var i = 0; i < samples.length; i++) ...<Widget>[
+                if (i != 0) const SizedBox(width: 8),
+                Expanded(child: R35StoreTreasureTile(
+                  product: samples[i],
+                  controller: controller,
+                  onTap: () => showProductPreview(context, controller, samples[i]),
+                )),
+              ],
+            ],
+          );
+        }),
         const SizedBox(height: 12),
         InkWell(
           onTap: () => showRewards(context, controller),
@@ -700,7 +725,7 @@ class R35StoreTreasureStrip extends StatelessWidget {
                 Text(ar ? 'صناديق الجوائز والمكافآت' : 'Prize boxes and rewards',
                   style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
                 Text(ar ? 'اطّلع على المكافآت المتاحة وشروطها' : 'View available rewards and their terms',
-                  style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 10)),
+                  style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 12, height: 1.25, fontWeight: FontWeight.w700)),
               ])),
               const Icon(Icons.chevron_right_rounded, color: R35ReferenceColors.gold),
             ]),

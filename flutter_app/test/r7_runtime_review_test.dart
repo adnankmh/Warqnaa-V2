@@ -468,4 +468,33 @@ void main() {
     });
   }
 
+  for (final locale in ['ar','en']) {
+    testWidgets('R45 readable reference store $locale 320x640',(tester) async {
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;
+      addTearDown(() {
+        controller.connectivityTimerV173?.cancel();
+        controller.dispose();
+      });
+      final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(
+        Scaffold(
+          body:SafeArea(child:SingleChildScrollView(
+            child:R35StoreTreasureStrip(controller:controller),
+          )),
+        ),
+        controller,
+        key,
+      ));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('r45-store-treasure-scroll')),findsOneWidget);
+      expect(tester.takeException(),isNull);
+      if(reviewDirectory.isNotEmpty) {
+        await capture(tester,key,'$locale-r45-reference-store-320x640');
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
 }
