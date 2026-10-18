@@ -17,6 +17,7 @@ class CommerceCatalogService
                 'currency'=>'USD',
                 'tokens'=>(int)($row['tokens'] ?? 0),
                 'badge'=>$row['badge'] ?? '',
+                'categories'=>array_values(array_intersect(['featured','weekly','tokens'], (array)($row['categories'] ?? ['tokens']))),
                 'icon'=>$row['icon'] ?? '🪙',
             ];
         }

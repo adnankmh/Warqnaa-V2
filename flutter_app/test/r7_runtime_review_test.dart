@@ -544,4 +544,57 @@ void main() {
     });
   }
 
+  for (final locale in ['ar','en']) {
+    for(final entry in r48ApprovedTables.entries) {
+      for(final size in [const Size(390,844),const Size(844,390)]) {
+        testWidgets('R48 approved live table ${entry.value} $locale $size',(tester) async {
+          SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+          tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+          addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+          final controller=AppController()..localeCode=locale..isAuthenticated=true
+            ..selectedTable=entry.key..selectedCardBack='r61_cardback_${entry.key}';
+          final key=GlobalKey();
+          final game=gamesCatalog.firstWhere((item)=>item.id=='banakil');
+          await tester.pumpWidget(reviewApp(GameRoomPage(controller:controller,game:game),controller,key));
+          await tester.pump();await tester.pump(const Duration(milliseconds:600));
+          expect(find.byType(R48ApprovedTableArt),findsOneWidget);
+          expect(tester.takeException(),isNull);
+          if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-${entry.value}-${size.width.toInt()}x${size.height.toInt()}');
+          await tester.pumpWidget(const SizedBox.shrink());await tester.pump(const Duration(seconds:6));
+          controller.connectivityTimerV173?.cancel();controller.dispose();
+        });
+      }
+    }
+    testWidgets('R48 friendly settings visible $locale',(tester) async {
+      SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(Scaffold(body:Builder(builder:(context)=>TextButton(
+        onPressed:()=>showCreateRoom(context,controller,gamesCatalog.firstWhere((g)=>g.id=='hand')),child:const Text('create'),
+      ))),controller,key));
+      await tester.tap(find.text('create'));await tester.pumpAndSettle();
+      if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-friendly-settings-320x640');
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
+    });
+    testWidgets('R48 all standard faces and Jokers $locale',(tester) async {
+      SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+      tester.view.physicalSize=const Size(1280,800);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(Scaffold(body:Padding(padding:const EdgeInsets.all(16),child:Wrap(
+        spacing:10,runSpacing:10,children:[
+          for(final suit in ['♣','♦','♠','♥'])for(final rank in ['2','3','4','5','6','7','8','9','10','J','Q','K','A'])
+            PlayingCard(label:'$rank$suit',width:72,height:104),
+          const PlayingCard(label:'🃏',width:72,height:104),
+        ],
+      ))),controller,key));
+      await tester.pump();expect(find.byType(PlayingCard),findsNWidgets(53));
+      if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-card-faces-1280x800');
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
+    });
+  }
+
 }

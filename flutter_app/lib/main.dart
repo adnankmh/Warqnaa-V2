@@ -49,6 +49,7 @@ part 'r14_2_account_security.dart';
 part 'v300_world_experience.dart';
 part 'v304_vertical_legend.dart';
 part 'v305_single_table.dart';
+part 'r48_approved_art.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
 part 'r36_meld_workspace.dart';
@@ -5146,7 +5147,10 @@ class PremiumCardBack extends StatelessWidget {
     final c1 = product?.previewColor1 ?? const Color(0xff111827);
     final c2 = product?.previewColor2 ?? const Color(0xfffacc15);
     final customBytes = decodeDataImage(controller?.customCardBackData);
-    final asset = customBytes == null ? product?.imageAsset : null;
+    final approvedDesign = r48TableDesign(cardBackId);
+    final asset = customBytes == null
+        ? (approvedDesign == null ? product?.imageAsset : r48TableAsset(approvedDesign, portrait: true))
+        : null;
     return Semantics(
       image: true,
       label: Directionality.of(context) == TextDirection.rtl ? 'ظهر ورقنا' : 'Warqnaa card back',
@@ -5239,6 +5243,7 @@ class WarqnaaTableSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final skin = storeProductById(skinId);
+    final approvedDesign = r48TableDesign(skinId);
     final c1 = skin == null ? const Color(0xff0b4731) : (controller?.color1For(skin) ?? skin.previewColor1 ?? const Color(0xff0b4731));
     final c2 = skin == null ? const Color(0xffd6aa59) : (controller?.color2For(skin) ?? skin.previewColor2 ?? const Color(0xffd6aa59));
     final dark = Color.lerp(c1, Colors.black, .62)!;
@@ -5293,23 +5298,15 @@ class WarqnaaTableSurface extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (customBytes != null || assetImage != null)
-                  Center(
-                    child: FractionallySizedBox(
-                      widthFactor: portrait ? .70 : .64,
-                      heightFactor: portrait ? .50 : .66,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(portrait ? 24 : 20),
-                        child: Opacity(
-                          opacity: .68,
-                          child: customBytes != null
-                              ? Image.memory(customBytes, fit: BoxFit.contain, filterQuality: FilterQuality.high)
-                              : Image(image: assetImage!, fit: BoxFit.contain, filterQuality: FilterQuality.high),
-                        ),
-                      ),
-                    ),
+                if (approvedDesign != null && customBytes == null)
+                  Positioned.fill(child: R48ApprovedTableArt(design: approvedDesign))
+                else if (customBytes != null || assetImage != null)
+                  Positioned.fill(
+                    child: customBytes != null
+                        ? Image.memory(customBytes, fit: BoxFit.cover, filterQuality: FilterQuality.high)
+                        : Image(image: assetImage!, fit: BoxFit.cover, filterQuality: FilterQuality.high),
                   ),
-                if (overlay != null)
+                if (overlay != null && approvedDesign == null)
                   Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: overlay))),
                 if (controller?.tableAmbientEffects ?? true) Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
                 if (assetImage == null && customBytes == null)
@@ -7486,7 +7483,17 @@ class _WarqnaaCardFacePainter extends CustomPainter {
       );
       canvas.drawRRect(badge, Paint()..color = ink.withValues(alpha: .055));
       canvas.drawRRect(badge, Paint()..color = const Color(0xffb8893e).withValues(alpha: .72)..style = PaintingStyle.stroke..strokeWidth = math.max(.7, size.width * .025));
-      _glyph(canvas, rank, center - Offset(0, size.height * .055), size.width * .35, color: ink);
+      final crown = Path()
+        ..moveTo(size.width * .34, size.height * .39)
+        ..lineTo(size.width * .30, size.height * .29)
+        ..lineTo(size.width * .43, size.height * .33)
+        ..lineTo(size.width * .50, size.height * .25)
+        ..lineTo(size.width * .57, size.height * .33)
+        ..lineTo(size.width * .70, size.height * .29)
+        ..lineTo(size.width * .66, size.height * .39)
+        ..close();
+      canvas.drawPath(crown, Paint()..color = const Color(0xffb8893e));
+      _glyph(canvas, rank, center, size.width * .32, color: ink);
       _glyph(canvas, suit, center + Offset(0, size.height * .145), size.width * .18, color: ink);
       return;
     }
@@ -8798,8 +8805,9 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               subtitle: ar ? 'ابدأ مباراة عادية أو صوتية' : 'Start a normal or voice match',
               accent: B307SkyLuxury.emerald,
               onTap: () {
-                Navigator.pop(context);
-                showPlayModePicker(context, controller, game);
+                final navigator = Navigator.of(context, rootNavigator: true);
+                navigator.pop();
+                showCreateRoom(navigator.context, controller, game);
               },
             );
             final competitive = _R31LobbyActionTile(
@@ -9081,8 +9089,9 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
                 subtitle: L.t(controller.localeCode, 'normalGameHint'),
                 color: Theme.of(context).colorScheme.primary,
                 onTap: () {
-                  Navigator.pop(context);
-                  showCreateRoom(context, controller, game);
+                  final navigator = Navigator.of(context, rootNavigator: true);
+                  navigator.pop();
+                  showCreateRoom(navigator.context, controller, game);
                 },
               ),
             ),
@@ -9094,8 +9103,9 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
                 subtitle: L.t(controller.localeCode, 'voiceGameHint'),
                 color: Colors.greenAccent,
                 onTap: () {
-                  Navigator.pop(context);
-                  showCreateRoom(context, controller, game, initialVoice: true);
+                  final navigator = Navigator.of(context, rootNavigator: true);
+                  navigator.pop();
+                  showCreateRoom(navigator.context, controller, game, initialVoice: true);
                 },
               ),
             ),
@@ -9146,6 +9156,8 @@ class _GameModeCard extends StatelessWidget {
 }
 
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final ar = controller.localeCode == 'ar';
   final nameController = TextEditingController(text: '${L.t(controller.localeCode, game.id)} • ${controller.displayName}');
   final passwordController = TextEditingController();
   var visibility = 'public';
@@ -9160,7 +9172,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
   final selectedInviteeIds = <int>{};
   showPremiumSheet(
     context,
-    child: StatefulBuilder(
+    child: StatefulBuilder(key: const ValueKey('r48-create-room-settings'),
       builder: (context, setLocalState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -9175,7 +9187,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             ),
           ),
           const SizedBox(height: 12),
-          TextField(controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
+          TextField(key: const ValueKey('r48-room-name'), controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
           const SizedBox(height: 10),
           SegmentedButton<bool>(
             segments: [
@@ -9212,18 +9224,18 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           DropdownButtonFormField<int>(
             initialValue: turnSeconds,
             decoration: InputDecoration(labelText: L.t(controller.localeCode, 'turnSpeed'), prefixIcon: const Icon(Icons.timer_outlined)),
-            items: const [
-              DropdownMenuItem(value: 5, child: Text('5 ثوانٍ • سريعة')),
-              DropdownMenuItem(value: 7, child: Text('7 ثوانٍ • متوسطة')),
-              DropdownMenuItem(value: 10, child: Text('10 ثوانٍ • هادئة')),
+            items: [
+              DropdownMenuItem(value: 5, child: Text(ar ? '5 ثوانٍ • سريعة' : '5 seconds • Fast')),
+              DropdownMenuItem(value: 7, child: Text(ar ? '7 ثوانٍ • متوسطة' : '7 seconds • Normal')),
+              DropdownMenuItem(value: 10, child: Text(ar ? '10 ثوانٍ • هادئة' : '10 seconds • Relaxed')),
             ],
             onChanged: (value) => setLocalState(() => turnSeconds = value ?? 10),
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
             initialValue: playerCount,
-            decoration: const InputDecoration(labelText: 'عدد اللاعبين', prefixIcon: Icon(Icons.groups_rounded)),
-            items: v170AllowedPlayerCounts(game.id).map((count) => DropdownMenuItem(value: count, child: Text('$count لاعبين'))).toList(),
+            decoration: InputDecoration(labelText: ar ? 'عدد اللاعبين' : 'Players', prefixIcon: const Icon(Icons.groups_rounded)),
+            items: v170AllowedPlayerCounts(game.id).map((count) => DropdownMenuItem(value: count, child: Text(ar ? '$count لاعبين' : '$count players'))).toList(),
             onChanged: (value) => setLocalState(() {
               playerCount = value ?? playerCount;
               final availableSeats = (playerCount - 1).clamp(0, 7).toInt();
@@ -9243,13 +9255,13 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
               boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 10, offset: const Offset(0, 5))],
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Row(children: [
+              Row(children: [
                 Icon(Icons.group_add_rounded, color: Colors.amberAccent),
                 SizedBox(width: 8),
-                Expanded(child: Text('اختيار المشاركين قبل إنشاء الغرفة', style: TextStyle(fontWeight: FontWeight.w900))),
+                Expanded(child: Text(ar ? 'اختيار المشاركين قبل إنشاء الغرفة' : 'Choose players before creating the room', style: const TextStyle(fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 7),
-              const Text('اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Colors.white60)),
+              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: const TextStyle(fontSize: 10.5, height: 1.45, color: Colors.white60)),
               if (controller.friends.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Wrap(
@@ -9277,22 +9289,22 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
               const SizedBox(height: 10),
               DropdownButtonFormField<int>(
                 initialValue: botCount,
-                decoration: const InputDecoration(labelText: 'عدد لاعبي البوت', prefixIcon: Icon(Icons.smart_toy_rounded)),
+                decoration: InputDecoration(labelText: ar ? 'عدد لاعبي البوت' : 'Computer players', prefixIcon: const Icon(Icons.smart_toy_rounded)),
                 items: List<int>.generate(((playerCount - 1) - selectedInviteeIds.length).clamp(0, 7).toInt() + 1, (index) => index)
-                    .map((count) => DropdownMenuItem(value: count, child: Text(count == 0 ? 'بدون بوتات' : '$count بوت')))
+                    .map((count) => DropdownMenuItem(value: count, child: Text(count == 0 ? (ar ? 'بدون بوتات' : 'No computer players') : (ar ? '$count بوت' : '$count computer players'))))
                     .toList(),
                 onChanged: (value) => setLocalState(() => botCount = value ?? 0),
               ),
               const SizedBox(height: 6),
-              Text('المحدد: ${selectedInviteeIds.length} لاعب حقيقي • $botCount بوت • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} مقاعد مفتوحة', style: const TextStyle(fontSize: 10, color: Colors.white70)),
+              Text(ar ? 'المحدد: ${selectedInviteeIds.length} لاعب حقيقي • $botCount بوت • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} مقاعد مفتوحة' : '${selectedInviteeIds.length} invited • $botCount computer • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} open seats', style: const TextStyle(fontSize: 11, color: B307SkyLuxury.textMuted)),
             ]),
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
             initialValue: minLevel,
-            decoration: const InputDecoration(labelText: 'الحد الأدنى لمستوى الدخول', prefixIcon: Icon(Icons.military_tech_rounded)),
+            decoration: InputDecoration(labelText: ar ? 'الحد الأدنى لمستوى الدخول' : 'Minimum entry level', prefixIcon: const Icon(Icons.military_tech_rounded)),
             items: v170MinLevelOptions(controller.level)
-                .map((value) => DropdownMenuItem(value: value, child: Text('المستوى $value فما فوق')))
+                .map((value) => DropdownMenuItem(value: value, child: Text(ar ? 'المستوى $value فما فوق' : 'Level $value and above')))
                 .toList(),
             onChanged: (value) => setLocalState(() => minLevel = value ?? 1),
           ),
@@ -9300,25 +9312,26 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             contentPadding: EdgeInsets.zero,
             value: allowOwnerKick,
             onChanged: (value) => setLocalState(() => allowOwnerKick = value),
-            title: const Text('السماح لمنشئ الغرفة بإخراج لاعب'),
-            subtitle: const Text('اللاعب المُخرج لا يستطيع العودة إلى نفس المباراة.'),
+            title: Text(ar ? 'السماح لمنشئ الغرفة بإخراج لاعب' : 'Allow the room owner to remove a player'),
+            subtitle: Text(ar ? 'اللاعب المُخرج لا يستطيع العودة إلى نفس المباراة.' : 'Removed players cannot rejoin the same match.'),
           ),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: singleRound,
             onChanged: (value) => setLocalState(() => singleRound = value),
-            title: const Text('مباراة من جولة واحدة فقط'),
-            subtitle: const Text('تنتهي المباراة مباشرة بعد انتهاء الجولة الحالية وإظهار النتيجة.'),
+            title: Text(ar ? 'مباراة من جولة واحدة فقط' : 'Single-round match'),
+            subtitle: Text(ar ? 'تنتهي المباراة مباشرة بعد انتهاء الجولة الحالية وإظهار النتيجة.' : 'End the match after this round and show results.'),
           ),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: allowSpectators,
             onChanged: (value) => setLocalState(() => allowSpectators = value),
-            title: const Text('فتح مدرجات Social World'),
-            subtitle: const Text('المشاهدون لا يرون الأوراق ولا يسمعون الصوت ولا يشاركون في اللعب.'),
+            title: Text(ar ? 'فتح مدرجات Social World' : 'Allow spectators'),
+            subtitle: Text(ar ? 'المشاهدون لا يرون الأوراق ولا يسمعون الصوت ولا يشاركون في اللعب.' : 'Spectators cannot see private cards, hear voice or play.'),
           ),
           const SizedBox(height: 14),
           FilledButton.icon(
+            key: const ValueKey('r48-create-room-submit'),
             onPressed: () async {
               if (nameController.text.trim().isEmpty) {
                 showToast(context, L.t(controller.localeCode, 'enterRoomName'));
@@ -9342,10 +9355,9 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 allowSpectators: allowSpectators,
                 inviteeIds: selectedInviteeIds.toList(growable: false),
               );
-              final navigationContext = warqnaNavigatorKey.currentContext;
-              Navigator.pop(context);
-              if (navigationContext != null) {
-                await openGameRoom(navigationContext, controller, game, options: options);
+              navigator.pop();
+              if (navigator.mounted) {
+                await openGameRoom(navigator.context, controller, game, options: options);
               }
             },
             icon: Icon(voiceEnabled ? Icons.mic_rounded : Icons.play_arrow_rounded),

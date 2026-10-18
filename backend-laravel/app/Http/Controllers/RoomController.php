@@ -358,11 +358,17 @@ class RoomController
   $userIds=$room->players()->where('is_bot',false)->whereNotNull('user_id')->pluck('user_id')->all();
   if(empty($userIds)) return null;
   $best=\App\Models\InventoryItem::with('storeItem')
-   ->whereIn('user_id',$userIds)->where('active',true)
+   ->whereIn('user_id',$userIds)->where('active',true)->where('quantity','>',0)
+   ->where(fn($q)=>$q->whereNull('expires_at')->orWhere('expires_at','>',now()))
    ->whereHas('storeItem',fn($q)=>$q->where('category',$category))
    ->get()->filter(fn($inv)=>$inv->storeItem)
    ->sortByDesc(fn($inv)=>$inv->storeItem->price ?? 0)->first();
   $payload=$best?->storeItem?->payload ?: [];
+  if ($payloadKey === 'table_image' || $payloadKey === 'card_back_image') {
+   $approved = \App\Support\R48TableArtwork::url($best?->storeItem?->key, $payloadKey === 'card_back_image');
+   if ($approved) return $approved;
+   return $payload[$payloadKey] ?? $payload['image'] ?? null;
+  }
   return $payload[$payloadKey] ?? null;
  }
 

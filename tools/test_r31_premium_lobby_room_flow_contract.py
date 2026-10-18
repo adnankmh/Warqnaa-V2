@@ -20,7 +20,7 @@ def main() -> None:
     require(main_dart, "r31-lobby-tools-grid", 'responsive room tools grid')
     require(main_dart, "class _R31LobbyTool", 'room tool component')
     require(main_dart, "B307PageHero(", 'shared premium page hero')
-    require(main_dart, "showPlayModePicker(context, controller, game)", 'friendly play navigation')
+    require(main_dart, "showCreateRoom(navigator.context, controller, game)", 'friendly play navigation on the retained navigator')
     require(main_dart, "showCompetitions(context, controller)", 'competition navigation')
     require(main_dart, "showCreateRoom(context, controller, game)", 'create-room navigation')
     require(main_dart, "showAvailableRooms(context, controller, game)", 'open-room navigation')

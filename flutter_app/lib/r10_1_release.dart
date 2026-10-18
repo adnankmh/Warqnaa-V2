@@ -777,7 +777,7 @@ class R20StoreCollections extends StatelessWidget {
           height: 38,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            gradient: LinearGradient(colors: <Color>[scheme.primary, scheme.secondary]),
+            color: B307SkyLuxury.gold,
             boxShadow: <BoxShadow>[BoxShadow(color: scheme.primary.withValues(alpha: .20), blurRadius: 16, offset: const Offset(0, 6))],
           ),
           child: Icon(Icons.auto_awesome_rounded, size: 20, color: scheme.onPrimary),
@@ -814,11 +814,7 @@ class R20StoreCollections extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: scheme.primary.withValues(alpha: .28)),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: <Color>[scheme.primary.withValues(alpha: .15), scheme.surfaceContainerHighest, scheme.secondary.withValues(alpha: .08)],
-                      ),
+                      color: r48StorePanel,
                       boxShadow: <BoxShadow>[BoxShadow(color: scheme.shadow.withValues(alpha: .10), blurRadius: 14, offset: const Offset(0, 7))],
                     ),
                     child: InkWell(

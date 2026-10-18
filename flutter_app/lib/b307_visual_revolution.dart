@@ -1116,6 +1116,7 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
           final catalog = commerce is Map ? Map<String, dynamic>.from(commerce) : <String, dynamic>{};
           final packagesRaw = catalog['packages'];
           final packages = packagesRaw is List ? packagesRaw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList() : <Map<String, dynamic>>[];
+          final visiblePackages = r48FilterCashPackages(packages, category);
           return ListView(padding: const EdgeInsets.all(12), children: <Widget>[
             B307PageHero(
               icon: Icons.local_mall_rounded,
@@ -1149,19 +1150,21 @@ class _B307CashShopPageState extends State<B307CashShopPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: B307SkyLuxury.panelGradient,
+                  color: r48StorePanel,
                   borderRadius: BorderRadius.circular(14),
                   border: B307SkyLuxury.border(alpha: .30),
                 ),
                 child: Text(ar ? 'تعذر تحميل العروض من الخادم. تأكد من اتصال التطبيق بعنوان API الصحيح.' : 'Could not load offers. Check the app API/server connection.', textAlign: TextAlign.center),
               )
+            else if (visiblePackages.isEmpty)
+              Padding(padding: const EdgeInsets.all(20), child: Text(ar ? 'لا توجد عروض في هذه الفئة حاليًا' : 'No offers in this category right now'))
             else
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: packages.length,
+                itemCount: visiblePackages.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.sizeOf(context).width > 700 ? 3 : 2, crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: .78),
-                itemBuilder: (context, i) => B307CashOfferCard(controller: widget.controller, data: packages[i]),
+                itemBuilder: (context, i) => B307CashOfferCard(controller: widget.controller, data: visiblePackages[i]),
               ),
             const SizedBox(height: 14),
             OutlinedButton.icon(
@@ -1206,7 +1209,7 @@ class B307CommerceTrustStrip extends StatelessWidget {
         key: const ValueKey('r29-commerce-trust-strip'),
         padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
         decoration: BoxDecoration(
-          gradient: B307SkyLuxury.panelGradient,
+          color: r48StorePanel,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: (productionReady ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .38)),
         ),
@@ -1237,9 +1240,10 @@ class B307CashOfferCard extends StatelessWidget {
     final price = (minor / 100).toStringAsFixed(2);
     final badge = data['badge']?.toString() ?? '';
     return Container(
+      key: ValueKey('r48-cash-offer-${data["key"]}'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: B307SkyLuxury.panelGradient,
+        color: r48StorePanel,
         borderRadius: BorderRadius.circular(15),
         border: B307SkyLuxury.border(alpha: .34),
         boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 4))],
