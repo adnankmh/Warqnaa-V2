@@ -223,6 +223,7 @@ def main():
                     config.write_text(json.dumps(defines))
                     config.chmod(0o600)
                     subprocess.run(['flutter', 'test', 'test/r7_runtime_review_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=600)
+                    subprocess.run(['flutter', 'test', 'test/r49_invitation_delivery_test.dart', '--dart-define-from-file=' + str(config), '--dart-define=R49_LOG_REVIEW=true'], cwd=ROOT / 'flutter_app', check=True, timeout=180)
                     report['checks'].append('flutter_live_identity_and_rendered_layouts')
                     subprocess.run(['flutter', 'test', 'test/r10_local_tables_test.dart', '--dart-define-from-file=' + str(config), '--dart-define=R10_REVIEW_DIR=' + str(report_dir / 'local-tables')], cwd=ROOT / 'flutter_app', check=True, timeout=600)
                     report['checks'].append('all_12_offline_tables_bilingual_four_sizes')

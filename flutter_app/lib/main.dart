@@ -5594,18 +5594,6 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             );
       if (!mounted) return;
       final updatedRoom = Map<String, dynamic>.from(data['room'] as Map);
-      if (!widget.options.joiningExisting && widget.options.inviteeIds.isNotEmpty) {
-        final createdCode = updatedRoom['code']?.toString() ?? '';
-        if (createdCode.isNotEmpty) {
-          for (final userId in widget.options.inviteeIds) {
-            try {
-              await widget.controller.api.inviteFriendToRoom(userId, createdCode);
-            } catch (_) {
-              // A failed invitation must never invalidate the room creation.
-            }
-          }
-        }
-      }
       _consumeProgressionPopupV174(updatedRoom);
       setState(() {
         room = updatedRoom;
@@ -5615,6 +5603,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       });
       widget.controller.rememberActiveRoom(widget.game.id, code: roomCode, options: widget.options.copyWith(roomCode: roomCode));
       AppSounds.fire(widget.options.joiningExisting ? 'room_join' : 'room_create');
+      if (!widget.options.joiningExisting && widget.options.inviteeIds.isNotEmpty) {
+        // The room is ready even if an invitation is slow or rejected.
+        unawaited(_sendInitialRoomInvitations(roomCode, widget.options.inviteeIds));
+      }
       await _loadRoomChat();
       await _startVoiceIfNeeded();
       _scheduleServerAutoNextRound();
@@ -5639,6 +5631,24 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       }
       await _openLocalRoom('الخادم غير متاح؛ تم تشغيل المحرك المحلي تلقائياً دون تعطيل اللعبة.');
     }
+  }
+
+  Future<void> _sendInitialRoomInvitations(String createdCode, List<int> invitees) async {
+    if (createdCode.isEmpty) return;
+    var failures = 0;
+    for (final userId in invitees.toSet()) {
+      if (!mounted) return;
+      try {
+        await widget.controller.api.inviteFriendToRoom(userId, createdCode);
+      } catch (_) {
+        failures += 1;
+      }
+    }
+    if (!mounted || failures == 0) return;
+    showToast(context, _roomText(
+      'الغرفة جاهزة، لكن تعذّر إرسال $failures من الدعوات. يمكنك إعادة الدعوة من زر الأصدقاء.',
+      'Your room is ready, but $failures invitation(s) could not be sent. Use Invite friends to try again.',
+    ));
   }
 
   int _playersFor(String game) => widget.options.playerCount.clamp(2, 6).toInt();
