@@ -69,7 +69,10 @@ ButtonStyle reviewButtonStyle(ButtonStyle? style) => (style ?? const ButtonStyle
 );
 
 ThemeData reviewTheme(AppController controller) {
-  final theme = r101Theme(controller.themeCode, controller.uiAccentHex);
+  // Set the family before deriving component themes: changing only textTheme
+  // leaves explicit SnackBar/input styles using the widget-test Ahem font.
+  final theme = r101Theme(controller.themeCode, controller.uiAccentHex,
+    fontFamily: 'R7Review', localeCode: controller.localeCode);
   return theme.copyWith(
     textTheme: theme.textTheme.apply(fontFamily: 'R7Review', fontFamilyFallback: const ['R7Emoji']),
     primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'R7Review', fontFamilyFallback: const ['R7Emoji']),
