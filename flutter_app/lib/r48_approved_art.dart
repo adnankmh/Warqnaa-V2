@@ -63,28 +63,36 @@ class _R48LiveCashOffersState extends State<R48LiveCashOffers> {
   @override
   void didUpdateWidget(covariant R48LiveCashOffers oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (connected!=widget.controller.serverConnected || oldWidget.controller!=widget.controller) _load();
+    if (connected!=widget.controller.serverConnected || oldWidget.controller!=widget.controller) {
+      _load();
+    }
   }
   @override
   Widget build(BuildContext context) {
     final ar=widget.controller.localeCode=='ar';
-    if (!connected) return Padding(
+    if (!connected) {
+      return Padding(
       padding: const EdgeInsets.all(12),
       child: Text(ar?'اتصل بالخادم لعرض العروض والأسعار الحالية.':'Connect to see current offers and prices.',
         style: const TextStyle(color:B307SkyLuxury.navy,fontSize:12,fontWeight:FontWeight.w700)),
-    );
+      );
+    }
     return FutureBuilder<Map<String,dynamic>>(
       future:catalogue,
       builder:(context,snapshot) {
-        if(snapshot.connectionState!=ConnectionState.done) return const SizedBox(height:80,child:Center(child:CircularProgressIndicator()));
+        if(snapshot.connectionState!=ConnectionState.done) {
+          return const SizedBox(height:80,child:Center(child:CircularProgressIndicator()));
+        }
         final raw=snapshot.data?['commerce'];
         final commerce=raw is Map?raw:const <String,dynamic>{};
         final rawPackages=commerce['packages'];
         final packages=rawPackages is List?rawPackages.whereType<Map>().map((p)=>Map<String,dynamic>.from(p)).toList():<Map<String,dynamic>>[];
-        if(snapshot.hasError || commerce['enabled']==false || packages.isEmpty) return Padding(
+        if(snapshot.hasError || commerce['enabled']==false || packages.isEmpty) {
+          return Padding(
           padding:const EdgeInsets.all(12),
           child:Text(ar?'لا توجد عروض متاحة حاليًا.':'No offers available right now.',style:const TextStyle(color:B307SkyLuxury.navy,fontSize:12)),
-        );
+          );
+        }
         return SizedBox(
           key:const ValueKey('r48-live-store-offers'),height:230,
           child:ListView.separated(
