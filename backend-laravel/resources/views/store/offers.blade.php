@@ -46,7 +46,8 @@
                     $price=number_format($minor/100,2);
                     $tokens=(int)($package['tokens'] ?? 0);
                     $badge=(string)($package['badge'] ?? '');
-                    $type=str_contains(strtolower($badge),'week') ? 'weekly' : ($loop->index<2 ? 'featured' : 'tokens');
+                    $categories=(array)($package['categories'] ?? ['tokens']);
+                    $type=implode(' ', $categories);
                 @endphp
                 <article class="b307-offer-card" data-offer-type="{{ $type }}" data-package-key="{{ $key }}">
                     @if($badge)<span class="b307-offer-badge">{{ $badge }}</span>@endif
@@ -89,7 +90,7 @@
  tabs.forEach(btn=>btn.addEventListener('click',()=>{
    tabs.forEach(x=>x.classList.remove('active'));btn.classList.add('active');
    const f=btn.dataset.filter;
-   document.querySelectorAll('.b307-offer-card').forEach(card=>card.style.display=(f==='all'||card.dataset.offerType===f)?'':'none');
+   document.querySelectorAll('.b307-offer-card').forEach(card=>card.style.display=(f==='all'||(card.dataset.offerType||'').split(' ').includes(f))?'':'none');
  }));
  window.selectB307Offer=(key,tokens,price)=>{
    selected={key,tokens,price};

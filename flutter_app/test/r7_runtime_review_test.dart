@@ -15,6 +15,30 @@ const runtimeUrl = String.fromEnvironment('R7_RUNTIME_URL');
 const reviewDirectory = String.fromEnvironment('R7_REVIEW_DIR');
 
 Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
+  // Wait for the actual checkout catalogue, rather than certifying a spinner
+  // as the finished storefront. Offline surfaces have no catalogue future.
+  final offers=find.byType(R48LiveCashOffers);
+  if(offers.evaluate().isNotEmpty) {
+    final builders=find.descendant(of:offers,matching:find.byType(FutureBuilder<Map<String,dynamic>>));
+    final futures=tester.widgetList<FutureBuilder<Map<String,dynamic>>>(builders)
+        .map((widget)=>widget.future).whereType<Future<Map<String,dynamic>>>();
+    final ready=Future.wait(futures);
+    var completed=false;
+    ready.then((_) { completed=true; }, onError:(Object error) { completed=true; });
+    // Network work starts in the widget's fake-async zone. Pump that zone
+    // between real I/O turns; awaiting it only inside runAsync can deadlock.
+    for(var attempt=0;attempt<100 && !completed;attempt++) {
+      await tester.runAsync(() async { await Future<void>.delayed(const Duration(milliseconds:50)); });
+      await tester.pump(const Duration(milliseconds:50));
+    }
+    expect(completed,isTrue,reason:'The live offers catalogue must complete within the bounded review wait.');
+    await ready;
+    await tester.pump();
+    if(futures.isNotEmpty) {
+      expect(find.byKey(const ValueKey('r48-live-store-offers')),findsOneWidget,
+        reason:'A connected storefront capture must show loaded real offers.');
+    }
+  }
   // Real asset decoding needs real async time, not a fake-clock pump.
   final providers = tester.widgetList<Image>(find.byType(Image)).map((image) => image.image).toSet();
   final imageErrors = <Object>[];
@@ -541,6 +565,59 @@ void main() {
         await capture(tester,key,'$locale-r47-store-progression-320x640');
       }
       await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  for (final locale in ['ar','en']) {
+    for(final entry in r48ApprovedTables.entries) {
+      for(final size in [const Size(390,844),const Size(844,390)]) {
+        testWidgets('R48 approved live table ${entry.value} $locale $size',(tester) async {
+          SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+          tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+          addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+          final controller=AppController()..localeCode=locale..isAuthenticated=true
+            ..selectedTable=entry.key..selectedCardBack='r61_cardback_${entry.key}';
+          final key=GlobalKey();
+          final game=gamesCatalog.firstWhere((item)=>item.id=='banakil');
+          await tester.pumpWidget(reviewApp(GameRoomPage(controller:controller,game:game),controller,key));
+          await tester.pump();await tester.pump(const Duration(milliseconds:600));
+          expect(find.byType(R48ApprovedTableArt),findsOneWidget);
+          expect(tester.takeException(),isNull);
+          if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-${entry.value}-${size.width.toInt()}x${size.height.toInt()}');
+          await tester.pumpWidget(const SizedBox.shrink());await tester.pump(const Duration(seconds:6));
+          controller.connectivityTimerV173?.cancel();controller.dispose();
+        });
+      }
+    }
+    testWidgets('R48 friendly settings visible $locale',(tester) async {
+      SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+      tester.view.physicalSize=const Size(320,640);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(Scaffold(body:Builder(builder:(context)=>TextButton(
+        onPressed:()=>showCreateRoom(context,controller,gamesCatalog.firstWhere((g)=>g.id=='hand')),child:const Text('create'),
+      ))),controller,key));
+      await tester.tap(find.text('create'));await tester.pumpAndSettle();
+      if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-friendly-settings-320x640');
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
+    });
+    testWidgets('R48 all standard faces and Jokers $locale',(tester) async {
+      SharedPreferences.setMockInitialValues({});AppSounds.enabled=false;
+      tester.view.physicalSize=const Size(1280,800);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode=locale;final key=GlobalKey();
+      await tester.pumpWidget(reviewApp(Scaffold(body:Padding(padding:const EdgeInsets.all(16),child:Wrap(
+        spacing:10,runSpacing:10,children:[
+          for(final suit in ['♣','♦','♠','♥'])for(final rank in ['2','3','4','5','6','7','8','9','10','J','Q','K','A'])
+            PlayingCard(label:'$rank$suit',width:72,height:104),
+          const PlayingCard(label:'🃏',width:72,height:104),
+        ],
+      ))),controller,key));
+      await tester.pump();expect(find.byType(PlayingCard),findsNWidgets(53));
+      if(reviewDirectory.isNotEmpty)await capture(tester,key,'$locale-r48-card-faces-1280x800');
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
     });
   }
 

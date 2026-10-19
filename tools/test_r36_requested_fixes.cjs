@@ -100,3 +100,18 @@ const nonRummy=fixture('en','tarneeb');
 nonRummy.render({game:'tarneeb',hand:['A_spades'],available_actions:[],turn:'user:1'});
 assert.equal(nonRummy.elements().length,1,'non-rummy tables are left to their own renderer');
 console.log('R40 shipped rummy controls: AR/EN × five games; legal discard/layoff/joker, public preview, sync rejection and stale-turn guards PASS');
+
+// R48: test the actual SVG renderer for every standard face and both Jokers.
+const cardArt=require('../backend-laravel/public/assets/js/r48-card-art.js');
+for(const suit of ['clubs','diamonds','spades','hearts']) {
+  for(const rank of ['2','3','4','5','6','7','8','9','10','J','Q','K','A']) {
+    const svg=cardArt.markup(rank+'_'+suit);
+    assert.match(svg,/viewBox="0 0 100 140"/);
+    assert.ok(svg.includes(cardArt.parse(rank+'_'+suit).suit));
+    assert.equal((svg.match(/data-pip="1"/g)||[]).length,Number(rank)||0);
+    assert.match(svg,suit==='hearts'||suit==='diamonds'?/#b42335/:/#101419/);
+  }
+}
+for(const joker of ['JOKER_R','JOKER_B','🃏'])assert.match(cardArt.markup(joker),/JK★/);
+for(const invalid of ['<script>','A_<img src=x>','99_hearts','K_unknown'])assert.equal(cardArt.markup(invalid),'');
+console.log('R48 production card artwork: 52 faces, Jokers, suit colours and input escaping PASS');

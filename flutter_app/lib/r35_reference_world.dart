@@ -644,9 +644,7 @@ class R35StoreTreasureStrip extends StatelessWidget {
       key: const ValueKey('r35-reference-store-specials'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF1389DA), Color(0xFF0759AE), Color(0xFF042F7E)]),
+        color: r48StorePanel,
         borderRadius: BorderRadius.circular(19),
         border: Border.all(color: R35ReferenceColors.paleGold.withValues(alpha: .88), width: 1.5),
         boxShadow: <BoxShadow>[BoxShadow(color: R35ReferenceColors.deep.withValues(alpha: .28),
@@ -714,7 +712,7 @@ class R35StoreTreasureStrip extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: <Color>[Color(0xFF0A9FE3), Color(0xFF0E5BB5)]),
+              color: r48StoreTile,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: R35ReferenceColors.cyan.withValues(alpha: .66)),
             ),
@@ -757,9 +755,7 @@ class R35StoreTreasureTile extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(5, 11, 5, 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter, end: Alignment.bottomCenter,
-              colors: <Color>[Color(0xFF1E91E5), Color(0xFF074C9D)]),
+            color: r48StoreTile,
             border: Border.all(color: R35ReferenceColors.cyan.withValues(alpha: .76)),
           ),
           child: Column(children: <Widget>[
@@ -767,8 +763,7 @@ class R35StoreTreasureTile extends StatelessWidget {
               width: 50, height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const RadialGradient(colors: <Color>[
-                  Color(0xFFFFECA2), Color(0xFFFFC447), Color(0xFFAD6500)]),
+                color: R35ReferenceColors.gold,
                 boxShadow: <BoxShadow>[
                   BoxShadow(color: R35ReferenceColors.gold.withValues(alpha: .31), blurRadius: 12),
                 ],

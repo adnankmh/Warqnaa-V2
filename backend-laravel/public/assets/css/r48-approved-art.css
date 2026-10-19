@@ -1,0 +1,19 @@
+/* Last-loaded, scoped presentation overrides; game geometry/controls stay intact. */
+.game-table>.r48-table-art{position:absolute!important;inset:0;z-index:0!important;display:block;pointer-events:none;overflow:hidden;border-radius:inherit}
+.r48-table-art>img{display:block;width:100%;height:100%;object-fit:fill}
+body.warqna-r61.is-room-page .table-wrap .game-table:has(>.r48-table-art)::after,body.warqna-r61.is-room-page .table-wrap .game-table:has(>.r48-table-art)::before{display:none!important}
+body.warqna-r61.is-room-page .table-wrap .game-table:has(>.r48-table-art){background:transparent!important;border-width:0!important;box-shadow:none!important}
+.b307-shop .b307-offer-card,.b307-shop .b307-shop-hero,.b307-shop .b307-checkout-panel{background:#103d62!important;background-image:none!important;color:#f7fbff;border-color:#9dbbd0}
+.b307-shop .b307-offer-card:before{display:none}
+.b307-shop p,.b307-shop label,.b307-shop .b307-checkout-note{color:#e0ecf5}
+.b307-shop button:focus-visible,.b307-shop select:focus-visible{outline:3px solid #ffe19a;outline-offset:3px}
+.r48-card-face{display:block;width:100%;height:100%;overflow:visible}
+.playing-card:has(>.r48-card-face),.card:has(>.r48-card-face){padding:0!important;overflow:hidden}
+.r48-rummy-art{display:block;width:46px;height:64px;pointer-events:none}
+.r36-draft-card:has(>.r48-rummy-art){min-width:50px;min-height:70px;padding:2px}
+@media(prefers-reduced-motion:reduce){.r48-card-face{animation:none!important}}
+
+body.warqna-r61.is-room-page .table-wrap .game-table:has(>.r48-table-art) .last-trick{background:#10314b;color:#f5faff;border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.45}
+
+body.warqna-b304 .r101-web-commerce,body.warqna-b304 .r101-commerce-stat,body.warqna-b304 .r101-offer-row{background:#103d62!important;background-image:none!important;color:#f7fbff}
+.r101-web-commerce p,.r101-web-commerce small,.r101-web-commerce span{color:#e0ecf5}

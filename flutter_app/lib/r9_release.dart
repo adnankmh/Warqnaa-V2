@@ -357,6 +357,13 @@ class R9DirectionalTablePreview extends StatelessWidget {
     // R34: follow actual viewport orientation on Android AND Web (including
     // portrait browser windows); preserve whole artwork without cropping.
     final portrait = size.height > size.width;
+    final approved = r48TableDesign(product.id);
+    if (approved != null) {
+      return AspectRatio(
+        aspectRatio: portrait ? 2 / 3 : 16 / 9,
+        child: R48ApprovedTableArt(design: approved, portrait: portrait),
+      );
+    }
     final c1 = controller.color1For(product);
     final c2 = controller.color2For(product);
     return AspectRatio(

@@ -69,7 +69,7 @@
   function suitName(s){return{clubs:'♣ سباتي',diamonds:'♦ ديناري',spades:'♠ بستوني',hearts:'♥ كبة'}[s]||s||'لم يحدد'}
   function suitClass(c){c=String(c);return(c.includes('hearts')||c.includes('diamonds'))?'red':'black'}
   function rankVal(c){let r=String(c).split('_')[0];return{'A':14,'K':13,'Q':12,'J':11,'10':10,'9':9,'8':8,'7':7,'6':6,'5':5,'4':4,'3':3,'2':2,'JOKER':20}[r]||0}
-  function labelCard(c){let s=String(c);if(s.includes('-'))return escapeHtml(s.replace('-',' | '));let p=s.split('_');return `<b>${escapeHtml(p[0]||'')}</b><em>${suitIcon(s)}</em>`}
+  function labelCard(c){const art=window.WarqnaaCardArt?.markup(c);if(art)return art;let s=String(c);if(s.includes('-'))return escapeHtml(s.replace('-',' | '));let p=s.split('_');return `<b>${escapeHtml(p[0]||'')}</b><em>${suitIcon(s)}</em>`}
   function sortCardsTarneeb(cards){const suitOrder={clubs:0,diamonds:1,spades:2,hearts:3};return (cards||[]).slice().sort((a,b)=>{const as=(a.split('_')[1]||''),bs=(b.split('_')[1]||'');return (suitOrder[as]??9)-(suitOrder[bs]??9)||rankVal(b)-rankVal(a)})}
   window.toggleTablePreview=function(){return false};
   window.selectTablePreview=function(skin){let el=$('#previewTableSkin');if(el)el.className='preview-table '+skin;WarqnaSound.ui()};

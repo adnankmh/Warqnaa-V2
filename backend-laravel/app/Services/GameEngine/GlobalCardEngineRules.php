@@ -209,6 +209,12 @@ class GlobalCardEngineRules implements GameRuleContract
 
     private function normalizeAction(string $action,array $payload,array $state,string $playerId): array
     {
+        if ($action === 'draw_discard_stack') {
+            $count = $payload['count'] ?? null;
+            if (!is_int($count) && !(is_string($count) && preg_match('/^[0-9]{1,3}$/D', $count))) {
+                throw new \InvalidArgumentException('Discard count must be a whole number.');
+            }
+        }
         $a=match($action){
             'bid' => ['type'=>'bid','amount'=>(int)($payload['value'] ?? $payload['amount'] ?? 0)],
             'pass' => ['type'=>'pass'],

@@ -610,7 +610,6 @@ class R101CommerceShowcase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final scheme = Theme.of(context).colorScheme;
     final verifiedLabel = controller.serverConnected
         ? (ar ? 'التحقق الخادمي متصل' : 'Server verification online')
         : (ar ? 'الشراء يتطلب اتصال الخادم' : 'Checkout requires server connection');
@@ -620,11 +619,7 @@ class R101CommerceShowcase extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
-            gradient: const LinearGradient(
-              begin: AlignmentDirectional.topStart,
-              end: AlignmentDirectional.bottomEnd,
-              colors: <Color>[Color(0xff071b2c), Color(0xff0d2a3c), Color(0xff24142d)],
-            ),
+            color: r48StorePanel,
             border: Border.all(color: const Color(0xff25e4df).withValues(alpha: .24)),
             boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x3500d8d0), blurRadius: 28, offset: Offset(0, 12))],
           ),
@@ -634,7 +629,7 @@ class R101CommerceShowcase extends StatelessWidget {
               height: 54,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(17),
-                gradient: const LinearGradient(colors: <Color>[Color(0xff25e4df), Color(0xff2c9cff)]),
+                color: B307SkyLuxury.cyan,
                 boxShadow: const <BoxShadow>[BoxShadow(color: Color(0x5525e4df), blurRadius: 20)],
               ),
               child: const Icon(Icons.workspace_premium_rounded, color: Color(0xff04131e), size: 29),
@@ -664,53 +659,7 @@ class R101CommerceShowcase extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 178,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: r101CommercialOffers.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final offer = r101CommercialOffers[index];
-              final accent = r19OfferAccent(offer.cadence);
-              return InkWell(
-                borderRadius: BorderRadius.circular(22),
-                onTap: () => _openCheckout(context),
-                child: Container(
-                  width: 244,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: <Color>[accent.withValues(alpha: .24), const Color(0xff101d2a), scheme.surface, accent.withValues(alpha: .08)],
-                    ),
-                    border: Border.all(color: accent.withValues(alpha: .38)),
-                    boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .10), blurRadius: 20, offset: const Offset(0, 8))],
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      Container(width: 42, height: 42, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .13), border: Border.all(color: accent.withValues(alpha: .32))), child: Text(offer.icon, style: const TextStyle(fontSize: 24))),
-                      const Spacer(),
-                      Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: accent.withValues(alpha: .15), border: Border.all(color: accent.withValues(alpha: .28))), child: Text(offer.badge, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: accent))),
-                    ]),
-                    const SizedBox(height: 9),
-                    Text(ar ? offer.titleAr : offer.titleEn, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(ar ? offer.subtitleAr : offer.subtitleEn, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.35, color: scheme.onSurface.withValues(alpha: .78))),
-                    const Spacer(),
-                    Row(children: [
-                      Text(offer.priceLabel, style: TextStyle(fontWeight: FontWeight.w900, color: accent, fontSize: 13)),
-                      const Spacer(),
-                      Icon(Icons.arrow_forward_rounded, size: 17, color: accent),
-                    ]),
-                  ]),
-                ),
-              );
-            },
-          ),
-        ),
+        R48LiveCashOffers(controller: controller),
         const SizedBox(height: 12),
         R20StoreCollections(controller: controller),
         const SizedBox(height: 12),
@@ -719,7 +668,7 @@ class R101CommerceShowcase extends StatelessWidget {
         Text(
           ar ? 'الدفع الحقيقي لا يمنح التوكنز من نجاح العميل وحده؛ الاعتماد النهائي يتم بعد تحقق الخادم من الإيصال.' : 'Real-money purchases remain server receipt-verified. Client success alone never grants tokens.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11, color: scheme.onSurface.withValues(alpha: .68), fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 11, color: B307SkyLuxury.navy, fontWeight: FontWeight.w700),
         ),
       ]),
     );
@@ -777,7 +726,7 @@ class R20StoreCollections extends StatelessWidget {
           height: 38,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            gradient: LinearGradient(colors: <Color>[scheme.primary, scheme.secondary]),
+            color: B307SkyLuxury.gold,
             boxShadow: <BoxShadow>[BoxShadow(color: scheme.primary.withValues(alpha: .20), blurRadius: 16, offset: const Offset(0, 6))],
           ),
           child: Icon(Icons.auto_awesome_rounded, size: 20, color: scheme.onPrimary),
@@ -814,11 +763,7 @@ class R20StoreCollections extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: scheme.primary.withValues(alpha: .28)),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: <Color>[scheme.primary.withValues(alpha: .15), scheme.surfaceContainerHighest, scheme.secondary.withValues(alpha: .08)],
-                      ),
+                      color: r48StorePanel,
                       boxShadow: <BoxShadow>[BoxShadow(color: scheme.shadow.withValues(alpha: .10), blurRadius: 14, offset: const Offset(0, 7))],
                     ),
                     child: InkWell(
@@ -837,13 +782,13 @@ class R20StoreCollections extends StatelessWidget {
                           Icon(Icons.arrow_forward_rounded, size: 18, color: scheme.primary),
                         ]),
                         const Spacer(),
-                        Text(group.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, height: 1.05)),
+                        Text(group.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, height: 1.15)),
                         const SizedBox(height: 5),
                         Text(
                           ar ? '${catalog.length} عنصر  •  $owned مملوك' : '${catalog.length} items  •  $owned owned',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurface.withValues(alpha: .70), fontWeight: FontWeight.w700),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: B307SkyLuxury.textMuted, fontWeight: FontWeight.w700),
                         ),
                       ])),
                     ),

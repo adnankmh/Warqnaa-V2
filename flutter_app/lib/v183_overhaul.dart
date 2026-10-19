@@ -410,7 +410,7 @@ class HomeDashboardV183 extends StatelessWidget {
         icon: Icons.handshake,
         title: L.t(lang, 'friendly'),
         color: Theme.of(context).colorScheme.secondary,
-        onPressed: () => showGameLobby(context, controller, gamesCatalog[1]),
+        onPressed: () => showCreateRoom(context, controller, gamesCatalog[1]),
       )),
       const SizedBox(width: 12),
       Expanded(child: PremiumActionButton(

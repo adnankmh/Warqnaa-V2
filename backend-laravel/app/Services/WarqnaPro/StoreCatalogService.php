@@ -213,7 +213,13 @@ class StoreCatalogService
             'category'=>'card_back','price'=>0,
             'payload'=>['card_back'=>'v305_cardback_emerald_royal','preferred_orientation'=>'portrait','v305'=>true,'free'=>true,'gradient'=>['#063326','#d4af67']],
         ]);
-        foreach($this->v173TableSkins() as $table) $this->upsert($table);
+        foreach($this->v173TableSkins() as $table) {
+            if ($image = \App\Support\R48TableArtwork::url($table['key'])) {
+                $table['payload']['image'] = $image;
+                $table['payload']['table_image'] = $image;
+            }
+            $this->upsert($table);
+        }
         foreach($this->r61PairedCardBacks() as $cardBack) $this->upsert($cardBack);
         foreach($this->v021TableCardBacks() as $cardBack) $this->upsert($cardBack);
     }
@@ -236,7 +242,7 @@ class StoreCatalogService
                 'payload'=>[
                     'card_back'=>'r61_cardback_'.$tableKey,
                     'paired_table'=>$tableKey,
-                    'image'=>$payload['image'] ?? null,
+                    'image'=>\App\Support\R48TableArtwork::url($tableKey, true) ?? $payload['image'] ?? null,
                     'asset'=>$payload['asset'] ?? null,
                     'image_asset'=>$payload['asset'] ?? null,
                     'collection'=>'r61_paired_cardbacks',

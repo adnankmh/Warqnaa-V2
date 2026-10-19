@@ -1,0 +1,64 @@
+[
+  {
+    "design": "purple",
+    "orientation": "landscape",
+    "width": 608,
+    "height": 342,
+    "source_sha256": "d33a5d4b0ce61242ef50c97ac94183ead33f80a8adb6d0029bcd12414e2f5a07",
+    "asset_sha256": "fe67c28afc4d2dba3fab760603b1a720a8cbb9797db2fa08961c7a31973531a1",
+    "bytes": 37742,
+    "derived_portrait": false
+  },
+  {
+    "design": "purple",
+    "orientation": "portrait",
+    "width": 1024,
+    "height": 1536,
+    "source_sha256": "546f4837019f51b2cd299b4e70611c63e3f51ac5b7b83bbea543878d3a20b6d8",
+    "asset_sha256": "cc5012ff9294b223963900d5fe67f653331bda755c3aa79960843e4852cb88d0",
+    "bytes": 259372,
+    "derived_portrait": true
+  },
+  {
+    "design": "ocean",
+    "orientation": "landscape",
+    "width": 610,
+    "height": 341,
+    "source_sha256": "96f5a4c7fb0eb939d3d6a1325a958803cbc82a1b75d083d2740ae3adea5ab3bd",
+    "asset_sha256": "fe1e81a5f9cdf36223da68a823fa4cec91c49db40d4b72cfd10feecab3c62fe1",
+    "bytes": 44984,
+    "derived_portrait": false
+  },
+  {
+    "design": "ocean",
+    "orientation": "portrait",
+    "width": 1024,
+    "height": 1536,
+    "source_sha256": "2db163621671235ceb2697921737b5f3562eff4ddf890fdacaad19fc86c129f3",
+    "asset_sha256": "795cd836019e7064cb1309115eaa02fbea5f8ae054da483f4c88f2e227b8177f",
+    "bytes": 282346,
+    "derived_portrait": true
+  },
+  {
+    "design": "eagle",
+    "orientation": "landscape",
+    "width": 1708,
+    "height": 920,
+    "source_sha256": "e57479449df276c12b262360cc1ea1676f175d0e5548462e2651d917425ba939",
+    "asset_sha256": "7fa01a4f9c95c81169502e2c19991fd479447c6d8e40a0cea001049783c3241a",
+    "bytes": 314390,
+    "derived_portrait": false,
+    "edited_exterior": true,
+    "edited_source_sha256": "9be8d9ebea86001ae9ac096bb879bbcba80e12d023728f49c1ba259008cf4b43"
+  },
+  {
+    "design": "eagle",
+    "orientation": "portrait",
+    "width": 1024,
+    "height": 1536,
+    "source_sha256": "12bc3ddfc5e037166a4a04f09490c88b748f1aac522c786584f7a1bdf38b6f30",
+    "asset_sha256": "8f3a7f611010479cb156eb3ec00888f891fde3efbbe8d61ba4dac64fd2ed0bec",
+    "bytes": 251062,
+    "derived_portrait": true
+  }
+]
