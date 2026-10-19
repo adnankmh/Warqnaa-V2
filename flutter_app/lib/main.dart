@@ -5647,7 +5647,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     if (!mounted || failures == 0) return;
     showToast(context, _roomText(
       'الغرفة جاهزة، لكن تعذّر إرسال $failures من الدعوات. يمكنك إعادة الدعوة من زر الأصدقاء.',
-      'Your room is ready, but $failures invitation(s) could not be sent. Use Invite friends to try again.',
+      failures == 1
+          ? 'Your room is ready, but one invitation could not be sent. Use Invite friends to try again.'
+          : 'Your room is ready, but $failures invitations could not be sent. Use Invite friends to try again.',
     ));
   }
 

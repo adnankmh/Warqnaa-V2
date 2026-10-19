@@ -66,7 +66,9 @@ class R49DeliveryApi extends WarqnaApiClient {
 
 String failureNotice(String locale, int failures) => locale == 'ar'
     ? 'الغرفة جاهزة، لكن تعذّر إرسال $failures من الدعوات. يمكنك إعادة الدعوة من زر الأصدقاء.'
-    : 'Your room is ready, but $failures invitation(s) could not be sent. Use Invite friends to try again.';
+    : failures == 1
+        ? 'Your room is ready, but one invitation could not be sent. Use Invite friends to try again.'
+        : 'Your room is ready, but $failures invitations could not be sent. Use Invite friends to try again.';
 
 Future<(AppController, R49DeliveryApi, GlobalKey)> openRoom(
     WidgetTester tester, String locale, String game, Size size,
@@ -200,6 +202,23 @@ void main() {
       expect(find.text('Another screen'), findsOneWidget);
       expect(find.byType(SnackBar), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('R49 all rejected invites keep the existing room ready $locale', (tester) async {
+      final (controller, api, _) = await openRoom(tester, locale, 'banakil',
+        const Size(390, 844), failedIds: const {2, 3});
+      expectReady(controller, locale);
+      api.gate.complete();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(api.invitations, [2, 3]);
+      expect(api.createCalls, 1);
+      expectReady(controller, locale);
+      expect(find.text(failureNotice(locale, 2)), findsOneWidget);
+      expect(find.text(failureNotice(locale, 1)), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
     });
 
     testWidgets('R49 joining a room does not resend its creation invitations $locale', (tester) async {
