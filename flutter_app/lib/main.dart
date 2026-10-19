@@ -5594,18 +5594,6 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             );
       if (!mounted) return;
       final updatedRoom = Map<String, dynamic>.from(data['room'] as Map);
-      if (!widget.options.joiningExisting && widget.options.inviteeIds.isNotEmpty) {
-        final createdCode = updatedRoom['code']?.toString() ?? '';
-        if (createdCode.isNotEmpty) {
-          for (final userId in widget.options.inviteeIds) {
-            try {
-              await widget.controller.api.inviteFriendToRoom(userId, createdCode);
-            } catch (_) {
-              // A failed invitation must never invalidate the room creation.
-            }
-          }
-        }
-      }
       _consumeProgressionPopupV174(updatedRoom);
       setState(() {
         room = updatedRoom;
@@ -5615,6 +5603,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       });
       widget.controller.rememberActiveRoom(widget.game.id, code: roomCode, options: widget.options.copyWith(roomCode: roomCode));
       AppSounds.fire(widget.options.joiningExisting ? 'room_join' : 'room_create');
+      if (!widget.options.joiningExisting && widget.options.inviteeIds.isNotEmpty) {
+        // The room is ready even if an invitation is slow or rejected.
+        unawaited(_sendInitialRoomInvitations(roomCode, widget.options.inviteeIds));
+      }
       await _loadRoomChat();
       await _startVoiceIfNeeded();
       _scheduleServerAutoNextRound();
@@ -5639,6 +5631,26 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       }
       await _openLocalRoom('الخادم غير متاح؛ تم تشغيل المحرك المحلي تلقائياً دون تعطيل اللعبة.');
     }
+  }
+
+  Future<void> _sendInitialRoomInvitations(String createdCode, List<int> invitees) async {
+    if (createdCode.isEmpty) return;
+    var failures = 0;
+    for (final userId in invitees.toSet()) {
+      if (!mounted) return;
+      try {
+        await widget.controller.api.inviteFriendToRoom(userId, createdCode);
+      } catch (_) {
+        failures += 1;
+      }
+    }
+    if (!mounted || failures == 0) return;
+    showToast(context, _roomText(
+      'الغرفة جاهزة، لكن تعذّر إرسال $failures من الدعوات. يمكنك إعادة الدعوة من زر الأصدقاء.',
+      failures == 1
+          ? 'Your room is ready, but one invitation could not be sent. Use Invite friends to try again.'
+          : 'Your room is ready, but $failures invitations could not be sent. Use Invite friends to try again.',
+    ));
   }
 
   int _playersFor(String game) => widget.options.playerCount.clamp(2, 6).toInt();
@@ -9294,12 +9306,13 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                   runSpacing: 7,
                   children: controller.friends.map((friend) {
                     final selected = selectedInviteeIds.contains(friend.id);
-                    final full = selectedInviteeIds.length + botCount >= playerCount - 1;
+                    // A bot occupies a replaceable seat: only confirmed human invites exhaust invite capacity.
+                    final allHumanSeatsReserved = selectedInviteeIds.length >= playerCount - 1;
                     return FilterChip(
                       selected: selected,
                       avatar: CircleAvatar(child: Text(friend.name.isEmpty ? '👤' : friend.name.substring(0, 1))),
                       label: Text(friend.name),
-                      onSelected: !selected && full ? null : (value) => setLocalState(() {
+                      onSelected: !selected && allHumanSeatsReserved ? null : (value) => setLocalState(() {
                         if (value) {
                           selectedInviteeIds.add(friend.id);
                         } else {
@@ -9313,6 +9326,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
               ],
               const SizedBox(height: 10),
               DropdownButtonFormField<int>(
+                key: ValueKey('r49-room-bots-$playerCount-${selectedInviteeIds.length}-$botCount'),
                 isExpanded: true,
                 initialValue: botCount,
                 decoration: InputDecoration(labelText: ar ? 'عدد لاعبي البوت' : 'Computer players', prefixIcon: const Icon(Icons.smart_toy_rounded)),
