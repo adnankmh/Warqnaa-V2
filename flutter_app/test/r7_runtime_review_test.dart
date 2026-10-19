@@ -15,6 +15,20 @@ const runtimeUrl = String.fromEnvironment('R7_RUNTIME_URL');
 const reviewDirectory = String.fromEnvironment('R7_REVIEW_DIR');
 
 Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
+  // Wait for the actual checkout catalogue, rather than certifying a spinner
+  // as the finished storefront. Offline surfaces have no catalogue future.
+  final offers=find.byType(R48LiveCashOffers);
+  if(offers.evaluate().isNotEmpty) {
+    final builders=find.descendant(of:offers,matching:find.byType(FutureBuilder<Map<String,dynamic>>));
+    final futures=tester.widgetList<FutureBuilder<Map<String,dynamic>>>(builders)
+        .map((widget)=>widget.future).whereType<Future<Map<String,dynamic>>>();
+    await tester.runAsync(() async { await Future.wait(futures); });
+    await tester.pump();
+    if(futures.isNotEmpty) {
+      expect(find.byKey(const ValueKey('r48-live-store-offers')),findsOneWidget,
+        reason:'A connected storefront capture must show loaded real offers.');
+    }
+  }
   // Real asset decoding needs real async time, not a fake-clock pump.
   final providers = tester.widgetList<Image>(find.byType(Image)).map((image) => image.image).toSet();
   final imageErrors = <Object>[];
