@@ -16,6 +16,8 @@ workflows were green. R41–R47 changes were reviewed and retained.
   prices, ownership and admin overrides are retained. The free emerald starter
   remains free and all previous catalogue entries remain available.
 - Production table surfaces and store previews render full-bleed artwork.
+  Transparent exteriors reveal the page rather than a dark rectangular backing;
+  turn messages use an opaque readable panel over detailed artwork.
   Portrait uses a dedicated upright derivative, landscape the supplied image.
   Paired card backs use the upright image. Laravel uses responsive picture
   sources; Flutter uses the actual surface constraints.
@@ -52,7 +54,10 @@ no text, cards, controls or UI. These derivatives are adaptations of approved
 concepts, not a claim of pixel-identical new user-approved portrait originals.
 
 Assets: `flutter_app/assets/optimized/r48/` and the matching
-`backend-laravel/public/assets/store/r48/` files.
+`backend-laravel/public/assets/store/r48/` files. Portrait images retain their
+1024×1536 resolution. WebP colour/alpha compression reduces the six-image set
+from 1.79 MiB to 0.87 MiB, with identical bytes in both clients. The R47 asset
+budgets remain measured separately under the reviewed R48 allowance.
 
 ## Verification and deployment boundary
 

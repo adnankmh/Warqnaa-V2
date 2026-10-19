@@ -34,7 +34,7 @@
     <script>window.WARQNAA_R64={version:'1.7.0',build:640,playRoomsEconomyCommunity:true};</script>
     <script>window.WARQNAA_R61={version:'1.4.0',build:610,homeProfileSocialNavigation:true,pairedTableCardBacks:true}; window.WARQNAA_R11={version:'0.6.0',build:230,socialWorld:true}; window.WARQNAA_R12={version:'0.7.0',build:240,competitiveArena:true}; window.WARQNAA_R13={version:'0.8.0',build:250,engineGold:true}; window.WARQNAA_R14={version:'1.0.0',build:260,globalRelease:true}; window.WARQNAA_R14_3={version:'1.0.3',build:263,ciEngineSecurity:true,accountSecurity:true}; window.WARQNAA_B303={version:'1.2.0',build:303,premiumRuntime:true,socialStability:true}; window.WARQNA_V130=true; window.WARQNA_V129=true; window.WARQNA_V128=true; window.WARQNA_V122=true; window.WARQNA_V123=true; window.WARQNA_V124=true; window.CSRF='{{ csrf_token() }}'; window.WARQNA_LOCALE='{{ app()->getLocale() }}'; window.AUTH_ID={{ auth()->check() ? auth()->id() : 'null' }}; window.PREF_URL='{{ auth()->check() ? route('preferences.quick') : '' }}';</script>
     <script defer src="/assets/js/r48-card-art.js?v=48"></script>
-    <script defer src="/assets/js/app.js?v=139-mobile-app-no-studio"></script>
+    <script defer src="/assets/js/app.js?v=48-approved-card-faces"></script>
     <script defer src="/assets/js/mobile-app.js?v=139-mobile-app-no-studio"></script>
     <script defer src="/assets/js/r36-rummy-workspace.js?v=40-turn-controls"></script>
 <link rel="stylesheet" href="{{ asset('assets/css/r10-1-experience.css') }}?v=221">

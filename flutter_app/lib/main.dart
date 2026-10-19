@@ -5258,6 +5258,22 @@ class WarqnaaTableSurface extends StatelessWidget {
         final portrait = constraints.maxHeight > constraints.maxWidth;
         final radius = portrait ? 38.0 : 30.0;
         final overlay = portrait ? LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .08), Colors.transparent, Colors.black.withValues(alpha: .14)]) : null;
+        if (approvedDesign != null && customBytes == null) {
+          // The asset's transparent exterior reveals the page, never an opaque
+          // rectangular felt layer behind the approved frame.
+          return KeyedSubtree(
+            key: const ValueKey('r19-warqnaa-table-surface'),
+            child: Stack(
+              key: const ValueKey('r30-premium-table-surface'),
+              fit: StackFit.expand,
+              children: [
+                R48ApprovedTableArt(design: approvedDesign),
+                if (controller?.tableAmbientEffects ?? true)
+                  Positioned.fill(child: AmbientTableFX(density: portrait ? 7 : 9, subtle: true)),
+              ],
+            ),
+          );
+        }
         return AnimatedContainer(
           key: const ValueKey('r19-warqnaa-table-surface'),
           duration: const Duration(milliseconds: 220),
@@ -6605,7 +6621,13 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             }).toList(),
           )
         else
-          Text(current, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 11, height: 1.5)),
+          Container(
+            key: const ValueKey('r48-readable-turn-message'),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(color: const Color(0xf010314b), borderRadius: BorderRadius.circular(12)),
+            child: Text(current, textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xfff5faff), fontSize: 12, height: 1.45, fontWeight: FontWeight.w700)),
+          ),
         if (state['dice'] is List && (state['dice'] as List).isNotEmpty) ...[
           const SizedBox(height: 8),
           Text('🎲 ${(state['dice'] as List).join(' • ')}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),

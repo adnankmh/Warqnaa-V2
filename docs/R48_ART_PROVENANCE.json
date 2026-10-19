@@ -15,8 +15,8 @@
     "width": 1024,
     "height": 1536,
     "source_sha256": "546f4837019f51b2cd299b4e70611c63e3f51ac5b7b83bbea543878d3a20b6d8",
-    "asset_sha256": "10532d5507e604b08a0ba2e94c468c75c19ee21aed37cd416d6e52af03b8f720",
-    "bytes": 608582,
+    "asset_sha256": "cc5012ff9294b223963900d5fe67f653331bda755c3aa79960843e4852cb88d0",
+    "bytes": 259372,
     "derived_portrait": true
   },
   {
@@ -35,8 +35,8 @@
     "width": 1024,
     "height": 1536,
     "source_sha256": "2db163621671235ceb2697921737b5f3562eff4ddf890fdacaad19fc86c129f3",
-    "asset_sha256": "369dc1e3e7fd5a60d5e774578714fee4fd68ec239e957d17cfa0e71388238027",
-    "bytes": 632886,
+    "asset_sha256": "795cd836019e7064cb1309115eaa02fbea5f8ae054da483f4c88f2e227b8177f",
+    "bytes": 282346,
     "derived_portrait": true
   },
   {
@@ -55,8 +55,8 @@
     "width": 1024,
     "height": 1536,
     "source_sha256": "12bc3ddfc5e037166a4a04f09490c88b748f1aac522c786584f7a1bdf38b6f30",
-    "asset_sha256": "40dbc69383f287f6152ccc503b1751590c6d9b974078016be76fa99711cc9b3e",
-    "bytes": 516528,
+    "asset_sha256": "8f3a7f611010479cb156eb3ec00888f891fde3efbbe8d61ba4dac64fd2ed0bec",
+    "bytes": 251062,
     "derived_portrait": true
   }
 ]
