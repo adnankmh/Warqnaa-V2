@@ -9294,12 +9294,13 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                   runSpacing: 7,
                   children: controller.friends.map((friend) {
                     final selected = selectedInviteeIds.contains(friend.id);
-                    final full = selectedInviteeIds.length + botCount >= playerCount - 1;
+                    // A bot occupies a replaceable seat: only confirmed human invites exhaust invite capacity.
+                    final allHumanSeatsReserved = selectedInviteeIds.length >= playerCount - 1;
                     return FilterChip(
                       selected: selected,
                       avatar: CircleAvatar(child: Text(friend.name.isEmpty ? '👤' : friend.name.substring(0, 1))),
                       label: Text(friend.name),
-                      onSelected: !selected && full ? null : (value) => setLocalState(() {
+                      onSelected: !selected && allHumanSeatsReserved ? null : (value) => setLocalState(() {
                         if (value) {
                           selectedInviteeIds.add(friend.id);
                         } else {
@@ -9313,6 +9314,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
               ],
               const SizedBox(height: 10),
               DropdownButtonFormField<int>(
+                key: ValueKey('r49-room-bots-$playerCount-${selectedInviteeIds.length}-$botCount'),
                 isExpanded: true,
                 initialValue: botCount,
                 decoration: InputDecoration(labelText: ar ? 'عدد لاعبي البوت' : 'Computer players', prefixIcon: const Icon(Icons.smart_toy_rounded)),
