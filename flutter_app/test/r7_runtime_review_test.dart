@@ -22,7 +22,17 @@ Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
     final builders=find.descendant(of:offers,matching:find.byType(FutureBuilder<Map<String,dynamic>>));
     final futures=tester.widgetList<FutureBuilder<Map<String,dynamic>>>(builders)
         .map((widget)=>widget.future).whereType<Future<Map<String,dynamic>>>();
-    await tester.runAsync(() async { await Future.wait(futures); });
+    final ready=Future.wait(futures);
+    var completed=false;
+    ready.then((_) { completed=true; }, onError:(Object error) { completed=true; });
+    // Network work starts in the widget's fake-async zone. Pump that zone
+    // between real I/O turns; awaiting it only inside runAsync can deadlock.
+    for(var attempt=0;attempt<100 && !completed;attempt++) {
+      await tester.runAsync(() async { await Future<void>.delayed(const Duration(milliseconds:50)); });
+      await tester.pump(const Duration(milliseconds:50));
+    }
+    expect(completed,isTrue,reason:'The live offers catalogue must complete within the bounded review wait.');
+    await ready;
     await tester.pump();
     if(futures.isNotEmpty) {
       expect(find.byKey(const ValueKey('r48-live-store-offers')),findsOneWidget,
