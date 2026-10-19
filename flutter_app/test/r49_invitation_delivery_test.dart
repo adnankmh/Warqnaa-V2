@@ -161,7 +161,9 @@ void main() {
             if (const bool.fromEnvironment('R49_LOG_REVIEW')) {
               // Synthetic-account PNG evidence can be reviewed through CI logs
               // when the local execution environment is unavailable.
-              final encoded = base64Encode(await File(review.reviewDirectory + '/' + name + '.png').readAsBytes());
+              // capture() has finished writing; an async read here would wait
+              // inside the widget fake-async clock without another pump.
+              final encoded = base64Encode(File(review.reviewDirectory + '/' + name + '.png').readAsBytesSync());
               stdout.writeln('R49_IMAGE_BEGIN:' + name);
               for (var offset = 0; offset < encoded.length; offset += 4096) {
                 final end = offset + 4096 < encoded.length ? offset + 4096 : encoded.length;
