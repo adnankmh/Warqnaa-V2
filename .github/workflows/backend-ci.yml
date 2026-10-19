@@ -6,12 +6,14 @@ on:
     branches: [main, master]
     paths:
       - 'backend-laravel/**'
+      - 'flutter_app/**'
       - '.github/workflows/backend-ci.yml'
       - 'tools/**'
       - 'RELEASE_VERSION.json'
   pull_request:
     paths:
       - 'backend-laravel/**'
+      - 'flutter_app/**'
       - 'tools/**'
       - 'RELEASE_VERSION.json'
       - '.github/workflows/backend-ci.yml'
