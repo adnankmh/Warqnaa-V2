@@ -22,6 +22,10 @@ workflows were green. R41–R47 changes were reviewed and retained.
   Paired card backs use the upright image. Laravel uses responsive picture
   sources; Flutter uses the actual surface constraints.
 - Offers and collection surfaces use solid blue panels and readable light text.
+  The main storefront carousel now reads real checkout packages from the server
+  instead of displaying hardcoded daily/weekly/monthly/annual marketing prices.
+  It clears those prices offline; existing timed collectible discounts remain
+  sourced from the catalogue quote service.
   Cash tabs filter explicit server-provided category tags, including an honest
   empty weekly state when no package is tagged weekly. Prices, checkout and
   receipt verification stay server controlled.

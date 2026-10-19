@@ -52,6 +52,22 @@ void main() {
         });
       }
     }
+    testWidgets('main storefront shows live prices and clears them offline $locale',(tester) async {
+      final controller=AppController(api:R48CommerceApi())..localeCode=locale..serverConnected=true;
+      Widget page()=>host(Scaffold(body:R48LiveCashOffers(controller:controller)),locale);
+      await tester.pumpWidget(page());await tester.pumpAndSettle();
+      expect(find.text('USD 0.99'),findsOneWidget);
+      expect(find.text('USD 3.99'),findsOneWidget);
+      expect(find.text('Weekly Bundle'),findsNothing);
+      final card=tester.widget<Container>(find.byKey(const ValueKey('r48-cash-offer-featured-only')));
+      expect((card.decoration! as BoxDecoration).gradient,isNull);
+      controller.serverConnected=false;
+      await tester.pumpWidget(page());await tester.pumpAndSettle();
+      expect(find.text('USD 0.99'),findsNothing);
+      expect(find.text('USD 3.99'),findsNothing);
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());controller.dispose();
+    });
     testWidgets('cash tabs filter actual server packages $locale',(tester) async {
       tester.view.physicalSize=const Size(390,844);tester.view.devicePixelRatio=1;
       addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);

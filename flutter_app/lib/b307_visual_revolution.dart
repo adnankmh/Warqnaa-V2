@@ -1067,7 +1067,7 @@ class B307RealMoneyStoreBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: <Color>[Color(0xff0b8cff), Color(0xff075fbd), Color(0xff805b12)]),
+          color: r48StorePanel,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .46)),
           boxShadow: B307SkyLuxury.glow,

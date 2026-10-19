@@ -23,7 +23,11 @@ checks = {
     'legacy themes retained': all(x in SRC for x in ["'dark'", "'light'", "'green'", "'gold'", "'purple'", "'ocean'"]),
     'luxury store hero': 'Warqnaa Luxury Store' in SRC and 'متجر ورقنا المميز' in SRC,
     'real checkout route': 'B307CashShopPage(controller: controller)' in SRC,
-    'offer cards are interactive': 'onTap: () => _openCheckout(context)' in SRC,
+    'offer cards are interactive': (
+        'R48LiveCashOffers(controller: controller)' in SRC
+        and 'B307CashOfferCard(controller:widget.controller,data:packages[index])' in (ROOT / 'flutter_app/lib/r48_approved_art.dart').read_text(encoding='utf-8')
+        and 'launchUrl(uri, mode: LaunchMode.externalApplication)' in (ROOT / 'flutter_app/lib/b307_visual_revolution.dart').read_text(encoding='utf-8')
+    ),
     'server verification state shown': 'Server verification online' in SRC and 'Checkout requires server connection' in SRC,
     'receipt verification preserved': 'Real-money purchases remain server receipt-verified.' in SRC,
     'client success cannot grant tokens': 'Client success alone never grants tokens.' in SRC,
