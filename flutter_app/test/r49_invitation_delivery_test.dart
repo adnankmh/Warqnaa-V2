@@ -155,21 +155,20 @@ void main() {
           expect(tester.takeException(), isNull);
 
           if (game == 'hand' && review.reviewDirectory.isNotEmpty) {
-            final name = locale + '-r49-invite-failure-' +
-                size.width.toInt().toString() + 'x' + size.height.toInt().toString();
+            final name = '$locale-r49-invite-failure-${size.width.toInt()}x${size.height.toInt()}';
             await review.capture(tester, key, name);
             if (const bool.fromEnvironment('R49_LOG_REVIEW')) {
               // Synthetic-account PNG evidence can be reviewed through CI logs
               // when the local execution environment is unavailable.
               // capture() has finished writing; an async read here would wait
               // inside the widget fake-async clock without another pump.
-              final encoded = base64Encode(File(review.reviewDirectory + '/' + name + '.png').readAsBytesSync());
-              stdout.writeln('R49_IMAGE_BEGIN:' + name);
+              final encoded = base64Encode(File('${review.reviewDirectory}/$name.png').readAsBytesSync());
+              stdout.writeln('R49_IMAGE_BEGIN:$name');
               for (var offset = 0; offset < encoded.length; offset += 4096) {
                 final end = offset + 4096 < encoded.length ? offset + 4096 : encoded.length;
-                stdout.writeln('R49_PNG:' + encoded.substring(offset, end));
+                stdout.writeln('R49_PNG:${encoded.substring(offset, end)}');
               }
-              stdout.writeln('R49_IMAGE_END:' + name);
+              stdout.writeln('R49_IMAGE_END:$name');
             }
           }
           await tester.pumpWidget(const SizedBox.shrink());
