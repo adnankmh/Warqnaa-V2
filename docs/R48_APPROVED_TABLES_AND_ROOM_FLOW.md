@@ -18,7 +18,8 @@ workflows were green. R41–R47 changes were reviewed and retained.
 - Production table surfaces and store previews render full-bleed artwork.
   Transparent exteriors reveal the page rather than a dark rectangular backing;
   turn messages use an opaque readable panel over detailed artwork.
-  Portrait uses a dedicated upright derivative, landscape the supplied image.
+  Portrait uses a dedicated upright derivative; landscape uses the supplied
+  composition, with the eagle exterior cleaned as documented below.
   Paired card backs use the upright image. Laravel uses responsive picture
   sources; Flutter uses the actual surface constraints.
 - Offers and collection surfaces use solid blue panels and readable light text.
@@ -47,7 +48,10 @@ The three source PNGs were recovered from the user's attachments dated
 2026-10-18 15:38:50, 15:42:09 and 15:43:41 UTC. The images are not screenshots
 substituting for functionality. They are runtime background assets.
 `R48_ART_PROVENANCE.json` records original and optimized SHA-256 fingerprints.
-Landscape sources are only re-encoded to WebP. Portrait derivatives were made
+Purple/ocean landscape sources are only re-encoded to WebP. The eagle
+landscape exterior was removed with ImageGen to eliminate its original black
+matte/strip, preserving the approved eagle/frame concept at higher resolution.
+Portrait derivatives were made
 with the built-in ImageGen tool, then compressed as project assets.
 
 Prompt set: edit the corresponding supplied table into a 2:3 upright portrait,
@@ -60,7 +64,8 @@ concepts, not a claim of pixel-identical new user-approved portrait originals.
 Assets: `flutter_app/assets/optimized/r48/` and the matching
 `backend-laravel/public/assets/store/r48/` files. Portrait images retain their
 1024×1536 resolution. WebP colour/alpha compression reduces the six-image set
-from 1.79 MiB to 0.87 MiB, with identical bytes in both clients. The R47 asset
+from 1.79 MiB to 1.14 MiB after the higher-resolution eagle cleanup, with
+identical bytes in both clients. The R47 asset
 budgets remain measured separately under the reviewed R48 allowance.
 
 ## Verification and deployment boundary

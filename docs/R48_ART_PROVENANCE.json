@@ -42,12 +42,14 @@
   {
     "design": "eagle",
     "orientation": "landscape",
-    "width": 607,
-    "height": 327,
+    "width": 1708,
+    "height": 920,
     "source_sha256": "e57479449df276c12b262360cc1ea1676f175d0e5548462e2651d917425ba939",
-    "asset_sha256": "e68e8fd0a7a0ee98290531ab9065e0809d0551d604342d145a118b5d2173fef0",
-    "bytes": 39472,
-    "derived_portrait": false
+    "asset_sha256": "7fa01a4f9c95c81169502e2c19991fd479447c6d8e40a0cea001049783c3241a",
+    "bytes": 314390,
+    "derived_portrait": false,
+    "edited_exterior": true,
+    "edited_source_sha256": "9be8d9ebea86001ae9ac096bb879bbcba80e12d023728f49c1ba259008cf4b43"
   },
   {
     "design": "eagle",
