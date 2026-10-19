@@ -93,7 +93,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
   <div class="game-table premium-table responsive-table seats-{{$room->max_players}} {{$handLike ? 'hand-like-table' : 'single-row-table'}} {{$activeTableSkin}} {{auth()->user()->profile?->active_effect}} {{!empty($activeTableImage) ? 'has-table-art' : ''}}" data-player-name="{{ auth()->user()->profile?->display_name ?? auth()->user()->username }}" @if(!empty($activeTableImage)) style="--r101-table-art:url('{{$activeTableImage}}');" @endif>
    @if($approvedTableDesign = \App\Support\R48TableArtwork::design($activeTableSkin))
     <picture class="r48-table-art" aria-hidden="true">
-     <source media="(orientation: portrait)" srcset="{{ \App\Support\R48TableArtwork::url($activeTableSkin, true) }}">
+     <source media="(orientation: portrait) and (max-width: 900px)" srcset="{{ \App\Support\R48TableArtwork::url($activeTableSkin, true) }}">
      <img src="{{ \App\Support\R48TableArtwork::url($activeTableSkin) }}" alt="" draggable="false">
     </picture>
    @endif

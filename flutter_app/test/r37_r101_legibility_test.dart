@@ -10,7 +10,7 @@ void main() {
     expect(source, contains("Text('XP'"));
     expect(source, contains('class R101CommerceShowcase'));
     expect(source, contains('class _R19StorePill'));
-    expect(source, contains('fontSize: 11, color: scheme.onSurface.withValues(alpha: .68)'));
+    expect(source, contains('fontSize: 11, color: B307SkyLuxury.navy'));
 
     final undersized = RegExp(
       r'fontSize:\s*(?:[0-9](?:\.[0-9]+)?|10(?:\.[0-9]+)?)(?![0-9])',
