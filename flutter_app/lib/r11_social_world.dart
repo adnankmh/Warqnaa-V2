@@ -468,17 +468,25 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
   Widget build(BuildContext context) {
     final clubs = _r11List(data['clubs']), mine = _r11Map(data['my_club']);
     if (loading && clubs.isEmpty) return const Center(child: CircularProgressIndicator());
-    return RefreshIndicator(onRefresh: _load, child: ListView(padding: const EdgeInsets.fromLTRB(14,14,14,100), children: [
+    return ColoredBox(key: const ValueKey('r54-clubs-page'), color: const Color(0xFF4FC9FF),
+      child: RefreshIndicator(onRefresh: _load, child: ListView(key: const ValueKey('r54-clubs-scroll'),
+      padding: const EdgeInsets.fromLTRB(14,14,14,100), children: [
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        B307PageHero(
-          icon: Icons.shield_rounded,
-          title: ar ? 'أندية ورقنا' : 'Warqnaa Clubs',
-          subtitle: ar ? 'راية واحدة، مجلس واحد — فعاليات ودوريات وإعلانات ونشاط الأعضاء في مساحة زرقاء فاخرة.' : 'One banner, one majlis — events, leagues, announcements and member activity in a premium blue space.',
-          trailing: const Icon(Icons.groups_3_rounded, color: B307SkyLuxury.goldSoft, size: 28),
-        ),
+        R54ClubsHeader(locale: widget.controller.localeCode),
+        Align(alignment: AlignmentDirectional.centerEnd, child: TextButton.icon(
+          key: const ValueKey('r54-clubs-refresh'),
+          onPressed: joiningId == null && !creating ? _load : null,
+          style: TextButton.styleFrom(foregroundColor: R35ReferenceColors.navy,
+            minimumSize: const Size(48,48)),
+          icon: const Icon(Icons.refresh_rounded), label: Text(ar ? 'تحديث الأندية' : 'Refresh clubs'))),
         if (mine.isEmpty) ...[
           const SizedBox(height: 9),
           FilledButton.icon(
+            style: FilledButton.styleFrom(backgroundColor: R35ReferenceColors.gold,
+              foregroundColor: R35ReferenceColors.navy, minimumSize: const Size.fromHeight(48),
+              disabledBackgroundColor: R35ReferenceColors.deep,
+              disabledForegroundColor: R35ReferenceColors.paleGold,
+              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize:16,fontWeight:FontWeight.w800)),
             onPressed: live && !creating && joiningId == null ? _createClub : null,
             icon: const Icon(Icons.add_business_outlined),
             label: Text(ar ? 'أسّس ناديك' : 'Found your club'),
@@ -490,9 +498,11 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
         TextButton.icon(onPressed: () async { await widget.controller.reconnectV173(); await _load(); }, icon: const Icon(Icons.refresh), label: Text(ar ? 'إعادة الاتصال' : 'Reconnect')),
       ]))),
       if (mine.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: InkWell(onTap: () => _openClub(mine), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(accent: _r11Gold, child: ListTile(contentPadding: EdgeInsets.zero, leading: Text(mine['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 36)), title: Text(mine['name']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w900)), subtitle: Text('${_r11Localized(mine['league'], widget.controller.localeCode)} • ${mine['members_count']}/${mine['capacity']}'), trailing: const Icon(Icons.chevron_right))))),
-      const SizedBox(height: 16), Text(ar ? 'أندية عالم ورقنا' : 'Warqnaa clubs', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),const SizedBox(height: 9),
-      R21ClubDirectory(clubs: clubs, locale: widget.controller.localeCode, allowJoin: live && mine.isEmpty && !creating, busyClubId: joiningId, onOpen: _openClub, onJoin: _join),
-    ]));
+      const SizedBox(height: 16), Text(ar ? 'أندية عالم ورقنا' : 'Warqnaa clubs',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(color:R35ReferenceColors.navy,fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height: 9),
+      R21ClubDirectory(clubs: clubs, locale: widget.controller.localeCode, allowOpen: live,
+        allowJoin: live && mine.isEmpty && !creating, busyClubId: joiningId, onOpen: _openClub, onJoin: _join),
+    ])));
   }
 
   Future<void> _join(Map<String, dynamic> club) async {
@@ -597,10 +607,11 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
 /// Server-supplied discovery only; callbacks retain the authenticated API path.
 class R21ClubDirectory extends StatefulWidget {
   const R21ClubDirectory({super.key, required this.clubs, required this.locale,
-    required this.allowJoin, required this.onOpen, required this.onJoin, this.busyClubId});
+    required this.allowJoin, required this.onOpen, required this.onJoin, this.busyClubId, this.allowOpen = true});
   final List<Map<String, dynamic>> clubs;
   final String locale;
   final bool allowJoin;
+  final bool allowOpen;
   final int? busyClubId;
   final ValueChanged<Map<String, dynamic>> onOpen, onJoin;
   @override State<R21ClubDirectory> createState() => _R21ClubDirectoryState();
@@ -610,9 +621,7 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
   String query = '';
   bool availableOnly = false;
   bool get ar => widget.locale == 'ar';
-  bool available(Map<String, dynamic> club) => club['visibility'] != 'private'
-      && _r12Int(club['members_count']) < _r12Int(club['capacity'])
-      && club['membership'] == null && club['join_request_pending'] != true;
+  bool available(Map<String, dynamic> club) => r54ClubAvailable(club);
 
   @override Widget build(BuildContext context) {
     final filtered = widget.clubs.where((club) {
@@ -621,14 +630,23 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
     }).toList();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       TextField(key: const ValueKey('r21-club-search'), onChanged: (value) => setState(() => query = value),
-        decoration: InputDecoration(prefixIcon: const Icon(Icons.search_rounded),
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color:R35ReferenceColors.navy,fontSize:16),
+        decoration: InputDecoration(filled:true,fillColor:const Color(0xFFDEF7FF),
+          prefixIcon: const Icon(Icons.search_rounded,color:R35ReferenceColors.deep),
+          labelStyle: const TextStyle(color:R35ReferenceColors.navy,fontSize:14),
+          hintStyle: const TextStyle(color:R35ReferenceColors.deep,fontSize:14),
+          enabledBorder: OutlineInputBorder(borderRadius:BorderRadius.circular(16),borderSide:const BorderSide(color:R35ReferenceColors.deep)),
           labelText: ar ? 'ابحث عن ناديك' : 'Find your club', hintText: ar ? 'الاسم أو الدوري' : 'Name or league')),
       const SizedBox(height: 8),
       Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
         FilterChip(key: const ValueKey('r21-club-available'), selected: availableOnly,
+          backgroundColor:R35ReferenceColors.navy,selectedColor:R35ReferenceColors.gold,
+          checkmarkColor:R35ReferenceColors.navy,
+          labelStyle:TextStyle(color:availableOnly?R35ReferenceColors.navy:Colors.white,fontSize:14,fontWeight:FontWeight.w700),
           onSelected: (value) => setState(() => availableOnly = value),
           label: Text(ar ? 'يقبل أعضاء' : 'Available spots')),
-        Text(r21ClubCountLabel(widget.locale, filtered.length), style: const TextStyle(color: Colors.white60)),
+        Semantics(liveRegion:true,child:Text(r21ClubCountLabel(widget.locale, filtered.length),
+          key:const ValueKey('r54-club-count'),style:const TextStyle(color:R35ReferenceColors.navy,fontSize:14,fontWeight:FontWeight.w800))),
       ]),
       const SizedBox(height: 12),
       if (filtered.isEmpty) _R11Notice(text: ar ? 'لم نجد ناديًا بهذه الخيارات. جرّب بحثًا آخر.' : 'No clubs match. Try another search.', icon: Icons.groups_outlined)
@@ -636,57 +654,116 @@ class _R21ClubDirectoryState extends State<R21ClubDirectory> {
         final columns = constraints.maxWidth >= 1000 ? 3 : constraints.maxWidth >= 650 ? 2 : 1;
         final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
         return Wrap(spacing: 12, runSpacing: 12, children: filtered.map((club) {
-          final id = _r12Int(club['id']), count = _r12Int(club['members_count']), capacity = _r12Int(club['capacity']);
-          final pending = club['join_request_pending'] == true;
-          final member = club['membership'] != null;
-          final full = capacity <= count;
-          final label = member ? (ar ? 'ناديك' : 'Your club') : pending ? (ar ? 'الطلب قيد المراجعة' : 'Request pending')
-              : full ? (ar ? 'مكتمل' : 'Full') : club['visibility'] == 'request' ? (ar ? 'طلب الانضمام' : 'Request to join') : (ar ? 'انضم' : 'Join');
-          return SizedBox(width: width, child: Material(color: Colors.transparent, child: InkWell(
-            key: ValueKey('r21-club-$id'), borderRadius: BorderRadius.circular(24), onTap: () => widget.onOpen(club),
-            child: Container(padding: const EdgeInsets.all(18), decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24), border: Border.all(color: _r11Gold.withValues(alpha: member ? .45 : .18)),
-              gradient: const LinearGradient(begin: AlignmentDirectional.topStart, end: AlignmentDirectional.bottomEnd,
-                colors: [Color(0xFF173C2B), Color(0xFF0B1F18)])),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(children: [const Icon(Icons.shield_rounded, size: 38, color: _r11Gold), const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(club['name']?.toString() ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                    Text(_r11Localized(club['league'], widget.locale), style: const TextStyle(color: _r11Gold)),
-                  ]))]),
-                const SizedBox(height: 12),
-                Text(club['description']?.toString() ?? '', maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white70, height: 1.5)),
-                const SizedBox(height: 12),
-                Wrap(spacing: 12, runSpacing: 6, children: [
-                  Text(ar ? '$count / $capacity عضو' : '$count / $capacity members'),
-                  Text(ar ? '${club['weekly_points'] ?? 0} نقطة أسبوعية' : '${club['weekly_points'] ?? 0} weekly points', style: const TextStyle(color: _r11Mint)),
-                ]),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(value: capacity > 0 ? (count / capacity).clamp(0.0, 1.0).toDouble() : 0,
-                  color: _r11Gold, backgroundColor: Colors.white10, borderRadius: BorderRadius.circular(8)),
-                const SizedBox(height: 16),
-                FilledButton(key: ValueKey('r21-club-join-$id'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(44),
-                    backgroundColor: _r11Mint,
-                    foregroundColor: _r11Deep,
-                    disabledBackgroundColor: const Color(0xFF24483A),
-                    disabledForegroundColor: Colors.white70,
-                    side: BorderSide(color: _r11Mint.withValues(alpha: .42)),
-                  ),
-                  onPressed: widget.allowJoin && widget.busyClubId == null && available(club) ? () => widget.onJoin(club) : null,
-                  child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(widget.busyClubId == id ? Icons.hourglass_top_rounded : pending ? Icons.schedule_rounded : member ? Icons.verified_rounded : Icons.group_add_rounded),
-                    const SizedBox(width: 8),
-                    Flexible(child: Text(label, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w900))),
-                  ])),
-              ])),
-          )));
+          final id = _r12Int(club['id']);
+          return SizedBox(width:width,child:R54ClubCard(key:ValueKey('r21-club-$id'),
+            club:club,locale:widget.locale,busy:widget.busyClubId==id,
+            onOpen:widget.allowOpen?()=>widget.onOpen(club):null,
+            onJoin:widget.allowJoin && widget.busyClubId==null && available(club)?()=>widget.onJoin(club):null));
         }).toList());
       }),
     ]);
+  }
+}
+
+/// Discovery is never membership authority. Unknown visibility/capacity fails
+/// closed; the existing authenticated endpoint still validates every mutation.
+bool r54ClubAvailable(Map<String,dynamic> club) =>
+  _r12Int(club['id']) > 0 && const {'public','request'}.contains(club['visibility'])
+  && _r12Int(club['members_count']) >= 0
+  && _r12Int(club['capacity']) > _r12Int(club['members_count'])
+  && club['membership'] == null && club['join_request_pending'] != true;
+
+class R54ClubsHeader extends StatelessWidget {
+  const R54ClubsHeader({super.key,required this.locale});
+  final String locale;
+  @override Widget build(BuildContext context) => Container(
+    key:const ValueKey('r54-clubs-header'),padding:const EdgeInsets.all(18),
+    decoration:BoxDecoration(color:R35ReferenceColors.navy,borderRadius:BorderRadius.circular(24),
+      border:Border.all(color:R35ReferenceColors.paleGold,width:1.5)),
+    child:Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+      const Icon(Icons.shield_rounded,size:44,color:R35ReferenceColors.gold),
+      const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(locale=='ar'?'أندية ورقنا':'Warqnaa Clubs',
+          style:Theme.of(context).textTheme.headlineSmall?.copyWith(color:Colors.white,fontSize:24,fontWeight:FontWeight.w900)),
+        const SizedBox(height:8),
+        Text(locale=='ar'?'مجلسك وفريقك، من أول انضمام إلى فعاليات النادي.':'Your majlis and your team, from joining to club events.',
+          style:Theme.of(context).textTheme.bodyMedium?.copyWith(color:R35ReferenceColors.cyan,fontSize:14,height:1.5)),
+      ])),
+    ]));
+}
+
+class R54ClubCard extends StatelessWidget {
+  const R54ClubCard({super.key,required this.club,required this.locale,
+    required this.busy,this.onOpen,this.onJoin});
+  final Map<String,dynamic> club;
+  final String locale;
+  final bool busy;
+  final VoidCallback? onOpen,onJoin;
+
+  @override Widget build(BuildContext context) {
+    final ar=locale=='ar',id=_r12Int(club['id']);
+    final count=_r12Int(club['members_count']),capacity=_r12Int(club['capacity']);
+    final member=club['membership']!=null,pending=club['join_request_pending']==true;
+    final private=club['visibility']=='private';
+    final known=const {'public','request','private'}.contains(club['visibility']);
+    final full=capacity>0 && count>=capacity;
+    final label=busy?(ar?'جارٍ الإرسال…':'Sending…')
+      :member?(ar?'ناديك':'Your club'):pending?(ar?'الطلب قيد المراجعة':'Request pending')
+      :private?(ar?'نادي خاص':'Private club'):!known || capacity<=0 || count<0?(ar?'غير متاح':'Unavailable')
+      :full?(ar?'مكتمل':'Full'):club['visibility']=='request'?(ar?'طلب الانضمام':'Request to join'):(ar?'انضم':'Join');
+    final visibility=private?(ar?'خاص':'Private'):club['visibility']=='request'?(ar?'بموافقة الإدارة':'Approval required')
+      :club['visibility']=='public'?(ar?'انضمام مباشر':'Open membership'):(ar?'حدّث البيانات':'Refresh required');
+    final theme=Theme.of(context).textTheme;
+    final name=club['name']?.toString()??'';
+    final description=club['description']?.toString()??'';
+    final league=_r11Localized(club['league'],locale);
+    return Material(color:R35ReferenceColors.navy,clipBehavior:Clip.antiAlias,
+      shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(24),
+        side:BorderSide(color:member?R35ReferenceColors.gold:R35ReferenceColors.paleGold,width:member?2:1)),
+      child:InkWell(onTap:onOpen,child:Padding(padding:const EdgeInsets.all(16),
+        child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
+          Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+            Container(width:48,height:54,alignment:Alignment.center,
+              decoration:BoxDecoration(color:R35ReferenceColors.deep,borderRadius:BorderRadius.circular(16),
+                border:Border.all(color:R35ReferenceColors.gold)),
+              child:Icon(member?Icons.verified_rounded:Icons.shield_rounded,size:32,color:R35ReferenceColors.gold)),
+            const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              Tooltip(message:name,child:Text(name,key:ValueKey('r54-club-name-$id'),maxLines:3,overflow:TextOverflow.ellipsis,
+                style:theme.titleLarge?.copyWith(color:Colors.white,fontSize:20,fontWeight:FontWeight.w900,height:1.3))),
+              if(league.isNotEmpty) ...[const SizedBox(height:4),Text(league,
+                style:theme.labelLarge?.copyWith(color:R35ReferenceColors.paleGold,fontSize:14,fontWeight:FontWeight.w700))],
+            ])),
+          ]),
+          const SizedBox(height:12),
+          Text(visibility,key:ValueKey('r54-club-visibility-$id'),
+            style:theme.labelLarge?.copyWith(color:R35ReferenceColors.cyan,fontSize:14,fontWeight:FontWeight.w700)),
+          if(description.isNotEmpty) ...[const SizedBox(height:8),Text(description,maxLines:2,overflow:TextOverflow.ellipsis,
+            style:theme.bodyMedium?.copyWith(color:Colors.white,fontSize:14,height:1.5))],
+          const SizedBox(height:12),
+          Wrap(spacing:12,runSpacing:8,children:[
+            Text(ar?'$count / $capacity عضو':'$count / $capacity members',
+              style:theme.bodyMedium?.copyWith(color:Colors.white,fontSize:14,fontWeight:FontWeight.w700)),
+            Text(ar?'${club['weekly_points']??0} نقطة أسبوعية':'${club['weekly_points']??0} weekly points',
+              style:theme.bodyMedium?.copyWith(color:R35ReferenceColors.paleGold,fontSize:14,fontWeight:FontWeight.w700)),
+          ]),
+          const SizedBox(height:10),
+          LinearProgressIndicator(value:capacity>0?(count/capacity).clamp(0.0,1.0).toDouble():0,
+            minHeight:6,color:R35ReferenceColors.gold,backgroundColor:R35ReferenceColors.deep,
+            semanticsLabel:ar?'عدد الأعضاء':'Membership capacity',semanticsValue:'$count / $capacity',
+            borderRadius:BorderRadius.circular(8)),
+          const SizedBox(height:16),
+          FilledButton(key:ValueKey('r21-club-join-$id'),onPressed:onJoin,
+            style:FilledButton.styleFrom(backgroundColor:R35ReferenceColors.gold,
+              foregroundColor:R35ReferenceColors.navy,disabledBackgroundColor:R35ReferenceColors.deep,
+              disabledForegroundColor:R35ReferenceColors.paleGold,minimumSize:const Size.fromHeight(48),
+              side:const BorderSide(color:R35ReferenceColors.paleGold),
+              textStyle:theme.labelLarge?.copyWith(fontSize:16,fontWeight:FontWeight.w800)),
+            child:Row(mainAxisSize:MainAxisSize.min,mainAxisAlignment:MainAxisAlignment.center,children:[
+              Icon(busy?Icons.hourglass_top_rounded:pending?Icons.schedule_rounded:member?Icons.verified_rounded
+                :private?Icons.lock_outline_rounded:Icons.group_add_rounded),
+              const SizedBox(width:8),Flexible(child:Text(label,textAlign:TextAlign.center)),
+            ])),
+        ]))));
   }
 }
 

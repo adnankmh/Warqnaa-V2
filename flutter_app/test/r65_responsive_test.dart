@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warqna_mobile/main.dart';
 import 'package:warqna_mobile/services/app_sounds.dart';
+import 'helpers/r54_clubs_fakes.dart' as clubs_fixture;
 
 Widget app(Widget child, String locale) => MaterialApp(
   locale: Locale(locale),
@@ -79,6 +80,35 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 1));
         controller.dispose();
+      });
+
+      testWidgets('R54 actual clubs in browser $locale ${size.width}x${size.height}',(tester) async {
+        tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+        addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+        final api=clubs_fixture.ClubsApi(locale);
+        final controller=clubs_fixture.ClubsController(api)..localeCode=locale..serverConnected=true;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(app(Builder(builder:(context)=>MediaQuery(
+          data:MediaQuery.of(context).copyWith(textScaler:TextScaler.linear(1.6)),
+          child:ClubsPage(controller:controller))),locale));
+        await tester.pumpAndSettle();
+        expect(find.byType(R54ClubsHeader),findsOneWidget);expect(api.loads,1);
+        expect(Directionality.of(tester.element(find.byType(ClubsPage))),locale=='ar'?TextDirection.rtl:TextDirection.ltr);
+        final search=find.byKey(const ValueKey('r21-club-search'));
+        await tester.ensureVisible(search);await tester.enterText(search,locale=='ar'?'فرسان':'KNIGHTS');await tester.pump();
+        expect(find.byKey(const ValueKey('r21-club-1')),findsOneWidget);
+        expect(find.byKey(const ValueKey('r21-club-2')),findsNothing);
+        await tester.enterText(search,'');await tester.pump();
+        final filter=find.byKey(const ValueKey('r21-club-available'));
+        await tester.ensureVisible(filter);await tester.tap(filter);await tester.pump();
+        expect(find.byKey(const ValueKey('r21-club-3')),findsNothing);
+        expect(find.byKey(const ValueKey('r21-club-4')),findsNothing);
+        final request=find.byKey(const ValueKey('r21-club-join-2'));
+        await tester.ensureVisible(request);await tester.tap(request);await tester.pumpAndSettle();
+        expect(api.joins,1);expect(api.pending,2);
+        await tester.ensureVisible(filter);await tester.tap(filter);await tester.pump();
+        expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r21-club-join-2'))).onPressed,isNull);
+        expect(tester.takeException(),isNull);await tester.pumpWidget(const SizedBox.shrink());
       });
 
       testWidgets(
