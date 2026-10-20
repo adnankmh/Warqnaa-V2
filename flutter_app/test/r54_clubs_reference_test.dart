@@ -64,6 +64,8 @@ void main() {
           expect(notice.left,greaterThanOrEqualTo(15));expect(notice.right,lessThanOrEqualTo(size.width-15));
           expect(find.text('+123456 XP'),findsOneWidget);
           expect(find.text('+2000 ${locale=='ar'?'نقطة':'points'}'),findsOneWidget);
+          expect(tester.widget<Text>(find.text('+123456 XP')).textDirection,TextDirection.ltr);
+          expect(tester.widget<Text>(find.text('+2000 ${locale=='ar'?'نقطة':'points'}')).textDirection,TextDirection.ltr);
           expect(tester.takeException(),isNull);
           if(review.reviewDirectory.isNotEmpty && scale==1.6 && size.width!=390) {
             await review.capture(tester,key,'$locale-r54-round-xp-${size.width.toInt()}x${size.height.toInt()}');
@@ -99,6 +101,8 @@ void main() {
           if(columns==1) {expect(second.top,greaterThanOrEqualTo(rect.bottom+11));}
           else {expect(second.top,closeTo(rect.top,.5));expect(locale=='ar'?rect.left>second.left:rect.left<second.left,isTrue);}
           final title=tester.widget<Text>(find.byKey(const ValueKey('r54-club-name-1')));
+          expect(tester.widget<Text>(find.byKey(const ValueKey('r54-club-capacity-1'))).data,
+            locale=='ar'?'8 من 20 عضو':'8 / 20 members');
           expect(title.style!.fontSize,20);expect(contrast(title.style!.color!,R35ReferenceColors.navy),greaterThanOrEqualTo(7));
           final join=find.byKey(const ValueKey('r21-club-join-1'));
           await revealClubWidget(tester,join);await tester.pumpAndSettle();
@@ -141,6 +145,8 @@ void main() {
       final card=find.byKey(const ValueKey('r21-club-1'));
       await revealClubWidget(tester,card);await tester.tap(find.byKey(const ValueKey('r54-club-name-1')));await tester.pumpAndSettle();
       expect(api.details,1);expect(find.byType(DraggableScrollableSheet),findsOneWidget);
+      expect(find.descendant(of:find.byType(DraggableScrollableSheet),
+        matching:find.textContaining(r54ClubCapacityLabel(locale,8,20))),findsOneWidget);
       Navigator.of(tester.element(find.byType(ClubsPage))).pop();await tester.pumpAndSettle();
       expect(controller.coins,coins);expect(tester.takeException(),isNull);
       await tester.pumpWidget(const SizedBox.shrink());

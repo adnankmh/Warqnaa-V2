@@ -10,6 +10,10 @@ actions 16px with at least 48px targets. Cards wrap to one/two/three columns
 without fixed heights; long names and 1.6× text do not squeeze actions into a
 fixed thumbnail. Existing details, announcements, join moderation and R52
 delegated permissions remain in their original authenticated route.
+Manual screenshot review caught a bidi-reversed membership fraction. Arabic
+now explicitly says “8 من 20 عضو”; English keeps “8 / 20 members”. XP/point
+numeric values have explicit LTR runs so the positive sign remains before the
+number inside the surrounding RTL layout. Tests assert both presentations.
 
 This advances the established sky/cyan/gold direction; it is not a claim of
 pixel-perfect equivalence to the user's full composite reference. No new image

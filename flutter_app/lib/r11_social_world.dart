@@ -497,7 +497,7 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
         _R11Notice(text: ar ? 'الأندية تحتاج اتصالًا موثّقًا. الانضمام والتأسيس متوقفان حتى تحديث البيانات.' : 'Clubs need a verified connection. Refresh before joining or founding a club.', icon: Icons.cloud_off_outlined),
         TextButton.icon(onPressed: () async { await widget.controller.reconnectV173(); await _load(); }, icon: const Icon(Icons.refresh), label: Text(ar ? 'إعادة الاتصال' : 'Reconnect')),
       ]))),
-      if (mine.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: InkWell(onTap: () => _openClub(mine), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(accent: _r11Gold, child: ListTile(contentPadding: EdgeInsets.zero, leading: Text(mine['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 36)), title: Text(mine['name']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w900)), subtitle: Text('${_r11Localized(mine['league'], widget.controller.localeCode)} • ${mine['members_count']}/${mine['capacity']}'), trailing: const Icon(Icons.chevron_right))))),
+      if (mine.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: InkWell(onTap: () => _openClub(mine), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(accent: _r11Gold, child: ListTile(contentPadding: EdgeInsets.zero, leading: Text(mine['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 36)), title: Text(mine['name']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.w900)), subtitle: Text('${_r11Localized(mine['league'], widget.controller.localeCode)} • ${r54ClubCapacityLabel(widget.controller.localeCode,_r12Int(mine['members_count']),_r12Int(mine['capacity']))}'), trailing: const Icon(Icons.chevron_right))))),
       const SizedBox(height: 16), Text(ar ? 'أندية عالم ورقنا' : 'Warqnaa clubs',
         style: Theme.of(context).textTheme.titleLarge?.copyWith(color:R35ReferenceColors.navy,fontSize:20,fontWeight:FontWeight.w900)),const SizedBox(height: 9),
       R21ClubDirectory(clubs: clubs, locale: widget.controller.localeCode, allowOpen: live,
@@ -555,7 +555,7 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
       final club = _r11Map(response['club']), membership = _r11Map(response['membership']);
       final members = _r11List(club['members']), announcements = _r11List(response['announcements']), events = _r11List(response['events']), requests = _r11List(response['join_requests']);
       await showModalBottomSheet<void>(context: context, isScrollControlled: true, showDragHandle: true, builder: (sheetContext) => DraggableScrollableSheet(expand: false, initialChildSize: .82, maxChildSize: .96, builder: (context, scrollController) => ListView(controller: scrollController, padding: const EdgeInsets.fromLTRB(18,0,18,30), children: [
-        Row(children: [Text(club['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 52)),const SizedBox(width: 12),Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(club['name']?.toString() ?? 'Club', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),Text('${_r11Localized(club['league'], widget.controller.localeCode)} • ${club['members_count']}/${club['capacity']} • ${club['weekly_points']} pts', style: const TextStyle(color: _r11Gold, fontSize: 11.5, height: 1.25))]))]),
+        Row(children: [Text(club['logo']?.toString() ?? '🛡️', style: const TextStyle(fontSize: 52)),const SizedBox(width: 12),Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(club['name']?.toString() ?? 'Club', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),Text('${_r11Localized(club['league'], widget.controller.localeCode)} • ${r54ClubCapacityLabel(widget.controller.localeCode,_r12Int(club['members_count']),_r12Int(club['capacity']))} • ${club['weekly_points']} pts', style: const TextStyle(color: _r11Gold, fontSize: 11.5, height: 1.25))]))]),
         if ((club['description']?.toString() ?? '').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(club['description'].toString(), style: const TextStyle(color: Colors.white70, height: 1.5))),
         if (membership.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Wrap(spacing: 8, runSpacing: 8, children: [
           if (membership['can_manage'] == true || const {'owner','moderator'}.contains(membership['role'])) FilledButton.tonalIcon(onPressed: () { Navigator.pop(sheetContext); unawaited(_announce(id)); }, icon: const Icon(Icons.campaign_outlined), label: Text(ar ? 'إعلان' : 'Announce')),
@@ -673,6 +673,9 @@ bool r54ClubAvailable(Map<String,dynamic> club) =>
   && _r12Int(club['capacity']) > _r12Int(club['members_count'])
   && club['membership'] == null && club['join_request_pending'] != true;
 
+String r54ClubCapacityLabel(String locale,int count,int capacity) =>
+  locale=='ar'?'$count من $capacity عضو':'$count / $capacity members';
+
 class R54ClubsHeader extends StatelessWidget {
   const R54ClubsHeader({super.key,required this.locale});
   final String locale;
@@ -741,7 +744,7 @@ class R54ClubCard extends StatelessWidget {
             style:theme.bodyMedium?.copyWith(color:Colors.white,fontSize:14,height:1.5))],
           const SizedBox(height:12),
           Wrap(spacing:12,runSpacing:8,children:[
-            Text(ar?'$count / $capacity عضو':'$count / $capacity members',
+            Text(r54ClubCapacityLabel(locale,count,capacity),key:ValueKey('r54-club-capacity-$id'),
               style:theme.bodyMedium?.copyWith(color:Colors.white,fontSize:14,fontWeight:FontWeight.w700)),
             Text(ar?'${club['weekly_points']??0} نقطة أسبوعية':'${club['weekly_points']??0} weekly points',
               style:theme.bodyMedium?.copyWith(color:R35ReferenceColors.paleGold,fontSize:14,fontWeight:FontWeight.w700)),
