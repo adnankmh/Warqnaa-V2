@@ -39,3 +39,21 @@ R52 adds pure rules tests, a complete five-round local Hand playthrough, server-
 - https://developers.google.com/admob/flutter/ssv
 
 These references guide rules and feature behavior. They do not establish pixel-for-pixel equivalence, full production readiness, or permission to copy another app's branding/assets.
+
+## Follow-up validation — 20 October 2026
+
+Backend on `be1fed45` reported 275 passing tests and one failing SSV cap
+assertion. Eight verified rewards give 400 ad tokens/120 XP; crossing 80 XP
+also gives the existing 230-token level-two bonus. The corrected test checks
+the ad ledger separately and retries all eight signed callbacks after the cap,
+including the level-up callback, to prove no duplicated tokens or XP.
+
+Manual review of the R7 screenshots found wheel sectors hardcoded to Arabic
+and using an unthemed canvas font. The painter now receives the active locale
+and theme font, with 12px labels, and repaints when either changes. Route tests
+check all 12 localized labels and font propagation. The same visual review found
+dark replay text on a dark result panel; replay now has white text, a cyan outline
+and a 48px touch target, with callback/style tests in both languages.
+
+These are targeted corrections, not blanket approval of every screen. All five
+gates and final-head screenshots still need verification before merge.

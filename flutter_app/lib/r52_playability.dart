@@ -169,7 +169,11 @@ class R52MatchResult extends StatelessWidget {
       Wrap(alignment:WrapAlignment.center,spacing:10,runSpacing:8,children:[
         FilledButton.icon(key:const ValueKey('r52-exit-finished-game'),onPressed:onExit,
           icon:const Icon(Icons.exit_to_app_rounded),label:Text(ar?'العودة للألعاب':'Back to games')),
-        if(onReplay!=null) OutlinedButton.icon(onPressed:onReplay,icon:const Icon(Icons.replay_rounded),
+        if(onReplay!=null) OutlinedButton.icon(key:const ValueKey('r52-replay-finished-game'),
+          onPressed:onReplay,icon:const Icon(Icons.replay_rounded),
+          style:OutlinedButton.styleFrom(foregroundColor:Colors.white,
+            side:const BorderSide(color:R35ReferenceColors.cyan),minimumSize:const Size(0,48),
+            textStyle:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),
           label:Text(ar?'العب مجددًا':'Play again')),
       ]),
     ]),

@@ -72,9 +72,16 @@ void main() {
     });
     testWidgets('R52 finished match offers a working exit $locale',(tester) async {
       var exited=false;
+      var replayed=false;
       await tester.pumpWidget(MaterialApp(home:Scaffold(body:R52MatchResult(
-        ar:locale=='ar',won:true,points:'+20',onExit:()=>exited=true))));
+        ar:locale=='ar',won:true,points:'+20',onExit:()=>exited=true,onReplay:()=>replayed=true))));
       expect(find.byIcon(Icons.emoji_events_rounded),findsOneWidget);
+      final replay=find.byKey(const ValueKey('r52-replay-finished-game'));
+      final replayButton=tester.widget<OutlinedButton>(replay);
+      expect(replayButton.style!.foregroundColor!.resolve(<WidgetState>{}),Colors.white);
+      expect(replayButton.style!.side!.resolve(<WidgetState>{})!.color,R35ReferenceColors.cyan);
+      expect(tester.getSize(replay).height,greaterThanOrEqualTo(48));
+      await tester.tap(replay);expect(replayed,isTrue);
       await tester.tap(find.byKey(const ValueKey('r52-exit-finished-game')));
       expect(exited,isTrue);
       expect(tester.takeException(),isNull);
