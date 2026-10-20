@@ -41,6 +41,14 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds:1));
       expect(find.byType(LuckyWheelPageV182),findsOneWidget);
+      final wheelPainter=tester.widgetList<CustomPaint>(find.byType(CustomPaint))
+          .map((widget)=>widget.painter).whereType<LuckyWheelPainterV182>().single;
+      expect(wheelPainter.localeCode,locale);
+      expect(wheelPainter.labelStyle.fontFamily,'R7Review');
+      expect(wheelPainter.labelStyle.fontSize,12);
+      for(final segment in luckyWheelSegmentsV182) {
+        expect(wheelPainter.labelForSegment(segment),segment[locale=='ar'?'label_ar':'label_en']);
+      }
       if(review.reviewDirectory.isNotEmpty)await review.capture(tester,key,'$locale-r52-wheel-390x844');
       final context=tester.element(find.byType(LuckyWheelPageV182));
       Navigator.of(context).pop();
@@ -72,6 +80,12 @@ void main() {
       expect(tester.takeException(),isNull);
     });
   }
+  test('R52 wheel repaint follows locale and font changes',() {
+    const original=LuckyWheelPainterV182(localeCode:'ar',labelStyle:TextStyle(fontFamily:'Cairo',fontSize:12));
+    expect(const LuckyWheelPainterV182(localeCode:'ar',labelStyle:TextStyle(fontFamily:'Cairo',fontSize:12)).shouldRepaint(original),isFalse);
+    expect(const LuckyWheelPainterV182(localeCode:'en',labelStyle:TextStyle(fontFamily:'Cairo',fontSize:12)).shouldRepaint(original),isTrue);
+    expect(const LuckyWheelPainterV182(localeCode:'ar',labelStyle:TextStyle(fontFamily:'Arial',fontSize:14)).shouldRepaint(original),isTrue);
+  });
   test('R52 every server suit is rendered with a visible symbol',() {
     expect(r52CardLabel('A_spades'),'A♠');
     expect(r52CardLabel('10_hearts'),'10♥');

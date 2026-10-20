@@ -298,7 +298,10 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
             ),
           ),
         ),
-        Positioned(top:58,child:Transform.rotate(angle:angle,child:CustomPaint(size:Size.square(size-20),painter:LuckyWheelPainterV182()))),
+        Positioned(top:58,child:Transform.rotate(angle:angle,child:CustomPaint(size:Size.square(size-20),painter:LuckyWheelPainterV182(
+          localeCode:widget.controller.localeCode,
+          labelStyle:(Theme.of(context).textTheme.bodyMedium ?? DefaultTextStyle.of(context).style).copyWith(color:Colors.white,fontSize:12,fontWeight:FontWeight.w900,height:1.18),
+        )))),
         Positioned(top:58+(size-20)/2-34,child:Container(width:68,height:68,decoration:BoxDecoration(shape:BoxShape.circle,gradient:const LinearGradient(colors:<Color>[Color(0xffffe08a),Color(0xffa16207)]),border:Border.all(color:Colors.white,width:3),boxShadow:const <BoxShadow>[BoxShadow(blurRadius:16,color:Colors.black54)]),child:const Center(child:Text('♛',style:TextStyle(fontWeight:FontWeight.w900,fontSize:30,color:Color(0xff3b2304))))),),
       ]))),
       if(error!=null)...<Widget>[const SizedBox(height:10),Text(error!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.redAccent,fontWeight:FontWeight.w800))],
@@ -316,6 +319,13 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
 }
 
 class LuckyWheelPainterV182 extends CustomPainter {
+  const LuckyWheelPainterV182({this.localeCode='ar',this.labelStyle=const TextStyle(color:Colors.white,fontSize:12,fontWeight:FontWeight.w900,height:1.18)});
+  final String localeCode;
+  final TextStyle labelStyle;
+
+  String labelForSegment(Map<String,dynamic> segment) =>
+      segment[localeCode=='ar'?'label_ar':'label_en'].toString();
+
   @override void paint(Canvas canvas,Size size){
     final center=Offset(size.width/2,size.height/2);
     final radius=size.width/2;
@@ -335,14 +345,15 @@ class LuckyWheelPainterV182 extends CustomPainter {
       canvas.rotate(start+sweep/2);
       final segment=luckyWheelSegmentsV182[i];
       final painter=TextPainter(
-        textDirection:TextDirection.rtl,
+        textDirection:localeCode=='ar'?TextDirection.rtl:TextDirection.ltr,
         textAlign:TextAlign.center,
         text:TextSpan(
-          text:'${segment['icon']}\n${segment['label_ar']}',
-          style:const TextStyle(color:Colors.white,fontSize:11,fontWeight:FontWeight.w900,height:1.18,shadows:<Shadow>[Shadow(color:Colors.black54,blurRadius:4)]),
+          text:'${segment['icon']}\n${labelForSegment(segment)}',
+          style:labelStyle.copyWith(shadows:const <Shadow>[Shadow(color:Colors.black54,blurRadius:4)]),
         ),
       )..layout(maxWidth:radius*.44);
       painter.paint(canvas,Offset(radius*.47,-painter.height/2));
+      painter.dispose();
       canvas.drawLine(Offset.zero, Offset(radius-10,0), divider);
       canvas.restore();
     }
@@ -350,7 +361,8 @@ class LuckyWheelPainterV182 extends CustomPainter {
     canvas.drawCircle(center,radius-10,rim);
     canvas.drawCircle(center,radius*.14,Paint()..color=const Color(0xfffbbf24));
   }
-  @override bool shouldRepaint(covariant CustomPainter oldDelegate)=>false;
+  @override bool shouldRepaint(covariant LuckyWheelPainterV182 oldDelegate)=>
+      localeCode!=oldDelegate.localeCode || labelStyle!=oldDelegate.labelStyle;
 }
 
 class _LuckyWheelPointerPainterV182 extends CustomPainter {
