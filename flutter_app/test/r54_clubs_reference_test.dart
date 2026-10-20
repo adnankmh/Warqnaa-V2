@@ -44,11 +44,40 @@ void main() {
   });
 
   for(final locale in ['ar','en']) {
+    for(final size in [const Size(320,568),const Size(390,844),const Size(844,390)]) {
+      for(final scale in [1.0,1.6]) {
+        testWidgets('R54 round XP long names remain bounded $locale $size text $scale',(tester) async {
+          tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
+          addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+          final controller=AppController()..localeCode=locale;addTearDown(controller.dispose);
+          final key=GlobalKey();final name=locale=='ar'?'فارس المجلس وصاحب الاسم الطويل جدًا للاختبار':'A very long player name in the royal card club';
+          await tester.pumpWidget(review.reviewApp(Scaffold(body:Builder(builder:(context)=>MediaQuery(
+            data:MediaQuery.of(context).copyWith(textScaler:TextScaler.linear(scale)),
+            child:Align(alignment:Alignment.topCenter,child:Padding(padding:const EdgeInsets.all(16),
+              child:RoundXpBannerV174(notices:[
+                RoundXpNoticeV174(name:name,avatar:'A',earnedXp:123456,roundPoints:2000,level:100),
+                const RoundXpNoticeV174(name:'Second player',avatar:'B',earnedXp:654321,roundPoints:12345,level:99),
+              ]))),
+          ))),controller,key));
+          await tester.pumpAndSettle();
+          final notice=tester.getRect(find.byKey(ValueKey('r54-round-xp-$name')));
+          expect(notice.left,greaterThanOrEqualTo(15));expect(notice.right,lessThanOrEqualTo(size.width-15));
+          expect(find.text('+123456 XP'),findsOneWidget);
+          expect(find.text('+2000 ${locale=='ar'?'نقطة':'points'}'),findsOneWidget);
+          expect(tester.takeException(),isNull);
+          if(review.reviewDirectory.isNotEmpty && scale==1.6 && size.width!=390) {
+            await review.capture(tester,key,'$locale-r54-round-xp-${size.width.toInt()}x${size.height.toInt()}');
+          }
+          await tester.pumpWidget(const SizedBox.shrink());
+        });
+      }
+    }
     for(final size in [const Size(320,568),const Size(390,844),const Size(600,800),
         const Size(844,390),const Size(1440,900)]) {
       for(final scale in [1.0,1.6]) {
         testWidgets('R54 actual clubs route $locale $size text $scale',(tester) async {
-          final semantics=tester.ensureSemantics();addTearDown(semantics.dispose);
+          final semantics=tester.ensureSemantics();
+          try {
           tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
           addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
           final api=ClubsApi(locale);
@@ -95,6 +124,7 @@ void main() {
           expect(tester.widget<Text>(find.byKey(const ValueKey('r54-club-count'))).data,r21ClubCountLabel(locale,2));
           expect(api.joins,0);expect(api.loads,1);expect(tester.takeException(),isNull);
           await tester.pumpWidget(const SizedBox.shrink());
+          } finally {semantics.dispose();}
         });
       }
     }

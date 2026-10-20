@@ -30,6 +30,14 @@ assets, copied branding, offers, fake clubs or invented prizes are introduced.
 
 ## Evidence required before merge
 
+CI also exposed a seed-dependent 70px post-action Banakil overflow on the first
+draft head. It did not repeat on the next head; full creator diagnostics remain
+enabled rather than suppressing the assertion. Inspection found an independently
+unbounded round-XP notice row, so it now wraps long names/XP/points and localizes
+the points suffix. Twelve deterministic AR/EN narrow/landscape/large-text cases
+exercise this layout. This is a concrete notice-layout improvement, not a claim
+that every possible seed-dependent game-layout issue is exhausted.
+
 `flutter_app/test/r54_clubs_reference_test.dart` exercises the actual ClubsPage
 in Arabic/English at 320×568, 390×844, 600×800, 844×390 and 1440×900 with 1.0/1.6×
 text; card geometry, contrast, real search/filter, pending joins/details,

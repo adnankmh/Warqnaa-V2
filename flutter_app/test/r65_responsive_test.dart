@@ -83,7 +83,8 @@ void main() {
       });
 
       testWidgets('R54 actual clubs in browser $locale ${size.width}x${size.height}',(tester) async {
-        final semantics=tester.ensureSemantics();addTearDown(semantics.dispose);
+        final semantics=tester.ensureSemantics();
+        try {
         tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
         addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
         final api=clubs_fixture.ClubsApi(locale);
@@ -110,6 +111,7 @@ void main() {
         await clubs_fixture.revealClubWidget(tester,filter);await tester.tap(filter);await tester.pump();
         expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r21-club-join-2'))).onPressed,isNull);
         expect(tester.takeException(),isNull);await tester.pumpWidget(const SizedBox.shrink());
+        } finally {semantics.dispose();}
       });
 
       testWidgets(
