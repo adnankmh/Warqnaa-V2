@@ -492,16 +492,6 @@ class B307HomeDashboard extends StatelessWidget {
     }
     final games = customerGamesR101;
     final featured = games.take(6).toList(growable: false);
-    // Distinct original card-room palettes mirror the illustrated game
-    // families from the sky/gold reference while preserving real game art.
-    const gameTileGradients = <List<Color>>[
-      <Color>[Color(0xffc52b53), Color(0xff5e145c)],
-      <Color>[Color(0xff14b7e6), Color(0xff064b98)],
-      <Color>[Color(0xff9042de), Color(0xff3e126d)],
-      <Color>[Color(0xffd83e62), Color(0xff6b1a53)],
-      <Color>[Color(0xff086fcc), Color(0xff053e8e)],
-      <Color>[Color(0xffba6a27), Color(0xff694022)],
-    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 16),
       children: <Widget>[
@@ -543,63 +533,10 @@ class B307HomeDashboard extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 10),
-        B307SectionHeader(
-          title: ar ? 'ألعابك' : 'Your games',
-          action: ar ? 'عرض الكل' : 'View all',
-          onTap: () => onTab(1),
-        ),
-        const SizedBox(height: 7),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: featured.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 7, mainAxisSpacing: 7, childAspectRatio: .78),
-          itemBuilder: (context, index) {
-            final game = featured[index];
-            final tilePalette = gameTileGradients[index % gameTileGradients.length];
-            return InkWell(
-              borderRadius: BorderRadius.circular(15),
-              onTap: () => showGameLobby(context, controller, game),
-              child: Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                    colors: tilePalette,
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .55)),
-                  boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .10), blurRadius: 10, offset: const Offset(0, 5))],
-                ),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-                  // The artwork takes remaining card height instead of
-                  // overflowing 320px phones when labels and badges are shown.
-                  Expanded(child: SizedBox(
-                    width: double.infinity,
-                    child: Stack(fit: StackFit.expand, children: <Widget>[
-                       Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain,
-                         filterQuality: FilterQuality.high,
-                         errorBuilder: (_, __, ___) => R34GameEmblem(gameId: game.id, compact: true)),
-                     ]),
-                  )),
-                  const SizedBox(height: 5),
-                  Text(L.t(controller.localeCode, game.id), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12.5, height: 1.2, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: <Color>[B307SkyLuxury.emerald, Color(0xff15a981)]),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(ar ? 'العب' : 'Play', style: const TextStyle(color: Color(0xff062f36), fontSize: 11, height: 1.15, fontWeight: FontWeight.w900)),
-                  ),
-                ]),
-              ),
-            );
-          },
-        ),
+        R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
         const SizedBox(height: 12),
         B307SectionHeader(
+          foregroundColor: R35ReferenceColors.navy,
           title: ar ? 'عالم ورقنا' : 'Warqnaa world',
           action: ar ? 'استكشف' : 'Explore',
           onTap: () => onTab(3),
@@ -736,7 +673,7 @@ class B307HomeDashboard extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 10),
-        B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),
+        B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions', foregroundColor: R35ReferenceColors.navy),
         const SizedBox(height: 7),
         Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
           B307QuickAction(icon: Icons.storefront_outlined, label: ar ? 'المتجر' : 'Store', onTap: () => onTab(0)),
@@ -1011,19 +948,20 @@ class B307StatCard extends StatelessWidget {
 }
 
 class B307SectionHeader extends StatelessWidget {
-  const B307SectionHeader({super.key, required this.title, this.action, this.onTap});
+  const B307SectionHeader({super.key, required this.title, this.action, this.onTap, this.foregroundColor});
   final String title;
   final String? action;
   final VoidCallback? onTap;
+  final Color? foregroundColor;
   @override
   Widget build(BuildContext context) => Row(children: <Widget>[
-        Container(width: 4, height: 20, decoration: BoxDecoration(color: B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
+        Container(width: 4, height: 20, decoration: BoxDecoration(color: foregroundColor ?? B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
         const SizedBox(width: 7),
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900))),
+        Expanded(child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: foregroundColor))),
         if (action != null) TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-          child: Text(action!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: B307SkyLuxury.sky))),
+          child: Text(action!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: foregroundColor ?? B307SkyLuxury.sky))),
       ]);
 }
 

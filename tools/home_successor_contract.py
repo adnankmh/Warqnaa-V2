@@ -20,8 +20,8 @@ def r61_home_is_wired(main: str, home: str, lobby: str = '', visual: str = '') -
             'B307HomeDashboard(controller: controller, onTab: onTab)' in main,
             "controller.localeCode == 'ar'" in visual,
             'onTab(1)' in visual,
-            'showGameLobby(context, controller, game)' in visual,
-            'r101GameArtAsset(game.id)' in visual,
+            'R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab)' in visual,
+            'showGameLobby(context, controller, featured.first)' in visual,
             'B307SkyLuxury.heroGradient' in visual,
         ))
 

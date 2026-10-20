@@ -14,6 +14,9 @@ def require(text: str, needle: str, context: str) -> None:
 def main() -> None:
     main_dart = read("flutter_app/lib/main.dart")
     visual = read("flutter_app/lib/b307_visual_revolution.dart")
+    reference = read("flutter_app/lib/r35_reference_world.dart")
+
+    require(visual, "R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab)", "active phone game renderer")
 
     # R28 makes the approved bright sky-luxury layer the real customer shell,
     # not a dormant visual prototype.
@@ -42,7 +45,7 @@ def main() -> None:
     require(visual, "overflow: TextOverflow.ellipsis", "narrow-layout overflow guard")
 
     # The first visual closure increment must not remove R27 game art or store.
-    require(visual, "r101GameArtAsset(game.id)", "real shipped game art")
+    require(reference, "r101GameArtAsset(game.id)", "real shipped game art")
     require(visual, "B307CashShopPage", "real-money store surface")
     require(visual, "r28-sky-world-grid", "sky-luxury world showcase grid")
     require(visual, "class B307WorldTile", "reusable premium world tile")

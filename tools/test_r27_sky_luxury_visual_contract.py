@@ -14,6 +14,7 @@ def require(text: str, needle: str, context: str) -> None:
 def main() -> None:
     design = read("flutter_app/lib/r9_design_system.dart")
     visual = read("flutter_app/lib/b307_visual_revolution.dart")
+    reference = read("flutter_app/lib/r35_reference_world.dart")
     main_dart = read("flutter_app/lib/main.dart")
 
     # Shared production palette: bright sky/azure is the visible foundation,
@@ -31,13 +32,15 @@ def main() -> None:
     require(design, "R9Design.sky.withValues", "cyan focus/border treatment")
     require(design, "NavigationBarThemeData", "shared responsive navigation styling")
 
+    require(visual, "R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab)", "active phone game renderer")
+
     # R27 visual layer must remain original Warqnaa blue/cyan/gold and use the
     # shipped game-art pipeline rather than falling back to emoji-only cards.
     require(visual, "class B307SkyLuxury", "Sky Luxury visual system")
     require(visual, "0xff24c8ff", "Sky Luxury sky token")
     require(visual, "0xff0b8cff", "Sky Luxury azure token")
     require(visual, "0xffffc84a", "Sky Luxury gold token")
-    require(visual, "r101GameArtAsset(game.id)", "real game art on dashboard cards")
+    require(reference, "r101GameArtAsset(game.id)", "real game art on dashboard cards")
     require(visual, "B307SkyLuxury.heroGradient", "premium hero gradient")
     require(visual, "B307SkyLuxury.panelGradient", "blue glass panel gradient")
     require(visual, "B307CashShopPage", "premium store surface")
