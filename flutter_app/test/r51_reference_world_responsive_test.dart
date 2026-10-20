@@ -91,6 +91,8 @@ void main() {
           }
           final viewAll = find.descendant(of: games, matching: find.byType(TextButton));
           await tester.ensureVisible(viewAll);
+          await tester.pump();
+          expect(viewAll.hitTestable(), findsOneWidget);
           await tester.tap(viewAll);
           expect(selectedTab, 1);
           expect(tester.takeException(), isNull);
