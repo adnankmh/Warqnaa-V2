@@ -536,6 +536,7 @@ class B307HomeDashboard extends StatelessWidget {
         R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
         const SizedBox(height: 12),
         B307SectionHeader(
+          foregroundColor: R35ReferenceColors.navy,
           title: ar ? 'عالم ورقنا' : 'Warqnaa world',
           action: ar ? 'استكشف' : 'Explore',
           onTap: () => onTab(3),
@@ -672,7 +673,7 @@ class B307HomeDashboard extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 10),
-        B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions'),
+        B307SectionHeader(title: ar ? 'الخدمات السريعة' : 'Quick actions', foregroundColor: R35ReferenceColors.navy),
         const SizedBox(height: 7),
         Wrap(spacing: 7, runSpacing: 7, children: <Widget>[
           B307QuickAction(icon: Icons.storefront_outlined, label: ar ? 'المتجر' : 'Store', onTap: () => onTab(0)),
@@ -947,19 +948,20 @@ class B307StatCard extends StatelessWidget {
 }
 
 class B307SectionHeader extends StatelessWidget {
-  const B307SectionHeader({super.key, required this.title, this.action, this.onTap});
+  const B307SectionHeader({super.key, required this.title, this.action, this.onTap, this.foregroundColor});
   final String title;
   final String? action;
   final VoidCallback? onTap;
+  final Color? foregroundColor;
   @override
   Widget build(BuildContext context) => Row(children: <Widget>[
-        Container(width: 4, height: 20, decoration: BoxDecoration(color: B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
+        Container(width: 4, height: 20, decoration: BoxDecoration(color: foregroundColor ?? B307SkyLuxury.sky, borderRadius: BorderRadius.circular(99))),
         const SizedBox(width: 7),
-        Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900))),
+        Expanded(child: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: foregroundColor))),
         if (action != null) TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(minimumSize: const Size(44, 44)),
-          child: Text(action!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: B307SkyLuxury.sky))),
+          child: Text(action!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: foregroundColor ?? B307SkyLuxury.sky))),
       ]);
 }
 

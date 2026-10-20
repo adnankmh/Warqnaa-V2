@@ -100,6 +100,33 @@ void main() {
         });
       }
     }
+    testWidgets('R51 compact Home section headings have readable contrast $locale', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = AppController()..localeCode = locale;
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(review.reviewApp(
+        Scaffold(body: B307HomeDashboard(controller: controller, onTab: (_) {})),
+        controller, GlobalKey(),
+      ));
+      final title = find.text(locale == 'ar' ? 'عالم ورقنا' : 'Warqnaa world');
+      await tester.scrollUntilVisible(title, 300, scrollable: find.byType(Scrollable).first);
+      await tester.pump();
+      final section = find.ancestor(of: title, matching: find.byType(B307SectionHeader));
+      final labels = tester.widgetList<Text>(find.descendant(of: section, matching: find.byType(Text)));
+      expect(labels.length, 2);
+      for (final text in labels) {
+        final color = text.style!.color!;
+        for (final backdrop in [const Color(0xff4bb7e8), B307SkyLuxury.sky]) {
+          final contrast = (backdrop.computeLuminance() + .05) / (color.computeLuminance() + .05);
+          expect(contrast, greaterThanOrEqualTo(4.5));
+        }
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
     for (final game in ['hand', 'banakil']) {
       testWidgets('R51 actual Home opens $game friendly settings $locale', (tester) async {
         tester.view.physicalSize = const Size(390, 844);
