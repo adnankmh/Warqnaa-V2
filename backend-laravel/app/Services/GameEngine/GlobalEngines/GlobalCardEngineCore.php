@@ -740,6 +740,11 @@ class GlobalCardEngineCore
     {
         if ($state['phase'] !== 'draw') throw new GameEngineException('يجب أن تكون في مرحلة السحب.');
         if (empty($state['discard'])) throw new GameEngineException('الرمي فارغ.');
+        // Action hints are not an authorization boundary: forged requests must
+        // satisfy the same Hand opening path before any card or event changes.
+        if (empty($state['config']['banakilScoring']) && !$this->canDrawDiscardLegally($state,$playerId)) {
+            throw new GameEngineException('لا يمكن سحب ورقة الرمي دون مسار تنزيل قانوني يحقق شرط الافتتاح.');
+        }
         $card = array_pop($state['discard']);
         $state['hands'][$playerId][] = $card;
         $state['phase'] = 'discard';
