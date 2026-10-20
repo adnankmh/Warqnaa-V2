@@ -364,6 +364,10 @@ class R9DirectionalTablePreview extends StatelessWidget {
         child: R48ApprovedTableArt(design: approved, portrait: portrait),
       );
     }
+    if(product.imageAsset!=null && isR61CuratedTable(product)) {
+      return AspectRatio(aspectRatio:portrait ? 2/3 : 16/9,child:R52CatalogTableArt(
+        image:R10AssetDelivery.instance.provider(product.imageAsset!),showcase:product.id.contains('showcase')));
+    }
     final c1 = controller.color1For(product);
     final c2 = controller.color2For(product);
     return AspectRatio(

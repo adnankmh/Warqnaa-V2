@@ -124,7 +124,8 @@ void main() {
           )),
         )));
         final label = tester.widget<Text>(find.text(L.t(locale, 'tarneeb')));
-        expect(label.style?.fontSize, 13.5);
+        expect(label.style?.fontSize, greaterThanOrEqualTo(16));
+        expect(label.maxLines,2);
         expect(label.style?.fontWeight, FontWeight.w900);
         expect(label.style?.color, Colors.white);
         await tester.tap(find.byKey(const ValueKey('r35-game-tarneeb')));

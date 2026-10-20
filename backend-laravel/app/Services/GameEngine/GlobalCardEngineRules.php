@@ -242,6 +242,7 @@ class GlobalCardEngineRules implements GameRuleContract
                 'target_player'=>(string)($payload['target_player'] ?? $payload['targetPlayer'] ?? $playerId),
                 'meld_index'=>(int)($payload['meld_index'] ?? $payload['meldIndex'] ?? 0),
                 'card'=>$this->toShortCard((string)($payload['card'] ?? ''),$state['hands'][$playerId] ?? []),
+                'cards'=>array_map(fn($c)=>$this->toShortCard((string)$c,$state['hands'][$playerId] ?? []),(array)($payload['cards'] ?? [])),
             ],
             'organize' => [
                 'type'=>'organize',

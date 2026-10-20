@@ -79,6 +79,8 @@ Route::get('/ready', function(\App\Services\Platform\PlatformHealthService $heal
 Route::get('/login',[AuthController::class,'showLogin'])->name('login'); Route::post('/login',[AuthController::class,'login']);
 Route::get('/register',[AuthController::class,'showRegister'])->name('register'); Route::post('/register',[AuthController::class,'register']); Route::post('/logout',[AuthController::class,'logout'])->name('logout');
 Route::middleware('auth')->group(function(){
+ Route::post('/rewards/wheel',[RewardController::class,'spin'])->middleware('throttle:30,1')->name('rewards.wheel');
+ Route::post('/rewards/boxes/{box}/open',[RewardController::class,'openBox'])->middleware('throttle:30,1')->name('rewards.box.open');
  Route::get('/games',[GameController::class,'index'])->name('games');
  Route::get('/game-rules',[GameController::class,'rules'])->name('game.rules');
  Route::get('/settings',[PageController::class,'settings'])->name('settings'); Route::post('/settings',[PageController::class,'saveSettings'])->name('settings.save'); Route::post('/preferences/quick',[PageController::class,'quickPreference'])->name('preferences.quick');

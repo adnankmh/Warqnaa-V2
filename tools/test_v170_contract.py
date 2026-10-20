@@ -44,7 +44,7 @@ def main() -> int:
         "body: R11ClubsWorldPage(controller: controller)",
         "TarneebBidButtonV170",
         "serverAutoNextRoundTimer",
-        "Duration(milliseconds: 1700)",
+        "Duration(milliseconds: 250)",
         "showRoundRewardReport",
         "onDoubleTap:",
         "onVerticalDragEnd:",

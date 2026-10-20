@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'r52_rummy_rules.dart';
 
 /// Offline/local fallback engine used by the Flutter Web/PWA build.
 ///
@@ -6,12 +7,13 @@ import 'dart:math';
 /// keeps every curated card game playable when the app is hosted on GitHub
 /// Pages or opened without a backend connection.
 class LocalGameSession {
-  LocalGameSession({required this.gameId, required this.humanName, this.difficulty = 'pro', this.localeCode = 'ar', int playerCount = 4, int? seed})
+  LocalGameSession({required this.gameId, required this.humanName, this.difficulty = 'pro', this.localeCode = 'ar', this.singleRound = true, int playerCount = 4, int? seed})
       : requestedPlayerCount = playerCount,
         _random = Random(seed) {
     _setup();
   }
 
+  final bool singleRound;
   final String gameId;
   final String humanName;
   final String difficulty;
@@ -86,6 +88,15 @@ class LocalGameSession {
   int _lastCaptureSeat = 0;
   bool _starterDiscardPending = false;
   bool _manualRummyOrder = false;
+  bool _balancingRummy = false;
+  bool _rummyMustMeld = false;
+  bool _rummyOpenedBeforeTurn = false;
+  bool _rummyTurnMelded = false;
+  bool _rummyTurnLaidOff = false;
+  final List<Map<String,dynamic>> _rummyRoundResults = [];
+  bool get _rummyFullFinish => !_rummyOpenedBeforeTurn && _rummyTurnMelded && !_rummyTurnLaidOff;
+  num _displayScore(int value) => gameId=='banakil' ? value/2 : value;
+
 
   bool get _isRummy =>
       gameId == 'hand' ||
@@ -149,6 +160,8 @@ class LocalGameSession {
     gameOver = false;
     winnerKey = null;
     round = 1;
+    _rummyRoundResults.clear();
+    _rummyMustMeld=false;
     _starterDiscardPending = false;
     _manualRummyOrder = false;
 
@@ -360,17 +373,24 @@ class LocalGameSession {
       _hands.add(<String>[]);
     }
     final cardsEach = gameId == 'banakil' ? 18 : 14;
+    _balancingRummy=true;
     _balanceCasualRummyHands(cardsEach);
+    _balancingRummy=false;
     // The starter gets one extra card and begins by discarding. Banakil uses 18+19,
     // while Hand uses 14+15. The following turns return to draw -> meld -> discard.
-    _hands[0].add(_deck.removeLast());
+    currentSeat=(round-1)%playerCount;
+    _hands[currentSeat].add(_deck.removeLast());
+    _rummyMustMeld=false;
+    _rummyTurnMelded=false;
+    _rummyTurnLaidOff=false;
+    _rummyOpenedBeforeTurn=false;
     _starterDiscardPending = true;
     phase = 'discard';
     enginePhase = 'discard';
     if (gameId == 'banakil') {
-      _messages.add(_t('بناكل: معك 19 ورقة. ارمِ ورقة أولاً، ثم اسحب ونزّل مجموعات من 3 أوراق فأكثر دون حد أدنى.', 'Banakil: you have 19 cards. Discard first, then draw and meld groups of 3 or more with no opening minimum.'));
+      _messages.add(_t('بناكل: البادئ معه 19 ورقة ويرمي أولاً. نزّل مجموعات من 3 أوراق فأكثر دون حد أدنى.', 'Banakil: the starter has 19 cards and discards first. Meld groups of 3 or more with no opening minimum.'));
     } else {
-      _messages.add(_t('هاند: معك 15 ورقة. ارمِ أولاً، ثم افتح بمجموع مجموعة أو عدة مجموعات قيمتها 51 نقطة على الأقل.', 'Hand: you have 15 cards. Discard first, then open with one or more melds worth at least 51 points.'));
+      _messages.add(_t('هاند: البادئ معه 15 ورقة ويرمي أولاً. افتح بمجموع مجموعة أو عدة مجموعات قيمتها 51 نقطة على الأقل.', 'Hand: the starter has 15 cards and discards first. Open with one or more melds worth at least 51 points.'));
     }
     for (final hand in _hands) {
       _sortHand(hand);
@@ -522,7 +542,7 @@ class LocalGameSession {
           'bot_level': index == 0 ? null : difficulty,
           'avatar': index == 0 ? '🦁' : const <String>['🤖','🦅','🌙','🦁','🐉'][(index - 1) % 5],
           'seat': index,
-          'score': _scores[index] ?? 0,
+          'score': _isRummy ? _displayScore(_scores[index] ?? 0) : _scores[index] ?? 0,
         };
       }),
       'state': _publicState(),
@@ -545,9 +565,9 @@ class LocalGameSession {
       },
       'table': List<String>.from(_table),
       'messages': List<String>.from(_messages.take(30)),
-      'scores': <String, int>{
+      'scores': <String, num>{
         for (var seat = 0; seat < playerCount; seat++)
-          (seat == 0 ? 'user:0' : 'bot:$seat'): _scores[seat] ?? 0,
+          (seat == 0 ? 'user:0' : 'bot:$seat'): _isRummy ? _displayScore(_scores[seat] ?? 0) : _scores[seat] ?? 0,
       },
       'tarneeb400_bids': <String, int>{for (final entry in _tarneeb400Bids.entries) (entry.key == 0 ? 'user:0' : 'bot:${entry.key}'): entry.value},
       'tricks': <String, int>{
@@ -560,6 +580,11 @@ class LocalGameSession {
       'deck_count': _deck.length,
       'deal_policy': 'balanced_casual_local',
       'deal_fairness': 'symmetric_all_seats',
+      'discard_pile': List<String>.from(_discard),
+      'rummy_must_meld': _rummyMustMeld,
+      'round_results': List<Map<String,dynamic>>.from(_rummyRoundResults),
+      'next_round_available': _isRummy && phase=='round_end' && !gameOver,
+      'opening_required': _isRummy ? _localRummyOpeningRequired(0) : 0,
       'discard_top': _discard.isEmpty ? null : _discard.last,
       'melds': _melds.map((e) => List<String>.from(e)).toList(),
       'meld_owners': List<int>.from(_meldOwners),
@@ -576,6 +601,7 @@ class LocalGameSession {
   }
 
   List<Map<String, dynamic>> _availableActions() {
+    if (_isRummy && phase=='round_end' && !gameOver) return [{'type':'next_round'}];
     if (gameOver) {
       return <Map<String, dynamic>>[
         <String, dynamic>{'type': 'new_round', 'label': _t('إعادة اللعب', 'Play again')},
@@ -586,14 +612,14 @@ class LocalGameSession {
       if (phase == 'draw') {
         return <Map<String, dynamic>>[
           <String, dynamic>{'type': 'draw_deck'},
-          if (_discard.isNotEmpty) <String, dynamic>{'type': 'draw_discard'},
+          if (_discard.isNotEmpty && (gameId=='banakil' || _canTakeFire(0))) <String, dynamic>{'type': 'draw_discard'},
           if (gameId == 'banakil' && _discard.length >= 2)
             <String, dynamic>{'type': 'draw_discard_stack', 'max_count': _discard.length},
           <String, dynamic>{'type': 'organize'},
         ];
       }
       final actions = <Map<String, dynamic>>[
-        for (final card in _hands[0]) <String, dynamic>{'type': 'discard', 'card': card},
+        if (!_rummyMustMeld) for (final card in _hands[0]) <String, dynamic>{'type': 'discard', 'card': card},
         <String, dynamic>{'type': 'organize'},
       ];
       if (_starterDiscardPending) return actions;
@@ -614,6 +640,9 @@ class LocalGameSession {
           final owner = _meldOwners.length > meldIndex ? _meldOwners[meldIndex] : 0;
           final sameSide = (!_isHandPartner && gameId!='banakil') || owner == 0 || owner.isEven;
           if (!sameSide) continue;
+          for (final replacement in _jokerReplacements(_melds[meldIndex],_hands[0])) {
+            actions.add({'type':'replace_wild','meld_index':meldIndex,'card':replacement.first,'cards':replacement});
+          }
           for (final card in _hands[0]) {
             final combined = <String>[..._melds[meldIndex], card];
             if (_isValidMeld(combined)) {
@@ -677,6 +706,9 @@ class LocalGameSession {
   }
 
   Map<String, dynamic> action(String action, Map<String, dynamic>? payload) {
+    if (_isRummy && action=='next_round' && phase=='round_end' && !gameOver) {
+      _nextRummyRound();return room();
+    }
     if (action == 'new_round') {
       _setup();
       return room();
@@ -705,10 +737,8 @@ class LocalGameSession {
   }
 
   Map<String, dynamic> timeout() {
-    if (gameOver) {
-      _setup();
-      return room();
-    }
+    if (gameOver) return room();
+    if (_isRummy && phase=='round_end') {_nextRummyRound();return room();}
     if (currentSeat != 0) {
       _autoBotsUntilHuman();
       return room();
@@ -716,6 +746,9 @@ class LocalGameSession {
     if (_isRummy) {
       if (phase == 'draw') {
         _rummyAction('draw_deck', const <String, dynamic>{});
+      } else if (_rummyMustMeld) {
+        final options=_availableActions().where((a)=>a['type']=='meld_many' || a['type']=='meld').toList();
+        if(options.isNotEmpty) _rummyAction(options.first['type'] as String,options.first);
       } else if (_hands[0].isNotEmpty) {
         _rummyAction('discard', <String, dynamic>{'card': _highestCard(_hands[0])});
       }
@@ -1376,8 +1409,10 @@ class LocalGameSession {
     if (phase == 'draw') {
       if (action == 'draw_deck') {
         _ensureDeckForRummy();
+        if(_deck.isEmpty) throw StateError(_t('الرزمة فارغة حاليًا.','The stock is currently empty.'));
         _hands[0].add(_deck.removeLast());
       } else if (action == 'draw_discard' && _discard.isNotEmpty) {
+        if(gameId!='banakil' && !_canTakeFire(0)) throw StateError(_t('اسحب من الرزمة حتى تتمكن من النزول بعد سحب النار.','Draw from stock until you can meld after taking the discard.'));
         _hands[0].add(_discard.removeLast());
       } else if (action == 'draw_discard_stack' && gameId == 'banakil' && _discard.length >= 2) {
         final requested = int.tryParse(payload['count']?.toString() ?? '') ?? 0;
@@ -1392,6 +1427,9 @@ class LocalGameSession {
       } else {
         throw StateError(_t('يجب السحب أولاً.', 'You must draw first.'));
       }
+      _rummyOpenedBeforeTurn=_localRummyOpened(0);
+      _rummyTurnMelded=false;_rummyTurnLaidOff=false;
+      _rummyMustMeld=action=='draw_discard' && gameId!='banakil';
       phase = 'discard';
       enginePhase = 'discard';
       if (!_manualRummyOrder) _sortHand(_hands[0]);
@@ -1399,6 +1437,18 @@ class LocalGameSession {
     }
     if (_starterDiscardPending && action != 'discard' && action != 'organize') {
       throw StateError(_t('يجب رمي الورقة الإضافية أولاً.', 'Discard the extra card first.'));
+    }
+    if (action=='replace_wild' || action=='replace_joker') {
+      final index=int.tryParse(payload['meld_index']?.toString() ?? '') ?? -1;
+      final replacement=payload['cards'] is List ? (payload['cards'] as List).map((e)=>e.toString()).toList() : [payload['card']?.toString() ?? ''];
+      if(!_localRummyOpened(0) || index<0 || index>=_melds.length || !_containsAll(_hands[0],replacement)) throw StateError(_t('استبدال الجوكر غير متاح.','Joker replacement is unavailable.'));
+      final owner=_meldOwners[index];
+      if((_isHandPartner || gameId=='banakil') && owner.isOdd) throw StateError(_t('لا يمكن تغيير مجموعة الخصم.','Cannot change an opponent meld.'));
+      final combined=R52RummyRules.replaceJoker(_melds[index],replacement,banakil:gameId=='banakil');
+      if(combined==null) throw StateError(_t('الاستبدال غير قانوني؛ مجموعة الورقتين تتطلب الورقتين الناقصتين.','Illegal replacement; a two-card set requires both missing cards.'));
+      final joker=_melds[index].firstWhere((c)=>c.startsWith('JOKER'));
+      for(final c in replacement) {_hands[0].remove(c);}
+      _hands[0].add(joker);_melds[index]=combined;return;
     }
     if (action == 'meld_many') {
       final rawGroups = (payload['groups'] as List?) ?? const <dynamic>[];
@@ -1414,6 +1464,7 @@ class LocalGameSession {
       }
       for (final group in groups) { _melds.add(group); _meldOwners.add(0); }
       _recordLocalRummyOpening(0, total);
+      _rummyTurnMelded=true;_rummyMustMeld=false;
       _messages.add(_t('$humanName نزّل ${groups.length} مجموعات بقيمة إجمالية $total.', '$humanName melded ${groups.length} sets worth $total points.'));
       if (_hands[0].isEmpty) _finishRummy(0);
       return;
@@ -1430,6 +1481,7 @@ class LocalGameSession {
         _hands[0].remove(card);
       }
       _melds[index] = combined;
+      _rummyTurnLaidOff=true;
       _messages.add(_t('$humanName ركّب ${cards.length} ورقة على مجموعة موجودة.', '$humanName added ${cards.length} card(s) to an existing meld.'));
       if (_hands[0].isEmpty) _finishRummy(0);
       return;
@@ -1450,6 +1502,7 @@ class LocalGameSession {
       _melds.add(cards);
       _meldOwners.add(0);
       _recordLocalRummyOpening(0, meldPoints);
+      _rummyTurnMelded=true;_rummyMustMeld=false;
       _messages.add(_t('$humanName نزّل مجموعة من ${cards.length} أوراق بقيمة $meldPoints.', '$humanName melded ${cards.length} cards worth $meldPoints points.'));
       if (_hands[0].isEmpty) {
         _finishRummy(0);
@@ -1459,6 +1512,7 @@ class LocalGameSession {
     if (action != 'discard') {
       throw StateError(_t('اختر ورقة للرمي.', 'Choose a card to discard.'));
     }
+    if(_rummyMustMeld) throw StateError(_t('يجب تنزيل مجموعة بعد السحب من النار قبل الرمي.','Meld after taking the discard before ending your turn.'));
     final card = payload['card']?.toString() ?? '';
     if (!_hands[0].remove(card)) {
       throw StateError(_t('الورقة غير موجودة في يدك.', 'That card is not in your hand.'));
@@ -1483,6 +1537,12 @@ class LocalGameSession {
   }
 
   void _runRummyBot(int seat) {
+    if(_starterDiscardPending) {
+      final card=_smartRummyDiscard(_hands[seat]);_hands[seat].remove(card);_discard.add(card);
+      _starterDiscardPending=false;currentSeat=(seat+1)%playerCount;phase='draw';enginePhase='draw';return;
+    }
+    final openedBefore=_localRummyOpened(seat);
+    var meldedThisTurn=false;var attachedThisTurn=false;
     var take=0;
     if (!_easyAi && _discard.isNotEmpty) {
       final baseline=_rummyBotPotential(_hands[seat]);
@@ -1492,7 +1552,7 @@ class LocalGameSession {
         final groups=_nonOverlappingMelds(_meldSuggestions(candidate),candidate);
         final canOpen=_localRummyOpened(seat) || groups.fold<int>(0,(sum,group)=>sum+_rummyPoints(group))>=_localRummyOpeningRequired(seat);
         final score=_rummyBotPotential(candidate);
-        if (score>best && (gameId=='banakil' || (canOpen && groups.isNotEmpty))) {best=score;take=count;}
+        if (score>best && (gameId=='banakil' || (canOpen && groups.isNotEmpty && groups.any((g)=>g.contains(_discard.last))))) {best=score;take=count;}
       }
     }
     if(take>0) {
@@ -1513,6 +1573,7 @@ class LocalGameSession {
         _melds.add(group);_meldOwners.add(seat);
       }
       _recordLocalRummyOpening(seat,total);
+      meldedThisTurn=true;
       _messages.add(_t('${_seatName(seat)} نزّل ${groups.length} مجموعات.','${_seatName(seat)} melded ${groups.length} groups.'));
     }
     if(!_easyAi && _localRummyOpened(seat)) {
@@ -1521,36 +1582,78 @@ class LocalGameSession {
           final owner=_meldOwners[index];
           final canAttach=(!_isHandPartner && gameId!='banakil') || owner%2==seat%2;
           if(canAttach && _isValidMeld(<String>[..._melds[index],card])) {
-            _melds[index].add(card);_hands[seat].remove(card);break;
+            _melds[index].add(card);_hands[seat].remove(card);attachedThisTurn=true;break;
           }
         }
       }
     }
-    if (_hands[seat].isEmpty) {_finishRummy(seat);return;}
+    if (_hands[seat].isEmpty) {_finishRummy(seat,fullHand:!openedBefore && meldedThisTurn && !attachedThisTurn);return;}
     final discard = _easyAi ? _hands[seat][_random.nextInt(_hands[seat].length)] : _smartRummyDiscard(_hands[seat]);
     _hands[seat].remove(discard);_discard.add(discard);_starterDiscardPending=false;
     _messages.add(_t('${_seatName(seat)} رمى ${_prettyCard(discard)}','${_seatName(seat)} discarded ${_prettyCard(discard)}'));
-    if (_hands[seat].isEmpty) {_finishRummy(seat);return;}
+    if (_hands[seat].isEmpty) {_finishRummy(seat,fullHand:!openedBefore && meldedThisTurn && !attachedThisTurn);return;}
     currentSeat=(seat+1)%playerCount;phase='draw';enginePhase='draw';
   }
 
-  void _finishRummy(int winner) {
-    gameOver = true;
-    phase = 'finished';
-    enginePhase = 'finished';
-    winnerKey = winner == 0 ? 'user:0' : 'bot:$winner';
-    for (var seat = 0; seat < playerCount; seat++) {
-      _scores[seat] = -_hands[seat].fold<int>(0, (sum, card) => sum + _cardPoints(card));
+  bool _canTakeFire(int seat) {
+    if(_discard.isEmpty) return false;
+    final candidate=[..._hands[seat],_discard.last];
+    final groups=_nonOverlappingMelds(_meldSuggestions(candidate),candidate);
+    return groups.any((g)=>g.contains(_discard.last)) &&
+      (_localRummyOpened(seat) || groups.fold<int>(0,(sum,g)=>sum+_rummyPoints(g))>=_localRummyOpeningRequired(seat));
+  }
+
+  List<List<String>> _jokerReplacements(List<String> meld,List<String> hand) {
+    final result=<List<String>>[];
+    for(final c in hand) {
+      if(R52RummyRules.replaceJoker(meld,[c],banakil:gameId=='banakil')!=null) result.add([c]);
     }
-    _scores[winner] = _scores.values.map((e) => e.abs()).fold<int>(0, (a, b) => a + b);
-    if (_isHandPartner) {
-      final partner = (winner + 2) % 4;
-      _scores[partner] = _scores[winner] ?? 0;
-      winnerKey = winner.isEven ? 'user:0' : 'bot:1';
-      _messages.add(_t('فريق ${_seatName(winner)} أنهى اليد وفاز بالجولة.', '${_seatName(winner)}’s team emptied their hand and won the round.'));
+    if(meld.length==3 && meld.any((c)=>c.startsWith('JOKER'))) {
+      for(var a=0;a<hand.length;a++) {for(var b=a+1;b<hand.length;b++) {
+        if(R52RummyRules.replaceJoker(meld,[hand[a],hand[b]],banakil:gameId=='banakil')!=null) result.add([hand[a],hand[b]]);
+      }}
+    }
+    return result;
+  }
+
+  void _nextRummyRound() {
+    round++;_hands.clear();_deck.clear();_discard.clear();_melds.clear();_meldOwners.clear();
+    _openedRummySeats.clear();_teamOpeningThresholds..clear()..addAll({0:51,1:51});
+    _setupRummy();_autoBotsUntilHuman();
+  }
+
+  void _finishRummy(int winner,{bool? fullHand}) {
+    final full=fullHand ?? _rummyFullFinish;
+    final delta=List<int>.filled(playerCount,0);
+    if(gameId=='banakil') {
+      final teams=List<int>.filled(2,0);final winningTeam=winner%2;
+      final oppositionOpened=_meldOwners.any((seat)=>seat%2!=winningTeam);
+      if(full) {teams[winningTeam]=(oppositionOpened?51:102)*2;}
+      else {
+        for(var i=0;i<_melds.length;i++) {teams[_meldOwners[i]%2]+=_melds[i].fold<int>(0,(sum,c)=>sum+R52RummyRules.banakilHalfPoints(c));}
+        for(var seat=0;seat<playerCount;seat++) {teams[seat%2]-=_hands[seat].fold<int>(0,(sum,c)=>sum+R52RummyRules.banakilHalfPoints(c));}
+        teams[winningTeam]+=40;
+      }
+      for(var seat=0;seat<playerCount;seat++) {delta[seat]=teams[seat%2];}
     } else {
-      _messages.add(_t('${_seatName(winner)} أنهى يده وفاز بالجولة.', '${_seatName(winner)} emptied their hand and won the round.'));
+      delta.setAll(0,R52RummyRules.handRound(hands:_hands,opened:_openedRummySeats,winner:winner,fullHand:full,partnership:_isHandPartner));
     }
+    for(var seat=0;seat<playerCount;seat++) {_scores[seat]=(_scores[seat] ?? 0)+delta[seat];}
+    _rummyRoundResults.add({'round':round,'winner':winner==0?'user:0':'bot:$winner','full_hand':full,
+      'delta':{for(var seat=0;seat<playerCount;seat++) (seat==0?'user:0':'bot:$seat'):_displayScore(delta[seat])},
+      'scores':{for(var seat=0;seat<playerCount;seat++) (seat==0?'user:0':'bot:$seat'):_displayScore(_scores[seat] ?? 0)}});
+    final target=(playerCount==2?150:222)*2;
+    gameOver=singleRound || (gameId=='banakil' ? _scores.values.any((v)=>v>=target) : round>=5);
+    currentSeat=0;phase=gameOver?'finished':'round_end';enginePhase=phase;
+    var best=winner;
+    if(gameOver && !singleRound) {
+      best=0;
+      for(var seat=1;seat<playerCount;seat++) {
+        if(gameId=='banakil' ? (_scores[seat] ?? 0)>(_scores[best] ?? 0) : (_scores[seat] ?? 0)<(_scores[best] ?? 0)) best=seat;
+      }
+    } else {best=winner;}
+    winnerKey=(_isHandPartner || gameId=='banakil') ? (best.isEven?'user:0':'bot:1') : best==0?'user:0':'bot:$best';
+    _messages.insert(0,_t('انتهت الجولة $round. نقاط الجولة: ${delta.map(_displayScore).join(' / ')}','Round $round complete. Round points: ${delta.map(_displayScore).join(' / ')}'));
   }
 
   String _smartRummyDiscard(List<String> hand) {
@@ -1591,6 +1694,7 @@ class LocalGameSession {
   }
 
   List<List<String>> _meldSuggestions(List<String> hand) {
+    if(!_balancingRummy) return R52RummyRules.suggestions(hand,banakil:gameId=='banakil');
     final suggestions = <List<String>>[];
     final byRank = <String, List<String>>{};
     for (final card in hand.where((card) => !card.startsWith('JOKER'))) {
@@ -1627,72 +1731,11 @@ class LocalGameSession {
     return suggestions.where(_isValidMeld).toList();
   }
 
-  bool _isValidMeld(List<String> cards) {
-    if (cards.length < 3 || cards.length > 13) {
-      return false;
-    }
+  bool _isValidMeld(List<String> cards) => R52RummyRules.validMeld(cards,banakil:gameId=='banakil');
 
-    final jokerCount = cards.where((card) => card.startsWith('JOKER')).length;
-    final twoCount = gameId == 'banakil' ? cards.where((card) => _cardRank(card) == '2').length : 0;
-    if (gameId == 'banakil' && (jokerCount > 1 || twoCount > 1)) {
-      return false;
-    }
-    final natural = cards.where((card) {
-      if (card.startsWith('JOKER')) return false;
-      return gameId != 'banakil' || _cardRank(card) != '2';
-    }).toList();
-    if (natural.length<2) {
-      return false;
-    }
-    final wildCount = jokerCount + twoCount;
-
-    final sameRank = natural.every((card) => _cardRank(card) == _cardRank(natural.first));
-    if (sameRank) {
-      if (gameId == 'banakil') {
-        final rank = _cardRank(natural.first);
-        final suits = natural.map(_cardSuit).toSet();
-        return (rank == '3' || rank == 'A') &&
-            suits.length == natural.length &&
-            natural.length + wildCount <= 4;
-      }
-      return natural.length+wildCount<=4 && natural.map(_cardSuit).toSet().length==natural.length;
-    }
-
-    final sameSuit = natural.every((card) => _cardSuit(card) == _cardSuit(natural.first));
-    if (!sameSuit) {
-      return false;
-    }
-    final values = natural.map((card) => _standardRanks.indexOf(_cardRank(card))).toList()..sort();
-    if (values.toSet().length != values.length) {
-      return false;
-    }
-    var missing = 0;
-    for (var i = 1; i < values.length; i++) {
-      missing += values[i] - values[i - 1] - 1;
-    }
-    return missing <= wildCount;
-  }
-
-  int _rummyPoints(List<String> cards) {
-    if (gameId == 'banakil') {
-      // Half-points are stored doubled to keep the offline engine integer-only.
-      var doubled = 0;
-      for (final card in cards) {
-        final rank = _cardRank(card);
-        if (rank == 'JOKER') {
-          doubled += 8;
-        } else if (rank == '2') {
-          doubled += 4;
-        } else if (rank == '3' || rank == '4' || rank == '5' || rank == '6') {
-          doubled += 1;
-        } else {
-          doubled += 2;
-        }
-      }
-      return doubled;
-    }
-    return cards.fold<int>(0, (sum, card) => sum + _cardPoints(card));
-  }
+  int _rummyPoints(List<String> cards) => gameId=='banakil'
+      ? cards.fold<int>(0,(sum,c)=>sum+R52RummyRules.banakilHalfPoints(c))
+      : R52RummyRules.openingValue(cards);
 
   void _basraAction(String action, Map<String, dynamic> payload) {
     if (action != 'play_card') {

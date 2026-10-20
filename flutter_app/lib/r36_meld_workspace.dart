@@ -24,11 +24,7 @@ class R40DiscardStackPicker extends StatefulWidget {
 class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
   int count = 2;
   String text(String ar, String en) => widget.ar ? ar : en;
-  String label(String card) {
-    if (card.startsWith('JOKER')) return '🃏';
-    final parts = card.split('_');
-    return '${parts.first}${const {'clubs':'♣','diamonds':'♦','spades':'♠','hearts':'♥','C':'♣','D':'♦','S':'♠','H':'♥'}[parts.length > 1 ? parts[1] : ''] ?? ''}';
-  }
+  String label(String card) => r52CardLabel(card);
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +66,7 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
   final selected = <int>{};
   final groups = <List<int>>[];
   String text(String ar, String en) => widget.ar ? ar : en;
-  String label(String card) {
-    if (card.startsWith('JOKER')) return '🃏';
-    final parts = card.split('_');
-    final suit = parts.length > 1 ? parts[1] : '';
-    return '${parts.first}${const {'clubs':'♣','diamonds':'♦','spades':'♠','hearts':'♥','C':'♣','D':'♦','S':'♠','H':'♥'}[suit] ?? suit}';
-  }
+  String label(String card) => r52CardLabel(card);
 
   @override
   Widget build(BuildContext context) {

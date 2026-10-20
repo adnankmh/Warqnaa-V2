@@ -21,6 +21,8 @@ return [
         ],
     ],
     'ads' => [
+        'ssv_enabled' => env('WARQNAA_ADMOB_SSV_ENABLED',false),
+        'ssv_ad_units' => array_values(array_filter(array_map('trim',explode(',',(string)env('WARQNAA_ADMOB_REWARDED_UNITS',''))))),
         'rewarded' => true,
         'interstitial' => true,
         'during_match' => false,

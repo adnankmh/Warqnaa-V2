@@ -96,6 +96,10 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
      <source media="(orientation: portrait) and (max-width: 900px)" srcset="{{ \App\Support\R48TableArtwork::url($activeTableSkin, true) }}">
      <img src="{{ \App\Support\R48TableArtwork::url($activeTableSkin) }}" alt="" draggable="false">
     </picture>
+   @elseif(!empty($activeTableImage))
+    <picture class="r48-table-art r52-catalog-table-art" data-showcase="{{ str_contains((string)$activeTableSkin,'showcase')?'true':'false' }}" aria-hidden="true">
+     <img src="{{ $activeTableImage }}" alt="" draggable="false">
+    </picture>
    @endif
    <div class="table-aura"></div>
    <div class="deck-stack"><span></span><span></span><span></span></div>

@@ -58,6 +58,7 @@ class CommerceCatalogService
             'offers'=>$offers,
             'ads'=>array_merge((array)config('warqna_commerce.ads',[]),[
                 'rewarded'=>SiteSetting::getValue('ads_rewarded_enabled',true),
+                'verification_ready'=>\App\Http\Controllers\MobileRewardedAdsController::ready(),
                 'interstitial'=>SiteSetting::getValue('ads_interstitial_enabled',true),
                 'during_match'=>false,
             ]),

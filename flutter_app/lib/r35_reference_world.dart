@@ -40,6 +40,8 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
             R35ChampionBanner(controller: controller),
             const SizedBox(height: 13),
             R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
+            const SizedBox(height:12),
+            R52RewardsHomePanel(controller:controller),
             const SizedBox(height: 13),
             LayoutBuilder(builder: (context, box) {
               final compact = box.maxWidth < 900;
@@ -433,8 +435,8 @@ class R35ArtGameCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
             color: const Color(0xD9042D75),
             child: Text(L.t(locale, game.id), textAlign: TextAlign.center,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 13.5, height: 1.25, fontWeight: FontWeight.w900)),
+              maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.25, fontWeight: FontWeight.w900)),
           ),
         ]),
       ),

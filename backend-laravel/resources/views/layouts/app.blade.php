@@ -42,7 +42,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/b307-cardroom-ui.css') }}?v=40-rummy-turn-controls">
     <link rel="stylesheet" href="{{ asset('assets/css/r5-world-class.css') }}?v=r5">
     <link rel="stylesheet" href="{{ asset('assets/css/r6-1-world-class.css') }}?v=640">
-    <link rel="stylesheet" href="{{ asset('assets/css/r48-approved-art.css') }}?v=48">
+    <link rel="stylesheet" href="{{ asset('assets/css/r48-approved-art.css') }}?v=52">
 </head>
 @php
     $currentUser = auth()->user();

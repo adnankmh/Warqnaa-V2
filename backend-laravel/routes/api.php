@@ -52,6 +52,7 @@ Route::prefix('mobile/v1')->group(function () {
     Route::get('/games/{gameKey}/rules', [MobileGameController::class, 'rules']);
     Route::get('/assets/manifest', [MobileAssetController::class, 'manifest']);
     Route::get('/commerce/catalog', [MobileCommerceController::class, 'catalog']);
+    Route::get('/ads/admob/ssv',[\App\Http\Controllers\MobileRewardedAdsController::class,'callback'])->middleware('throttle:120,1');
 
     Route::middleware(['auth:sanctum', 'throttle:warqna-api', 'supported.app', 'maintenance.guard'])->group(function () {
         Route::get('/bootstrap', [MobileApiController::class, 'bootstrap']);
@@ -69,6 +70,8 @@ Route::prefix('mobile/v1')->group(function () {
         Route::post('/push/devices', [MobilePushController::class, 'store']);
         Route::delete('/push/devices', [MobilePushController::class, 'destroy']);
         Route::post('/rewards/daily', [MobileApiController::class, 'claimDaily'])->middleware('throttle:warqna-sensitive');
+        Route::post('/rewards/ad-sessions',[\App\Http\Controllers\MobileRewardedAdsController::class,'start'])->middleware('throttle:warqna-sensitive');
+        Route::get('/rewards/ad-sessions/{session}',[\App\Http\Controllers\MobileRewardedAdsController::class,'status']);
         Route::post('/rewards/rewarded-ad', [MobileApiController::class, 'claimRewardedAd'])->middleware('throttle:warqna-sensitive');
         Route::get('/engagement/center', [MobileEngagementController::class, 'center']);
         Route::get('/rewards/lucky-wheel', [MobileEngagementController::class, 'luckyWheel']);
@@ -172,6 +175,7 @@ Route::prefix('mobile/v1')->group(function () {
         // Clubs 2.0 mobile contract.
         Route::get('/clubs-world', [MobileClubWorldController::class, 'index']);
         Route::get('/clubs-world/{club}', [MobileClubWorldController::class, 'show']);
+        Route::patch('/clubs-world/{club}/members/{user}/role', [MobileClubWorldController::class, 'assignRole'])->middleware('throttle:warqna-sensitive');
         Route::post('/clubs-world', [MobileClubWorldController::class, 'create'])->middleware('throttle:warqna-sensitive');
         Route::post('/clubs-world/{club}/join', [MobileClubWorldController::class, 'join'])->middleware('throttle:30,1');
         Route::post('/clubs-world/{club}/leave', [MobileClubWorldController::class, 'leave'])->middleware('throttle:warqna-sensitive');

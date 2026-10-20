@@ -3,7 +3,7 @@ import 'rewarded_ads_stub.dart'
 
 class RewardedAds {
   static Future<void> initialize() => implementation.initializeRewardedAds();
-  static Future<bool> show() => implementation.showRewardedAd();
+  static Future<bool> show({String? userId,String? customData}) => implementation.showRewardedAd(userId:userId,customData:customData);
 }
 
 /// Starts the rewarded-ad SDK only after the first Flutter frame and controller load.

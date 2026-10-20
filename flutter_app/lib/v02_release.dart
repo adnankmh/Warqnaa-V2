@@ -12,7 +12,7 @@ const List<String> prizeBoxKeysV02 = <String>[
 
 String ticketAssetV02(String value) => 'assets/optimized/r10/v02/tickets/ticket_$value.webp';
 String prizeBoxAssetV02(String key, [String suffix = '']) =>
-    'assets/optimized/r10/v02/prize_boxes/$key${suffix.isEmpty ? '' : '_$suffix'}.webp';
+    'assets/images/v02/prize_boxes/$key${suffix.isEmpty ? '' : '_$suffix'}.png';
 
 class V02Text {
   static const Map<String, Map<String, String>> _data = <String, Map<String, String>>{
@@ -584,6 +584,7 @@ class PrizeBoxCardV02 extends StatelessWidget {
           Text(opened && reward.isNotEmpty ? prizeRewardLabelV02(lang, reward) : V02Text.t(lang, 'perWin'), style: TextStyle(color: opened ? const Color(0xff16a34a) : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
           const SizedBox(height: 9),
           FilledButton.icon(
+            key:ValueKey('r52-open-prize-box-${box['id']}'),
             onPressed: opened ? null : onOpen,
             icon: Icon(opened ? Icons.verified_rounded : Icons.lock_open_rounded),
             label: Text(opened ? V02Text.t(lang, 'opened') : V02Text.t(lang, 'open')),

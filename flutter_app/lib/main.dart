@@ -18,6 +18,7 @@ import 'engines/tarneeb_engine.dart';
 import 'engines/local_game_engine.dart';
 import 'services/api_client.dart';
 import 'services/rewarded_ads.dart';
+import 'models/card_identity.dart';
 import 'services/interstitial_ads.dart';
 import 'services/voice_room_service.dart';
 import 'services/app_sounds.dart';
@@ -52,6 +53,7 @@ part 'v305_single_table.dart';
 part 'r48_approved_art.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
+part 'r52_playability.dart';
 part 'r36_meld_workspace.dart';
 part 'r41_board_legibility.dart';
 part 'r36_store_sync.dart';
@@ -200,7 +202,7 @@ class AppController extends ChangeNotifier {
   String botDifficultyCode = 'pro';
   double uiButtonHeight = 48;
   double uiRadius = 18;
-  double uiFontScale = 1.0;
+  double uiFontScale = 1.12;
   double uiChatScale = 1.0;
   String uiFontFamily = 'Roboto';
   String? customTableBackgroundData;
@@ -726,7 +728,7 @@ class AppController extends ChangeNotifier {
     vipDays = prefs.getInt('vipDays') ?? vipDays;
     activeClub = prefs.getString('activeClub');
     soundEnabled = prefs.getBool('soundEnabled') ?? soundEnabled;
-    landscapeMode = prefs.getBool('landscapeMode') ?? landscapeMode;
+    landscapeMode = prefs.getBool('landscapeMode') ?? false;
     selectedTable = prefs.getString('selectedTable') ?? selectedTable;
     selectedCardBack = prefs.getString('selectedCardBack') ?? selectedCardBack;
     selectedNameColor = prefs.getString('selectedNameColor') ?? selectedNameColor;
@@ -1483,7 +1485,7 @@ class AppController extends ChangeNotifier {
     }
     rewardedAdClaimsToday += 1;
     transactions.insert(0, TokenTransaction('مكافأة مشاهدة إعلان', tokens, serverConnected ? 'الآن • خادم' : 'الآن • محلي'));
-    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة ${rewardedAdClaimsToday + 1}/8' : '$tokens tokens and $earnedXp XP • reward ${rewardedAdClaimsToday + 1}/8'));
+    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة $rewardedAdClaimsToday/8' : '$tokens tokens and $earnedXp XP • reward $rewardedAdClaimsToday/8'));
     await _save();
     notifyListeners();
     return null;
@@ -4591,7 +4593,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     if (engine.phase == TarneebPhase.roundEnd && !autoNextRoundScheduled) {
       autoNextRoundScheduled = true;
       AppSounds.fire('round_end');
-      Future<void>.delayed(const Duration(milliseconds: 1600), () {
+      Future<void>.delayed(const Duration(milliseconds: 250), () {
         if (!mounted || engine.phase != TarneebPhase.roundEnd) return;
         AppSounds.fire('next_round');
         _nextRound();
@@ -4628,7 +4630,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     botsActing = true;
     var guard = 0;
     while (mounted && engine.currentSeat != 0 && engine.phase != TarneebPhase.roundEnd && engine.phase != TarneebPhase.gameOver && guard < 48) {
-      await Future<void>.delayed(const Duration(milliseconds: 720));
+      await Future<void>.delayed(const Duration(milliseconds: 180));
       if (!mounted) break;
       engine.autoActCurrentSeat();
       seconds = widget.options.turnSeconds;
@@ -4920,7 +4922,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     );
   }
 
-  double landscapeSafeWidth(double width) => width > 900 ? width * .70 : width - 12;
+  double landscapeSafeWidth(double width) => width > 900 ? width * .66 : width - 12;
 
   Widget _actionPanel(BuildContext context, {required bool compact}) {
     if (engine.phase == TarneebPhase.roundEnd) {
@@ -4932,7 +4934,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     if (engine.phase == TarneebPhase.gameOver) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(10, 3, 10, 5),
-        child: FilledButton.icon(onPressed: () => setState(_newGame), icon: const Icon(Icons.emoji_events_rounded), label: Text(_tr('فاز فريق ${engine.teamName(engine.winnerTeam ?? 0)} — مباراة جديدة', '${engine.winnerTeam == 0 ? 'You win' : 'Other team wins'} — Play again')), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44))),
+        child: R52MatchResult(ar:widget.controller.localeCode=='ar',won:engine.winnerTeam==0,onReplay:()=>setState(_newGame),onExit:(){widget.controller.leaveGame(widget.game.id);Navigator.of(context).pop(true);}),
       );
     }
     if (engine.currentSeat != 0 || botsActing) {
@@ -5167,9 +5169,7 @@ class PremiumCardBack extends StatelessWidget {
               : null,
           image: customBytes != null
               ? DecorationImage(image: MemoryImage(customBytes), fit: BoxFit.cover)
-              : asset == null
-                  ? null
-                  : DecorationImage(image: AssetImage(asset), fit: BoxFit.cover, filterQuality: FilterQuality.high),
+              : null,
           border: Border.all(color: Color.lerp(c2, B307SkyLuxury.cyan, .28)!, width: 1.5),
           boxShadow: [
             BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .13), blurRadius: 8, spreadRadius: .3),
@@ -5183,7 +5183,10 @@ class PremiumCardBack extends StatelessWidget {
                   painter: _WarqnaaCardBackPainter(color: c2),
                   child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
                 )
-              : const SizedBox.shrink(),
+              : asset==null ? const SizedBox.shrink() : SizedBox.expand(child:RotatedBox(
+                key:const ValueKey('r52-upright-card-back-art'),
+                quarterTurns:r52CardBackQuarterTurns(asset),
+                child:Image.asset(asset,fit:BoxFit.cover,filterQuality:FilterQuality.high))),
         ),
       ),
     );
@@ -5273,6 +5276,13 @@ class WarqnaaTableSurface extends StatelessWidget {
               ],
             ),
           );
+        }
+        if(assetImage!=null && customBytes==null) {
+          return KeyedSubtree(key:const ValueKey('r19-warqnaa-table-surface'),
+            child:Stack(key:const ValueKey('r30-premium-table-surface'),fit:StackFit.expand,children:[
+              R52CatalogTableArt(image:assetImage,showcase:skinId.contains('showcase')),
+              if(controller?.tableAmbientEffects ?? true)Positioned.fill(child:ClipPath(clipper:R52TableOutline(showcase:skinId.contains('showcase')),child:AmbientTableFX(density:portrait?7:9,subtle:true))),
+            ]));
         }
         return AnimatedContainer(
           key: const ValueKey('r19-warqnaa-table-surface'),
@@ -5550,7 +5560,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   Future<void> _openLocalRoom([String? reason]) async {
-    localSession = LocalGameSession(gameId: widget.game.id, humanName: widget.controller.displayName, difficulty: widget.controller.botDifficultyCode, playerCount: widget.options.playerCount, localeCode: widget.controller.localeCode);
+    localSession = LocalGameSession(gameId: widget.game.id, humanName: widget.controller.displayName, difficulty: widget.controller.botDifficultyCode, playerCount: widget.options.playerCount, localeCode: widget.controller.localeCode, singleRound: widget.options.singleRound);
     if (!mounted) return;
     setState(() {
       room = localSession!.room();
@@ -5672,7 +5682,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   int get turnDuration => int.tryParse(room?['turn_seconds']?.toString() ?? '') ?? widget.options.turnSeconds;
 
   void _scheduleServerAutoNextRound() {
-    if (!mounted || localSession != null || sending || roomCode.isEmpty) return;
+    if (!mounted || sending || roomCode.isEmpty) return;
+    if(state['game_over']==true) {
+      serverAutoNextRoundTimer?.cancel();serverAutoNextRoundTimer=null;serverAutoNextRoundScheduled=false;return;
+    }
     final nextAvailable = state['next_round_available'] == true;
     if (!nextAvailable) {
       serverAutoNextRoundScheduled = false;
@@ -5685,7 +5698,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     final action = actionTypes.contains('next_round') || widget.game.id.contains('tarneeb') ? 'next_round' : 'new_round';
     serverAutoNextRoundScheduled = true;
     AppSounds.fire('round_end');
-    serverAutoNextRoundTimer = Timer(const Duration(milliseconds: 1700), () async {
+    serverAutoNextRoundTimer = Timer(const Duration(milliseconds: 250), () async {
       if (!mounted) return;
       try {
         AppSounds.fire('next_round');
@@ -5697,7 +5710,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   void _tick() {
-    if (!mounted || loading || room == null || sending) return;
+    if (!mounted || loading || room == null || sending || state['game_over']==true) return;
     if (awayMode) { _timeout(inactive: false); return; }
     setState(() => seconds -= 1);
     chatPoll += 1;
@@ -6384,6 +6397,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           ),
         ),
         if (_isTarneebFamilyServer) _serverTarneebStatusStrip(context),
+        R52RoundScoreCard(state:state,players:room?['players'] is List ? room!['players'] as List : const [],ar:widget.controller.localeCode=='ar'),
     ];
     final controls = <Widget>[
       _serverHand(), _serverActions(context),
@@ -6427,7 +6441,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     // Small phones and expanded chat scroll while card ranks stay readable.
     return SingleChildScrollView(child: Column(children: [
       ...status,
-      SizedBox(height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable()),
+      Center(child:SizedBox(width:MediaQuery.sizeOf(context).width>=1100 ? math.min(area.maxWidth,MediaQuery.sizeOf(context).width*.66) : area.maxWidth,
+        height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable())),
       ...controls,
     ]));
   });
@@ -6722,19 +6737,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     await _action(action, {'card':card,'tile':card});
   }
 
-  String _rawCardSuit(String raw) {
-    if (raw.startsWith('JOKER')) return 'J';
-    final cleaned = raw.replaceAll('_', '');
-    if (cleaned.isEmpty) return '';
-    final suit = cleaned.substring(cleaned.length - 1).toUpperCase();
-    return const <String>{'C', 'D', 'S', 'H'}.contains(suit) ? suit : '';
-  }
+  String _rawCardSuit(String raw) => WarqnaaCardIdentity.parse(raw)?.suit ?? '';
 
-  String _rawCardRank(String raw) {
-    if (raw.startsWith('JOKER')) return 'JOKER';
-    final cleaned = raw.replaceAll('_', '');
-    return cleaned.length < 2 ? cleaned : cleaned.substring(0, cleaned.length - 1).toUpperCase();
-  }
+  String _rawCardRank(String raw) => WarqnaaCardIdentity.parse(raw)?.rank ?? '';
 
   int _rawRankIndex(String raw) {
     const ranks = <String>['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -6828,12 +6833,21 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     );
   }
 
-  String _cardLabel(String raw) {
-    final cleaned = raw.replaceAll('_', '');
-    return cleaned.replaceAll('C', '♣').replaceAll('D', '♦').replaceAll('S', '♠').replaceAll('H', '♥');
-  }
+  String _cardLabel(String raw) => r52CardLabel(raw);
 
   Widget _serverActions(BuildContext context) {
+    if(state['game_over']==true) {
+      final scores=state['scores'] ?? state['score'];
+      final players=room?['players'] is List ? room!['players'] as List : const [];
+      final you=state['you']?.toString() ?? (localSession!=null?'user:0':'user:${widget.controller.currentUserId}');
+      return R52MatchResult(ar:widget.controller.localeCode=='ar',won:r52PlayerWon(state,you:you,players:players),
+        points:scores is Map ? scores.entries.map((e)=>'${e.key}: ${e.value}').join(' • ') : null,
+        onReplay:localSession!=null || availableActions.any((a)=>a['type']=='new_round') ? ()=>_action('new_round') : null,
+        onExit:(){
+          if(localSession==null && widget.controller.serverConnected)unawaited(widget.controller.api.leaveGame(roomCode).catchError((_)=> <String,dynamic>{}));
+          widget.controller.leaveGame(widget.game.id);Navigator.of(context).pop(true);
+        });
+    }
     final types = availableActions.map((item) => item['type']?.toString() ?? '').toSet();
     final widgets = <Widget>[];
     final matchingCardAction = selectedCard == null
@@ -6869,7 +6883,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       widgets.add(FilledButton.tonal(onPressed: sending ? null : () => _chooseServerBid(bids), child: Text(_roomText('اختيار الطلب', 'Choose bid'))));
     }
     if (types.contains('pass') || (availableActions.isEmpty && (widget.game.id == 'domino' || widget.game.id == 'backgammon'))) {
-      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('pass'), child: Text(_roomText('سكون', 'Pass'))));
+      widgets.add(OutlinedButton(onPressed: sending ? null : () => _action('pass'), child: Text(_roomText('تمرير', 'Pass'))));
     }
     if (types.contains('pass_trix')) {
       widgets.add(OutlinedButton.icon(
@@ -6964,6 +6978,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       widgets.add(FilledButton.icon(onPressed: sending ? null : _showChessMove, icon: const Icon(Icons.grid_4x4), label: Text(_roomText('نقلة شطرنج', 'Chess move'))));
     }
 
+    if(types.contains('next_round')) widgets.add(FilledButton.icon(key:const ValueKey('r52-next-rummy-round'),onPressed:sending?null:()=>_action('next_round'),icon:const Icon(Icons.skip_next_rounded),label:Text(_roomText('الجولة التالية','Next round'))));
     if (types.contains('new_round') || state['game_over'] == true) {
       widgets.add(FilledButton.icon(onPressed: sending ? null : () => _action('new_round'), icon: const Icon(Icons.replay), label: Text(_roomText('إعادة اللعب', 'Play again'))));
     }
@@ -7146,7 +7161,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (_, index) => ListTile(
               leading: const Text('🃏', style: TextStyle(fontSize: 26)),
-              title: Text(_roomText('استبدل الجوكر بـ ${_cardLabel(options[index]['card']?.toString() ?? '')}', 'Replace the joker with ${_cardLabel(options[index]['card']?.toString() ?? '')}')),
+              title: Text(_roomText('استبدل الجوكر بـ ${(options[index]['cards'] is List ? (options[index]['cards'] as List).map((c)=>_cardLabel(c.toString())).join(' + ') : _cardLabel(options[index]['card']?.toString() ?? ''))}', 'Replace the joker with ${(options[index]['cards'] is List ? (options[index]['cards'] as List).map((c)=>_cardLabel(c.toString())).join(' + ') : _cardLabel(options[index]['card']?.toString() ?? ''))}')),
               subtitle: Text(_roomText('مجموعة #${(options[index]['meld_index'] ?? 0) + 1}', 'Meld #${(options[index]['meld_index'] ?? 0) + 1}')),
               onTap: () => Navigator.pop(dialogContext, options[index]),
             ),
@@ -7159,6 +7174,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         'target_player': selected['target_player'],
         'meld_index': selected['meld_index'],
         'card': selected['card'],
+        if(selected['cards'] is List) 'cards':selected['cards'],
       });
     }
   }
@@ -7408,7 +7424,7 @@ class PlayingCard extends StatelessWidget {
     final red = suit == '♥' || suit == '♦';
     final ink = red ? const Color(0xffb42335) : const Color(0xff101419);
     final compactCard = width < 34;
-    final cornerSize = math.max(compactCard ? 6.0 : 9.0, width * .25).toDouble();
+    final cornerSize = math.max(compactCard ? 6.0 : 9.0, width * .27).toDouble();
     final centerSize = math.max(compactCard ? 9.0 : 16.0, width * .48).toDouble();
     final edgeInset = compactCard ? 1.5 : 3.5;
     final verticalInset = compactCard ? 1.0 : 2.5;
@@ -7445,7 +7461,7 @@ class PlayingCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(math.max(6.0, width * .16).toDouble()),
           child: Stack(
             children: [
-              Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))])),
+              Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .95, height: .85))])),
               Positioned.fill(
                 child: CustomPaint(
                   key: ValueKey('r19-card-face-$label'),
@@ -7454,7 +7470,7 @@ class PlayingCard extends StatelessWidget {
                     fontFamilyFallback: Theme.of(context).textTheme.bodyMedium?.fontFamilyFallback),
                 ),
               ),
-              Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
+              Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .95, height: .85))]))),
               if (selected)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -7553,7 +7569,7 @@ class _WarqnaaCardFacePainter extends CustomPainter {
       _ => const [Offset(.34, .19), Offset(.66, .19), Offset(.50, .30), Offset(.34, .39), Offset(.66, .39), Offset(.34, .61), Offset(.66, .61), Offset(.50, .70), Offset(.34, .81), Offset(.66, .81)],
     };
     for (final position in positions) {
-      _glyph(canvas, suit, Offset(size.width * position.dx, size.height * position.dy), size.width * .16, color: ink);
+      _glyph(canvas, suit, Offset(size.width * position.dx, size.height * position.dy), size.width * .19, color: ink);
     }
   }
 
@@ -8406,6 +8422,7 @@ void showWallet(BuildContext context, AppController controller) {
 }
 
 Future<void> watchRewardedAd(BuildContext context, AppController controller) async {
+  if(controller.serverConnected) {await watchVerifiedRewardedAdR52(context,controller);return;}
   if (controller.rewardedAdsRemaining <= 0) {
     showToast(context, 'وصلت إلى الحد اليومي للإعلانات المكافِئة.');
     return;
