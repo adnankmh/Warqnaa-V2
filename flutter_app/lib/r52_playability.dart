@@ -2,9 +2,58 @@ part of 'main.dart';
 
 String r52CardLabel(String raw) => WarqnaaCardIdentity.parse(raw)?.label ?? raw;
 
+bool r52PlayerWon(Map<String,dynamic> state,{required String you,required List<dynamic> players}) {
+  final winner=state['overall_winner'] ?? state['winner'];
+  if(winner is List && winner.contains(you))return true;
+  if(winner?.toString()==you)return true;
+  final rawTeam=(state['overall_winner_team'] ?? state['winner_team'] ?? winner)?.toString();
+  final team=switch(rawTeam){'0'=>'teamA','1'=>'teamB','teamA'||'teamB'=>rawTeam,_=>null};
+  if(team==null)return false;
+  final teams=state['teams'];
+  if(teams is Map && teams[team] is List)return (teams[team] as List).contains(you);
+  for(var i=0;i<players.length;i++) {
+    final player=players[i];
+    if(player is Map && player['key']?.toString()==you) {
+      final seat=int.tryParse(player['seat']?.toString() ?? '') ?? i;
+      return (seat.isEven?'teamA':'teamB')==team;
+    }
+  }
+  return false;
+}
+
 // V173 source tables are 1280x720/683. The explicit R48 card-back variants
 // and original V021 card backs are already portrait and stay upright.
 int r52CardBackQuarterTurns(String asset) => asset.startsWith('assets/optimized/r10/tables/v173/') ? 1 : 0;
+
+/// Catalogue art is clipped at the playing surface, never placed on an opaque
+/// rectangular felt backdrop. R48's approved alpha artwork keeps its own path.
+class R52CatalogTableArt extends StatelessWidget {
+  const R52CatalogTableArt({super.key,required this.image,required this.showcase});
+  final ImageProvider image;
+  final bool showcase;
+  @override
+  Widget build(BuildContext context)=>LayoutBuilder(builder:(context,box)=>ClipPath(
+    key:const ValueKey('r52-catalog-table-cutout'),
+    clipper:R52TableOutline(showcase:showcase),
+    child:Image(image:image,fit:box.maxHeight>box.maxWidth ? BoxFit.cover : BoxFit.fill,
+      filterQuality:FilterQuality.high,excludeFromSemantics:true)));
+}
+
+class R52TableOutline extends CustomClipper<Path> {
+  const R52TableOutline({required this.showcase});
+  final bool showcase;
+  @override
+  Path getClip(Size size) {
+    final vertical=size.height>size.width;
+    final inset=math.min(size.width,size.height)*.006;
+    // Showcase source sheets contain a thin neighbouring strip above the table.
+    final top=showcase && !vertical ? size.height*.085 : inset;
+    final radius=math.min(size.width,size.height)*(showcase ? .40 : .045);
+    return Path()..addRRect(RRect.fromRectAndRadius(
+      Rect.fromLTRB(inset,top,size.width-inset,size.height-inset),Radius.circular(radius)));
+  }
+  @override bool shouldReclip(covariant R52TableOutline oldClipper)=>showcase!=oldClipper.showcase;
+}
 
 Future<void> watchVerifiedRewardedAdR52(BuildContext context,AppController controller) async {
   final ar=controller.localeCode=='ar';

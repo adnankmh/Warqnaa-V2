@@ -17,3 +17,10 @@ body.warqna-r61.is-room-page .table-wrap .game-table:has(>.r48-table-art) .last-
 
 body.warqna-b304 .r101-web-commerce,body.warqna-b304 .r101-commerce-stat,body.warqna-b304 .r101-offer-row{background:#103d62!important;background-image:none!important;color:#f7fbff}
 .r101-web-commerce p,.r101-web-commerce small,.r101-web-commerce span{color:#e0ecf5}
+
+/* R52 catalogue cutouts apply to art only; seats and controls remain outside. */
+.r52-catalog-table-art>img{clip-path:inset(.6% round 4.5%)}
+.r52-catalog-table-art[data-showcase="true"]>img{clip-path:inset(8.5% .6% .6% round 40%)}
+.w36-game-tile-info>strong{font-size:clamp(16px,1.25vw,20px)!important;line-height:1.4!important}
+@media(min-width:1100px){body.warqna-r61.is-room-page .table-wrap .game-table{width:min(100%,66vw,1100px)!important;aspect-ratio:16/9.6!important}}
+@media(orientation:portrait) and (max-width:900px){.r52-catalog-table-art>img{object-fit:cover;clip-path:inset(.6% round 12%)}}

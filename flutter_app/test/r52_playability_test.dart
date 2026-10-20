@@ -78,6 +78,14 @@ void main() {
     expect(r52CardLabel('Q_diamonds'),'Q♦');
     expect(r52CardLabel('K_clubs'),'K♣');
   });
+  test('R52 result follows the real server identity and partnership instead of user zero',() {
+    const players=[{'key':'user:41','seat':0},{'key':'user:72','seat':1},{'key':'user:93','seat':2},{'key':'bot:4','seat':3}];
+    expect(r52PlayerWon({'winner':'user:41'},you:'user:41',players:players),isTrue);
+    expect(r52PlayerWon({'winner':'user:93'},you:'user:41',players:players),isFalse);
+    expect(r52PlayerWon({'winner':0,'winner_team':'teamA'},you:'user:93',players:players),isTrue);
+    expect(r52PlayerWon({'winner':0,'winner_team':'teamA'},you:'user:72',players:players),isFalse);
+    expect(r52PlayerWon({'winner':'bot:1'},you:'user:0',players:const []),isFalse);
+  });
   test('R52 landscape source backs rotate to portrait while approved portraits stay upright',() {
     expect(r52CardBackQuarterTurns('assets/optimized/r10/tables/v173/royal/table_v173_royal_03.webp'),1);
     expect(r52CardBackQuarterTurns('assets/optimized/r48/ocean_portrait.webp'),0);
@@ -133,5 +141,36 @@ void main() {
         await tester.pumpWidget(const SizedBox.shrink());
       });
     }
+  }
+  testWidgets('R52 catalogue cutouts preserve a transparent exterior and an interior playing area',(tester) async {
+    for(final size in [const Size(360,560),const Size(800,480)]) {
+      for(final showcase in [true,false]) {
+        final path=R52TableOutline(showcase:showcase).getClip(size);
+        expect(path.contains(Offset(size.width/2,size.height/2)),isTrue);
+        expect(path.contains(Offset.zero),isFalse);
+        expect(path.contains(Offset(size.width-1,1)),isFalse);
+      }
+    }
+  });
+  final tables=products.where((p)=>isR61CuratedTable(p) && p.imageAsset!=null).toList();
+  for(var page=0;page<(tables.length/12).ceil();page++) {
+    testWidgets('R52 actual catalogue table gallery page $page',(tester) async {
+      tester.view.physicalSize=const Size(1440,900);tester.view.devicePixelRatio=1;
+      addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
+      final controller=AppController()..localeCode='ar'..tableAmbientEffects=false;
+      addTearDown(controller.dispose);final key=GlobalKey();
+      final group=tables.skip(page*12).take(12).toList();
+      await tester.pumpWidget(review.reviewApp(Scaffold(body:GridView.count(
+        padding:const EdgeInsets.all(16),crossAxisCount:4,childAspectRatio:1.42,crossAxisSpacing:14,mainAxisSpacing:14,
+        children:[for(final product in group)Column(children:[
+          Expanded(child:WarqnaaTableSurface(trump:null,phase:'playing',skinId:product.id,controller:controller)),
+          Text(product.nameAr,style:const TextStyle(fontSize:14,color:Colors.white)),
+        ])])),controller,key));
+      await tester.pump();
+      expect(find.byType(WarqnaaTableSurface),findsNWidgets(group.length));
+      if(review.reviewDirectory.isNotEmpty)await review.capture(tester,key,'ar-r52-catalogue-tables-$page');
+      expect(tester.takeException(),isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
   }
 }

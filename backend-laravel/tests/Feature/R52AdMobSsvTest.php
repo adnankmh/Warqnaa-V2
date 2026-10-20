@@ -22,7 +22,7 @@ class R52AdMobSsvTest extends TestCase
         $public=openssl_pkey_get_details($this->signer)['key'];
         Http::fake([AdMobSsvVerifier::KEYS_URL=>Http::response(['keys'=>[['keyId'=>52,'pem'=>$public]]])]);
         $this->player=User::create(['username'=>'AdPlayer','email'=>'adplayer@example.test','password'=>Hash::make(bin2hex(random_bytes(16))),'is_admin'=>false]);
-        Profile::create(['user_id'=>$this->player->id,'display_name'=>'AdPlayer','level'=>app(\App\Services\Leveling\XpService::class)->levelForXp(100000),'xp'=>100000]);
+        Profile::create(['user_id'=>$this->player->id,'display_name'=>'AdPlayer','level'=>1,'xp'=>0]);
         Wallet::create(['user_id'=>$this->player->id,'tokens'=>1000,'gems'=>0]);
         $this->withToken($this->player->createToken('r52-ad')->plainTextToken);
     }

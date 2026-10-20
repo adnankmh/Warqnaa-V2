@@ -5277,6 +5277,13 @@ class WarqnaaTableSurface extends StatelessWidget {
             ),
           );
         }
+        if(assetImage!=null && customBytes==null) {
+          return KeyedSubtree(key:const ValueKey('r19-warqnaa-table-surface'),
+            child:Stack(key:const ValueKey('r30-premium-table-surface'),fit:StackFit.expand,children:[
+              R52CatalogTableArt(image:assetImage,showcase:skinId.contains('showcase')),
+              if(controller?.tableAmbientEffects ?? true)Positioned.fill(child:ClipPath(clipper:R52TableOutline(showcase:skinId.contains('showcase')),child:AmbientTableFX(density:portrait?7:9,subtle:true))),
+            ]));
+        }
         return AnimatedContainer(
           key: const ValueKey('r19-warqnaa-table-surface'),
           duration: const Duration(milliseconds: 220),
@@ -6830,11 +6837,16 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Widget _serverActions(BuildContext context) {
     if(state['game_over']==true) {
-      final scores=state['scores'];
-      return R52MatchResult(ar:widget.controller.localeCode=='ar',won:state['winner']?.toString()=='user:0',
+      final scores=state['scores'] ?? state['score'];
+      final players=room?['players'] is List ? room!['players'] as List : const [];
+      final you=state['you']?.toString() ?? (localSession!=null?'user:0':'user:${widget.controller.currentUserId}');
+      return R52MatchResult(ar:widget.controller.localeCode=='ar',won:r52PlayerWon(state,you:you,players:players),
         points:scores is Map ? scores.entries.map((e)=>'${e.key}: ${e.value}').join(' • ') : null,
-        onReplay:()=>_action('new_round'),
-        onExit:(){widget.controller.leaveGame(widget.game.id);Navigator.of(context).pop(true);});
+        onReplay:localSession!=null || availableActions.any((a)=>a['type']=='new_round') ? ()=>_action('new_round') : null,
+        onExit:(){
+          if(localSession==null && widget.controller.serverConnected)unawaited(widget.controller.api.leaveGame(roomCode).catchError((_)=> <String,dynamic>{}));
+          widget.controller.leaveGame(widget.game.id);Navigator.of(context).pop(true);
+        });
     }
     final types = availableActions.map((item) => item['type']?.toString() ?? '').toSet();
     final widgets = <Widget>[];

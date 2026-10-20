@@ -76,4 +76,14 @@ class R52RewardsPlaytestTest extends TestCase
             @rmdir($directory.'/app/private/playtest');@rmdir($directory.'/app/private');@rmdir($directory.'/app');@rmdir($directory);
         }
     }
+
+    public function test_playtest_provisioning_refuses_production(): void
+    {
+        $environment=$this->app->environment();
+        try {
+            $this->app->instance('env','production');
+            $this->artisan('warqna:playtest-accounts')->assertFailed();
+            $this->assertSame(0,User::count());
+        } finally {$this->app->instance('env',$environment);}
+    }
 }
