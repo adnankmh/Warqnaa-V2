@@ -34,8 +34,7 @@ def main() -> None:
     for needle, name in (
         ("R35ReferenceWorldDashboard(controller: controller, onTab: onTab)", "desktop reference activation"),
         ("R35ChampionBanner(controller: controller)", "phone grand tournament artwork"),
-        ("r101GameArtAsset(game.id)", "real packaged game images"),
-        ("Expanded(child: SizedBox(", "short phone image height safety"),
+        ("R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab)", "real phone reference renderer"),
         ("AccountAvatar(controller: controller", "genuine round avatar image"),
         ("Icons.leaderboard_rounded", "functional ranking shortcut"),
         ("Icons.card_giftcard_rounded", "functional rewards shortcut"),
@@ -209,14 +208,16 @@ def main() -> None:
     # Cross-platform game-card fidelity: native Flutter tiles keep their
     # genuine gameplay callbacks and uncut artwork while using premium colors.
     for marker in (
-        "const gameTileGradients = <List<Color>>[",
-        "final tilePalette = gameTileGradients[index % gameTileGradients.length]",
-        "colors: tilePalette",
-        "B307SkyLuxury.goldSoft.withValues(alpha: .55)",
-        "Image.asset(r101GameArtAsset(game.id), fit: BoxFit.contain",
-        "onTap: () => showGameLobby(context, controller, game)",
+        "class R51FeaturedGamesAndTournaments",
+        "R35ArtGameCard(",
+        "r101GameArtAsset(game.id)",
+        "fit: BoxFit.contain",
+        "onTap: () => showGameLobby(context, controller, games[index])",
+        "crossAxisCount: gameColumns",
     ):
-        check(visual, marker, "Flutter jewel-colored playable illustrated game tiles")
+        check(reference, marker, "shared responsive playable illustrated game tiles")
+    assert "MediaQuery.sizeOf(context).width >= 1024" in visual
+    assert "R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab)" in visual
     assert "innerHTML" not in hall, "Client search must not inject untrusted text as HTML."
     assert "http://" not in hall, "No unencrypted third-party illustration URLs."
 

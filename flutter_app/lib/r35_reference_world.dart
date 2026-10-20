@@ -24,8 +24,6 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
     return LayoutBuilder(builder: (context, viewport) {
-      final columns = viewport.maxWidth >= 1140 ? 4 : viewport.maxWidth >= 760 ? 3 : 2;
-      final games = customerGamesR101.take(8).toList(growable: false);
       return Container(
         key: const ValueKey('r35-reference-world-dashboard'),
         decoration: const BoxDecoration(
@@ -41,98 +39,7 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
           children: <Widget>[
             R35ChampionBanner(controller: controller),
             const SizedBox(height: 13),
-            // Match the reference art's spacious game cards on phones rather
-            // than forcing the desktop tournament sidebar into a 320px row.
-            LayoutBuilder(builder: (context, featured) {
-              final stacked = featured.maxWidth < 760;
-              final gameColumns = stacked
-                  ? (featured.maxWidth < 420 ? 2 : featured.maxWidth < 610 ? 3 : 4)
-                  : (columns == 4 ? 4 : 3);
-              final gamesPanel = R35ReferencePanel(
-                key: const ValueKey('r51-games-panel'),
-                title: ar ? 'جميع الألعاب' : 'All games',
-                icon: Icons.style_rounded,
-                actionLabel: ar ? 'عرض الكل' : 'View all',
-                onAction: () => onTab(1),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: games.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: gameColumns,
-                    crossAxisSpacing: 9,
-                    mainAxisSpacing: 9,
-                    childAspectRatio: .84,
-                  ),
-                  itemBuilder: (context, index) => R35ArtGameCard(
-                    game: games[index],
-                    locale: controller.localeCode,
-                    onTap: () => showGameLobby(context, controller, games[index]),
-                  ),
-                ),
-              );
-              final tournamentsPanel = R35ReferencePanel(
-                key: const ValueKey('r51-tournaments-panel'),
-                title: ar ? 'البطولات' : 'Tournaments',
-                icon: Icons.emoji_events_rounded,
-                actionLabel: ar ? 'المنافسات' : 'Competitions',
-                onAction: () => Navigator.push(context, MaterialPageRoute<void>(
-                  builder: (_) => R12CompetitiveArenaPage(controller: controller),
-                )),
-                child: Column(
-                  children: <Widget>[
-                    R35TournamentRow(
-                      title: ar ? 'البطولات اليومية' : 'Daily tournaments',
-                      detail: ar ? 'منافسات متجددة وجوائز افتراضية حسب الشروط' : 'Daily challenges with rule-based virtual rewards',
-                      icon: Icons.wb_sunny_rounded,
-                      color: R35ReferenceColors.gold,
-                      onTap: () => Navigator.push(context, MaterialPageRoute<void>(
-                        builder: (_) => R12CompetitiveArenaPage(controller: controller),
-                      )),
-                    ),
-                    const SizedBox(height: 9),
-                    R35TournamentRow(
-                      title: ar ? 'البطولات الأسبوعية' : 'Weekly tournaments',
-                      detail: ar ? 'ترتيب، مراحل وتأهل' : 'Rankings, stages and qualification',
-                      icon: Icons.calendar_month_rounded,
-                      color: R35ReferenceColors.cyan,
-                      onTap: () => Navigator.push(context, MaterialPageRoute<void>(
-                        builder: (_) => R12CompetitiveArenaPage(controller: controller),
-                      )),
-                    ),
-                    const SizedBox(height: 9),
-                    R35TournamentRow(
-                      title: ar ? 'البطولات الكبرى' : 'Grand championships',
-                      detail: ar ? 'استعرض اللوائح والبطولات المتاحة' : 'Explore available rules and events',
-                      icon: Icons.workspace_premium_rounded,
-                      color: R35ReferenceColors.paleGold,
-                      onTap: () => Navigator.push(context, MaterialPageRoute<void>(
-                        builder: (_) => R12CompetitiveArenaPage(controller: controller),
-                      )),
-                    ),
-                  ],
-                ),
-              );
-              return stacked
-                  ? Column(
-                      key: const ValueKey('r51-featured-stacked'),
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        gamesPanel,
-                        const SizedBox(height: 12),
-                        tournamentsPanel,
-                      ],
-                    )
-                  : Row(
-                      key: const ValueKey('r51-featured-wide'),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded(flex: 11, child: gamesPanel),
-                        const SizedBox(width: 12),
-                        Expanded(flex: 7, child: tournamentsPanel),
-                      ],
-                    );
-            }),
+            R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
             const SizedBox(height: 13),
             LayoutBuilder(builder: (context, box) {
               final compact = box.maxWidth < 900;
@@ -258,6 +165,110 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
           ],
         ),
       );
+    });
+  }
+}
+
+/// The same live game/tournament composition is used by both Home routes.
+/// Breakpoints follow the space left by the shell, including desktop sidebars.
+class R51FeaturedGamesAndTournaments extends StatelessWidget {
+  const R51FeaturedGamesAndTournaments({super.key, required this.controller, required this.onTab});
+  final AppController controller;
+  final ValueChanged<int> onTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final games = customerGamesR101.take(8).toList(growable: false);
+    return LayoutBuilder(builder: (context, featured) {
+      final stacked = featured.maxWidth < 760;
+      final gameColumns = stacked
+          ? (featured.maxWidth < 420 ? 2 : featured.maxWidth < 610 ? 3 : 4)
+          : (featured.maxWidth >= 1140 ? 4 : 3);
+      final gamesPanel = R35ReferencePanel(
+        key: const ValueKey('r51-games-panel'),
+        title: ar ? 'جميع الألعاب' : 'All games',
+        icon: Icons.style_rounded,
+        actionLabel: ar ? 'عرض الكل' : 'View all',
+        onAction: () => onTab(1),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: games.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: gameColumns,
+            crossAxisSpacing: 9,
+            mainAxisSpacing: 9,
+            childAspectRatio: .84,
+          ),
+          itemBuilder: (context, index) => R35ArtGameCard(
+            game: games[index],
+            locale: controller.localeCode,
+            onTap: () => showGameLobby(context, controller, games[index]),
+          ),
+        ),
+      );
+      final tournamentsPanel = R35ReferencePanel(
+        key: const ValueKey('r51-tournaments-panel'),
+        title: ar ? 'البطولات' : 'Tournaments',
+        icon: Icons.emoji_events_rounded,
+        actionLabel: ar ? 'المنافسات' : 'Competitions',
+        onAction: () => Navigator.push(context, MaterialPageRoute<void>(
+          builder: (_) => R12CompetitiveArenaPage(controller: controller),
+        )),
+        child: Column(
+          children: <Widget>[
+            R35TournamentRow(
+              title: ar ? 'البطولات اليومية' : 'Daily tournaments',
+              detail: ar ? 'منافسات متجددة وجوائز افتراضية حسب الشروط' : 'Daily challenges with rule-based virtual rewards',
+              icon: Icons.wb_sunny_rounded,
+              color: R35ReferenceColors.gold,
+              onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => R12CompetitiveArenaPage(controller: controller),
+              )),
+            ),
+            const SizedBox(height: 9),
+            R35TournamentRow(
+              title: ar ? 'البطولات الأسبوعية' : 'Weekly tournaments',
+              detail: ar ? 'ترتيب، مراحل وتأهل' : 'Rankings, stages and qualification',
+              icon: Icons.calendar_month_rounded,
+              color: R35ReferenceColors.cyan,
+              onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => R12CompetitiveArenaPage(controller: controller),
+              )),
+            ),
+            const SizedBox(height: 9),
+            R35TournamentRow(
+              title: ar ? 'البطولات الكبرى' : 'Grand championships',
+              detail: ar ? 'استعرض اللوائح والبطولات المتاحة' : 'Explore available rules and events',
+              icon: Icons.workspace_premium_rounded,
+              color: R35ReferenceColors.paleGold,
+              onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => R12CompetitiveArenaPage(controller: controller),
+              )),
+            ),
+          ],
+        ),
+      );
+      return stacked
+          ? Column(
+              key: const ValueKey('r51-featured-stacked'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                gamesPanel,
+                const SizedBox(height: 12),
+                tournamentsPanel,
+              ],
+            )
+          : Row(
+              key: const ValueKey('r51-featured-wide'),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(flex: 11, child: gamesPanel),
+                const SizedBox(width: 12),
+                Expanded(flex: 7, child: tournamentsPanel),
+              ],
+            );
     });
   }
 }
