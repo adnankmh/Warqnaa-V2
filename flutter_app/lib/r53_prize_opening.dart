@@ -52,6 +52,8 @@ class R53PrizeOpeningScene extends StatelessWidget {
                 label: Text(V02Text.t(locale, 'close')),
                 style: FilledButton.styleFrom(backgroundColor: R35ReferenceColors.gold,
                   foregroundColor: R35ReferenceColors.deep, minimumSize: const Size.fromHeight(52),
+                  disabledBackgroundColor: R35ReferenceColors.deep,
+                  disabledForegroundColor: R35ReferenceColors.paleGold,
                   textStyle: theme.labelLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w800))),
               if (!completed) ...[
                 const SizedBox(height: 6),

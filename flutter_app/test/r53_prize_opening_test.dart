@@ -74,6 +74,9 @@ void main() {
           expect(tester.getRect(find.byKey(const ValueKey('r53-prize-sprite-lid'))),body,
             reason:'Closed sprites use the same original 720x540 registration canvas.');
           expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r53-prize-continue'))).onPressed,isNull);
+          final disabledStyle=tester.widget<FilledButton>(find.byKey(const ValueKey('r53-prize-continue'))).style!;
+          expect(disabledStyle.foregroundColor!.resolve({WidgetState.disabled}),R35ReferenceColors.paleGold);
+          expect(disabledStyle.backgroundColor!.resolve({WidgetState.disabled}),R35ReferenceColors.deep);
           await tester.pump(const Duration(seconds:3));expectSeparated(tester);
           final capture=box=='emerald_eagle' && review.reviewDirectory.isNotEmpty;
           final name='$locale-r53-${size.width.toInt()}x${size.height.toInt()}';
