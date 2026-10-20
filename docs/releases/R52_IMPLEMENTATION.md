@@ -57,3 +57,11 @@ and a 48px touch target, with callback/style tests in both languages.
 
 These are targeted corrections, not blanket approval of every screen. All five
 gates and final-head screenshots still need verification before merge.
+
+The parity audit also identified a server-only long-run rejection: a wild filling
+an internal gap was counted a second time when limiting the run to 13 cards.
+The limit now counts physical natural/wild cards once. PHP regressions execute
+13-card melds and twelve-to-thirteen-card layoffs in both Hand and Banakil,
+comparing full card multisets before/after; corresponding Dart cases preserve
+existing local acceptance. Duplicate ranks, wrapped runs and 14-card groups stay
+invalid. This does not alter scoring, opening thresholds or maximum wild counts.

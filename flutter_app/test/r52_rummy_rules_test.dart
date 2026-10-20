@@ -4,6 +4,18 @@ import 'package:warqna_mobile/engines/local_game_engine.dart';
 import 'package:warqna_mobile/models/card_identity.dart';
 
 void main() {
+  test('R52 long wild-assisted runs agree with server meld and layoff validation',() {
+    const run=['2C','3C','4C','5C','6C','7C','8C','9C','10C','JC','JOKER1','KC','AC'];
+    for(final banakil in [false,true]) {
+      expect(R52RummyRules.validMeld(run,banakil:banakil),isTrue);
+      expect(R52RummyRules.validMeld([...run,'QC'],banakil:banakil),isFalse);
+      expect(R52RummyRules.validMeld(['5C','5C','6C','JOKER1'],banakil:banakil),isFalse);
+      expect(R52RummyRules.validMeld(['KC','AC','3C'],banakil:banakil),isFalse);
+      expect(R52RummyRules.validMeld(['AC','3C','JOKER1'],banakil:banakil),isTrue);
+      final short=run.where((card)=>card!='KC').toList();
+      expect(R52RummyRules.validMeld([...short,'KC'],banakil:banakil),isTrue);
+    }
+  });
   for(final suit in ['C','D','S','H']) {
     final long={'C':'clubs','D':'diamonds','S':'spades','H':'hearts'}[suit]!;
     for(final rank in R52RummyRules.ranks) {

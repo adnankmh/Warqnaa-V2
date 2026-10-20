@@ -889,7 +889,9 @@ class GlobalCardEngineCore
             sort($vals);
             $gaps = 0;
             for ($i=1; $i<count($vals); $i++) $gaps += max(0, $vals[$i]-$vals[$i-1]-1);
-            if ($gaps <= $wildCount && (max($vals)-min($vals)+1+$wildCount) <= 13) return true;
+            // Gap-filling wilds already occupy positions in the natural span;
+            // adding them again rejected legal 13-card runs accepted locally.
+            if ($gaps <= $wildCount && count($vals)+$wildCount <= 13) return true;
         }
         return false;
     }
