@@ -173,7 +173,7 @@ class R52MatchResult extends StatelessWidget {
           onPressed:onReplay,icon:const Icon(Icons.replay_rounded),
           style:OutlinedButton.styleFrom(foregroundColor:Colors.white,
             side:const BorderSide(color:R35ReferenceColors.cyan),minimumSize:const Size(0,48),
-            textStyle:const TextStyle(fontSize:14,fontWeight:FontWeight.w800)),
+            textStyle:(Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontSize:14,fontWeight:FontWeight.w800)),
           label:Text(ar?'العب مجددًا':'Play again')),
       ]),
     ]),
