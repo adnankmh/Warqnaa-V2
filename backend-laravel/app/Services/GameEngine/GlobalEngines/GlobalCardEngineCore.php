@@ -1149,9 +1149,36 @@ class GlobalCardEngineCore
             $keyCards = $cards; sort($keyCards); $key = implode('|', $keyCards);
             if (isset($seen[$key])) continue;
             $value = $this->meldValue($cards);
-            if ($opening > 0 && $value < $opening) continue;
             $seen[$key] = true;
             $out[] = ['cards'=>$cards,'value'=>$value];
+        }
+
+        // Three-card seeds are sufficient to discover every longer legal run
+        // or set, but advertising only those seeds hid openings whose value is
+        // reached by four or more cards. Extend the bounded candidate graph
+        // with physical-card multiplicity preserved and let server validation
+        // decide every intermediate group.
+        $available = array_count_values(array_map('strval', $hand));
+        $uniqueCards = array_keys($available);
+        $cursor = 0;
+        while ($cursor < count($out) && count($out) < 256) {
+            $cards = $out[$cursor++]['cards'];
+            if (count($cards) >= 13) continue;
+            $used = array_count_values($cards);
+            foreach ($uniqueCards as $card) {
+                if (($used[$card] ?? 0) >= ($available[$card] ?? 0)) continue;
+                $extended = array_merge($cards, [$card]);
+                if (!$this->isValidMeld($extended)) continue;
+                $keyCards = $extended; sort($keyCards); $key = implode('|', $keyCards);
+                if (isset($seen[$key])) continue;
+                $seen[$key] = true;
+                $out[] = ['cards'=>$extended,'value'=>$this->meldValue($extended)];
+                if (count($out) >= 256) break;
+            }
+        }
+
+        if ($opening > 0) {
+            $out = array_values(array_filter($out, fn($meld)=>(int)$meld['value'] >= $opening));
         }
         usort($out, fn($a,$b)=>($b['value'] <=> $a['value']) ?: strcmp(implode('|',$a['cards']), implode('|',$b['cards'])));
         return array_slice($out, 0, 12);
