@@ -33,18 +33,18 @@ void main() {
         find.byKey(const ValueKey('r21-club-join-36')),
       );
       expect(button.style?.backgroundColor?.resolve(<WidgetState>{WidgetState.disabled}),
-          const Color(0xFF24483A));
+          R35ReferenceColors.deep);
       expect(button.style?.foregroundColor?.resolve(<WidgetState>{WidgetState.disabled}),
-          Colors.white70);
+          R35ReferenceColors.paleGold);
 
       await tester.pumpWidget(directory(true));
       button = tester.widget<FilledButton>(
         find.byKey(const ValueKey('r21-club-join-36')),
       );
       expect(button.style?.backgroundColor?.resolve(<WidgetState>{}),
-          B307SkyLuxury.cyan);
+          R35ReferenceColors.gold);
       expect(button.style?.foregroundColor?.resolve(<WidgetState>{}),
-          B307SkyLuxury.navy);
+          R35ReferenceColors.navy);
 
       club['membership'] = <String, dynamic>{'role': 'member'};
       await tester.pumpWidget(directory(false));
@@ -60,16 +60,19 @@ void main() {
       );
       button = tester.widget<FilledButton>(membershipAction);
       expect(button.child, isA<Row>());
-      // The button theme supplies the active font. A local ButtonStyle
-      // textStyle without a family falls back to Ahem blocks in review renders.
-      expect(button.style?.textStyle?.resolve(<WidgetState>{}), isNull);
+      // R54 explicitly enlarges the themed button style without losing its
+      // font family (a family-less override caused Ahem blocks in old reviews).
+      final themedLabel=Theme.of(tester.element(membershipAction)).textTheme.labelLarge!;
+      final buttonText=button.style!.textStyle!.resolve(<WidgetState>{})!;
+      expect(buttonText.fontFamily,themedLabel.fontFamily);
+      expect(buttonText.fontSize,16);expect(buttonText.fontWeight,FontWeight.w800);
       final membershipLabel = tester.widget<Text>(
         find.descendant(
           of: membershipAction,
           matching: find.text(locale == 'ar' ? 'ناديك' : 'Your club'),
         ),
       );
-      expect(membershipLabel.style?.fontWeight, FontWeight.w900);
+      expect(membershipLabel.style, isNull);
       expect(membershipLabel.style?.fontFamily, isNull);
       expect(
         find.descendant(

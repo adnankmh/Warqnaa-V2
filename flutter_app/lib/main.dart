@@ -5431,6 +5431,7 @@ class RoundXpBannerV174 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ar=Directionality.of(context)==TextDirection.rtl;
     return IgnorePointer(
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -5450,14 +5451,15 @@ class RoundXpBannerV174 extends StatelessWidget {
             children: notices.map((item) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
               decoration: BoxDecoration(color: Colors.white.withValues(alpha: .07), borderRadius: BorderRadius.circular(14)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
+              child: Wrap(key:ValueKey('r54-round-xp-${item.name}'),
+                alignment:WrapAlignment.center,crossAxisAlignment:WrapCrossAlignment.center,
+                spacing:6,runSpacing:4,children: [
                 Text(item.avatar, style: const TextStyle(fontSize: 18)),
-                const SizedBox(width: 5),
-                Text(item.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                const SizedBox(width: 7),
-                Text('+${item.earnedXp} XP', style: const TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.w900, fontSize: 12)),
-                if (item.roundPoints > 0) Text('  •  +${item.roundPoints} نقطة', style: const TextStyle(color: Colors.amberAccent, fontSize: 10)),
-                Text('  •  Lv.${item.level}', style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                Text(item.name,maxLines:2,overflow:TextOverflow.ellipsis,
+                  style: const TextStyle(color:Colors.white,fontWeight: FontWeight.w900, fontSize: 11)),
+                Text('+${item.earnedXp} XP',textDirection:TextDirection.ltr, style: const TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.w900, fontSize: 12)),
+                if (item.roundPoints > 0) Text('+${item.roundPoints} ${ar?'نقطة':'points'}',textDirection:TextDirection.ltr, style: const TextStyle(color: Colors.amberAccent, fontSize: 10)),
+                Text('Lv.${item.level}', style: const TextStyle(color: Colors.white70, fontSize: 10)),
               ]),
             )).toList(),
           ),

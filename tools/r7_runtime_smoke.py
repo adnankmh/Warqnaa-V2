@@ -229,6 +229,8 @@ def main():
                     report['checks'].append('r52_rummy_rules_rounds_rewards_and_exit')
                     subprocess.run(['flutter', 'test', 'test/r53_prize_opening_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
                     report['checks'].append('r53_responsive_chest_opening_accessibility_and_single_settlement')
+                    subprocess.run(['flutter', 'test', 'test/r54_clubs_reference_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
+                    report['checks'].append('r54_actual_clubs_bilingual_responsive_verified_join_states')
                     report['checks'].append('r51_actual_home_games_and_tournaments_bilingual_five_sizes')
                     report['checks'].append('flutter_live_identity_and_rendered_layouts')
                     subprocess.run(['flutter', 'test', 'test/r10_local_tables_test.dart', '--dart-define-from-file=' + str(config), '--dart-define=R10_REVIEW_DIR=' + str(report_dir / 'local-tables')], cwd=ROOT / 'flutter_app', check=True, timeout=600)

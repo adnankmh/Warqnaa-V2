@@ -34,7 +34,14 @@ Future<void> snapshot(WidgetTester tester, GlobalKey key, String name) async {
 }
 
 void main() {
-  setUp(() { SharedPreferences.setMockInitialValues({}); AppSounds.enabled = false; });
+  setUp(() {
+    SharedPreferences.setMockInitialValues({}); AppSounds.enabled = false;
+    // Preserve full creator/layout diagnostics for seed-dependent bot turns;
+    // takeException assertions below still fail on every real layout error.
+    final report=FlutterError.onError;
+    FlutterError.onError=(details) {debugPrint(details.toString());report?.call(details);};
+    addTearDown(() {FlutterError.onError=report;});
+  });
   setUpAll(() async {
     const path = String.fromEnvironment('R7_REVIEW_FONT');
     if (path.isEmpty) return;
