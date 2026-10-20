@@ -60,7 +60,9 @@ class R56RummyMeldSelectionTest extends TestCase
 
             $opened = $engine->applyAction($drawn, 'p0', $many);
             $this->assertFalse($opened['rummyTurnMeta']['p0']['must_meld']);
-            $this->assertSameCanonicalizing(['A_H','4_S'], $opened['hands']['p0']);
+            $remaining = $opened['hands']['p0'];
+            sort($remaining);
+            $this->assertSame(['4_S','A_H'], $remaining);
             $this->assertSame(62, array_sum(array_column($opened['melds']['p0'], 'value')));
             $this->assertSame($before, $this->physicalCards($opened));
         }
