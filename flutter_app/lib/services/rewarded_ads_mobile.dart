@@ -83,7 +83,7 @@ Future<void> _loadRewarded() {
   );
 }
 
-Future<bool> showRewardedAd() async {
+Future<bool> showRewardedAd({String? userId,String? customData}) async {
   if (!Platform.isAndroid && !Platform.isIOS) return false;
   if (!_sdkReady) await initializeRewardedAds();
   if (!_sdkReady) return false;
@@ -92,6 +92,9 @@ Future<bool> showRewardedAd() async {
     final ad = _rewardedAd;
     if (ad == null) return false;
 
+    if(userId!=null && customData!=null) {
+      await ad.setServerSideOptions(ServerSideVerificationOptions(userId:userId,customData:customData));
+    }
     _rewardedAd = null;
     var earned = false;
     final completer = Completer<bool>();

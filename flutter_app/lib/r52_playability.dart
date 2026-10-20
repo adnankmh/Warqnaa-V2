@@ -6,6 +6,45 @@ String r52CardLabel(String raw) => WarqnaaCardIdentity.parse(raw)?.label ?? raw;
 // and original V021 card backs are already portrait and stay upright.
 int r52CardBackQuarterTurns(String asset) => asset.startsWith('assets/optimized/r10/tables/v173/') ? 1 : 0;
 
+Future<void> watchVerifiedRewardedAdR52(BuildContext context,AppController controller) async {
+  final ar=controller.localeCode=='ar';
+  if(kIsWeb || controller.activeGame!=null) {
+    showToast(context,ar?'الإعلان المكافئ متاح في تطبيق الهاتف خارج المباراة.':'Rewarded ads are available in the mobile app outside a match.');return;
+  }
+  try {
+    final session=await controller.api.startRewardedAdR52();
+    final id=session['session_id']?.toString();final user=session['user_id']?.toString();
+    if(id==null || user==null) throw StateError(ar?'تعذّر بدء الإعلان.':'Unable to start the ad.');
+    final earned=await RewardedAds.show(userId:user,customData:id);
+    if(!context.mounted)return;
+    if(!earned) {showToast(context,ar?'الإعلان غير متاح الآن.':'The ad is unavailable right now.');return;}
+    Map<String,dynamic> result={};
+    for(var attempt=0;attempt<5;attempt++) {
+      result=await controller.api.rewardedAdStatusR52(id);
+      if(result['status']!='pending')break;
+      await Future<void>.delayed(const Duration(seconds:1));
+      if(!context.mounted)return;
+    }
+    if(!context.mounted)return;
+    if(result['status']=='rewarded') {
+      final wallet=result['wallet'];final profile=result['profile'];
+      if(wallet is Map) controller.coins=BigInt.tryParse(wallet['tokens']?.toString() ?? '') ?? controller.coins;
+      if(profile is Map) {
+        controller.level=int.tryParse(profile['level']?.toString() ?? '') ?? controller.level;
+        final total=int.tryParse(profile['xp']?.toString() ?? '');
+        if(total!=null)controller.xp=controller.xpProgressFromTotal(total,controller.level);
+        controller.xpNext=controller.xpNeededForLevel(controller.level);
+      }
+      await controller._save();controller.refreshUi();
+      if(context.mounted)showToast(context,ar?'تم التحقق: 50 توكن و15 XP.':'Verified: 50 tokens and 15 XP.');
+    } else {
+      showToast(context,ar?'المكافأة قيد التحقق على الخادم؛ ستظهر في رصيدك عند اعتمادها.':'Your reward is awaiting server verification and will appear in your balance once confirmed.');
+    }
+  } catch(error) {
+    if(context.mounted)showToast(context,friendlyErrorMessage(error,controller.localeCode));
+  }
+}
+
 class R52RoundScoreCard extends StatelessWidget {
   const R52RoundScoreCard({super.key,required this.state,required this.players,required this.ar});
   final Map<String,dynamic> state;
@@ -69,8 +108,11 @@ class R52MatchResult extends StatelessWidget {
     decoration:BoxDecoration(color:R35ReferenceColors.navy,borderRadius:BorderRadius.circular(18),
       border:Border.all(color:won?R35ReferenceColors.gold:R35ReferenceColors.cyan,width:2)),
     child:Column(mainAxisSize:MainAxisSize.min,children:[
-      Icon(won?Icons.emoji_events_rounded:Icons.sports_esports_rounded,size:32,
-        color:won?R35ReferenceColors.gold:R35ReferenceColors.cyan),
+      TweenAnimationBuilder<double>(tween:Tween(begin:won ? .65 : 1.0,end:1.0),
+        duration:MediaQuery.disableAnimationsOf(context)?Duration.zero:const Duration(milliseconds:650),
+        curve:Curves.easeOutBack,builder:(_,scale,child)=>Transform.scale(scale:scale,child:child),
+        child:Icon(won?Icons.emoji_events_rounded:Icons.sports_esports_rounded,size:38,
+          color:won?R35ReferenceColors.gold:R35ReferenceColors.cyan)),
       Text(won?(ar?'مبارك الفوز!':'Victory!'):(ar?'انتهت المباراة — فرصة جديدة بانتظارك':'Match complete — another chance awaits'),
         textAlign:TextAlign.center,style:const TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900)),
       if(points!=null) Text(points!,textAlign:TextAlign.center,style:const TextStyle(color:R35ReferenceColors.paleGold,fontSize:14)),

@@ -60,6 +60,7 @@ class MobileClubWorldController extends Controller
         return response()->json([
             'ok' => true,
             'club' => $this->clubPayload($club, $request, true),
+            'can_assign_roles' => $request->user()->is_admin || (int)$club->owner_id===(int)$request->user()->id,
             'membership' => $member ? ['role' => $member->role, 'permissions' => $member->permissions ?: [], 'can_manage' => $this->can($club, $request, 'manage_club')] : null,
             'announcements' => $club->announcements
                 ->filter(fn ($item) => !$item->author || $request->user()->is_admin || (int) $item->author_id === (int) $request->user()->id || !$this->policy->blocked($request->user()->id, $item->author_id))
@@ -265,6 +266,28 @@ class MobileClubWorldController extends Controller
             'membership' => $membership ? ['role' => $membership->role, 'permissions' => $membership->permissions ?: []] : null,
             'members' => $members,
         ];
+    }
+
+    public function assignRole(Request $request, Club $club, int $user)
+    {
+        AuthenticatedActor::resolve($request);
+        $this->assertEnabled();
+        $data=$request->validate(['preset'=>'required|in:deputy,membership,events,member']);
+        DB::transaction(function () use ($request,$club,$user,$data) {
+            $locked=Club::whereKey($club->id)->lockForUpdate()->firstOrFail();
+            abort_unless($request->user()->is_admin || (int)$locked->owner_id===(int)$request->user()->id,403);
+            $member=$locked->members()->where('user_id',$user)->lockForUpdate()->firstOrFail();
+            abort_if($member->role==='owner' || (int)$member->user_id===(int)$locked->owner_id,422,'لا يمكن تعديل صلاحيات مالك النادي.');
+            $permissions=match($data['preset']) {
+                'deputy'=>['accept_members'=>true,'kick_members'=>true,'create_tournaments'=>true,'manage_chat'=>true,'create_announcements'=>true,'manage_club'=>true],
+                'membership'=>['accept_members'=>true,'kick_members'=>true],
+                'events'=>['create_tournaments'=>true,'create_announcements'=>true],
+                default=>[],
+            };
+            $member->update(['role'=>$data['preset']==='member'?'member':'moderator','permissions'=>$permissions]);
+            $this->log($locked,$request,'member.role_updated','Role preset: '.$data['preset'].'; player: '.$member->user_id);
+        });
+        return $this->show($request,$club->fresh());
     }
 
     private function can(Club $club, Request $request, string $permission): bool

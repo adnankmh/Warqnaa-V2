@@ -556,7 +556,19 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
         if (announcements.isEmpty) const Text('—', style: TextStyle(color: Colors.white38)) else ...announcements.map((item) => _R11GlassCard(accent: item['pinned'] == true ? _r11Gold : null, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${item['pinned'] == true ? '📌 ' : ''}${item['title'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w900)),const SizedBox(height: 5),Text(item['body']?.toString() ?? '', style: const TextStyle(color: Colors.white60, height: 1.45)),const SizedBox(height: 5),Text(item['author']?.toString() ?? '', style: const TextStyle(color: _r11Gold, fontSize: 11, height: 1.2))]))),
         if (events.isNotEmpty) ...[const SizedBox(height: 18),Text(ar ? 'فعاليات النادي' : 'Club events', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),const SizedBox(height: 8),...events.map((item) => ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.auto_awesome, color: _r11Gold), title: Text(_r11Localized(item['title'], widget.controller.localeCode, 'Event')), subtitle: Text('${item['starts_at'] ?? ''} • ${item['going'] ?? 0} going')))],
         const SizedBox(height: 18),Text(ar ? 'الأعضاء' : 'Members', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),const SizedBox(height: 8),
-        ...members.map((person) => ListTile(contentPadding: EdgeInsets.zero, leading: _R11Avatar(url: person['avatar']?.toString(), label: person['name']?.toString() ?? '?'), title: Text(person['name']?.toString() ?? 'Player'), subtitle: Text('${person['role'] ?? 'member'} • ${person['weekly_points'] ?? 0} pts'), trailing: person['online'] == true ? const _R11LiveDot() : null)),
+        ...members.map((person) => ListTile(contentPadding: EdgeInsets.zero, leading: _R11Avatar(url: person['avatar']?.toString(), label: person['name']?.toString() ?? '?'), title: Text(person['name']?.toString() ?? 'Player'), subtitle: Text('${person['role'] ?? 'member'} • ${person['weekly_points'] ?? 0} pts'), trailing: response['can_assign_roles']==true && person['role']!='owner'
+          ? PopupMenuButton<String>(key:ValueKey('r52-club-role-${person['id']}'),tooltip:ar?'صلاحيات العضو':'Member permissions',
+            icon:const Icon(Icons.manage_accounts_rounded),onSelected:(preset)async{
+              try {await widget.controller.api.assignClubRoleR52(id,int.parse(person['id'].toString()),preset);
+                if(sheetContext.mounted)Navigator.pop(sheetContext);
+                if(mounted) {await _load();await _openClub(seed);}
+              } catch(error) {if(mounted && sheetContext.mounted)showToast(sheetContext,friendlyErrorMessage(error,widget.controller.localeCode));}
+            },itemBuilder:(_)=>[
+              PopupMenuItem(value:'deputy',child:Text(ar?'نائب مدير النادي':'Club deputy')),
+              PopupMenuItem(value:'membership',child:Text(ar?'مسؤول العضوية':'Membership manager')),
+              PopupMenuItem(value:'events',child:Text(ar?'منظم الفعاليات':'Event organizer')),
+              PopupMenuItem(value:'member',child:Text(ar?'عضو عادي':'Member')),
+            ]) : person['online'] == true ? const _R11LiveDot() : null)),
       ])));
     } catch (exception) { if (mounted) showToast(context, exception.toString()); }
   }

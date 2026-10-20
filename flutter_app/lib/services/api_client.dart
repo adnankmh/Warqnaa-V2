@@ -197,6 +197,7 @@ class WarqnaApiClient {
   Future<Map<String, dynamic>> hideReplayR11(int replayId) => delete('/replays/$replayId');
   Future<Map<String, dynamic>> clubsWorldR11() => get('/clubs-world');
   Future<Map<String, dynamic>> clubWorldR11(int clubId) => get('/clubs-world/$clubId');
+  Future<Map<String,dynamic>> assignClubRoleR52(int clubId,int userId,String preset) => patch('/clubs-world/$clubId/members/$userId/role', {'preset':preset});
   Future<Map<String, dynamic>> createClubWorldR11({required String name, String? description, String visibility = 'public'}) =>
       post('/clubs-world', {'name': name, if (description != null && description.trim().isNotEmpty) 'description': description.trim(), 'visibility': visibility});
   Future<Map<String, dynamic>> joinClubWorldR11(int clubId) => post('/clubs-world/$clubId/join', const {});
@@ -211,6 +212,8 @@ class WarqnaApiClient {
       post('/store/activate', {'key': key});
   Future<Map<String, dynamic>> claimDaily() => post('/rewards/daily', const {});
   Future<Map<String, dynamic>> claimRewardedAd(String verificationId) => post('/rewards/rewarded-ad', {'verification_id': verificationId, 'network': 'admob', 'reward_type': 'standard'});
+  Future<Map<String,dynamic>> startRewardedAdR52() => post('/rewards/ad-sessions', const {});
+  Future<Map<String,dynamic>> rewardedAdStatusR52(String session) => get('/rewards/ad-sessions/$session');
   Future<Map<String, dynamic>> commerceCatalogR101() => get('/commerce/catalog', authenticated: false);
   Future<Map<String, dynamic>> verifyCommerceReceiptR101({required String provider, required String packageKey, required String productId, required String receiptToken, String? transactionId}) => post('/commerce/verify-receipt', <String,dynamic>{'provider':provider,'package_key':packageKey,'product_id':productId,'receipt_token':receiptToken,if(transactionId!=null)'transaction_id':transactionId});
   Future<Map<String, dynamic>> commerceReceiptR101(int id) => get('/commerce/receipts/$id');

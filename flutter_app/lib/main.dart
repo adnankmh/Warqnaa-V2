@@ -1485,7 +1485,7 @@ class AppController extends ChangeNotifier {
     }
     rewardedAdClaimsToday += 1;
     transactions.insert(0, TokenTransaction('مكافأة مشاهدة إعلان', tokens, serverConnected ? 'الآن • خادم' : 'الآن • محلي'));
-    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة ${rewardedAdClaimsToday + 1}/8' : '$tokens tokens and $earnedXp XP • reward ${rewardedAdClaimsToday + 1}/8'));
+    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة ${rewardedAdClaimsToday}/8' : '$tokens tokens and $earnedXp XP • reward ${rewardedAdClaimsToday}/8'));
     await _save();
     notifyListeners();
     return null;
@@ -8410,6 +8410,7 @@ void showWallet(BuildContext context, AppController controller) {
 }
 
 Future<void> watchRewardedAd(BuildContext context, AppController controller) async {
+  if(controller.serverConnected) {await watchVerifiedRewardedAdR52(context,controller);return;}
   if (controller.rewardedAdsRemaining <= 0) {
     showToast(context, 'وصلت إلى الحد اليومي للإعلانات المكافِئة.');
     return;
