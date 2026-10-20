@@ -42,6 +42,8 @@ flutter:
     # Historical source artwork remains in the repository but is not packaged.
     - assets/images/brand/warqna_logo.png
     - assets/images/pasha.png
+    # R52 restores the 24 original box/lid/body/front sprites (6.92 MiB).
+    - assets/images/v02/prize_boxes/
     - assets/optimized/r48/
     - assets/optimized/r36/championship_hero.webp
     - assets/images/boosters/v183/

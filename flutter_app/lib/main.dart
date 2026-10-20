@@ -1485,7 +1485,7 @@ class AppController extends ChangeNotifier {
     }
     rewardedAdClaimsToday += 1;
     transactions.insert(0, TokenTransaction('مكافأة مشاهدة إعلان', tokens, serverConnected ? 'الآن • خادم' : 'الآن • محلي'));
-    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة ${rewardedAdClaimsToday}/8' : '$tokens tokens and $earnedXp XP • reward ${rewardedAdClaimsToday}/8'));
+    notices.insert(0, AppNotice('📺', localeCode == 'ar' ? 'مكافأة إعلان' : 'Ad reward', localeCode == 'ar' ? '$tokens توكن و$earnedXp XP • المكافأة $rewardedAdClaimsToday/8' : '$tokens tokens and $earnedXp XP • reward $rewardedAdClaimsToday/8'));
     await _save();
     notifyListeners();
     return null;
@@ -4593,7 +4593,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
     if (engine.phase == TarneebPhase.roundEnd && !autoNextRoundScheduled) {
       autoNextRoundScheduled = true;
       AppSounds.fire('round_end');
-      Future<void>.delayed(const Duration(milliseconds: 1600), () {
+      Future<void>.delayed(const Duration(milliseconds: 250), () {
         if (!mounted || engine.phase != TarneebPhase.roundEnd) return;
         AppSounds.fire('next_round');
         _nextRound();
