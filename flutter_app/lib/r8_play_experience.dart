@@ -328,7 +328,7 @@ class R8CardHand extends StatelessWidget {
       final widthBudget = count <= 1 ? usable : usable - minimumReveal * (count - 1);
       final width = math.min(preferredWidth, math.max(36.0, widthBudget));
       final height = width * 1.48;
-      final step = count <= 1 ? 0.0 : math.max(0.0, (usable - width) / (count - 1));
+      final step = count <= 1 ? 0.0 : math.min(width * .58, math.max(0.0, (usable - width) / (count - 1)));
       final span = math.min(usable, width + step * (count - 1));
       final order = <int>[for (var i = 0; i < count; i++) i];
       final cards = SizedBox(

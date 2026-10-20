@@ -6,7 +6,7 @@ const List<Map<String, dynamic>> luckyWheelSegmentsV182 = <Map<String, dynamic>>
   <String,dynamic>{'key':'writing_red','label_ar':'كتابة حمراء','label_en':'Red Writing','icon':'✍️','weight':9,'color':'#b91c1c','reward':<String,dynamic>{'type':'writing_color','value':'#ef4444','duration_hours':24,'rarity':'rare','icon':'✍️','label_ar':'لون كتابة أحمر لمدة يوم','label_en':'Red writing color for 24 hours','store_item_key':'lucky_wheel_chat_red_r91'}},
   <String,dynamic>{'key':'player_gold','label_ar':'لاعب ذهبي','label_en':'Gold Player','icon':'🎨','weight':9,'color':'#ca8a04','reward':<String,dynamic>{'type':'player_color','value':'#facc15','duration_hours':24,'rarity':'rare','icon':'🎨','label_ar':'لون لاعب ذهبي لمدة يوم','label_en':'Gold player color for 24 hours','store_item_key':'lucky_wheel_name_gold_v182'}},
   <String,dynamic>{'key':'xp_booster','label_ar':'XP ×1.5','label_en':'XP ×1.5','icon':'⚡','weight':9,'color':'#6d28d9','reward':<String,dynamic>{'type':'xp_booster','value':'1.5','duration_hours':6,'rarity':'epic','icon':'⚡','label_ar':'مسرّع خبرة ×1.5 لمدة 6 ساعات','label_en':'XP ×1.5 for 6 hours','store_item_key':'daily_pack_xp_15x_6h_v176'}},
-  <String,dynamic>{'key':'royal_table','label_ar':'طاولة ملكية','label_en':'Royal Table','icon':'🃏','weight':7,'color':'#0f766e','reward':<String,dynamic>{'type':'table','value':'table_v173_royal_01','duration_hours':24,'rarity':'epic','icon':'🃏','label_ar':'طاولة الزمرد الملكي لمدة 24 ساعة','label_en':'Royal Emerald table for 24 hours','store_item_key':'table_v173_royal_01'}},
+  <String,dynamic>{'key':'royal_table','label_ar':'طاولة ملكية','label_en':'Royal Table','icon':'🃏','weight':7,'color':'#0f766e','reward':<String,dynamic>{'type':'table','value':'table_v173_royal_09','duration_hours':24,'rarity':'epic','icon':'🃏','label_ar':'طاولة الزمرد الملكي لمدة 24 ساعة','label_en':'Royal Emerald table for 24 hours','store_item_key':'r52_reward_royal_table_24h'}},
   <String,dynamic>{'key':'pasha_day','label_ar':'يوم باشا','label_en':'Pasha Day','icon':'👑','weight':5,'color':'#dc2626','reward':<String,dynamic>{'type':'pasha_day','value':'1','duration_hours':24,'rarity':'legendary','icon':'👑','label_ar':'يوم باشا','label_en':'One Pasha Day','store_item_key':'lucky_wheel_pasha_day_v182'}},
   <String,dynamic>{'key':'royal_cover','label_ar':'غلاف ملكي','label_en':'Royal Cover','icon':'🖼️','weight':7,'color':'#be123c','reward':<String,dynamic>{'type':'profile_cover','value':'cover_v02_royal','duration_hours':72,'rarity':'epic','icon':'🖼️','label_ar':'غلاف شخصي ملكي لمدة 3 أيام','label_en':'Royal profile cover for 3 days','store_item_key':'lucky_wheel_royal_cover_v182'}},
   <String,dynamic>{'key':'tokens_900','label_ar':'900 توكن','label_en':'900 Tokens','icon':'💰','weight':11,'color':'#0e7490','reward':<String,dynamic>{'type':'tokens','value':'900','duration_hours':0,'rarity':'rare','icon':'💰','label_ar':'900 توكن مجاني','label_en':'900 free tokens'}},
@@ -21,7 +21,10 @@ String _todayV182() {
 }
 
 extension WarqnaV182Controller on AppController {
-  bool get luckyWheelFreeAvailableV182 => luckyWheelLastFreeDateV182 != _todayV182();
+  bool get luckyWheelFreeAvailableV182 {
+    final last=DateTime.tryParse(luckyWheelLastFreeDateV182 ?? '');
+    return last==null || DateTime.now().difference(last)>=const Duration(hours:12);
+  }
   int get luckyWheelTokenSpinsRemainingV182 {
     if (luckyWheelSpinDateV182 != _todayV182()) return 5;
     return (5 - luckyWheelTokenSpinsV182).clamp(0, 5).toInt();
@@ -44,7 +47,7 @@ extension WarqnaV182Controller on AppController {
       if (rewardRaw is Map) _applyPrizeRewardV02(Map<String, dynamic>.from(rewardRaw), result);
       final center = result['center'];
       if (center is Map) {
-        if (center['free_available'] == false) luckyWheelLastFreeDateV182 = today;
+        if (center['free_available'] == false) luckyWheelLastFreeDateV182 = DateTime.now().toIso8601String();
         luckyWheelTokenSpinsV182 = int.tryParse(center['token_spins_today']?.toString() ?? '') ?? luckyWheelTokenSpinsV182;
       }
     } else {
@@ -55,9 +58,9 @@ extension WarqnaV182Controller on AppController {
         transactions.insert(0, const TokenTransaction('تدوير دولاب الحظ', -100, 'الآن'));
         luckyWheelTokenSpinsV182 += 1;
       } else {
-        luckyWheelLastFreeDateV182 = today;
+        luckyWheelLastFreeDateV182 = DateTime.now().toIso8601String();
       }
-      final random = math.Random(DateTime.now().microsecondsSinceEpoch);
+      final random = math.Random.secure();
       final total = luckyWheelSegmentsV182.fold<int>(0, (sum, item) => sum + (item['weight'] as int));
       var pick = random.nextInt(total) + 1;
       var index = 0;

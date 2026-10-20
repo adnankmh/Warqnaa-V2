@@ -40,6 +40,8 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
             R35ChampionBanner(controller: controller),
             const SizedBox(height: 13),
             R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
+            const SizedBox(height:12),
+            R52RewardsHomePanel(controller:controller),
             const SizedBox(height: 13),
             LayoutBuilder(builder: (context, box) {
               final compact = box.maxWidth < 900;

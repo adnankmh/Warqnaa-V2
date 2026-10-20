@@ -299,6 +299,14 @@ class GlobalCardEngineCore
                 $sameSide = empty($state['config']['partnership']) || $targetPlayer === $playerId || $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId);
                 if (!$sameSide) continue;
                 foreach ($meldList as $meldIndex=>$existing) {
+                    $held=array_values($state['hands'][$playerId] ?? []);
+                    $existingCards=(array)($existing['cards'] ?? []);
+                    if(count($existingCards)===3 && array_filter($existingCards,fn($c)=>str_starts_with((string)$c,'JOKER'))) {
+                        for($a=0;$a<count($held);$a++) for($b=$a+1;$b<count($held);$b++) {
+                            $pair=[$held[$a],$held[$b]];
+                            if($this->jokerReplacementMeld($existingCards,$pair)!==null) $actions[]=['type'=>'replace_wild','target_player'=>(string)$targetPlayer,'meld_index'=>(int)$meldIndex,'card'=>$pair[0],'cards'=>$pair];
+                        }
+                    }
                     foreach (($state['hands'][$playerId] ?? []) as $card) {
                         if ($this->isValidMeld(array_merge((array)($existing['cards'] ?? []), [$card]))) {
                             $actions[] = ['type'=>'layoff','target_player'=>(string)$targetPlayer,'meld_index'=>(int)$meldIndex,'cards'=>[$card]];
@@ -339,7 +347,7 @@ class GlobalCardEngineCore
             'meld' => $this->meld($state, $playerId, $action['cards'] ?? []),
             'meld_many' => $this->meldMany($state,$playerId,$action['groups'] ?? []),
             'layoff' => $this->layoff($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), $action['cards'] ?? []),
-            'replace_wild' => $this->replaceWild($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), (string)($action['card'] ?? '')),
+            'replace_wild' => $this->replaceWild($state, $playerId, (string)($action['target_player'] ?? $playerId), (int)($action['meld_index'] ?? 0), (string)($action['card'] ?? ''), (array)($action['cards'] ?? [])),
             'organize' => $this->organize($state, $playerId, (string)($action['strategy'] ?? 'smart'), $action['cards'] ?? []),
             'draw_stock' => $this->solitaireDraw($state, $playerId),
             'move_to_foundation' => $this->solitaireFoundation($state, $playerId, (string)$action['card']),
@@ -777,7 +785,7 @@ class GlobalCardEngineCore
         $state['discard'][] = $card;
         $state['starterDiscardPending'] = false;
         $state = $this->record($state, 'rummy.discard', compact('playerId','card'));
-        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, false);
+        if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, $this->isFullHandFinish($state,$playerId));
         else { unset($state['rummyTurnMeta'][$playerId]); $state['phase']='draw'; $state=$this->advance($state); }
         return $this->finalizeState($state);
     }
@@ -1036,33 +1044,42 @@ class GlobalCardEngineCore
         return $chosen;
     }
 
-    protected function canReplaceJoker(array $meld,string $replacement): bool
+    protected function jokerReplacementMeld(array $meld,array $replacements): ?array
     {
         $jokerIndex=null;
-        foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
-        if($jokerIndex===null || str_starts_with($replacement,'JOKER')) return false;
-        $candidate=$meld; $candidate[$jokerIndex]=$replacement;
-        return $this->isValidMeld(array_values($candidate));
+        foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')) {$jokerIndex=$i;break;}
+        if($jokerIndex===null || !$replacements) return null;
+        foreach($replacements as $card) {
+            if(str_starts_with((string)$card,'JOKER') || (!empty($this->config['wildTwos']) && $this->rank((string)$card)==='2')) return null;
+        }
+        $natural=array_values(array_filter($meld,fn($c)=>!str_starts_with((string)$c,'JOKER') && (empty($this->config['wildTwos']) || $this->rank((string)$c)!=='2')));
+        $pairSet=count($meld)===3 && count($natural)===2 && $this->rank((string)$natural[0])===$this->rank((string)$natural[1]);
+        if(count($replacements)!==($pairSet?2:1)) return null;
+        unset($meld[$jokerIndex]);$candidate=array_merge(array_values($meld),$replacements);
+        return $this->isValidMeld($candidate)?$candidate:null;
     }
 
-    protected function replaceWild(array $state,string $playerId,string $targetPlayer,int $meldIndex,string $replacement): array
+    protected function canReplaceJoker(array $meld,string $replacement): bool
     {
-        if($state['phase']!=='discard') throw new GameEngineException('يمكن استبدال الجوكر بعد السحب فقط.');
+        return $this->jokerReplacementMeld($meld,[$replacement])!==null;
+    }
+
+    protected function replaceWild(array $state,string $playerId,string $targetPlayer,int $meldIndex,string $replacement,array $cards=[]): array
+    {
+        if($state['phase']!=='discard' || !empty($state['starterDiscardPending'])) throw new GameEngineException('يمكن استبدال الجوكر بعد السحب فقط.');
         if(!$this->hasRummyOpened($state,$playerId)) throw new GameEngineException('يجب أن تكون قد افتتحت قبل استبدال الجوكر.');
-        if(!in_array($replacement,$state['hands'][$playerId] ?? [],true)) throw new GameEngineException('ورقة الاستبدال ليست في اليد.');
+        $cards=$cards?array_values(array_map('strval',$cards)):[$replacement];
+        if(!$this->containsCards($state['hands'][$playerId] ?? [],$cards)) throw new GameEngineException('أوراق الاستبدال ليست في اليد بالعدد المطلوب.');
         if(!isset($state['melds'][$targetPlayer][$meldIndex])) throw new GameEngineException('المجموعة الهدف غير موجودة.');
         if(!empty($state['config']['partnership']) && $this->teamOf($state,$targetPlayer)!==$this->teamOf($state,$playerId)) throw new GameEngineException('لا يمكن استبدال جوكر في مجموعات الخصم.');
         $meld=(array)$state['melds'][$targetPlayer][$meldIndex]['cards'];
-        if(!$this->canReplaceJoker($meld,$replacement)) throw new GameEngineException('هذه الورقة لا تستبدل الجوكر قانونيًا في المجموعة المحددة.');
-        $jokerIndex=null; foreach($meld as $i=>$card) if(str_starts_with((string)$card,'JOKER')){$jokerIndex=$i;break;}
-        $joker=(string)$meld[$jokerIndex];
-        $meld[$jokerIndex]=$replacement;
-        $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$replacement);
-        $state['hands'][$playerId][]=$joker;
-        $state['hands'][$playerId]=$this->sortCards($state['hands'][$playerId]);
-        $state['melds'][$targetPlayer][$meldIndex]=['cards'=>array_values($meld),'value'=>$this->meldValue($meld)];
-        $state=$this->record($state,'rummy.replace_joker',compact('playerId','targetPlayer','meldIndex','replacement','joker'));
-        return $this->finalizeState($state);
+        $candidate=$this->jokerReplacementMeld($meld,$cards);
+        if($candidate===null) throw new GameEngineException('الاستبدال غير قانوني؛ مجموعة الورقتين تتطلب الورقتين الناقصتين.');
+        $joker='';foreach($meld as $card) if(str_starts_with((string)$card,'JOKER')) {$joker=(string)$card;break;}
+        foreach($cards as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
+        $state['hands'][$playerId][]=$joker;$state['hands'][$playerId]=$this->sortCards($state['hands'][$playerId]);
+        $state['melds'][$targetPlayer][$meldIndex]=['cards'=>$candidate,'value'=>$this->meldValue($candidate)];
+        return $this->finalizeState($this->record($state,'rummy.replace_joker',compact('playerId','targetPlayer','meldIndex','cards','joker')));
     }
 
     protected function containsCards(array $hand, array $selected): bool
