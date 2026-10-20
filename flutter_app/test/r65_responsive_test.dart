@@ -83,6 +83,7 @@ void main() {
       });
 
       testWidgets('R54 actual clubs in browser $locale ${size.width}x${size.height}',(tester) async {
+        final semantics=tester.ensureSemantics();addTearDown(semantics.dispose);
         tester.view.physicalSize=size;tester.view.devicePixelRatio=1;
         addTearDown(tester.view.resetPhysicalSize);addTearDown(tester.view.resetDevicePixelRatio);
         final api=clubs_fixture.ClubsApi(locale);
@@ -95,18 +96,18 @@ void main() {
         expect(find.byType(R54ClubsHeader),findsOneWidget);expect(api.loads,1);
         expect(Directionality.of(tester.element(find.byType(ClubsPage))),locale=='ar'?TextDirection.rtl:TextDirection.ltr);
         final search=find.byKey(const ValueKey('r21-club-search'));
-        await tester.ensureVisible(search);await tester.enterText(search,locale=='ar'?'فرسان':'KNIGHTS');await tester.pump();
+        await clubs_fixture.revealClubWidget(tester,search);await tester.enterText(search,locale=='ar'?'فرسان':'KNIGHTS');await tester.pump();
         expect(find.byKey(const ValueKey('r21-club-1')),findsOneWidget);
         expect(find.byKey(const ValueKey('r21-club-2')),findsNothing);
         await tester.enterText(search,'');await tester.pump();
         final filter=find.byKey(const ValueKey('r21-club-available'));
-        await tester.ensureVisible(filter);await tester.tap(filter);await tester.pump();
+        await clubs_fixture.revealClubWidget(tester,filter);await tester.tap(filter);await tester.pump();
         expect(find.byKey(const ValueKey('r21-club-3')),findsNothing);
         expect(find.byKey(const ValueKey('r21-club-4')),findsNothing);
         final request=find.byKey(const ValueKey('r21-club-join-2'));
-        await tester.ensureVisible(request);await tester.tap(request);await tester.pumpAndSettle();
+        await clubs_fixture.revealClubWidget(tester,request);await tester.tap(request);await tester.pumpAndSettle();
         expect(api.joins,1);expect(api.pending,2);
-        await tester.ensureVisible(filter);await tester.tap(filter);await tester.pump();
+        await clubs_fixture.revealClubWidget(tester,filter);await tester.tap(filter);await tester.pump();
         expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r21-club-join-2'))).onPressed,isNull);
         expect(tester.takeException(),isNull);await tester.pumpWidget(const SizedBox.shrink());
       });

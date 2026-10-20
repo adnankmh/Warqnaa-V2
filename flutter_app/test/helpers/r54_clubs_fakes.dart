@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:warqna_mobile/main.dart';
 import 'package:warqna_mobile/services/api_client.dart';
 
@@ -45,4 +47,16 @@ class ClubsController extends AppController {
   ClubsController(this.fake);
   final ClubsApi fake;
   @override WarqnaApiClient get api=>fake;
+}
+
+/// Build lazily-scrolled sections before locating a target, and pump the new
+/// viewport transform before hit testing. Never bypass the actual action.
+Future<void> revealClubWidget(WidgetTester tester,Finder target) async {
+  final scroll=find.descendant(of:find.byKey(const ValueKey('r54-clubs-scroll')),
+    matching:find.byType(Scrollable)).first;
+  if(target.evaluate().isEmpty) {
+    tester.state<ScrollableState>(scroll).position.jumpTo(0);await tester.pump();
+    await tester.scrollUntilVisible(target,180,scrollable:scroll,maxScrolls:40);
+  }
+  await tester.ensureVisible(target);await tester.pumpAndSettle();
 }

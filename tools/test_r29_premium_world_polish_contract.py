@@ -25,7 +25,10 @@ def main() -> None:
 
     require(social, "r29-sky-social-hero", 'social-world sky hero')
     require(social, "const Color _r11Mint = B307SkyLuxury.cyan", 'social cyan palette')
-    require(social, "B307PageHero(", 'clubs premium hero')
+    require(social, "R54ClubsHeader(locale: widget.controller.localeCode)", 'actual clubs premium hero route')
+    require(social, "class R54ClubsHeader extends StatelessWidget", 'responsive clubs hero component')
+    require(social, "ValueKey('r54-clubs-header')", 'rendered clubs hero regression key')
+    require(social, "color:R35ReferenceColors.navy", 'clubs navy/gold identity')
     require(social, "Warqnaa Clubs", 'clubs English identity')
 
     require(competitive, "r29-sky-competitive-shell", 'competitive sky shell')

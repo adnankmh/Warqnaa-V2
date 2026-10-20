@@ -37,6 +37,11 @@ double-tap locking, failed-refresh recovery, offline behavior and fail-closed
 unknown states. R7 runs this suite with decoded fonts and screenshot capture.
 The existing Chrome workflow also executes six actual-route club journeys
 through `r65_responsive_test.dart`, sharing the same synthetic API fixtures.
+Both suites enable semantics while rendering. The capacity progress bar retains
+Flutter's numeric percentage value; the localized label provides the actual
+member/capacity counts rather than an invalid fraction-form progress value.
+The historical R29 source contract now checks the new real-route hero wiring
+and navy identity rather than the superseded generic hero class name.
 
 `R54ClubDiscoveryAuthorityTest` exercises the actual Laravel API: hidden private
 clubs, locked capacity, approval-required requests, no duplicate membership,

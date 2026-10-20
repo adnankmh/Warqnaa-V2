@@ -749,7 +749,7 @@ class R54ClubCard extends StatelessWidget {
           const SizedBox(height:10),
           LinearProgressIndicator(value:capacity>0?(count/capacity).clamp(0.0,1.0).toDouble():0,
             minHeight:6,color:R35ReferenceColors.gold,backgroundColor:R35ReferenceColors.deep,
-            semanticsLabel:ar?'عدد الأعضاء':'Membership capacity',semanticsValue:'$count / $capacity',
+            semanticsLabel:ar?'عدد الأعضاء: $count من $capacity':'Members: $count of $capacity',
             borderRadius:BorderRadius.circular(8)),
           const SizedBox(height:16),
           FilledButton(key:ValueKey('r21-club-join-$id'),onPressed:onJoin,
