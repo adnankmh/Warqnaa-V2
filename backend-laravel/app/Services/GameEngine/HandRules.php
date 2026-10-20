@@ -64,8 +64,10 @@ class HandRules extends AbstractCardRules
             if (!empty($state['drew_this_turn'][$playerId])) {
                 return false;
             }
+            // Recycle only the buried discard cards: the face-up top remains
+            // on the table. One discarded card cannot replenish an empty stock.
             return $action === 'draw_deck'
-                ? !empty($state['deck']) || !empty($state['discard'])
+                ? !empty($state['deck']) || count($state['discard'] ?? []) > 1
                 : !empty($state['discard']);
         }
 
@@ -235,7 +237,7 @@ class HandRules extends AbstractCardRules
         ];
 
         if (empty($state['drew_this_turn'][$playerId])) {
-            if (!empty($state['deck']) || !empty($state['discard'])) {
+            if (!empty($state['deck']) || count($state['discard'] ?? []) > 1) {
                 $actions[] = ['type' => 'draw_deck'];
             }
             if (!empty($state['discard'])) {

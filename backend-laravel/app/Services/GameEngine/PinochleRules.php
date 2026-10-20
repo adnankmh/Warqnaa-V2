@@ -53,7 +53,13 @@ class PinochleRules extends HandRules
             if (!empty($state['drew_this_turn'][$playerId])) {
                 return false;
             }
-            $count = (int) ($payload['count'] ?? 0);
+            // Do not silently turn booleans, fractional numbers, arrays or
+            // strings such as "2extra" into a different number of fire cards.
+            $requested = $payload['count'] ?? null;
+            if (!is_int($requested) && (!is_string($requested) || preg_match('/^[1-9][0-9]*$/D', $requested) !== 1)) {
+                return false;
+            }
+            $count = (int) $requested;
             $available = count($state['discard'] ?? []);
             return $count >= 2 && $count <= $available;
         }
