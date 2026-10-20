@@ -80,12 +80,33 @@ class R52AdMobSsvTest extends TestCase
 
     public function test_daily_cap_is_enforced_after_eight_verified_rewards(): void
     {
+        $queries=[];
         for($i=0;$i<8;$i++) {
             $session=$this->postJson('/api/mobile/v1/rewards/ad-sessions')->assertOk()->json();
-            $this->getJson('/api/mobile/v1/ads/admob/ssv?'.$this->signed($session))->assertOk();
+            $queries[]=$this->signed($session);
+            $this->getJson('/api/mobile/v1/ads/admob/ssv?'.$queries[$i])->assertOk();
         }
         $this->postJson('/api/mobile/v1/rewards/ad-sessions')->assertStatus(429);
         $this->assertSame(8,RewardedAdClaim::count());
-        $this->assertSame(1400,(int)$this->player->wallet()->first()->tokens);
+        $this->assertSame(400,(int)RewardedAdClaim::sum('reward_tokens'));
+        $this->assertSame(120,(int)RewardedAdClaim::sum('reward_xp'));
+        $this->assertSame(8,WalletTransaction::where('type','rewarded_ad')->count());
+        $this->assertSame(400,(int)WalletTransaction::where('type','rewarded_ad')->sum('amount'));
+        // The sixth 15-XP reward crosses level one's 80-XP threshold.
+        // Its separate, existing level-two bonus is 230 tokens, not ad income.
+        $this->assertSame(120,(int)$this->player->profile()->first()->xp);
+        $this->assertSame(2,(int)$this->player->profile()->first()->level);
+        $this->assertSame(1630,(int)$this->player->wallet()->first()->tokens);
+
+        // Retried provider callbacks, including the level-up callback, remain
+        // idempotent even after the daily cap has been reached.
+        foreach($queries as $query) $this->getJson('/api/mobile/v1/ads/admob/ssv?'.$query)->assertOk();
+        $this->assertSame(8,RewardedAdClaim::count());
+        $this->assertSame(8,WalletTransaction::where('type','rewarded_ad')->count());
+        $this->assertSame(400,(int)WalletTransaction::where('type','rewarded_ad')->sum('amount'));
+        $this->assertSame(120,(int)$this->player->profile()->first()->xp);
+        $this->assertSame(2,(int)$this->player->profile()->first()->level);
+        $this->assertSame(1630,(int)$this->player->wallet()->first()->tokens);
+        $this->postJson('/api/mobile/v1/rewards/ad-sessions')->assertStatus(429);
     }
 }
