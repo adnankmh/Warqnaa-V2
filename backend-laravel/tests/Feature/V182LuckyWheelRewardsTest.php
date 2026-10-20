@@ -41,7 +41,9 @@ class V182LuckyWheelRewardsTest extends TestCase
 
         $center = $service->center($user);
         $this->assertCount(12, $center['segments']);
-        $this->assertNotContains('table', array_column(array_column($center['segments'], 'reward'), 'type'));
+        $types=array_unique(array_column(array_column($center['segments'], 'reward'), 'type'));
+        $this->assertCount(8,$types);
+        $this->assertContains('table',$types);
         $this->assertTrue($center['free_available']);
         $this->assertSame(100, $center['token_cost']);
 

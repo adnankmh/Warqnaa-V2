@@ -85,8 +85,9 @@ abstract final class R52RummyRules {
     final natural=meld.where((c)=>!wild(c,banakil)).toList();
     final pairSet=meld.length==3 && natural.length==2 && rank(natural[0])==rank(natural[1]);
     if(cards.length!=(pairSet?2:1)) return null;
-    final result=List<String>.from(meld)..removeAt(joker);
-    result.addAll(cards);
+    final result=List<String>.from(meld);
+    if(pairSet) {result.removeAt(joker);result.addAll(cards);}
+    else {result[joker]=cards.first;}
     return validMeld(result,banakil:banakil) ? result : null;
   }
 

@@ -37,7 +37,7 @@ void main() {
     expect(R52RummyRules.replaceJoker(meld,['7H']),isNull);
     expect(R52RummyRules.replaceJoker(meld,['7H','7S']),['7C','7D','7H','7S']);
     expect(R52RummyRules.replaceJoker(meld,['7H','7H']),isNull);
-    expect(R52RummyRules.replaceJoker(['4C','JOKER1','6C'],['5C']),['4C','6C','5C']);
+    expect(R52RummyRules.replaceJoker(['4C','JOKER1','6C'],['5C']),['4C','5C','6C']);
     expect(R52RummyRules.replaceJoker(['4C','2H','6C'],['5C'],banakil:true),isNull);
   });
   test('R52 Hand penalties, winner award and full-hand multiplier follow round rules',(){

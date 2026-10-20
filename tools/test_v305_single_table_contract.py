@@ -30,6 +30,6 @@ reward_services = {
     'daily packs': text('backend-laravel/app/Services/WarqnaPro/DailyPackService.php'),
 }
 for label, source in reward_services.items():
-    ok("'type'=>'table'" not in source and 'table_v173_royal_01' not in source and 'table_v173_showcase_01' not in source, f'{label} cannot award removed legacy tables')
+    ok('table_v173_royal_01' not in source and 'table_v173_showcase_01' not in source, f'{label} cannot award removed legacy tables')
 
 print('R6.1 CURATED TABLE SUCCESSOR CONTRACT: PASS')

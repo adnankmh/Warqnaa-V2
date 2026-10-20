@@ -8,7 +8,7 @@ class WarqnaaCardIdentity {
   String get label => joker ? '🃏' : '$rank$symbol';
   static WarqnaaCardIdentity? parse(String input) {
     final raw=input.trim().toUpperCase();
-    if(raw=='🃏' || RegExp(r'^JOKER[12]?$').hasMatch(raw)) return const WarqnaaCardIdentity('JOKER','');
+    if(raw=='🃏' || RegExp(r'^JOKER(?:[12]|_[RB])?$').hasMatch(raw)) return const WarqnaaCardIdentity('JOKER','');
     final match=RegExp(r'^(10|[2-9AJQK])_?(SPADES|HEARTS|DIAMONDS|CLUBS|[SHDC♠♥♦♣])$').firstMatch(raw);
     if(match==null) return null;
     final suffix=match[2]!;

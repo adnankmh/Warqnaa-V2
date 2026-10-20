@@ -1055,7 +1055,8 @@ class GlobalCardEngineCore
         $natural=array_values(array_filter($meld,fn($c)=>!str_starts_with((string)$c,'JOKER') && (empty($this->config['wildTwos']) || $this->rank((string)$c)!=='2')));
         $pairSet=count($meld)===3 && count($natural)===2 && $this->rank((string)$natural[0])===$this->rank((string)$natural[1]);
         if(count($replacements)!==($pairSet?2:1)) return null;
-        unset($meld[$jokerIndex]);$candidate=array_merge(array_values($meld),$replacements);
+        if($pairSet) {unset($meld[$jokerIndex]);$candidate=array_merge(array_values($meld),$replacements);}
+        else {$meld[$jokerIndex]=$replacements[0];$candidate=array_values($meld);}
         return $this->isValidMeld($candidate)?$candidate:null;
     }
 
