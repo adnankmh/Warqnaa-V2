@@ -625,102 +625,25 @@ class _PrizeBoxOpeningDialogV02State extends State<PrizeBoxOpeningDialogV02> wit
     super.dispose();
   }
 
-  double _interval(double value, double begin, double end) => ((value - begin) / (end - begin)).clamp(0.0, 1.0).toDouble();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context) && !completed) animation.value = 1;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final label = prizeRewardLabelV02(widget.locale, widget.reward);
     return Dialog.fullscreen(
       backgroundColor: const Color(0xff040812),
       child: SafeArea(
         child: AnimatedBuilder(
           animation: animation,
-          builder: (context, _) {
-            final p = animation.value;
-            final shake = p < .28 ? math.sin(p * 85) * (1 - p / .28) * 8 : 0.0;
-            final lid = Curves.easeOutBack.transform(_interval(p, .30, .66));
-            final panel = Curves.easeInOutCubic.transform(_interval(p, .34, .70));
-            final reveal = Curves.elasticOut.transform(_interval(p, .58, .92));
-            final glow = .25 + .75 * math.sin(math.min(1, p / .62) * math.pi);
-            return Stack(children: [
-              Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
-                gradient: RadialGradient(center: const Alignment(0, -.08), radius: 1.05, colors: [Colors.amber.withValues(alpha: .18 * glow), const Color(0xff07101f), const Color(0xff02040a)]),
-              ))),
-              for (var i = 0; i < 16; i++)
-                Positioned(
-                  left: MediaQuery.sizeOf(context).width * ((i * 37) % 100) / 100,
-                  top: MediaQuery.sizeOf(context).height * (.15 + ((i * 19) % 65) / 100),
-                  child: Opacity(opacity: _interval(p, .38, .82) * (1 - _interval(p, .82, 1)), child: Transform.scale(scale: .5 + (i % 4) * .25, child: const Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 18))),
-                ),
-              Center(child: Transform.translate(
-                offset: Offset(shake, 40),
-                child: SizedBox(
-                  width: math.min(560.0, MediaQuery.sizeOf(context).width * .94),
-                  height: math.min(590.0, MediaQuery.sizeOf(context).height * .72),
-                  child: Stack(alignment: Alignment.center, children: [
-                    Positioned(bottom: 45, left: 0, right: 0, child: Image.asset(prizeBoxAssetV02(widget.boxKey, 'body'), height: 390, fit: BoxFit.contain)),
-                    Positioned(
-                      bottom: 45 - panel * 88,
-                      left: 0,
-                      right: 0,
-                      child: Transform(
-                        alignment: Alignment.bottomCenter,
-                        transform: Matrix4.identity()..setEntry(3, 2, .0012)..rotateX(panel * 1.18),
-                        child: Opacity(opacity: 1 - reveal * .35, child: Image.asset(prizeBoxAssetV02(widget.boxKey, 'front_panel'), height: 390, fit: BoxFit.contain)),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 45 + lid * 175,
-                      left: 0,
-                      right: 0,
-                      child: Transform(
-                        alignment: Alignment.bottomCenter,
-                        transform: Matrix4.identity()..setEntry(3, 2, .001)..rotateX(-lid * .62),
-                        child: Image.asset(prizeBoxAssetV02(widget.boxKey, 'lid'), height: 390, fit: BoxFit.contain),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 110 + reveal * 185,
-                      child: Opacity(
-                        opacity: _interval(p, .58, .78),
-                        child: Transform.scale(
-                          scale: .22 + .78 * reveal,
-                          child: Container(
-                            width: 220,
-                            height: 220,
-                            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .05), boxShadow: [BoxShadow(color: Colors.amberAccent.withValues(alpha: .58 * reveal), blurRadius: 70, spreadRadius: 18)]),
-                            padding: const EdgeInsets.all(18),
-                            child: PrizeRewardVisualV210(reward: widget.reward, size: 184),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-              )),
-              Positioned(
-                left: 22,
-                right: 22,
-                bottom: 24,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 350),
-                  opacity: p > .78 ? 1 : 0,
-                  child: Column(children: [
-                    Text(V02Text.t(widget.locale, 'reward'), style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 25)),
-                    const SizedBox(height: 12),
-                    FilledButton.icon(
-                      onPressed: completed ? () => Navigator.of(context).pop() : null,
-                      icon: const Icon(Icons.check_circle_outline_rounded),
-                      label: Text(V02Text.t(widget.locale, 'close')),
-                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                    ),
-                  ]),
-                ),
-              ),
-            ]);
-          },
+          builder: (context, _) => R53PrizeOpeningScene(
+            locale: widget.locale, boxKey: widget.boxKey, reward: widget.reward,
+            progress: animation.value, completed: completed,
+            onSkip: () => animation.value = 1,
+            onContinue: () => Navigator.of(context).pop(),
+          ),
         ),
       ),
     );

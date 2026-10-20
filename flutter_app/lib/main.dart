@@ -54,6 +54,7 @@ part 'r48_approved_art.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
 part 'r52_playability.dart';
+part 'r53_prize_opening.dart';
 part 'r36_meld_workspace.dart';
 part 'r41_board_legibility.dart';
 part 'r36_store_sync.dart';
