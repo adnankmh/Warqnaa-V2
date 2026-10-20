@@ -1024,31 +1024,54 @@ class GlobalCardEngineCore
     protected function selectDisjointMeldGroups(array $suggested, array $hand, int $openingRequired, ?string $mustIncludeCard): array
     {
         $available = array_count_values(array_map('strval', $hand));
-        $chosen = [];
-        $used = [];
-        $total = 0;
-        $includesRequired = $mustIncludeCard === null;
-
-        foreach ($suggested as $meld) {
+        $candidates = [];
+        foreach (array_slice($suggested, 0, 12) as $meld) {
             $cards = array_values(array_map('strval', (array)($meld['cards'] ?? [])));
             if (count($cards) < 3) continue;
-            $candidateCounts = $used;
-            $fits = true;
-            foreach ($cards as $card) {
-                $candidateCounts[$card] = ($candidateCounts[$card] ?? 0) + 1;
-                if ($candidateCounts[$card] > ($available[$card] ?? 0)) { $fits = false; break; }
-            }
-            if (!$fits) continue;
-            $used = $candidateCounts;
-            $chosen[] = $cards;
-            $total += (int)($meld['value'] ?? $this->meldValue($cards));
-            if ($mustIncludeCard !== null && in_array($mustIncludeCard, $cards, true)) $includesRequired = true;
-            if (count($chosen) >= 2 && $includesRequired && ($openingRequired === 0 || $total >= $openingRequired)) break;
-            if (count($chosen) >= 3) break;
+            $candidates[] = [
+                'cards'=>$cards,
+                'value'=>(int)($meld['value'] ?? $this->meldValue($cards)),
+            ];
         }
 
-        if (count($chosen) < 2 || !$includesRequired || ($openingRequired > 0 && $total < $openingRequired)) return [];
-        return $chosen;
+        // A greedy first-fit choice can consume cards needed by two other
+        // melds. Search the bounded suggestion set so a high-value overlapping
+        // meld cannot hide a legal multi-group opening or discard pickup.
+        $best = [];
+        $bestCardCount = -1;
+        $bestValue = -1;
+        $candidateCount = count($candidates);
+        $limit = 1 << $candidateCount;
+        for ($mask = 1; $mask < $limit; $mask++) {
+            $groupCount = substr_count(decbin($mask), '1');
+            if ($groupCount < 2 || $groupCount > 8) continue;
+            $chosen = [];
+            $used = [];
+            $total = 0;
+            $cardCount = 0;
+            $includesRequired = $mustIncludeCard === null;
+            $fits = true;
+            for ($index = 0; $index < $candidateCount; $index++) {
+                if (($mask & (1 << $index)) === 0) continue;
+                $cards = $candidates[$index]['cards'];
+                foreach ($cards as $card) {
+                    $used[$card] = ($used[$card] ?? 0) + 1;
+                    if ($used[$card] > ($available[$card] ?? 0)) { $fits = false; break 2; }
+                }
+                $chosen[] = $cards;
+                $cardCount += count($cards);
+                $total += $candidates[$index]['value'];
+                if ($mustIncludeCard !== null && in_array($mustIncludeCard, $cards, true)) $includesRequired = true;
+            }
+            if (!$fits || !$includesRequired || ($openingRequired > 0 && $total < $openingRequired)) continue;
+            if ($cardCount > $bestCardCount || ($cardCount === $bestCardCount && $total > $bestValue)) {
+                $best = $chosen;
+                $bestCardCount = $cardCount;
+                $bestValue = $total;
+            }
+        }
+
+        return $best;
     }
 
     protected function jokerReplacementMeld(array $meld,array $replacements): ?array
