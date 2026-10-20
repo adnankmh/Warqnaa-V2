@@ -48,7 +48,7 @@ def main() -> None:
         "prizeBoxDailyLimitV02 = 4",
         "class PrizeBoxOpeningDialogV02",
         "Duration(seconds: 5)",
-        "rotateX(panel * 1.18)",
+        "R53PrizeOpeningScene(",
         "'pasha_day'",
         "'writing_color'",
         "'player_color'",
@@ -56,6 +56,10 @@ def main() -> None:
         "'tokens'",
         "'ticket'",
     )
+    require("flutter_app/lib/r53_prize_opening.dart", "FractionalOffset(.5, 235 / 540)",
+            "sprite('body')", "sprite('front_panel')", "sprite('lid')",
+            "r53-prize-summary-viewport", "r53-prize-stage", "r53-prize-skip")
+    require("tools/r7_runtime_smoke.py", "test/r53_prize_opening_test.dart")
     for lang in ("ar", "en", "de", "tr", "fr", "es"):
         if f"'{lang}': <String, String>" not in v02:
             fail(f"missing {lang} prize-box translations")
