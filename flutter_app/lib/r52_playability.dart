@@ -2,6 +2,35 @@ part of 'main.dart';
 
 String r52CardLabel(String raw) => WarqnaaCardIdentity.parse(raw)?.label ?? raw;
 
+// V173 source tables are 1280x720/683. The explicit R48 card-back variants
+// and original V021 card backs are already portrait and stay upright.
+int r52CardBackQuarterTurns(String asset) => asset.startsWith('assets/optimized/r10/tables/v173/') ? 1 : 0;
+
+class R52RoundScoreCard extends StatelessWidget {
+  const R52RoundScoreCard({super.key,required this.state,required this.players,required this.ar});
+  final Map<String,dynamic> state;
+  final List<dynamic> players;
+  final bool ar;
+  @override
+  Widget build(BuildContext context) {
+    final results=state['round_results'];
+    final last=results is List && results.isNotEmpty && results.last is Map ? results.last as Map : const {};
+    final raw=last['delta'] ?? state['player_round_score_delta'];
+    if(raw is! Map || raw.isEmpty) return const SizedBox.shrink();
+    final names=<String,String>{for(final p in players.whereType<Map>())
+      if(p['key']!=null) p['key'].toString():p['name']?.toString() ?? p['key'].toString()};
+    return Container(key:const ValueKey('r52-round-points'),margin:const EdgeInsets.symmetric(horizontal:10,vertical:5),
+      padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:R35ReferenceColors.navy,
+        borderRadius:BorderRadius.circular(14),border:Border.all(color:R35ReferenceColors.cyan)),
+      child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Text(ar?'نقاط الجولة السابقة':'Previous round points',style:const TextStyle(color:R35ReferenceColors.paleGold,fontSize:14,fontWeight:FontWeight.w900)),
+        Wrap(spacing:12,runSpacing:6,children:[for(final entry in raw.entries)
+          Text('${names[entry.key.toString()] ?? entry.key}: ${entry.value is num && (entry.value as num)>0 ? '+' : ''}${entry.value}',
+            key:ValueKey('r52-round-points-${entry.key}'),style:const TextStyle(color:Colors.white,fontSize:14,fontWeight:FontWeight.w800))]),
+      ]));
+  }
+}
+
 /// Reachable rewards routes share the existing authoritative opening/spin code.
 class R52RewardsHomePanel extends StatelessWidget {
   const R52RewardsHomePanel({super.key,required this.controller});

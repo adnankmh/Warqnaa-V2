@@ -60,7 +60,7 @@ void main() {
     final session=LocalGameSession(gameId:'hand',humanName:'Player',difficulty:'master',playerCount:2,seed:52,singleRound:false);
     var actions=0;
     while(!session.gameOver && actions++<2500) {
-      if(session.phase=='round_end') {session.act('next_round',{});}
+      if(session.phase=='round_end') {session.action('next_round',{});}
       else {session.timeout();}
     }
     expect(session.gameOver,isTrue,reason:'A full local Hand match must terminate within the bounded playthrough.');

@@ -5169,9 +5169,7 @@ class PremiumCardBack extends StatelessWidget {
               : null,
           image: customBytes != null
               ? DecorationImage(image: MemoryImage(customBytes), fit: BoxFit.cover)
-              : asset == null
-                  ? null
-                  : DecorationImage(image: AssetImage(asset), fit: BoxFit.cover, filterQuality: FilterQuality.high),
+              : null,
           border: Border.all(color: Color.lerp(c2, B307SkyLuxury.cyan, .28)!, width: 1.5),
           boxShadow: [
             BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .13), blurRadius: 8, spreadRadius: .3),
@@ -5185,7 +5183,10 @@ class PremiumCardBack extends StatelessWidget {
                   painter: _WarqnaaCardBackPainter(color: c2),
                   child: Center(child: Text('W', style: TextStyle(color: c2, fontSize: width * .30, fontWeight: FontWeight.w900, height: 1))),
                 )
-              : const SizedBox.shrink(),
+              : asset==null ? const SizedBox.shrink() : SizedBox.expand(child:RotatedBox(
+                key:const ValueKey('r52-upright-card-back-art'),
+                quarterTurns:r52CardBackQuarterTurns(asset),
+                child:Image.asset(asset,fit:BoxFit.cover,filterQuality:FilterQuality.high))),
         ),
       ),
     );
@@ -5674,7 +5675,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   int get turnDuration => int.tryParse(room?['turn_seconds']?.toString() ?? '') ?? widget.options.turnSeconds;
 
   void _scheduleServerAutoNextRound() {
-    if (!mounted || sending || roomCode.isEmpty || state['game_over']==true) return;
+    if (!mounted || sending || roomCode.isEmpty) return;
+    if(state['game_over']==true) {
+      serverAutoNextRoundTimer?.cancel();serverAutoNextRoundTimer=null;serverAutoNextRoundScheduled=false;return;
+    }
     final nextAvailable = state['next_round_available'] == true;
     if (!nextAvailable) {
       serverAutoNextRoundScheduled = false;
@@ -5699,7 +5703,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   }
 
   void _tick() {
-    if (!mounted || loading || room == null || sending) return;
+    if (!mounted || loading || room == null || sending || state['game_over']==true) return;
     if (awayMode) { _timeout(inactive: false); return; }
     setState(() => seconds -= 1);
     chatPoll += 1;
@@ -6386,6 +6390,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           ),
         ),
         if (_isTarneebFamilyServer) _serverTarneebStatusStrip(context),
+        R52RoundScoreCard(state:state,players:room?['players'] is List ? room!['players'] as List : const [],ar:widget.controller.localeCode=='ar'),
     ];
     final controls = <Widget>[
       _serverHand(), _serverActions(context),
@@ -6429,7 +6434,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     // Small phones and expanded chat scroll while card ranks stay readable.
     return SingleChildScrollView(child: Column(children: [
       ...status,
-      SizedBox(height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable()),
+      Center(child:SizedBox(width:MediaQuery.sizeOf(context).width>=1100 ? math.min(area.maxWidth,MediaQuery.sizeOf(context).width*.66) : area.maxWidth,
+        height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable())),
       ...controls,
     ]));
   });
@@ -7406,7 +7412,7 @@ class PlayingCard extends StatelessWidget {
     final red = suit == '♥' || suit == '♦';
     final ink = red ? const Color(0xffb42335) : const Color(0xff101419);
     final compactCard = width < 34;
-    final cornerSize = math.max(compactCard ? 6.0 : 9.0, width * .25).toDouble();
+    final cornerSize = math.max(compactCard ? 6.0 : 9.0, width * .27).toDouble();
     final centerSize = math.max(compactCard ? 9.0 : 16.0, width * .48).toDouble();
     final edgeInset = compactCard ? 1.5 : 3.5;
     final verticalInset = compactCard ? 1.0 : 2.5;
@@ -7443,7 +7449,7 @@ class PlayingCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(math.max(6.0, width * .16).toDouble()),
           child: Stack(
             children: [
-              Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))])),
+              Positioned(left: edgeInset, top: verticalInset, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .95, height: .85))])),
               Positioned.fill(
                 child: CustomPaint(
                   key: ValueKey('r19-card-face-$label'),
@@ -7452,7 +7458,7 @@ class PlayingCard extends StatelessWidget {
                     fontFamilyFallback: Theme.of(context).textTheme.bodyMedium?.fontFamilyFallback),
                 ),
               ),
-              Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .85, height: .85))]))),
+              Positioned(right: edgeInset, bottom: verticalInset, child: Transform.rotate(angle: math.pi, child: Column(mainAxisSize: MainAxisSize.min, children: [Text(rank, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize, height: .9)), Text(suit, style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: cornerSize * .95, height: .85))]))),
               if (selected)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -7551,7 +7557,7 @@ class _WarqnaaCardFacePainter extends CustomPainter {
       _ => const [Offset(.34, .19), Offset(.66, .19), Offset(.50, .30), Offset(.34, .39), Offset(.66, .39), Offset(.34, .61), Offset(.66, .61), Offset(.50, .70), Offset(.34, .81), Offset(.66, .81)],
     };
     for (final position in positions) {
-      _glyph(canvas, suit, Offset(size.width * position.dx, size.height * position.dy), size.width * .16, color: ink);
+      _glyph(canvas, suit, Offset(size.width * position.dx, size.height * position.dy), size.width * .19, color: ink);
     }
   }
 
