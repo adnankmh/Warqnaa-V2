@@ -288,13 +288,19 @@ class GlobalCardEngineCore
             return $actions;
         }
         $openingRequired = $this->hasRummyOpened($state, $playerId) ? 0 : $this->rummyOpeningRequirement($state, $playerId);
+        $requiredMeldCard = null;
+        if (!empty($state['rummyTurnMeta'][$playerId]['must_meld'])) {
+            $required = (string)($state['rummyTurnMeta'][$playerId]['required_meld_card'] ?? '');
+            if ($required !== '') $requiredMeldCard = $required;
+        }
         $suggested = $this->suggestMelds($state['hands'][$playerId] ?? [], 0);
         foreach ($suggested as $meld) {
+            if ($requiredMeldCard !== null && !in_array($requiredMeldCard, (array)$meld['cards'], true)) continue;
             if ($openingRequired === 0 || (int)($meld['value'] ?? 0) >= $openingRequired) {
                 $actions[] = ['type'=>'meld','cards'=>$meld['cards']];
             }
         }
-        if ($this->hasRummyOpened($state,$playerId)) {
+        if ($this->hasRummyOpened($state,$playerId) && empty($state['rummyTurnMeta'][$playerId]['must_meld'])) {
             foreach (($state['melds'] ?? []) as $targetPlayer=>$meldList) {
                 $sameSide = empty($state['config']['partnership']) || $targetPlayer === $playerId || $this->teamOf($state, (string)$targetPlayer) === $this->teamOf($state, $playerId);
                 if (!$sameSide) continue;
@@ -318,7 +324,12 @@ class GlobalCardEngineCore
                 }
             }
         }
-        $manyGroups = $this->selectDisjointMeldGroups($suggested, $state['hands'][$playerId] ?? [], $openingRequired, null);
+        $manyGroups = $this->selectDisjointMeldGroups(
+            $suggested,
+            $state['hands'][$playerId] ?? [],
+            $openingRequired,
+            $requiredMeldCard,
+        );
         if (count($manyGroups) >= 2) $actions[] = ['type'=>'meld_many','groups'=>$manyGroups];
         if (empty($state['rummyTurnMeta'][$playerId]['must_meld'])) {
             foreach (($state['hands'][$playerId] ?? []) as $card) $actions[] = ['type'=>'discard','card'=>$card];
@@ -809,6 +820,7 @@ class GlobalCardEngineCore
         $value = $this->meldValue($cards);
         if (!$this->hasRummyOpened($state,$playerId) && $value < $this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('قيمة الافتتاح أقل من المطلوب.');
         $clearsDiscardRequirement = $this->meldConsumesRequiredDiscard($state, $playerId, $cards);
+        if (!$clearsDiscardRequirement) throw new GameEngineException('يجب استخدام ورقة النار المسحوبة في أول تنزيل قانوني قبل أي تنزيل آخر.');
         foreach ($cards as $c) $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $c);
         $state['melds'][$playerId][] = ['cards'=>$cards, 'value'=>$value];
         $state = $this->recordRummyOpening($state,$playerId,$value);
@@ -836,6 +848,7 @@ class GlobalCardEngineCore
         if(!$this->containsCards($state['hands'][$playerId] ?? [],$all)) throw new GameEngineException('الأوراق المختارة غير موجودة بالعدد المطلوب.');
         if(!$this->hasRummyOpened($state,$playerId) && $total<$this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('مجموع افتتاحك أقل من المطلوب.');
         $clearsDiscardRequirement=$this->meldConsumesRequiredDiscard($state,$playerId,$all);
+        if(!$clearsDiscardRequirement) throw new GameEngineException('يجب أن تتضمن مجموعات الافتتاح ورقة النار المسحوبة قبل أي تنزيل آخر.');
         foreach($all as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
         foreach($normalized as $cards) $state['melds'][$playerId][]=['cards'=>$cards,'value'=>$this->meldValue($cards)];
         $state=$this->recordRummyOpening($state,$playerId,$total);
@@ -853,6 +866,7 @@ class GlobalCardEngineCore
     {
         if ($state['phase'] !== 'discard') throw new GameEngineException('يمكن التركيب بعد السحب فقط.');
         if (!empty($state['starterDiscardPending'])) throw new GameEngineException('يجب رمي الورقة الإضافية أولاً.');
+        if (!empty($state['rummyTurnMeta'][$playerId]['must_meld'])) throw new GameEngineException('يجب استخدام ورقة النار المسحوبة في تنزيل جديد قبل التركيب.');
         $cards = array_values(array_map('strval', $cards));
         if (!$cards) throw new GameEngineException('اختر ورقة واحدة على الأقل للتركيب.');
         if (!$this->containsCards($state['hands'][$playerId] ?? [], $cards)) throw new GameEngineException('إحدى أوراق التركيب غير موجودة بالعدد المطلوب في اليد.');
@@ -1119,6 +1133,7 @@ class GlobalCardEngineCore
     protected function replaceWild(array $state,string $playerId,string $targetPlayer,int $meldIndex,string $replacement,array $cards=[]): array
     {
         if($state['phase']!=='discard' || !empty($state['starterDiscardPending'])) throw new GameEngineException('يمكن استبدال الجوكر بعد السحب فقط.');
+        if(!empty($state['rummyTurnMeta'][$playerId]['must_meld'])) throw new GameEngineException('يجب استخدام ورقة النار المسحوبة في تنزيل جديد قبل استبدال الجوكر.');
         if(!$this->hasRummyOpened($state,$playerId)) throw new GameEngineException('يجب أن تكون قد افتتحت قبل استبدال الجوكر.');
         $cards=$cards?array_values(array_map('strval',$cards)):[$replacement];
         if(!$this->containsCards($state['hands'][$playerId] ?? [],$cards)) throw new GameEngineException('أوراق الاستبدال ليست في اليد بالعدد المطلوب.');
