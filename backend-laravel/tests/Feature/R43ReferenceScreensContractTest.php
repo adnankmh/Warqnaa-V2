@@ -30,7 +30,7 @@ class R43ReferenceScreensContractTest extends TestCase
         $this->assertStringNotContainsString('Warqnaa_Screens_Overview', $css);
 
         $games = file_get_contents(resource_path('views/games/index.blade.php'));
-        $this->assertStringContainsString("route('rooms.index',$game->key)", $games);
+        $this->assertStringContainsString("route('rooms.index',\$game->key)", $games);
         $this->assertStringContainsString("id=\"gameSearchV130\"", $games);
         $this->assertStringContainsString("id=\"compactGamesV130\"", $games);
     }
