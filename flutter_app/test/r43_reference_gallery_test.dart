@@ -49,6 +49,15 @@ void main() {
         await tester.ensureVisible(bots);
         await tester.pump();
         await tester.tap(bots);
+        await tester.pumpAndSettle();
+        expect(find.byType(R43BotRosterPage), findsOneWidget);
+        expect(find.byKey(const ValueKey('r43-bot-roster-screen')), findsOneWidget);
+
+        final play = find.text(locale == 'ar' ? 'اختر لعبة للتدريب' : 'Choose a game to practice');
+        await tester.ensureVisible(play);
+        await tester.pump();
+        await tester.tap(play);
+        await tester.pumpAndSettle();
         expect(tabs, <int>[0, 1]);
         expect(tester.takeException(), isNull);
       });
