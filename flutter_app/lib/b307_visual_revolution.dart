@@ -537,6 +537,8 @@ class B307HomeDashboard extends StatelessWidget {
         const SizedBox(height:12),
         R52RewardsHomePanel(controller:controller),
         const SizedBox(height: 12),
+        R43ReferenceQuickDestinations(controller: controller, onTab: onTab),
+        const SizedBox(height: 12),
         B307SectionHeader(
           foregroundColor: R35ReferenceColors.navy,
           title: ar ? 'عالم ورقنا' : 'Warqnaa world',
