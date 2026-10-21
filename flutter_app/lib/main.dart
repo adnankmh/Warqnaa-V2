@@ -8882,14 +8882,16 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 640 ? 3 : 2;
+            final cellWidth = (constraints.maxWidth - (columns - 1) * 8) / columns;
+            final tileHeight = constraints.maxWidth < 350 ? 68.0 : 60.0;
             return GridView.count(
               key: const ValueKey('r31-lobby-tools-grid'),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: columns,
-              crossAxisSpacing: 7,
-              mainAxisSpacing: 7,
-              childAspectRatio: constraints.maxWidth >= 640 ? 2.15 : 1.65,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: cellWidth / tileHeight,
               children: [
                 _R31LobbyTool(icon: Icons.menu_book_rounded, label: L.t(controller.localeCode, 'rules'), onTap: () => showRules(context, controller.localeCode, game.id)),
                 _R31LobbyTool(icon: Icons.leaderboard_rounded, label: L.t(controller.localeCode, 'leaderboard'), onTap: () => showLeaderboard(context, controller)),
@@ -8974,16 +8976,19 @@ class _R31LobbyTool extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               gradient: B307SkyLuxury.panelGradient,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24)),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .40)),
             ),
-            child: Row(children: [
-              Icon(icon, color: B307SkyLuxury.cyan, size: 20),
-              const SizedBox(width: 7),
-              Expanded(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9.5, fontWeight: FontWeight.w900))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, color: B307SkyLuxury.cyan, size: 23),
+              const SizedBox(width: 8),
+              Flexible(child: Text(label, textAlign: TextAlign.center, maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 15,
+                  height: 1.18, fontWeight: FontWeight.w900))),
             ]),
           ),
         ),
