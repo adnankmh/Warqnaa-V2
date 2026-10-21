@@ -285,3 +285,170 @@ body.warqna-b304 .w36-premium-games.compact .w36-games-wall { grid-template-colu
   body.warqna-b304 .w36-premium-games.compact .w36-games-wall { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
   body.warqna-b304 .w36-premium-games.compact .w36-game-tile-art { height:80px!important; }
 }
+
+/* R43 detail screens: the same approved treatment on complete live pages.
+   Reuse existing form actions, Laravel models, search handlers and server prices. */
+body.warqna-b304 :is(.store-separated-hero-v127,.store-section-frame-v127,.tournament-hero,.club-hero,.profile-edit-card,.r52-rewards) {
+  position:relative;
+  background:linear-gradient(140deg,#118adb 0%,#075cb1 45%,#062f70 100%)!important;
+  border:1.5px solid #82ddff!important;
+  border-radius:20px!important;
+  color:#fff!important;
+  box-shadow:inset 0 2px 0 #ffffff42,0 11px 30px #041c4d8c!important;
+}
+body.warqna-b304 :is(.store-separated-hero-v127,.tournament-hero,.club-hero,.profile-edit-card) {
+  padding:clamp(14px,2.2vw,30px)!important;
+}
+body.warqna-b304 :is(.store-separated-hero-v127,.tournament-hero,.club-hero) h1 {
+  font-size:clamp(1.35rem,2.6vw,2.25rem)!important;
+  color:#ffe394!important;
+}
+body.warqna-b304 .store-separated-hero-v127 p {max-width:58ch;color:#e3f4ff!important;line-height:1.5;}
+body.warqna-b304 .store-wallet-v127 {
+  background:linear-gradient(135deg,#fff0ab,#ffc741)!important;
+  border:1px solid #fff9ca!important;
+  border-radius:15px!important;
+  box-shadow:0 8px 23px #001c46a3!important;
+  color:#082858!important;
+}
+body.warqna-b304 .store-wallet-v127 :is(b,span) {color:#082858!important;}
+body.warqna-b304 .store-category-tabs-v127 {
+  display:flex!important;flex-wrap:nowrap!important;
+  gap:8px!important;overflow-x:auto!important;overscroll-behavior-inline:contain;
+  padding:9px 5px 13px!important;
+  scrollbar-color:#75d8ff #043a78;
+}
+body.warqna-b304 .store-category-tabs-v127 button {
+  flex:0 0 auto;min-height:59px!important;
+  border-radius:14px!important;border:1px solid #76dfff!important;
+  background:linear-gradient(160deg,#107fd2,#054589)!important;
+  box-shadow:inset 0 1px 0 #ffffff52!important;
+  color:#fff!important;white-space:normal!important;
+}
+body.warqna-b304 .store-category-tabs-v127 button.active {
+  background:linear-gradient(160deg,#fff0aa,#ffc842)!important;
+  color:#092b5c!important;border-color:#fff7c2!important;
+}
+body.warqna-b304 .store-category-tabs-v127 button.active :is(b,small,span) {color:#092b5c!important;}
+body.warqna-b304 :is(.store-products-grid-v127,.inventory-grid-v127) {
+  display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr))!important;
+  align-items:stretch;gap:12px!important;
+}
+body.warqna-b304 :is(.store-product-card-v127,.store-item-v127,.product-card-v127) {
+  background:linear-gradient(160deg,#0a92e2,#0861b1 53%,#05346b)!important;
+  border:1.5px solid #8fe5ff!important;border-radius:16px!important;
+  box-shadow:inset 0 1px 0 #ffffff62,0 8px 16px #001c4788!important;
+  overflow:hidden;min-width:0;color:white!important;
+}
+body.warqna-b304 :is(.store-product-card-v127,.store-item-v127,.product-card-v127) img {
+  max-width:100%;object-fit:contain;
+}
+body.warqna-b304 .store-search-row-v127 {
+  display:flex!important;flex-wrap:wrap;align-items:center;gap:10px!important;
+}
+body.warqna-b304 .store-search-row-v127 input {flex:1 1 245px;min-width:0;}
+body.warqna-b304 .store-tier-filters-v127 {display:flex;flex-wrap:wrap;gap:6px;}
+body.warqna-b304 .store-tier-filters-v127 button {
+  border-radius:11px!important;border:1px solid #8cdeff!important;
+  background:linear-gradient(#1065b3,#063f8c)!important;color:#fff!important;
+}
+body.warqna-b304 .store-tier-filters-v127 button.active {
+  background:linear-gradient(#ffe99a,#ffbd37)!important;color:#082b57!important;
+}
+body.warqna-b304 :is(.tournament-system-panel,.tournament-create-grid,.tournament-card-wide,.club-create-form,.club-tile,.profile-edit-preview,.profile-theme-box-v131) {
+  border-radius:19px!important;border:1px solid #89deffb3!important;
+  background:linear-gradient(150deg,#0a79c9,#07519f 57%,#052e67)!important;
+  box-shadow:inset 0 1px 0 #ffffff50,0 8px 26px #05204c5c!important;
+  color:white!important;
+}
+body.warqna-b304 .tournament-hero {text-align:start;}
+body.warqna-b304 .tournament-create-grid {padding:clamp(14px,2vw,26px)!important;}
+body.warqna-b304 .tournament-create-grid label {font-size:1rem;font-weight:800;color:#fff;}
+body.warqna-b304 .tournament-create-grid :is(input,select) {width:100%;max-width:100%;}
+body.warqna-b304 .tournament-grid-horizontal {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:15px!important;
+}
+body.warqna-b304 .tournament-card-wide {min-width:0;padding:18px!important;}
+body.warqna-b304 .tournament-card-wide h3 {color:#ffdf82!important;font-size:1.23rem!important;}
+body.warqna-b304 .tournament-prize-line {
+  display:flex;flex-wrap:wrap;gap:8px;padding:9px;
+  border-radius:11px;background:#063e7e8f;
+}
+body.warqna-b304 .tournament-progress {
+  border-radius:30px;overflow:hidden;background:#032c6b!important;
+  border:1px solid #62c8ff!important;
+}
+body.warqna-b304 .tournament-progress span {background:linear-gradient(90deg,#ffbd38,#ffed96)!important;}
+body.warqna-b304 .clubs-horizontal-grid {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch;gap:14px!important;
+}
+body.warqna-b304 .club-tile {min-width:0;padding:clamp(13px,1.7vw,20px)!important;}
+body.warqna-b304 .club-tile-main {display:flex;gap:12px;align-items:center;}
+body.warqna-b304 .club-emblem {
+  display:grid;place-items:center;flex:0 0 66px;width:66px;height:66px;
+  font-size:31px;border-radius:50%;
+  background:radial-gradient(circle at 38% 28%,#ffeac0,#d49e35 62%,#6f4515)!important;
+  border:3px solid #ffecb1!important;
+  box-shadow:0 4px 14px #031a47!important;
+}
+body.warqna-b304 .club-meta-row {display:flex;flex-wrap:wrap;gap:6px;}
+body.warqna-b304 .club-members-preview {display:flex;flex-wrap:wrap;gap:6px;}
+body.warqna-b304 .club-members-preview button {
+  min-width:50px;min-height:58px;border:1px solid #9de9ff!important;
+  background:linear-gradient(#137fcc,#064587)!important;border-radius:12px!important;
+}
+body.warqna-b304 .club-members-preview img {
+  display:block;object-fit:cover;max-width:43px;max-height:43px;border-radius:50%;
+  border:2px solid #ffda80;
+}
+body.warqna-b304 .profile-edit-preview {
+  display:flex;align-items:center;flex-wrap:wrap;gap:13px;
+  padding:16px!important;
+}
+body.warqna-b304 .profile-edit-preview .avatar-lg {
+  width:clamp(88px,11vw,128px)!important;height:clamp(88px,11vw,128px)!important;
+  aspect-ratio:1;object-fit:cover;border-radius:50%!important;
+  border:4px solid #ffdf7f!important;box-shadow:0 0 0 7px #17cbff57,0 10px 20px #031d4c!important;
+}
+body.warqna-b304 .profile-progress-v161 {
+  border:1px solid #7cdfff!important;background:#053f81c9!important;
+  border-radius:16px;padding:15px;
+}
+body.warqna-b304 .profile-theme-grid-v131 {
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))!important;gap:9px!important;
+}
+body.warqna-b304 .profile-theme-grid-v131 button {
+  color:white!important;border:1px solid #a5eaff!important;
+  background:linear-gradient(145deg,#0c8dd7,#064b9c)!important;
+}
+body.warqna-b304 .profile-edit-form {
+  display:grid;gap:10px;min-width:0;
+}
+body.warqna-b304 .profile-edit-form :is(input,select) {max-width:100%;min-width:0;}
+body.warqna-b304 .r52-rewards {margin-block:14px!important;padding:clamp(14px,2vw,25px)!important;}
+body.warqna-b304 .r52-rewards h2 {color:#ffe48f!important;}
+body.warqna-b304 .r52-prizes {
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))!important;
+  gap:12px!important;
+}
+body.warqna-b304 .r52-prize {
+  border:1.5px solid #a4eaff!important;border-radius:16px!important;
+  background:linear-gradient(145deg,#107dc8,#074685)!important;
+  box-shadow:inset 0 1px 0 #ffffff55,0 5px 17px #062651!important;
+  min-width:0;
+}
+body.warqna-b304 .r52-icon {filter:drop-shadow(0 4px 8px #021e4c);font-size:clamp(28px,3vw,39px);}
+body.warqna-b304 .r52-rewards :is(button,.primary) {min-height:45px!important;font-weight:900!important;}
+@media (max-width:760px) {
+  body.warqna-b304 .tournament-grid-horizontal,
+  body.warqna-b304 .clubs-horizontal-grid {grid-template-columns:minmax(0,1fr)!important;}
+  body.warqna-b304 .store-products-grid-v127 {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  body.warqna-b304 .store-category-tabs-v127 {scroll-snap-type:x mandatory;}
+  body.warqna-b304 .store-category-tabs-v127 button {scroll-snap-align:start;min-width:90px;}
+  body.warqna-b304 .club-emblem {flex-basis:57px;width:57px;height:57px;font-size:27px;}
+}
+@media (max-width:340px) {
+  body.warqna-b304 .store-products-grid-v127 {grid-template-columns:minmax(0,1fr)!important;}
+}
