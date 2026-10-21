@@ -6250,6 +6250,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     _ => _roomText('جولة ${state['round'] ?? 1}', 'Round ${state['round'] ?? 1}'),
   };
 
+  // ignore: unused_element
   Widget _compactRummyMeldTable() {
     final rummyFamily = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
     if (!rummyFamily) return const SizedBox.shrink();
