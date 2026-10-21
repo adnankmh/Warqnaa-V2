@@ -452,3 +452,37 @@ body.warqna-b304 .r52-rewards :is(button,.primary) {min-height:45px!important;fo
 @media (max-width:340px) {
   body.warqna-b304 .store-products-grid-v127 {grid-template-columns:minmax(0,1fr)!important;}
 }
+
+/* Real existing bot identities from /assets/bots/royal/catalog.json. */
+body.warqna-b304 .r43-bot-identity-grid {
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:clamp(7px,1.1vw,12px);padding:11px 0!important;align-items:stretch;
+}
+body.warqna-b304 .r43-bot-identity {
+  min-width:0;display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding:9px 5px!important;
+  border-radius:13px;border:1px solid #7bdffcaa;
+  background:linear-gradient(150deg,#108bce,#074c97)!important;
+  box-shadow:inset 0 1px 0 #ffffff46,0 5px 12px #03265482;
+}
+body.warqna-b304 .r43-bot-identity img {
+  display:block;width:clamp(48px,5.2vw,78px);height:clamp(48px,5.2vw,78px);
+  aspect-ratio:1;object-fit:cover;border-radius:50%;
+  border:2px solid #ffe080;background:#0a417f;
+  box-shadow:0 0 0 3px #20d6fa51,0 3px 10px #03234fa8;
+}
+body.warqna-b304 .r43-bot-identity strong {
+  color:white;font-weight:900;font-size:clamp(.78rem,1vw,1rem);
+  max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+@media (max-width:740px) {
+  body.warqna-b304 .r43-bot-identity-grid {
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px;
+  }
+  body.warqna-b304 .r43-bot-identity {padding:7px 3px!important;}
+  body.warqna-b304 .r43-bot-identity img {width:clamp(40px,10vw,64px);height:clamp(40px,10vw,64px);}
+  body.warqna-b304 .r43-bot-identity strong {font-size:.72rem;}
+}
+@media (max-width:350px) {
+  body.warqna-b304 .r43-bot-identity-grid {grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+}
