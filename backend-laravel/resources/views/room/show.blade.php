@@ -125,6 +125,10 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
       <div><small>آخر حركة</small><b id="lastActionCenter">{{$lastActionText}}</b></div>
     </div>
     <div id="tableTrick" class="table-trick"></div>
+     @if($handLike)
+      <section id="r44OwnerMelds" class="r44-owner-zone" aria-label="مجموعات الورق المنزلة" hidden></section>
+      <section id="r44RoomPiles" class="r44-room-piles" aria-label="حزمتا السحب والرمي"></section>
+     @endif
     <div class="quick-reactions-mini-v132">
      <button type="button" class="reaction-toggle-v132" onclick="document.getElementById('quickReactionsV132')?.classList.toggle('hidden')">⚡</button>
      <div id="quickReactionsV132" class="quick-reactions-box-v132 hidden">
@@ -209,4 +213,7 @@ window.MY_CARD_BACK_IMAGE=@json($activeCardBackImage);
 window.GAME_KEY=@json($gameKey);
 window.HAND_LIKE={{$handLike ? 'true' : 'false'}};
 </script>
+@if($handLike)
+<script src="{{ asset('assets/js/r44-room-rummy.js') }}?v=44" defer></script>
+@endif
 @endsection
