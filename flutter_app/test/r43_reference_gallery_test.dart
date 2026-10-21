@@ -36,7 +36,8 @@ void main() {
         expect(find.byKey(const ValueKey('r43-reference-navigation')), findsOneWidget);
         final grid = find.byKey(const ValueKey('r43-reference-destinations-grid'));
         expect(grid, findsOneWidget);
-        expect(find.byType(R43DestinationTile), findsNWidgets(8));
+        expect(find.byType(R43DestinationTile), findsNWidgets(9));
+        expect(find.text(locale == 'ar' ? 'معلومات عامة' : 'About Warqnaa'), findsOneWidget);
 
         final store = find.text(locale == 'ar' ? 'المتجر' : 'Store');
         await tester.ensureVisible(store);
