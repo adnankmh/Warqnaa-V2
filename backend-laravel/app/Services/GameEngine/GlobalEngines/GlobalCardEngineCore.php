@@ -755,6 +755,9 @@ class GlobalCardEngineCore
             'melded'=>false,
             'layoff'=>false,
         ];
+        if ($state['rummyTurnMeta'][$playerId]['must_meld']) {
+            $state['rummyTurnMeta'][$playerId]['required_meld_card']=$card;
+        }
         $state = $this->record($state, 'rummy.draw_discard', ['playerId'=>$playerId,'card'=>$card]);
         return $this->finalizeState($state);
     }
@@ -805,11 +808,15 @@ class GlobalCardEngineCore
         if (!$this->isValidMeld($cards)) throw new GameEngineException('المجموعة/السلسلة غير صحيحة.');
         $value = $this->meldValue($cards);
         if (!$this->hasRummyOpened($state,$playerId) && $value < $this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('قيمة الافتتاح أقل من المطلوب.');
+        $clearsDiscardRequirement = $this->meldConsumesRequiredDiscard($state, $playerId, $cards);
         foreach ($cards as $c) $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $c);
         $state['melds'][$playerId][] = ['cards'=>$cards, 'value'=>$value];
         $state = $this->recordRummyOpening($state,$playerId,$value);
         $state['rummyTurnMeta'][$playerId]['melded'] = true;
-        $state['rummyTurnMeta'][$playerId]['must_meld'] = false;
+        if ($clearsDiscardRequirement) {
+            $state['rummyTurnMeta'][$playerId]['must_meld'] = false;
+            unset($state['rummyTurnMeta'][$playerId]['required_meld_card']);
+        }
         $state = $this->record($state, 'rummy.meld', compact('playerId','cards','value'));
         if (empty($state['hands'][$playerId])) $state = $this->scoreRummyRound($state, $playerId, $this->isFullHandFinish($state,$playerId));
         return $this->finalizeState($state);
@@ -828,11 +835,15 @@ class GlobalCardEngineCore
         }
         if(!$this->containsCards($state['hands'][$playerId] ?? [],$all)) throw new GameEngineException('الأوراق المختارة غير موجودة بالعدد المطلوب.');
         if(!$this->hasRummyOpened($state,$playerId) && $total<$this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('مجموع افتتاحك أقل من المطلوب.');
+        $clearsDiscardRequirement=$this->meldConsumesRequiredDiscard($state,$playerId,$all);
         foreach($all as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
         foreach($normalized as $cards) $state['melds'][$playerId][]=['cards'=>$cards,'value'=>$this->meldValue($cards)];
         $state=$this->recordRummyOpening($state,$playerId,$total);
         $state['rummyTurnMeta'][$playerId]['melded']=true;
-        $state['rummyTurnMeta'][$playerId]['must_meld']=false;
+        if($clearsDiscardRequirement){
+            $state['rummyTurnMeta'][$playerId]['must_meld']=false;
+            unset($state['rummyTurnMeta'][$playerId]['required_meld_card']);
+        }
         $state=$this->record($state,'rummy.meld_many',['playerId'=>$playerId,'groups'=>$normalized,'value'=>$total]);
         if(empty($state['hands'][$playerId])) $state=$this->scoreRummyRound($state,$playerId,$this->isFullHandFinish($state,$playerId));
         return $this->finalizeState($state);
@@ -1018,6 +1029,16 @@ class GlobalCardEngineCore
         // Opening may legally consist of multiple disjoint melds whose total
         // reaches the threshold. Require the discard card to be in one of them.
         return count($this->selectDisjointMeldGroups($suggested, $hand, $openingRequired, $top)) >= 2;
+    }
+
+    protected function meldConsumesRequiredDiscard(array $state,string $playerId,array $cards): bool
+    {
+        $meta=(array)($state['rummyTurnMeta'][$playerId] ?? []);
+        if(empty($meta['must_meld'])) return true;
+        $required=(string)($meta['required_meld_card'] ?? '');
+        // In-flight games created before R58 did not persist the required card.
+        // Preserve their ability to finish while enforcing every new pickup.
+        return $required==='' || in_array($required,array_map('strval',$cards),true);
     }
 
     /** @return array<int,array<int,string>> */
