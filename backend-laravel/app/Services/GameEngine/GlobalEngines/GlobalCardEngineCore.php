@@ -50,8 +50,11 @@ class GlobalCardEngineCore
             // Tarneeb-family rooms may request a symmetric playable-hand policy. We reshuffle the
             // whole deal and accept it only when every player reaches the same minimum quality.
             // No seat/user is privileged and the deck remains complete and duplicate-free.
-            if (in_array($mode, ['trick','trick400','syrian41'], true) && ($cfg['dealPolicy'] ?? 'balanced_playable') === 'balanced_playable') {
+            if (in_array($mode, ['trick','trick400','syrian41'], true) && $this->usesBalancedCasualDeal($cfg)) {
                 [$hands,$deck,$dealQuality] = $this->dealBalancedPlayableTrickHands($players,$cfg,(int)$seed);
+                $cfg['dealQuality']=$dealQuality;
+            } elseif (in_array($mode, ['trix','trix-complex'], true) && $this->usesBalancedCasualDeal($cfg)) {
+                [$hands,$deck,$dealQuality] = $this->dealSymmetricCasualHands($players,$cfg,(int)$seed,$cardsEach,$mode);
                 $cfg['dealQuality']=$dealQuality;
             } else {
                 for ($r=0; $r<$cardsEach; $r++) { foreach ($players as $p) $hands[(string)$p['id']][] = array_shift($deck); }
@@ -66,7 +69,12 @@ class GlobalCardEngineCore
             }
             $phase = in_array($mode, ['trick','trick400','syrian41'], true) ? 'bidding' : 'contract';
         } elseif ($mode === 'baloot') {
-            for ($r=0; $r<8; $r++) foreach ($players as $p) $hands[(string)$p['id']][] = array_shift($deck);
+            if ($this->usesBalancedCasualDeal($cfg)) {
+                [$hands,$deck,$dealQuality] = $this->dealSymmetricCasualHands($players,$cfg,(int)$seed,8,$mode);
+                $cfg['dealQuality']=$dealQuality;
+            } else {
+                for ($r=0; $r<8; $r++) foreach ($players as $p) $hands[(string)$p['id']][] = array_shift($deck);
+            }
             foreach ($hands as $pid => $h) $hands[$pid] = $this->sortCards($h);
             $phase = 'bidding';
         } elseif ($mode === 'solitaire') {
@@ -79,11 +87,16 @@ class GlobalCardEngineCore
             $phase = 'playing';
         } else { // rummy/hand/banakil
             $cardsEach = (int)($cfg['cardsEach'] ?? 14);
-            for ($r=0; $r<$cardsEach; $r++) {
-                foreach ($players as $p) {
-                    $card = array_shift($deck);
-                    if ($card === null) throw new GameEngineException('عدد أوراق الرزمة لا يكفي لتوزيع الجولة.');
-                    $hands[(string)$p['id']][] = $card;
+            if ($this->usesBalancedCasualDeal($cfg)) {
+                [$hands,$deck,$dealQuality] = $this->dealSymmetricCasualHands($players,$cfg,(int)$seed,$cardsEach,'rummy');
+                $cfg['dealQuality']=$dealQuality;
+            } else {
+                for ($r=0; $r<$cardsEach; $r++) {
+                    foreach ($players as $p) {
+                        $card = array_shift($deck);
+                        if ($card === null) throw new GameEngineException('عدد أوراق الرزمة لا يكفي لتوزيع الجولة.');
+                        $hands[(string)$p['id']][] = $card;
+                    }
                 }
             }
 
@@ -1664,6 +1677,93 @@ class GlobalCardEngineCore
             return $sa===$sb ? ($this->rankValue((string)$b)<=>$this->rankValue((string)$a)) : ($sa<=>$sb);
         });
         return array_values($cards);
+    }
+
+
+    /**
+     * Casual cards may be made more playable for every seat, not for a named
+     * user, bot, purchaser or preferred team. Ranked and tournament deals must
+     * stay on the ordinary unconditioned shuffle path.
+     */
+    protected function usesBalancedCasualDeal(array $cfg): bool
+    {
+        if (($cfg['dealPolicy'] ?? 'balanced_playable') !== 'balanced_playable') return false;
+        if (!empty($cfg['ranked']) || !empty($cfg['competitive'])) return false;
+        $context = strtolower((string)($cfg['match_mode'] ?? $cfg['matchMode'] ?? ''));
+        return !in_array($context, ['ranked','competitive','tournament','league','cup'], true);
+    }
+
+    /** Estimate useful potential with no hidden opponent knowledge or seat weights. */
+    protected function casualHandQuality(array $hand,string $mode,array $cfg): float
+    {
+        $suitRanks=[]; $rankSuits=[]; $score=0.0;
+        $honors=['A'=>4.0,'K'=>3.0,'Q'=>2.0,'J'=>1.25,'10'=>0.75];
+        $power=['A'=>14,'K'=>13,'Q'=>12,'J'=>11,'10'=>10,'9'=>9,'8'=>8,'7'=>7,'6'=>6,'5'=>5,'4'=>4,'3'=>3,'2'=>2];
+        foreach($hand as $card){
+            [$rank,$suit]=array_pad(explode('_',(string)$card,2),2,'');
+            if($rank==='JOKER'){ $score+=($mode==='rummy'?3.0:0.0); continue; }
+            $suitRanks[$suit][]=$rank;
+            $rankSuits[$rank][$suit]=true;
+            if($mode==='rummy'){
+                if($rank==='2' && !empty($cfg['wildTwos'])) $score+=1.5;
+            } else {
+                $score+=$honors[$rank] ?? 0.0;
+            }
+        }
+        if($mode==='rummy'){
+            foreach($rankSuits as $suits) if(count($suits)>=2) $score+=2.0*(count($suits)-1);
+            foreach($suitRanks as $ranks){
+                $values=array_values(array_unique(array_map(fn($rank)=>$power[$rank] ?? 0,$ranks)));
+                sort($values);
+                for($i=1;$i<count($values);$i++){
+                    if($values[$i]>0 && $values[$i]-$values[$i-1]===1) $score+=1.7;
+                }
+            }
+        } else {
+            foreach($suitRanks as $ranks) $score+=min(3.0,max(0,count($ranks)-3)*0.5);
+            if(count($suitRanks)>=3) $score+=1.0;
+        }
+        return round($score,3);
+    }
+
+    /**
+     * A bounded, seed-replayable candidate search for all non-Tarneeb
+     * card modes (Trix, Baloot and Rummy variants). Maximize the weakest seat
+     * first; break ties by reducing the spread. The chosen whole shuffled deck
+     * is dealt untouched, retaining duplicates/jokers, stock and fire order.
+     *
+     * @return array{0:array,1:array,2:array}
+     */
+    protected function dealSymmetricCasualHands(array $players,array $cfg,int $seed,int $cardsEach,string $mode): array
+    {
+        $attempts=max(1,min(24,(int)($cfg['casualDealAttempts'] ?? 12)));
+        $best=null; $floorBest=-INF; $spreadBest=INF; $sumBest=-INF;
+        for($attempt=0;$attempt<$attempts;$attempt++){
+            mt_srand($seed+$attempt*7919);
+            $deck=$this->makeDeck($cfg['deck'] ?? '52',count($players));
+            $this->shuffleDeck($deck);
+            if($cardsEach<1 || $cardsEach*count($players)>count($deck)){
+                throw new GameEngineException('عدد أوراق الرزمة لا يكفي لتوزيع الجولة.');
+            }
+            $hands=[];
+            foreach($players as $p) $hands[(string)$p['id']]=[];
+            for($i=0;$i<$cardsEach;$i++){
+                foreach($players as $p) $hands[(string)$p['id']][]=array_shift($deck);
+            }
+            $scores=[];
+            foreach($hands as $id=>$cards) $scores[$id]=$this->casualHandQuality($cards,$mode,$cfg);
+            $floor=min($scores);$spread=max($scores)-$floor;$sum=array_sum($scores);
+            if($best===null || $floor>$floorBest ||
+               ($floor===$floorBest && ($spread<$spreadBest ||
+               ($spread===$spreadBest && $sum>$sumBest)))){
+                $best=[$hands,$deck];$floorBest=$floor;$spreadBest=$spread;$sumBest=$sum;
+            }
+        }
+        return [$best[0],$best[1],[
+            'policy'=>'symmetric_casual_balanced',
+            'attempts'=>$attempts,
+            'minimum'=>round($floorBest,2),
+        ]];
     }
 
     protected function playableHonorQuality(array $hand): int
