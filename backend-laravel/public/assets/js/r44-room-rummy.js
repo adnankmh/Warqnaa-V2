@@ -23,9 +23,14 @@
   const latestState = () => window.LAST_STATE || window.INITIAL_STATE || {};
   const canDraw = state => {
     const own = String(state.turn || '') === String(window.MY_PLAYER_KEY || '');
-    const raw = state.rummy_turn_meta || {};
+    // Laravel's public phase collapses draw and discard into "playing".
+    // Use the exposed engine_phase to disable picking during meld/discard.
+    const enginePhase = String(state.engine_phase || '');
+    if (enginePhase) return own && enginePhase === 'draw';
+    const raw = state.drew_this_turn || state.rummy_turn_meta || {};
     const meta = raw[window.MY_PLAYER_KEY] || {};
-    return own && state.phase === 'playing' && !meta.drew_discard && !meta.drew_deck;
+    return own && state.phase === 'playing'
+      && meta !== true && !meta.drew_discard && !meta.drew_deck;
   };
 
   function showStackPicker(state) {
