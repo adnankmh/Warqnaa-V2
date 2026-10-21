@@ -274,3 +274,14 @@ html[dir="ltr"] body.warqna-b304 :is(.w36-panel,.b304-game,.w36-game-tile) { tex
     transition:none!important;animation:none!important;
   }
 }
+
+/* Keep the existing compact-view button functional rather than overriding it. */
+body.warqna-b304 .w36-store-items { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+body.warqna-b304 .w36-premium-games.compact .w36-games-wall { grid-template-columns:repeat(8,minmax(0,1fr))!important; }
+@media (max-width:1160px) {
+  body.warqna-b304 .w36-premium-games.compact .w36-games-wall { grid-template-columns:repeat(5,minmax(0,1fr))!important; }
+}
+@media (max-width:700px) {
+  body.warqna-b304 .w36-premium-games.compact .w36-games-wall { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+  body.warqna-b304 .w36-premium-games.compact .w36-game-tile-art { height:80px!important; }
+}
