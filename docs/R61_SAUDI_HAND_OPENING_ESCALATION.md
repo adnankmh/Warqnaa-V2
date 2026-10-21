@@ -19,3 +19,11 @@ The distinction follows Jawaker's published rules for
 Regression coverage exercises a real 62-point opening, rejects another player's
 62-point forged opening, accepts a legal 63, checks the next target is 64, keeps
 regular Hand fixed at 51, and verifies legacy-state compatibility.
+
+## Reproducible production image
+
+The production image installs `phpredis` 6.3.0 with the PHP Foundation's PIE
+1.5.0 image instead of resolving the floating `redis` release through PECL.
+This removes the build's dependency on the currently incomplete PECL REST
+metadata while keeping the same extension version and verifying that PHP loads
+it before the build layer succeeds.

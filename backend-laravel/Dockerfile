@@ -4,11 +4,13 @@ COPY composer.json ./
 RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader --no-scripts
 
 FROM php:8.3-fpm-alpine
-RUN apk add --no-cache bash curl icu-dev libzip-dev postgresql-dev oniguruma-dev $PHPIZE_DEPS \
+COPY --from=ghcr.io/php/pie:1.5.0-bin /pie /usr/local/bin/pie
+RUN apk add --no-cache bash curl icu-dev libzip-dev postgresql-dev oniguruma-dev unzip $PHPIZE_DEPS \
     && docker-php-ext-install pdo_pgsql pdo_mysql intl mbstring bcmath pcntl opcache zip \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apk del $PHPIZE_DEPS
+    && pie install --no-cache phpredis/phpredis:6.3.0 \
+    && php -m | grep -qx redis \
+    && rm -f /usr/local/bin/pie \
+    && apk del unzip $PHPIZE_DEPS
 WORKDIR /var/www/html
 COPY --from=vendor /app/vendor ./vendor
 COPY . .
