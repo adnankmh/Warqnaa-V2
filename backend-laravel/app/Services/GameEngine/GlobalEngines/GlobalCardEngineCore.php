@@ -745,6 +745,7 @@ class GlobalCardEngineCore
         $state['phase'] = 'discard';
         $state['rummyTurnMeta'][$playerId] = [
             'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'personal_melds_before'=>!empty($state['melds'][$playerId] ?? []),
             'drew_discard'=>false,
             'must_meld'=>false,
             'melded'=>false,
@@ -768,6 +769,7 @@ class GlobalCardEngineCore
         $state['phase'] = 'discard';
         $state['rummyTurnMeta'][$playerId] = [
             'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'personal_melds_before'=>!empty($state['melds'][$playerId] ?? []),
             'drew_discard'=>true,
             'must_meld'=>empty($state['config']['banakilScoring']),
             'melded'=>false,
@@ -795,6 +797,7 @@ class GlobalCardEngineCore
         $state['phase'] = 'discard';
         $state['rummyTurnMeta'][$playerId] = [
             'opened_before'=>$this->hasRummyOpened($state,$playerId),
+            'personal_melds_before'=>!empty($state['melds'][$playerId] ?? []),
             'drew_discard'=>true, 'must_meld'=>false, 'melded'=>false, 'layoff'=>false,
         ];
         return $this->finalizeState($this->record($state, 'rummy.draw_discard_stack', [
@@ -1079,7 +1082,14 @@ class GlobalCardEngineCore
     protected function isFullHandFinish(array $state,string $playerId): bool
     {
         $meta=(array)($state['rummyTurnMeta'][$playerId] ?? []);
-        return empty($meta['opened_before']) && !empty($meta['melded']) && empty($meta['layoff']);
+        // Partnership opening is shared, but the full-Hand bonus is personal:
+        // a player who has never melded may still go out in one turn after
+        // their partner opened. Legacy in-flight states retain the previous
+        // opened_before fallback because they did not persist personal history.
+        $personalMeldsBefore=array_key_exists('personal_melds_before',$meta)
+            ? !empty($meta['personal_melds_before'])
+            : !empty($meta['opened_before']);
+        return !$personalMeldsBefore && !empty($meta['melded']) && empty($meta['layoff']);
     }
 
     protected function canDrawDiscardLegally(array $state,string $playerId): bool
