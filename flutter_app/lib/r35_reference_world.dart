@@ -148,7 +148,7 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
                 ),
                 R35CategoryAction(
                   icon: Icons.bolt_rounded, color: const Color(0xFF6EF9AD),
-                  title: ar ? 'المعززات والمميزات' : 'Boosters and perks',
+                  title: ar ? 'معزز النقاط والمميزات' : 'XP Boosters and perks',
                   subtitle: ar ? 'تخصيص ومكافآت' : 'Customization and rewards',
                   onTap: () => onTab(0),
                 ),
@@ -906,7 +906,7 @@ class R43ReferenceQuickDestinations extends StatelessWidget {
       ),
       R43ReferenceDestination(
         icon: Icons.bolt_rounded,
-        title: ar ? 'المعززات' : 'Boosters',
+        title: ar ? 'معزز النقاط' : 'XP Boosters',
         detail: ar ? 'المميزات المتاحة' : 'Available special features',
         tone: const Color(0xFF96F5AB),
         onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
@@ -1054,7 +1054,7 @@ class R43ReferenceCatalogPage extends StatelessWidget {
     final ar = controller.localeCode == 'ar';
     final title = switch (category) {
       'cards' => ar ? 'خلفيات أوراق اللعب' : 'Card-back collection',
-      'boost' => ar ? 'المعززات والمميزات' : 'Boosters and benefits',
+      'boost' => ar ? 'معزز النقاط والمميزات' : 'XP Boosters and benefits',
       _ => ar ? 'الإيموجي وردود الفعل' : 'Emojis and reactions',
     };
     final description = ar
