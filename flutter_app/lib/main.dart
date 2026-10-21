@@ -6378,6 +6378,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             players: players,
             ar: widget.controller.localeCode == 'ar',
             cardLabel: _cardLabel,
+            partnership: widget.game.id == 'banakil' || widget.game.id == 'hand_partner',
             onDrawDeck: availableActions.any((a) => a['type'] == 'draw_deck')
                 ? () { _action('draw_deck'); } : null,
             onDrawDiscard: availableActions.any((a) => a['type'] == 'draw_discard')
