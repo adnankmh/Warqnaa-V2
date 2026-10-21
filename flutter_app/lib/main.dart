@@ -56,6 +56,7 @@ part 'r35_reference_world.dart';
 part 'r52_playability.dart';
 part 'r53_prize_opening.dart';
 part 'r36_meld_workspace.dart';
+part 'r44_rummy_table.dart';
 part 'r41_board_legibility.dart';
 part 'r36_store_sync.dart';
 part 'r5_world_class.dart';
@@ -6366,11 +6367,26 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       ..._trickSeatWidgets(),
       if (widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle')
         Positioned.fill(
-          left: 66,
-          right: 66,
+          left: 58,
+          right: 58,
           top: 68,
           bottom: 68,
-          child: Center(child: _compactRummyMeldTable()),
+          child: R44RummyTableOverlay(
+            state: state,
+            players: players,
+            ar: widget.controller.localeCode == 'ar',
+            cardLabel: _cardLabel,
+            onDrawDeck: availableActions.any((a) => a['type'] == 'draw_deck')
+                ? () { _action('draw_deck'); } : null,
+            onDrawDiscard: availableActions.any((a) => a['type'] == 'draw_discard')
+                ? () { _action('draw_discard'); } : null,
+            onDrawStack: availableActions.any((a) => a['type'] == 'draw_discard_stack')
+                ? () {
+                    final stackAction = availableActions.firstWhere(
+                      (a) => a['type'] == 'draw_discard_stack');
+                    _chooseBanakilDiscardStack(stackAction);
+                  } : null,
+          ),
         ),
       if (roundXpNoticesV174.isNotEmpty)
         Positioned(top: 8, left: 12, right: 12, child: RoundXpBannerV174(notices: roundXpNoticesV174)),
