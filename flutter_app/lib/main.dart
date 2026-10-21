@@ -1832,13 +1832,15 @@ class AppController extends ChangeNotifier {
 
   Future<void> _applyPreferredOrientationV174() async {
     try {
-      // Portrait-first by design, but allow the real device rotation to switch
-      // the table to landscape. The table widgets read the current viewport.
-      await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      // Phone app launches portrait by default. Landscape is an explicit
+      // preference, never forced by room/card-table layouts. Web and desktop
+      // remain responsive without imposing a physical device orientation.
+      await SystemChrome.setPreferredOrientations(landscapeMode
+          ? <DeviceOrientation>[
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ]
+          : <DeviceOrientation>[DeviceOrientation.portraitUp]);
     } catch (_) {}
   }
 
