@@ -918,6 +918,14 @@ class R43ReferenceQuickDestinations extends StatelessWidget {
         tone: const Color(0xFFFFE382),
         onTap: () => onTab(0),
       ),
+      R43ReferenceDestination(
+        icon: Icons.info_outline_rounded,
+        title: ar ? 'معلومات عامة' : 'About Warqnaa',
+        detail: ar ? 'التطبيق والألعاب والخدمات' : 'Apps, games and services',
+        tone: const Color(0xFFA3E9FF),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43GeneralInformationPage(controller: controller))),
+      ),
     ];
     return R35ReferencePanel(
       key: const ValueKey('r43-reference-navigation'),
@@ -1076,7 +1084,7 @@ class R43ReferenceCatalogPage extends StatelessWidget {
                   ? 5
                   : bounds.maxWidth >= 740
                       ? 4
-                      : bounds.maxWidth >= 480
+                      : bounds.maxWidth >= 370
                           ? 3
                           : 2;
               return Center(
@@ -1162,6 +1170,101 @@ class R43ReferenceCatalogPage extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+
+/// Information screen is a native, readable widget, not the small screenshot
+/// itself. The wording describes available project modules, not guaranteed
+/// publication in an external app store.
+class R43GeneralInformationPage extends StatelessWidget {
+  const R43GeneralInformationPage({super.key, required this.controller});
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final features = <(IconData, String, String)>[
+      (
+        Icons.devices_rounded,
+        ar ? 'متعددة المنصات' : 'Multi-platform',
+        ar ? 'واجهات للويب والهاتف مع مشاريع بناء Android وiOS.'
+           : 'Web and mobile interfaces with Android and iOS build projects.',
+      ),
+      (
+        Icons.style_rounded,
+        ar ? 'ألعاب ورق عربية' : 'Arabic card games',
+        ar ? 'مكتبة ألعاب وصالات وغرف ومباريات.'
+           : 'Card-game library, lobbies, rooms and matches.',
+      ),
+      (
+        Icons.people_alt_rounded,
+        ar ? 'المجتمع والأندية' : 'Community and clubs',
+        ar ? 'ملفات شخصية وأصدقاء وأندية ودعوات.'
+           : 'Profiles, friends, clubs and invitations.',
+      ),
+      (
+        Icons.emoji_events_rounded,
+        ar ? 'البطولات والمنافسات' : 'Tournaments',
+        ar ? 'المشاركة وفق شروط كل بطولة ومواعيدها وجوائزها الفعلية.'
+           : 'Participation follows each event’s actual terms, dates and prizes.',
+      ),
+      (
+        Icons.storefront_rounded,
+        ar ? 'المتجر والمكافآت' : 'Store and rewards',
+        ar ? 'مقتنيات افتراضية، ومكافآت وصناديق بحسب المتاح.'
+           : 'Digital collectibles, rewards and prize boxes where available.',
+      ),
+      (
+        Icons.palette_rounded,
+        ar ? 'التخصيص' : 'Customization',
+        ar ? 'طاولات وخلفيات أوراق وإطارات وألوان.'
+           : 'Tables, card backs, profile frames and colors.',
+      ),
+    ];
+    return Scaffold(
+      appBar: AppBar(title: Text(ar ? 'معلومات عامة' : 'About Warqnaa')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            key: const ValueKey('r43-general-information-list'),
+            padding: const EdgeInsets.all(14),
+            children: <Widget>[
+              R35ReferencePanel(
+                title: ar ? 'ورقنا — ألعاب الورق العربية' : 'Warqnaa — Arabic card games',
+                icon: Icons.info_outline_rounded,
+                child: Text(
+                  ar ? 'منصة اجتماعية للألعاب والتواصل والمنافسة على الهاتف والويب. توفر الميزات والمكافآت يعتمد على حالة الخادم والإصدار.'
+                     : 'A social card-game platform for play, connection and competition on web and mobile. Availability depends on the server and release.',
+                  style: const TextStyle(
+                    fontSize: 14, height: 1.55,
+                    color: Colors.white, fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...features.map((feature) => Padding(
+                padding: const EdgeInsets.only(bottom: 9),
+                child: R35FeatureLine(
+                  icon: feature.$1,
+                  title: feature.$2,
+                  detail: feature.$3,
+                ),
+              )),
+              const SizedBox(height: 8),
+              R35GoldAction(
+                label: ar ? 'تصفح المتجر' : 'Browse store',
+                icon: Icons.storefront_rounded,
+                onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+                  builder: (_) => StorePage(controller: controller),
+                )),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
