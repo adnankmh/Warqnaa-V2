@@ -893,7 +893,8 @@ class R43ReferenceQuickDestinations extends StatelessWidget {
         title: ar ? 'الروبوتات' : 'Practice bots',
         detail: ar ? 'تدرّب داخل الألعاب' : 'Train in supported games',
         tone: const Color(0xFFCDB8FF),
-        onTap: () => onTab(1),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43BotRosterPage(controller: controller, onTab: onTab))),
       ),
       R43ReferenceDestination(
         icon: Icons.style_rounded,
@@ -1261,6 +1262,61 @@ class R43GeneralInformationPage extends StatelessWidget {
                 onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
                   builder: (_) => StorePage(controller: controller),
                 )),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Reuses the verified bot identities already shipped with the Flutter app.
+/// Avatar cards are illustrative; joining a real practice match remains
+/// governed by the engine and room capabilities in the existing Games tab.
+class R43BotRosterPage extends StatelessWidget {
+  const R43BotRosterPage({
+    super.key,
+    required this.controller,
+    required this.onTab,
+  });
+  final AppController controller;
+  final ValueChanged<int> onTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    return Scaffold(
+      appBar: AppBar(title: Text(ar ? 'شخصيات الروبوتات الذكية' : 'Computer-player roster')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: ListView(
+            key: const ValueKey('r43-bot-roster-screen'),
+            padding: const EdgeInsets.all(12),
+            children: <Widget>[
+              R35ReferencePanel(
+                title: ar ? 'شخصيات الروبوتات' : 'Bot personalities',
+                icon: Icons.smart_toy_rounded,
+                child: Text(
+                  ar ? 'شاهد الشخصيات ومستوياتها. اختر لعبة متوافقة لبدء التدريب من صالة الألعاب.'
+                     : 'Browse personalities and their levels. Choose a compatible game to begin practice from the game hall.',
+                  style: const TextStyle(
+                    color: Colors.white, height: 1.45, fontSize: 13, fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              BotRosterShowcase(locale: controller.localeCode),
+              const SizedBox(height: 16),
+              R35GoldAction(
+                label: ar ? 'اختر لعبة للتدريب' : 'Choose a game to practice',
+                icon: Icons.sports_esports_rounded,
+                onTap: () {
+                  Navigator.pop(context);
+                  onTab(1);
+                },
               ),
             ],
           ),
