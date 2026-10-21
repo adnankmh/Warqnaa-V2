@@ -28,36 +28,96 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final visible = widget.cards.skip(math.max(0, widget.cards.length - count)).toList();
+    final all = widget.cards;
+    // The newest card is at the end; tapping any exposed older card means
+    // taking that card AND every newer discard above it. No hidden cards shown.
+    final beginning = math.max(0, all.length - 18);
+    final chosen = all.skip(math.max(0, all.length - count)).toList();
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 360, maxHeight: 360),
-      child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text(text('عاين الأوراق قبل السحب؛ الورقة الأخيرة هي المكشوفة.',
-          'Preview before drawing; the last card is the top discard.')),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<int>(
-          key: const ValueKey('r40-discard-count'),
-          initialValue: count,
-          decoration: InputDecoration(labelText: text('عدد أوراق النار', 'Discard count')),
-          items: [for (var value=2; value<=widget.maxCount; value++)
-            DropdownMenuItem(value:value,child:Text('$value'))],
-          onChanged:(value){if(value!=null)setState(()=>count=value);},
-        ),
-        const SizedBox(height: 12),
-        if (visible.isEmpty) Text(text('معاينة النار غير متاحة في هذه الحالة.', 'The discard preview is unavailable in this snapshot.')),
-        Directionality(textDirection:TextDirection.ltr,child:Wrap(spacing:6,runSpacing:8,children:[
-          for(var i=0;i<visible.length;i++) Semantics(
-            key:ValueKey('r40-discard-preview-$i'),label:label(visible[i]),
-            child:PlayingCard(label:label(visible[i]),width:42,height:60)),
-        ])),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          key:const ValueKey('r40-confirm-discard-stack'),
-          onPressed:()=>Navigator.pop(context,count),
-          icon:const Icon(Icons.layers_rounded),
-          label:Text(text('اسحب $count أوراق', 'Take $count cards')),
-        ),
-      ])),
+      constraints: BoxConstraints(maxWidth: 420,
+        maxHeight: math.min(470, MediaQuery.sizeOf(context).height * .64)),
+      child: SingleChildScrollView(child: Column(
+        mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Text(text('اضغط على الورقة المطلوبة من النار. ستأخذها مع جميع الأوراق التي فوقها.',
+                    'Tap a discard. You will take it and every newer card above it.'),
+            style: const TextStyle(fontSize: 14, height: 1.45, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 9),
+          if (all.isNotEmpty) SizedBox(
+            height: 87,
+            child: ListView.separated(
+              key: const ValueKey('r44-discard-tap-strip'),
+              scrollDirection: Axis.horizontal,
+              itemCount: all.length - beginning,
+              separatorBuilder: (_, __) => const SizedBox(width: 5),
+              itemBuilder: (context, i) {
+                final index = beginning + i;
+                final needed = all.length - index;
+                final included = needed <= count;
+                return Semantics(
+                  button: true,
+                  selected: included,
+                  label: '${label(all[index])} - ${text('اسحب', 'Take')} $needed',
+                  child: InkWell(
+                    key: ValueKey('r44-discard-select-$needed'),
+                    onTap: () => setState(() =>
+                      count = math.max(2, math.min(widget.maxCount, needed))),
+                    borderRadius: BorderRadius.circular(9),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: included ? B307SkyLuxury.sky.withValues(alpha: .18) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                        border: Border.all(
+                          color: included ? B307SkyLuxury.goldSoft : Colors.white24,
+                          width: included ? 2 : 1,
+                        ),
+                      ),
+                      child: PlayingCard(label: label(all[index]), width: 42, height: 65),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<int>(
+            key: const ValueKey('r40-discard-count'),
+            initialValue: count,
+            decoration: InputDecoration(labelText: text('عدد أوراق النار', 'Discard count')),
+            items: <DropdownMenuItem<int>>[
+              for (var value = 2; value <= widget.maxCount; value++)
+                DropdownMenuItem(value: value, child: Text('$value')),
+            ],
+            onChanged: (value) { if (value != null) setState(() => count = value); },
+          ),
+          const SizedBox(height: 8),
+          Text(text('الأوراق التي ستحصل عليها ($count)', 'Cards you will receive ($count)'),
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 6),
+          if (chosen.isEmpty)
+            Text(text('لا توجد أوراق مكشوفة.', 'No exposed cards.'))
+          else Directionality(
+            textDirection: TextDirection.ltr,
+            child: Wrap(spacing: 4, runSpacing: 6, children: [
+              for (var i = 0; i < chosen.length; i++)
+                Semantics(
+                  key: ValueKey('r40-discard-preview-$i'),
+                  label: label(chosen[i]),
+                  child: PlayingCard(label: label(chosen[i]), width: 37, height: 53),
+                ),
+            ]),
+          ),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            key: const ValueKey('r40-confirm-discard-stack'),
+            onPressed: () => Navigator.pop(context, count),
+            icon: const Icon(Icons.layers_rounded),
+            label: Text(text('اسحب $count أوراق', 'Take $count cards'),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          ),
+        ],
+      )),
     );
   }
 }
