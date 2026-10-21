@@ -6,12 +6,13 @@ part of 'main.dart';
 class R44RummyTableOverlay extends StatelessWidget {
   const R44RummyTableOverlay({
     super.key, required this.state, required this.players,
-    required this.ar, required this.cardLabel,
+    required this.ar, required this.cardLabel, required this.partnership,
     this.onDrawDeck, this.onDrawDiscard, this.onDrawStack,
   });
   final Map<String, dynamic> state;
   final List players;
   final bool ar;
+  final bool partnership;
   final String Function(String) cardLabel;
   final VoidCallback? onDrawDeck;
   final VoidCallback? onDrawDiscard;
@@ -21,7 +22,7 @@ class R44RummyTableOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final raw = state['table_groups'] ?? state['melds'];
+    final raw = state['melds'] ?? state['table_groups'];
     final ownerGroups = <String, List<List<String>>>{};
     if (raw is Map) {
       for (final entry in raw.entries) {
@@ -45,8 +46,12 @@ class R44RummyTableOverlay extends StatelessWidget {
       final id = (item['id'] ?? item['player_id'] ?? '').toString();
       if (id.isNotEmpty) playerInfo[id] = item;
     }
-    final partnership = state['config'] is Map
-        && (state['config'] as Map)['partnership'] == true;
+    final teams = state['teams'] is Map ? state['teams'] as Map : const {};
+    String teamOfOwner(String owner, int index) {
+      if (teams['teamA'] is List && (teams['teamA'] as List).contains(owner)) return '0';
+      if (teams['teamB'] is List && (teams['teamB'] as List).contains(owner)) return '1';
+      return playerInfo[owner]?['team']?.toString() ?? '${index % 2}';
+    }
     final ordered = ownerGroups.entries.toList(growable: false);
     final count = int.tryParse('${state['deck_count'] ?? ''}')
         ?? (state['deck'] is List ? (state['deck'] as List).length : 0);
@@ -71,8 +76,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                       id: ordered[i].key,
                       groups: ordered[i].value,
                       player: playerInfo[ordered[i].key],
-                      team: partnership ? (playerInfo[ordered[i].key]?['team']?.toString()
-                          ?? '${i % 2}') : '${i}',
+                      team: partnership ? teamOfOwner(ordered[i].key, i) : '${i}',
                       compact: compact,
                     ),
                 ],
@@ -181,8 +185,7 @@ class R44RummyTableOverlay extends StatelessWidget {
   }
 
   String partnershipLabel(String team, String name) {
-    if (state['config'] is! Map ||
-        (state['config'] as Map)['partnership'] != true) return name;
+    if (!partnership) return name;
     return '${tr('فريق', 'Team')} $team • $name';
   }
 
