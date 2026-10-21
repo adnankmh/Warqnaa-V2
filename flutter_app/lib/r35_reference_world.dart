@@ -885,7 +885,8 @@ class R43ReferenceQuickDestinations extends StatelessWidget {
         title: ar ? 'ردود الفعل' : 'Reactions',
         detail: ar ? 'إيموجي وباقات مميزة' : 'Emojis and collections',
         tone: const Color(0xFFFFDC88),
-        onTap: () => onTab(0),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'emoji'))),
       ),
       R43ReferenceDestination(
         icon: Icons.smart_toy_rounded,
@@ -899,14 +900,16 @@ class R43ReferenceQuickDestinations extends StatelessWidget {
         title: ar ? 'خلفيات الورق' : 'Card backs',
         detail: ar ? 'ألوان وتصميمات فاخرة' : 'Premium card collections',
         tone: const Color(0xFFFFAB8E),
-        onTap: () => onTab(0),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'cards'))),
       ),
       R43ReferenceDestination(
         icon: Icons.bolt_rounded,
         title: ar ? 'المعززات' : 'Boosters',
         detail: ar ? 'المميزات المتاحة' : 'Available special features',
         tone: const Color(0xFF96F5AB),
-        onTap: () => onTab(0),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'boost'))),
       ),
       R43ReferenceDestination(
         icon: Icons.storefront_rounded,
@@ -1018,6 +1021,147 @@ class R43DestinationTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+/// Reference-screen category browser. Renders actual inventory from the same
+/// store model and invokes its existing preview/checkout flow; no invented
+/// offers or prices are displayed. Works in both portrait and landscape.
+class R43ReferenceCatalogPage extends StatelessWidget {
+  const R43ReferenceCatalogPage({
+    super.key,
+    required this.controller,
+    required this.category,
+  }) : assert(category == 'cards' || category == 'boost' || category == 'emoji');
+
+  final AppController controller;
+  final String category;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final title = switch (category) {
+      'cards' => ar ? 'خلفيات أوراق اللعب' : 'Card-back collection',
+      'boost' => ar ? 'المعززات والمميزات' : 'Boosters and benefits',
+      _ => ar ? 'الإيموجي وردود الفعل' : 'Emojis and reactions',
+    };
+    final description = ar
+        ? 'الأسعار والمقتنيات من المتجر الحقيقي، وتظهر لك التفاصيل قبل تأكيد الشراء.'
+        : 'Real store prices and items. Review each item before confirming a purchase.';
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        actions: <Widget>[
+          IconButton(
+            tooltip: ar ? 'المحفظة' : 'Wallet',
+            onPressed: () => showWallet(context, controller),
+            icon: const Icon(Icons.account_balance_wallet_rounded),
+          ),
+        ],
+      ),
+      body: AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) {
+          final items = controller.storeProductsR36.where((product) =>
+            product.category == category &&
+            controller.isStoreProductVisible(product) &&
+            !product.id.startsWith('table_reference_')
+          ).toList(growable: false);
+          return LayoutBuilder(
+            builder: (context, bounds) {
+              final columns = bounds.maxWidth >= 1080
+                  ? 5
+                  : bounds.maxWidth >= 740
+                      ? 4
+                      : bounds.maxWidth >= 480
+                          ? 3
+                          : 2;
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                        child: R35ReferencePanel(
+                          title: title,
+                          icon: category == 'cards'
+                              ? Icons.style_rounded
+                              : category == 'boost'
+                                  ? Icons.bolt_rounded
+                                  : Icons.emoji_emotions_rounded,
+                          actionLabel: ar ? 'المتجر الكامل' : 'Full store',
+                          onAction: () => Navigator.push<void>(context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => StorePage(controller: controller),
+                            )),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(description,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w700,
+                                )),
+                              const SizedBox(height: 6),
+                              Text(
+                                ar ? 'العناصر المتاحة: ${items.length}' : 'Available items: ${items.length}',
+                                style: const TextStyle(
+                                  color: R35ReferenceColors.paleGold,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: items.isEmpty
+                            ? Center(child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Text(
+                                  ar
+                                      ? 'لا تتوفر مقتنيات في هذا القسم حاليًا. يمكنك العودة للمتجر للاطلاع على الأقسام الأخرى.'
+                                      : 'No items are currently available in this category. Browse the full store for more.',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ))
+                            : GridView.builder(
+                                key: const ValueKey('r43-live-catalog-grid'),
+                                padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+                                itemCount: items.length,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  mainAxisExtent: 185,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                ),
+                                itemBuilder: (context, index) => R35StoreTreasureTile(
+                                  key: ValueKey('r43-product-${items[index].id}'),
+                                  product: items[index],
+                                  controller: controller,
+                                  onTap: () => showProductPreview(context, controller, items[index]),
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
