@@ -76,7 +76,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                       id: ordered[i].key,
                       groups: ordered[i].value,
                       player: playerInfo[ordered[i].key],
-                      team: partnership ? teamOfOwner(ordered[i].key, i) : '${i}',
+                      team: partnership ? teamOfOwner(ordered[i].key, i) : '$i',
                       compact: compact,
                     ),
                 ],
