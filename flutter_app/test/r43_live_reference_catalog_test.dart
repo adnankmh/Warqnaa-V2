@@ -6,7 +6,7 @@ void main() {
   for (final locale in <String>['ar', 'en']) {
     for (final entry in <({String category, String arabic, String english})>[
       (category: 'cards', arabic: 'خلفيات أوراق اللعب', english: 'Card-back collection'),
-      (category: 'boost', arabic: 'معززات النقاط', english: 'XP Boosters'),
+      (category: 'boost', arabic: 'معزز النقاط', english: 'XP Boosters'),
       (category: 'emoji', arabic: 'الإيموجي وردود الفعل', english: 'Emojis and reactions'),
     ]) {
       testWidgets('R43 uses native interactive catalogue for ${entry.category} in $locale',
