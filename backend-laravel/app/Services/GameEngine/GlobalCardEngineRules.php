@@ -38,6 +38,7 @@ class GlobalCardEngineRules implements GameRuleContract
             // R13 Engine Gold: callers may pin the seed so a failed certified
             // match can be reproduced byte-for-byte in CI or production audit.
             'seed'=>(int)($options['seed'] ?? random_int(100000,999999999)),
+            'dealerIndex'=>(int)($options['dealer_index'] ?? $options['dealerIndex'] ?? ($cfgPlayers-1)),
             'targetScore'=>$target,
             'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
         ]);
