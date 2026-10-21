@@ -54,7 +54,11 @@ void main() {
         expect(find.byKey(const ValueKey('r43-bot-roster-screen')), findsOneWidget);
 
         final play = find.text(locale == 'ar' ? 'اختر لعبة للتدريب' : 'Choose a game to practice');
-        await tester.ensureVisible(play);
+        await tester.scrollUntilVisible(
+          play,
+          140,
+          scrollable: find.byType(Scrollable).first,
+        );
         await tester.pump();
         await tester.tap(play);
         await tester.pumpAndSettle();
