@@ -65,7 +65,8 @@ class R44BanakilHandOwnershipTest extends TestCase
                 'type'=>'layoff','target_player'=>'p2','meld_index'=>0,'cards'=>['10_C'],
             ]);
             $this->assertSame(['7_C','8_C','9_C','10_C'], $allowed['melds']['p2'][0]['cards']);
-            $this->assertSame(['Q_D','A_D'], $allowed['hands']['p0']);
+            // Stock draws consume the first card: K_S, not the following A_D.
+            $this->assertSame(['Q_D','K_S'], $allowed['hands']['p0']);
             $this->assertSame(['7_C','8_C','9_C'], $allowed['melds']['p1'][0]['cards']);
         }
     }

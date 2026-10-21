@@ -371,13 +371,13 @@ class StoreCatalogService
     public function v183Items(): array
     {
         $boosters=[
-            ['booster_yellow_v183','المسرّع الأصفر ×1.25','Yellow Booster ×1.25',1.25,4000,7,'yellow','#ffca28'],
-            ['booster_green_v183','المسرّع الأخضر ×1.5','Green Booster ×1.5',1.5,8000,8,'green','#22c55e'],
-            ['booster_red_v183','المسرّع الأحمر ×2','Red Booster ×2',2.0,15000,9,'red','#ef4444'],
-            ['booster_blue_v183','المسرّع الأزرق ×2.5','Blue Booster ×2.5',2.5,25000,10,'blue','#2388ff'],
-            ['booster_black_v183','المسرّع الأسود ×3','Black Booster ×3',3.0,40000,11,'black','#252a32'],
-            ['booster_silver_v183','المسرّع الفضي ×4','Silver Booster ×4',4.0,60000,12,'silver','#d7dde7'],
-            ['booster_gold_v183','المسرّع الذهبي ×5','Gold Booster ×5',5.0,100000,14,'gold','#ffc107'],
+            ['booster_yellow_v183','معزز النقاط الأصفر ×1.25','Yellow Booster ×1.25',1.25,4000,7,'yellow','#ffca28'],
+            ['booster_green_v183','معزز النقاط الأخضر ×1.5','Green Booster ×1.5',1.5,8000,8,'green','#22c55e'],
+            ['booster_red_v183','معزز النقاط الأحمر ×2','Red Booster ×2',2.0,15000,9,'red','#ef4444'],
+            ['booster_blue_v183','معزز النقاط الأزرق ×2.5','Blue Booster ×2.5',2.5,25000,10,'blue','#2388ff'],
+            ['booster_black_v183','معزز النقاط الأسود ×3','Black Booster ×3',3.0,40000,11,'black','#252a32'],
+            ['booster_silver_v183','معزز النقاط الفضي ×4','Silver Booster ×4',4.0,60000,12,'silver','#d7dde7'],
+            ['booster_gold_v183','معزز النقاط الذهبي ×5','Gold Booster ×5',5.0,100000,14,'gold','#ffc107'],
         ];
         $items=[];
         foreach($boosters as [$key,$ar,$en,$multiplier,$price,$validDays,$color,$hex]){
