@@ -985,27 +985,71 @@ class GlobalCardEngineCore
         $natural=array_values(array_filter($cards,fn($c)=>!str_starts_with((string)$c,'JOKER')));
         $jokers=count($cards)-count($natural);
         $sum=array_sum(array_map(fn($c)=>$this->handCardPoints((string)$c),$natural));
-        if($jokers<=0 || !$natural) return $sum;
+        if(!$natural) return $sum;
         $ranks=array_map(fn($c)=>$this->rank((string)$c),$natural);
         if(count(array_unique($ranks))===1){
             return $sum + ($jokers * $this->handCardPoints($ranks[0].'_C'));
         }
         $suits=array_map(fn($c)=>$this->suit((string)$c),$natural);
         if(count(array_unique($suits))===1){
-            $vals=array_map(fn($c)=>$this->rankValue((string)$c),$natural); sort($vals);
-            $missing=[];
-            for($i=1;$i<count($vals);$i++) for($v=$vals[$i-1]+1;$v<$vals[$i];$v++) $missing[]=$v;
-            foreach(array_slice($missing,0,$jokers) as $v) $sum+=$this->handValueByRankNumber($v);
-            $left=$jokers-count($missing);
-            while($left-->0){
-                $candidate=max($vals)+1;
-                if($candidate>14) $candidate=max(2,min($vals)-1);
-                $sum+=$this->handValueByRankNumber($candidate);
-                $vals[]=$candidate; sort($vals);
-            }
-            return $sum;
+            $runValue=$this->handRunOpeningValue($natural,$jokers);
+            if($runValue!==null) return $runValue;
         }
         return $sum + ($jokers*10);
+    }
+
+    protected function handRunOpeningValue(array $natural,int $jokers): ?int
+    {
+        $values=array_map(fn($card)=>$this->rankValue((string)$card),$natural);
+        $variants=[['values'=>$values,'ace_low'=>false,'min'=>2,'max'=>14]];
+        if(in_array(14,$values,true)){
+            $variants[]=[
+                'values'=>array_map(fn($value)=>$value===14?1:$value,$values),
+                'ace_low'=>true,
+                'min'=>1,
+                'max'=>13,
+            ];
+        }
+
+        $best=null;
+        foreach($variants as $variant){
+            $vals=array_values($variant['values']); sort($vals);
+            if(count(array_unique($vals))!==count($vals)) continue;
+            $missing=[];
+            for($i=1;$i<count($vals);$i++){
+                for($value=$vals[$i-1]+1;$value<$vals[$i];$value++) $missing[]=$value;
+            }
+            if(count($missing)>$jokers) continue;
+
+            $score=array_sum(array_map(
+                fn($value)=>$this->handRunValueByRankNumber((int)$value,(bool)$variant['ace_low']),
+                $vals,
+            ));
+            foreach($missing as $value){
+                $score+=$this->handRunValueByRankNumber($value,(bool)$variant['ace_low']);
+                $vals[]=$value;
+            }
+            sort($vals);
+
+            $left=$jokers-count($missing);
+            while($left-->0){
+                $high=max($vals)+1;
+                $low=min($vals)-1;
+                if($high<=(int)$variant['max']) $candidate=$high;
+                elseif($low>=(int)$variant['min']) $candidate=$low;
+                else { $score=null; break; }
+                $score+=$this->handRunValueByRankNumber($candidate,(bool)$variant['ace_low']);
+                $vals[]=$candidate; sort($vals);
+            }
+            if($score!==null && ($best===null || $score>$best)) $best=$score;
+        }
+        return $best;
+    }
+
+    protected function handRunValueByRankNumber(int $value,bool $aceLow): int
+    {
+        if($aceLow && $value===1) return 1;
+        return $this->handValueByRankNumber($value);
     }
 
     protected function handValueByRankNumber(int $value): int
