@@ -30,7 +30,7 @@ void main() {
       child: SizedBox(
         width: 340, height: 390,
         child: R44RummyTableOverlay(
-          state: state, players: players, ar: true,
+          state: state, players: players, ar: true, partnership: true,
           cardLabel: (card) => card,
           onDrawDeck: () => stockDraws++,
           onDrawDiscard: () => discardDraws++,
