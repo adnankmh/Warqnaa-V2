@@ -750,6 +750,7 @@ class GlobalCardEngineCore
             'must_meld'=>false,
             'melded'=>false,
             'layoff'=>false,
+            'replaced_wild'=>false,
         ];
         $state = $this->record($state, 'rummy.draw_deck', compact('playerId'));
         return $this->finalizeState($state);
@@ -774,6 +775,7 @@ class GlobalCardEngineCore
             'must_meld'=>empty($state['config']['banakilScoring']),
             'melded'=>false,
             'layoff'=>false,
+            'replaced_wild'=>false,
         ];
         if ($state['rummyTurnMeta'][$playerId]['must_meld']) {
             $state['rummyTurnMeta'][$playerId]['required_meld_card']=$card;
@@ -799,6 +801,7 @@ class GlobalCardEngineCore
             'opened_before'=>$this->hasRummyOpened($state,$playerId),
             'personal_melds_before'=>!empty($state['melds'][$playerId] ?? []),
             'drew_discard'=>true, 'must_meld'=>false, 'melded'=>false, 'layoff'=>false,
+            'replaced_wild'=>false,
         ];
         return $this->finalizeState($this->record($state, 'rummy.draw_discard_stack', [
             'playerId'=>$playerId, 'count'=>$count,
@@ -1089,7 +1092,10 @@ class GlobalCardEngineCore
         $personalMeldsBefore=array_key_exists('personal_melds_before',$meta)
             ? !empty($meta['personal_melds_before'])
             : !empty($meta['opened_before']);
-        return !$personalMeldsBefore && !empty($meta['melded']) && empty($meta['layoff']);
+        return !$personalMeldsBefore
+            && !empty($meta['melded'])
+            && empty($meta['layoff'])
+            && empty($meta['replaced_wild']);
     }
 
     protected function canDrawDiscardLegally(array $state,string $playerId): bool
@@ -1217,6 +1223,7 @@ class GlobalCardEngineCore
         foreach($cards as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
         $state['hands'][$playerId][]=$joker;$state['hands'][$playerId]=$this->sortCards($state['hands'][$playerId]);
         $state['melds'][$targetPlayer][$meldIndex]=['cards'=>$candidate,'value'=>$this->meldValue($candidate)];
+        $state['rummyTurnMeta'][$playerId]['replaced_wild']=true;
         return $this->finalizeState($this->record($state,'rummy.replace_joker',compact('playerId','targetPlayer','meldIndex','cards','joker')));
     }
 
