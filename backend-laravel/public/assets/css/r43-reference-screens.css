@@ -533,3 +533,100 @@ body.warqna-b304 .r52-prize {
     max-width:100%!important;aspect-ratio:.72!important;
   }
 }
+
+
+/* R44: compact native web rummy piles and individual/team meld boards. */
+body.warqna-b304 .r44-room-piles {margin:8px auto;max-width:100%}
+body.warqna-b304 .r44-pile-row {
+  display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;
+}
+body.warqna-b304 .r44-central-pile {
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:3px;width:clamp(70px,10vw,97px);min-height:85px;padding:7px!important;
+  border-radius:13px!important;border:2px solid #ffdf8d!important;
+  color:#fff!important;background:linear-gradient(150deg,#118dd4,#05356e)!important;
+  box-shadow:0 5px 17px #031c47a8!important;
+  cursor:pointer;
+}
+body.warqna-b304 .r44-central-pile:disabled {opacity:.63;cursor:not-allowed}
+body.warqna-b304 .r44-card-back,
+body.warqna-b304 .r44-face-card {
+  display:grid;place-items:center;width:38px;height:47px;border-radius:6px;
+  font-weight:900;font-size:24px;
+  background:linear-gradient(#fafaff,#d8e8ff);color:#16345b;
+  border:2px solid #ffd985;
+}
+body.warqna-b304 .r44-face-card{color:#be1e50}
+body.warqna-b304 .r44-central-pile strong {font-size:13px;font-weight:900;line-height:1.3}
+body.warqna-b304 .r44-select-stack {
+  min-height:42px;max-width:110px;
+  padding:7px 9px!important;border-radius:11px!important;
+  background:linear-gradient(#fff1a9,#ffba34)!important;
+  color:#08325c!important;font-size:13px;font-weight:900;
+}
+body.warqna-b304 .r44-select-stack:disabled{opacity:.58}
+body.warqna-b304 .r44-owner-zone{margin:6px auto;max-width:100%;overflow-x:auto}
+body.warqna-b304 .r44-owner-zone[hidden]{display:none!important}
+body.warqna-b304 .r44-owner-grid{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}
+body.warqna-b304 .r44-meld-owner {
+  flex:1 1 122px;max-width:220px;min-width:105px;
+  border:2px solid #8cddff;border-radius:12px;
+  padding:6px;background:#03366ddc;color:white;
+}
+body.warqna-b304 .r44-meld-owner.team-a{border-color:#47d9ff}
+body.warqna-b304 .r44-meld-owner.team-b{border-color:#ffd56d}
+body.warqna-b304 .r44-meld-owner strong {display:block;font-size:12px;text-align:center;margin-bottom:4px}
+body.warqna-b304 .r44-meld-set{display:flex;gap:3px;flex-wrap:wrap;margin-block-end:4px}
+body.warqna-b304 .r44-meld-card{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:32px;border:1px solid #e2e5ff;border-radius:4px;
+  background:#f9fbff;color:#073464;font-weight:900;font-size:11px;
+}
+body.warqna-b304 #meldZone {
+  border:2px solid #75dcff!important;
+  background:linear-gradient(150deg,var(--r44-a,#0a7ecc),var(--r44-c,#053162))!important;
+  border-radius:15px!important;padding:11px!important;
+}
+body.warqna-b304 #myMelds .meld-slot {
+  min-width:95px;min-height:58px;
+  border:2px dashed #ffe39a!important;
+  background:linear-gradient(150deg,#0a76a4,#063d79)!important;
+  border-radius:11px!important;
+  font-size:14px!important;font-weight:800!important;
+}
+body.warqna-b304 #myMelds .meld-slot:nth-child(2) {border-color:#5ae4b3!important}
+body.warqna-b304 #myMelds .meld-slot:nth-child(3) {border-color:#c8abff!important}
+body.warqna-b304 #myMelds .meld-slot.filled{border-style:solid!important}
+body.warqna-b304 .hand-controls-panel button.hand-btn {
+  width:auto!important;min-width:91px!important;height:47px!important;
+  min-height:47px!important;border-radius:11px!important;
+  padding:6px 10px!important;font-size:14px!important;font-weight:900!important;
+}
+body.warqna-b304 .r44-pick-dialog {
+  width:min(480px,94vw);max-height:min(80vh,580px);
+  padding:17px;overflow:auto;color:#fff;
+  background:linear-gradient(150deg,#0b84d0,#05346e);
+  border:2px solid #9ce3ff;border-radius:19px;box-shadow:0 20px 90px #001b47;
+}
+body.warqna-b304 .r44-pick-dialog::backdrop{background:#00182cc9}
+body.warqna-b304 .r44-pick-dialog h2{font-size:19px!important;color:#ffe38f!important}
+body.warqna-b304 .r44-fire-selection{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+body.warqna-b304 .r44-pick-card{
+  display:grid;place-items:center;width:49px;height:65px;
+  border:2px solid #70d6ff;border-radius:8px;
+  background:#f8fcff!important;color:#07305b!important;font-size:16px;font-weight:900;
+}
+body.warqna-b304 .r44-pick-card.selected{border-color:#ffe16e;box-shadow:0 0 0 3px #ffd64f8c}
+body.warqna-b304 .r44-dialog-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+body.warqna-b304 .r44-dialog-actions button{
+  min-height:45px;padding:9px 12px;flex:1;border-radius:11px;
+  font-weight:900;font-size:14px;
+}
+body.warqna-b304 .r44-dialog-confirm{background:#ffcc45!important;color:#0b315c!important}
+@media (max-width:700px){
+  body.warqna-b304 .r44-central-pile{min-height:70px;width:75px}
+  body.warqna-b304 .r44-card-back,body.warqna-b304 .r44-face-card{height:33px;width:28px;font-size:18px}
+  body.warqna-b304 .r44-meld-owner{min-width:100px;max-width:160px}
+  body.warqna-b304 .r44-meld-card{width:19px;height:26px;font-size:10px}
+  body.warqna-b304 .hand-controls-panel button.hand-btn{min-width:80px!important;font-size:13px!important}
+}
