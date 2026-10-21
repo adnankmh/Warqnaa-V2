@@ -51,25 +51,24 @@ class R58HandFireConsumptionTest extends TestCase
             $this->assertTrue($drawn['rummyTurnMeta']['p0']['must_meld']);
             $this->assertSame('6_C', $drawn['rummyTurnMeta']['p0']['required_meld_card']);
 
-            $unrelated = $engine->applyAction($drawn,'p0',[
-                'type'=>'meld', 'cards'=>['7_S','8_S','9_S'],
-            ]);
-            $this->assertTrue($unrelated['rummyTurnMeta']['p0']['must_meld']);
-            $this->assertSame('6_C', $unrelated['rummyTurnMeta']['p0']['required_meld_card']);
-            $this->assertNotContains('discard', array_column($engine->availableActions($unrelated,'p0'),'type'));
             try {
-                $engine->applyAction($unrelated,'p0',['type'=>'discard','card'=>'6_C']);
-                $this->fail('An unrelated meld released the authoritative fire-card lock.');
+                $engine->applyAction($drawn,'p0',[
+                    'type'=>'meld', 'cards'=>['7_S','8_S','9_S'],
+                ]);
+                $this->fail('An unrelated meld bypassed the authoritative fire-card lock.');
             } catch (\GameEngineException $error) {
-                $this->assertStringContainsString('يجب تنزيل مجموعة قانونية', $error->getMessage());
+                $this->assertStringContainsString('ورقة النار', $error->getMessage());
             }
+            $this->assertTrue($drawn['rummyTurnMeta']['p0']['must_meld']);
+            $this->assertSame('6_C', $drawn['rummyTurnMeta']['p0']['required_meld_card']);
+            $this->assertNotContains('discard', array_column($engine->availableActions($drawn,'p0'),'type'));
 
-            $consumed = $engine->applyAction($unrelated,'p0',[
+            $consumed = $engine->applyAction($drawn,'p0',[
                 'type'=>'meld', 'cards'=>['4_C','5_C','6_C'],
             ]);
             $this->assertFalse($consumed['rummyTurnMeta']['p0']['must_meld']);
             $this->assertArrayNotHasKey('required_meld_card', $consumed['rummyTurnMeta']['p0']);
-            $this->assertSame(['3_H','Q_D'], $consumed['hands']['p0']);
+            $this->assertSame(['3_H','7_S','8_S','9_S','Q_D'], $consumed['hands']['p0']);
             $this->assertSame($before, $this->physicalCards($consumed));
 
             $finished = $engine->applyAction($consumed,'p0',['type'=>'discard','card'=>'Q_D']);
