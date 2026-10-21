@@ -42,6 +42,8 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
             R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
             const SizedBox(height:12),
             R52RewardsHomePanel(controller:controller),
+            const SizedBox(height: 12),
+            R43ReferenceQuickDestinations(controller: controller, onTab: onTab),
             const SizedBox(height: 13),
             LayoutBuilder(builder: (context, box) {
               final compact = box.maxWidth < 900;
@@ -181,11 +183,11 @@ class R51FeaturedGamesAndTournaments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final games = customerGamesR101.take(8).toList(growable: false);
+    final games = customerGamesR101.take(6).toList(growable: false);
     return LayoutBuilder(builder: (context, featured) {
       final stacked = featured.maxWidth < 760;
       final gameColumns = stacked
-          ? (featured.maxWidth < 420 ? 2 : featured.maxWidth < 610 ? 3 : 4)
+          ? (featured.maxWidth < 350 ? 2 : featured.maxWidth < 600 ? 3 : 4)
           : (featured.maxWidth >= 1140 ? 4 : 3);
       final gamesPanel = R35ReferencePanel(
         key: const ValueKey('r51-games-panel'),
@@ -834,6 +836,187 @@ class R35StoreTreasureTile extends StatelessWidget {
                   fontSize: 11.5, fontWeight: FontWeight.w900)),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// R43: navigable native Flutter tiles for the user-approved reference gallery.
+/// This is not a flattened image: every tile routes to the existing live feature.
+/// No mock balances, fictitious prizes or dummy bot opponents are introduced.
+class R43ReferenceQuickDestinations extends StatelessWidget {
+  const R43ReferenceQuickDestinations({
+    super.key, required this.controller, required this.onTab,
+  });
+  final AppController controller;
+  final ValueChanged<int> onTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final items = <R43ReferenceDestination>[
+      R43ReferenceDestination(
+        icon: Icons.emoji_events_rounded,
+        title: ar ? 'البطولات' : 'Tournaments',
+        detail: ar ? 'يومية وأسبوعية وكبرى' : 'Daily, weekly and grand',
+        tone: const Color(0xFFFFCD46),
+        onTap: () => Navigator.push<void>(context,
+          MaterialPageRoute<void>(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.shield_rounded,
+        title: ar ? 'الأندية' : 'Clubs',
+        detail: ar ? 'المنافسات والمجموعات' : 'Clubs and communities',
+        tone: const Color(0xFF6AFFC2),
+        onTap: () => Navigator.push<void>(context,
+          MaterialPageRoute<void>(builder: (_) => ClubsPage(controller: controller))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.account_circle_rounded,
+        title: ar ? 'تخصيص الملف' : 'Personalize',
+        detail: ar ? 'الصورة والإطار والغلاف' : 'Avatar, frame and cover',
+        tone: const Color(0xFF91E9FF),
+        onTap: () => showAvatarPicker(context, controller),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.emoji_emotions_rounded,
+        title: ar ? 'ردود الفعل' : 'Reactions',
+        detail: ar ? 'إيموجي وباقات مميزة' : 'Emojis and collections',
+        tone: const Color(0xFFFFDC88),
+        onTap: () => onTab(0),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.smart_toy_rounded,
+        title: ar ? 'الروبوتات' : 'Practice bots',
+        detail: ar ? 'تدرّب داخل الألعاب' : 'Train in supported games',
+        tone: const Color(0xFFCDB8FF),
+        onTap: () => onTab(1),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.style_rounded,
+        title: ar ? 'خلفيات الورق' : 'Card backs',
+        detail: ar ? 'ألوان وتصميمات فاخرة' : 'Premium card collections',
+        tone: const Color(0xFFFFAB8E),
+        onTap: () => onTab(0),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.bolt_rounded,
+        title: ar ? 'المعززات' : 'Boosters',
+        detail: ar ? 'المميزات المتاحة' : 'Available special features',
+        tone: const Color(0xFF96F5AB),
+        onTap: () => onTab(0),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.storefront_rounded,
+        title: ar ? 'المتجر' : 'Store',
+        detail: ar ? 'العروض والصناديق' : 'Offers and prize boxes',
+        tone: const Color(0xFFFFE382),
+        onTap: () => onTab(0),
+      ),
+    ];
+    return R35ReferencePanel(
+      key: const ValueKey('r43-reference-navigation'),
+      title: ar ? 'اكتشف عالم ورقنا' : 'Discover the Warqnaa world',
+      icon: Icons.auto_awesome_rounded,
+      child: LayoutBuilder(
+        builder: (context, bounds) {
+          final columns = bounds.maxWidth >= 1150
+              ? 4
+              : bounds.maxWidth >= 600
+                  ? 4
+                  : 2;
+          return GridView.builder(
+            key: const ValueKey('r43-reference-destinations-grid'),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 9,
+              mainAxisSpacing: 9,
+              childAspectRatio: bounds.maxWidth < 380 ? 1.14 : 1.47,
+            ),
+            itemBuilder: (context, index) => R43DestinationTile(
+              destination: items[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class R43ReferenceDestination {
+  const R43ReferenceDestination({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.tone,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String detail;
+  final Color tone;
+  final VoidCallback onTap;
+}
+
+class R43DestinationTile extends StatelessWidget {
+  const R43DestinationTile({super.key, required this.destination});
+  final R43ReferenceDestination destination;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: destination.title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: destination.onTap,
+          borderRadius: BorderRadius.circular(15),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: destination.tone.withValues(alpha: .85), width: 1.3),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xFF119DEB),Color(0xFF086BC0),Color(0xFF063A7D)],
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(color: R35ReferenceColors.navy.withValues(alpha: .27),
+                  blurRadius: 8, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(destination.icon, size: 30, color: destination.tone),
+                  const SizedBox(height: 5),
+                  Text(
+                    destination.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900,
+                      fontSize: 13.5, color: Colors.white),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    destination.detail,
+                    textAlign: TextAlign.center,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10.5,
+                      color: R35ReferenceColors.cyan, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
