@@ -1022,7 +1022,7 @@ class R43DestinationTile extends StatelessWidget {
                     destination.detail,
                     textAlign: TextAlign.center,
                     maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10.5,
+                    style: const TextStyle(fontSize: 12,
                       color: R35ReferenceColors.cyan, fontWeight: FontWeight.w700),
                   ),
                 ],
