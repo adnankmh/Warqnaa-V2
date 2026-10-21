@@ -1,0 +1,276 @@
+/* WARQNAA R43 — hand-coded implementation of the user-approved 14-screen design.
+   Existing routes, catalogs, wallet balances, purchasing and game engines remain authoritative.
+   No screenshots are placed as fake UI; all controls remain native HTML elements. */
+:root {
+  --r43-ink: #061d42;
+  --r43-navy: #082f66;
+  --r43-panel: #0754a7;
+  --r43-royal: #0878d7;
+  --r43-sky: #31c8ff;
+  --r43-cyan: #94efff;
+  --r43-gold: #ffcb49;
+  --r43-gold-light: #fff1a7;
+  --r43-line: #66daff;
+  --r43-radius: 21px;
+}
+body.warqna-b304 {
+  color: #f6fbff;
+  background:
+    radial-gradient(ellipse at 53% -13%, #35c8ff99 0, transparent 47%),
+    radial-gradient(ellipse at 92% 48%, #0879cc77 0, transparent 43%),
+    linear-gradient(160deg,#071c45,#09529b 38%,#032b62 100%) fixed !important;
+}
+body.warqna-b304 .page {
+  width: min(100%, 1460px) !important;
+  max-width: min(100%, 1460px) !important;
+  margin-inline: auto !important;
+  padding-inline: clamp(10px,2.1vw,26px) !important;
+}
+body.warqna-b304 :is(.topbar,.userbar,.b304-head,.w36-panel,.r9-panel,.b304-section,.w36-games-browser,.room-panel,.store-card,.tournament-card,.club-card,.profile-card,.pro-card,.mini-card) {
+  border: 1.5px solid #5fcfffaa !important;
+  background: linear-gradient(153deg,#0b7bce 0%,#0755ab 43%,#073676 100%) !important;
+  border-radius: var(--r43-radius) !important;
+  box-shadow: inset 0 1px 0 #ffffff4d, 0 10px 27px #02153566 !important;
+}
+body.warqna-b304 :is(h1,h2,h3,.w36-panel-head strong,.w36-game-tile-info strong,.w36-club-item strong,.w36-tournament-info strong) {
+  color: white !important;
+  font-weight: 900 !important;
+  line-height: 1.35;
+  text-shadow: 0 2px 7px #06387977;
+  overflow-wrap: anywhere;
+}
+body.warqna-b304 :is(a,button,input,select,textarea,[role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+body.warqna-b304 :is(a,button,[role="button"]):focus-visible {
+  outline: 3px solid #ffdb64 !important;
+  outline-offset: 3px;
+}
+body.warqna-b304 :is(.w36-gold-cta,.w36-game-play-now,.w36-join-label,.primary,.w36-studio-link) {
+  border-radius: 12px !important;
+  background: linear-gradient(175deg,#fff0a6 0%,#ffcb45 52%,#f59e0b 100%) !important;
+  border: 1.5px solid #fff4ba !important;
+  color: #102a56 !important;
+  box-shadow: inset 0 2px 0 #fff6ba99,0 6px 16px #001b4355 !important;
+  font-weight: 900 !important;
+}
+body.warqna-b304 :is(.w36-blue-cta,.w36-panel-button,.b304-actions a:not(.primary)) {
+  border-radius: 12px !important;
+  background: linear-gradient(160deg,#24c6ff,#1179d9 65%,#0650b3) !important;
+  border: 1px solid #9beeff !important;
+  color: #fff !important;
+  box-shadow: 0 5px 16px #00264c77 !important;
+}
+body.warqna-b304 :is(.w36-gold-cta,.w36-blue-cta,.w36-panel-button,.b304-actions a,.w36-game-play-now,.w36-join-label) {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+body.warqna-b304 :is(.w36-gold-cta,.w36-blue-cta,.w36-panel-button,.b304-actions a):hover,
+body.warqna-b304 :is(.w36-game-tile,.b304-game,.w36-store-item,.w36-club-item,.w36-tournament-item):hover {
+  filter: brightness(1.10);
+  transform: translateY(-2px);
+}
+body.warqna-b304 .b304-home {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px,1.8vw,22px);
+  max-width: 100%;
+}
+body.warqna-b304 .w36-grand-hero {
+  order: -3;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(230px,26vw,350px);
+  display: flex;
+  align-items: center;
+  border-radius: 22px;
+  border: 2px solid #ffe18f;
+  background:
+    radial-gradient(circle at 78% 14%,#ffd45d88,transparent 28%),
+    radial-gradient(circle at 27% 88%,#0cc3ff7a,transparent 35%),
+    linear-gradient(122deg,#042653,#0a68c4 51%,#06346c);
+  box-shadow: inset 0 1px 0 #ffffff80,0 12px 34px #031b47a3;
+}
+body.warqna-b304 .w36-grand-hero::before {
+  content: '♠  ♥  ♦  ♣';
+  position: absolute;
+  inset-inline-start: 45%;
+  top: 10%;
+  font-size: clamp(35px,6vw,84px);
+  letter-spacing: .12em;
+  color: #ffffff34;
+  transform: rotate(-11deg);
+  z-index:-1;
+  pointer-events:none;
+}
+body.warqna-b304 .w36-grand-copy { z-index: 2; max-width: min(670px,72%); }
+body.warqna-b304 .w36-grand-copy h2 {
+  color: #ffe179 !important;
+  font-size: clamp(1.35rem,3vw,2.65rem) !important;
+  text-shadow: 0 3px 5px #00234b;
+}
+body.warqna-b304 .w36-big-cup {
+  font-size: clamp(82px,13vw,196px) !important;
+  filter: drop-shadow(0 5px 13px #05275e);
+}
+body.warqna-b304 .b304-head { order:-2; }
+body.warqna-b304 .b304-actions { order:-1; gap: 9px; display:flex; flex-wrap:wrap; }
+body.warqna-b304 .b304-actions a { flex:1 1 140px; }
+body.warqna-b304 .b304-statbar { display:flex; flex-wrap:wrap; gap:9px; }
+body.warqna-b304 .b304-statbar span {
+  border-radius: 13px;
+  border:1px solid #a5edff8c;
+  background: #063d8077;
+  padding: 8px 15px;
+}
+body.warqna-b304 .b304-grid,
+body.warqna-b304 .w36-games-wall,
+body.warqna-b304 .w36-store-items {
+  display: grid !important;
+  grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+  gap: clamp(8px,1.1vw,16px) !important;
+  align-items: stretch;
+}
+body.warqna-b304 .b304-game,
+body.warqna-b304 .w36-game-tile {
+  min-width: 0;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(160deg,#23aeec,#0b67c8 47%,#052c68 100%)!important;
+  border:2px solid #ffd46b !important;
+  border-radius:15px!important;
+  box-shadow:inset 0 2px 0 #ffffff66,0 7px 18px #00183f8c!important;
+  transition:transform .18s ease,filter .18s ease;
+}
+body.warqna-b304 .b304-game img,
+body.warqna-b304 .w36-game-tile-art img {
+  width:100%; height:100%; object-fit:contain !important; object-position:center;
+  filter:drop-shadow(0 5px 8px #041942b3);
+}
+body.warqna-b304 .b304-game > img { height:clamp(110px,12vw,185px); }
+body.warqna-b304 .b304-game > div,
+body.warqna-b304 .w36-game-tile-info {
+  width:100%; padding:12px 8px!important; color:white;
+  background:linear-gradient(180deg,#074fa500,#051d57c9 30%,#042354e8 100%)!important;
+}
+body.warqna-b304 .w36-game-tile-info { display:flex;flex-direction:column;gap:4px;align-items:center; }
+body.warqna-b304 .w36-game-tile-info strong,
+body.warqna-b304 .b304-game b { font-size:clamp(.84rem,1.15vw,1.06rem)!important; }
+body.warqna-b304 :is(.w36-game-tile-info small,.b304-game small) { color:#cbf5ff!important;font-size:.74rem; }
+body.warqna-b304 .w36-game-tile-art { width:100%; aspect-ratio:1.04; }
+body.warqna-b304 .w36-world-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(12px,1.5vw,22px);
+}
+body.warqna-b304 .w36-panel {
+  min-width:0; padding:clamp(13px,1.5vw,22px);
+  transition:box-shadow .18s ease;
+}
+body.warqna-b304 .w36-panel-head {
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:9px;margin-block-end:14px;
+}
+body.warqna-b304 .w36-panel-head h2 { font-size:clamp(1rem,1.5vw,1.35rem)!important; }
+body.warqna-b304 :is(.w36-tournament-item,.w36-club-item,.w36-store-item) {
+  min-width:0;
+  border-radius:13px !important;
+  border:1px solid #73dfffaa !important;
+  background:linear-gradient(135deg,#1388dc,#0752a1)!important;
+  color:white !important;
+  box-shadow:inset 0 1px 0 #ffffff3d !important;
+  transition:transform .18s ease,filter .18s ease;
+}
+body.warqna-b304 .w36-tournament-prize { color:var(--r43-gold-light)!important;font-weight:900; }
+body.warqna-b304 :is(.w36-emoji-preview,.w36-color-dots,.w36-bot-badges) {
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+}
+body.warqna-b304 .w36-emoji-preview span {
+  width:clamp(41px,5vw,64px);height:clamp(41px,5vw,64px);
+  display:grid;place-items:center;
+  font-size:clamp(25px,3vw,37px);
+  border-radius:13px;border:1px solid #8cecff;
+  background:linear-gradient(#129ce4,#085bb2);
+  box-shadow:inset 0 1px 0 #ffffff77;
+}
+body.warqna-b304 .w36-profile-scene {
+  border-radius:18px;
+  border:1px solid #aceeff96;
+  background:
+    radial-gradient(circle at 50% 0%,#39d4ff8c,transparent 60%),
+    linear-gradient(145deg,#0b57a5,#032d69);
+  min-height:170px;
+}
+body.warqna-b304 .w36-profile-avatar {
+  border:4px solid var(--r43-gold-light);
+  border-radius:50%;
+  box-shadow:0 0 0 6px #2cc8fa38,0 8px 19px #001b42;
+}
+body.warqna-b304 .w36-store-item img { max-width:100%; max-height:90px;object-fit:contain; }
+body.warqna-b304 .game-table {
+  max-width: min(100%, 1070px) !important;
+  margin-inline: auto !important;
+  background-image: radial-gradient(ellipse,#086c86 15%,#06505d 71%,#032e45) !important;
+  border-color: #c99941 !important;
+}
+body.warqna-b304 .hand-row .card,
+body.warqna-b304 .center-board .card {
+  border:1px solid #fff0bd !important;
+  box-shadow:0 2px 7px #02112b9a;
+}
+body.warqna-b304 :is(input,textarea,select) {
+  min-height:42px;color:white!important;
+  background:#043672!important;
+  border:1px solid #73dcff99!important;
+  border-radius:11px!important;
+}
+body.warqna-b304 :is(input,textarea)::placeholder {color:#d2eaff!important;opacity:.9;}
+body.warqna-b304 .chat-dock {border:1px solid #7ee7ff!important;box-shadow:0 12px 38px #021938a8!important;}
+html[dir="rtl"] body.warqna-b304 :is(.w36-panel,.b304-game,.w36-game-tile) { text-align: right; }
+html[dir="ltr"] body.warqna-b304 :is(.w36-panel,.b304-game,.w36-game-tile) { text-align: left; }
+/* Responsive grid: three genuine tap targets per phone row, six on desktop. */
+@media (min-width:701px) and (max-width:1160px) {
+  body.warqna-b304 .b304-grid,
+  body.warqna-b304 .w36-games-wall,
+  body.warqna-b304 .w36-store-items {grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+}
+@media (max-width:700px) {
+  body.warqna-b304 .page { padding:9px!important; }
+  body.warqna-b304 .b304-home { gap:11px; }
+  body.warqna-b304 .w36-grand-hero { min-height:210px; padding:12px!important; border-radius:16px; }
+  body.warqna-b304 .w36-grand-copy {max-width:78%;}
+  body.warqna-b304 .w36-grand-copy h2 {font-size:clamp(1.05rem,4.9vw,1.35rem)!important;}
+  body.warqna-b304 .w36-grand-copy p {font-size:.79rem!important;line-height:1.5;}
+  body.warqna-b304 .w36-big-cup {font-size:76px!important;}
+  body.warqna-b304 .w36-world-grid {grid-template-columns:minmax(0,1fr);gap:11px;}
+  body.warqna-b304 .b304-grid,
+  body.warqna-b304 .w36-games-wall,
+  body.warqna-b304 .w36-store-items {grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;}
+  body.warqna-b304 .b304-game > img {height:103px;}
+  body.warqna-b304 .b304-game > div {padding:6px 4px!important;}
+  body.warqna-b304 .w36-game-tile-info {padding:8px 4px!important;}
+  body.warqna-b304 .w36-game-tile-info :is(small,.w36-game-play-now) {font-size:.67rem!important;}
+  body.warqna-b304 .b304-actions a {font-size:.84rem!important;flex-basis:42%;padding:7px!important;}
+  body.warqna-b304 .w36-panel {padding:12px;}
+  body.warqna-b304 .w36-panel-head h2 {font-size:1.12rem!important;}
+  body.warqna-b304 .w36-emoji-preview span {width:44px;height:44px;}
+  body.warqna-b304 .game-table {max-width:100%!important;min-height:420px!important;}
+  body.warqna-b304 .chat-dock {max-width:min(100vw,380px)!important;}
+}
+@media (max-width:350px) {
+  body.warqna-b304 .b304-grid,
+  body.warqna-b304 .w36-games-wall,
+  body.warqna-b304 .w36-store-items {grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media (prefers-reduced-motion: reduce) {
+  body.warqna-b304 :is(a,button,.w36-game-tile,.b304-game,.w36-store-item,.w36-club-item,.w36-tournament-item) {
+    transition:none!important;animation:none!important;
+  }
+}
