@@ -34,4 +34,23 @@ class R43ReferenceScreensContractTest extends TestCase
         $this->assertStringContainsString("id=\"gameSearchV130\"", $games);
         $this->assertStringContainsString("id=\"compactGamesV130\"", $games);
     }
+
+    public function test_real_bots_use_existing_assets_and_do_not_forge_prize_or_play_actions(): void
+    {
+        $template = file_get_contents(resource_path('views/home.blade.php'));
+        $catalogue = json_decode(file_get_contents(public_path('assets/bots/royal/catalog.json')), true);
+
+        $this->assertIsArray($catalogue);
+        $this->assertCount(10, $catalogue);
+        foreach ($catalogue as $bot) {
+            $this->assertNotEmpty($bot['name']);
+            $this->assertFileExists(public_path(ltrim($bot['avatar'], '/')));
+        }
+        $this->assertStringContainsString('r43-bot-identity-grid', $template);
+        $this->assertStringContainsString('r43BotCatalogPath', $template);
+        $this->assertStringContainsString("route('games')", $template);
+        $css = file_get_contents(public_path('assets/css/r43-reference-screens.css'));
+        $this->assertStringContainsString('.r43-bot-identity', $css);
+    }
+
 }
