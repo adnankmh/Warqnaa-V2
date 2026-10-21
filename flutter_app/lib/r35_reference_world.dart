@@ -42,6 +42,8 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
             R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
             const SizedBox(height:12),
             R52RewardsHomePanel(controller:controller),
+            const SizedBox(height: 12),
+            R43ReferenceQuickDestinations(controller: controller, onTab: onTab),
             const SizedBox(height: 13),
             LayoutBuilder(builder: (context, box) {
               final compact = box.maxWidth < 900;
@@ -146,7 +148,7 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
                 ),
                 R35CategoryAction(
                   icon: Icons.bolt_rounded, color: const Color(0xFF6EF9AD),
-                  title: ar ? 'المعززات والمميزات' : 'Boosters and perks',
+                  title: ar ? 'معزز النقاط' : 'XP Boosters',
                   subtitle: ar ? 'تخصيص ومكافآت' : 'Customization and rewards',
                   onTap: () => onTab(0),
                 ),
@@ -181,11 +183,11 @@ class R51FeaturedGamesAndTournaments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
-    final games = customerGamesR101.take(8).toList(growable: false);
+    final games = customerGamesR101.take(6).toList(growable: false);
     return LayoutBuilder(builder: (context, featured) {
       final stacked = featured.maxWidth < 760;
       final gameColumns = stacked
-          ? (featured.maxWidth < 420 ? 2 : featured.maxWidth < 610 ? 3 : 4)
+          ? (featured.maxWidth < 350 ? 2 : featured.maxWidth < 600 ? 3 : 4)
           : (featured.maxWidth >= 1140 ? 4 : 3);
       final gamesPanel = R35ReferencePanel(
         key: const ValueKey('r51-games-panel'),
@@ -834,6 +836,490 @@ class R35StoreTreasureTile extends StatelessWidget {
                   fontSize: 11.5, fontWeight: FontWeight.w900)),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// R43: navigable native Flutter tiles for the user-approved reference gallery.
+/// This is not a flattened image: every tile routes to the existing live feature.
+/// No mock balances, fictitious prizes or dummy bot opponents are introduced.
+class R43ReferenceQuickDestinations extends StatelessWidget {
+  const R43ReferenceQuickDestinations({
+    super.key, required this.controller, required this.onTab,
+  });
+  final AppController controller;
+  final ValueChanged<int> onTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final items = <R43ReferenceDestination>[
+      R43ReferenceDestination(
+        icon: Icons.emoji_events_rounded,
+        title: ar ? 'البطولات' : 'Tournaments',
+        detail: ar ? 'يومية وأسبوعية وكبرى' : 'Daily, weekly and grand',
+        tone: const Color(0xFFFFCD46),
+        onTap: () => Navigator.push<void>(context,
+          MaterialPageRoute<void>(builder: (_) => R12CompetitiveArenaPage(controller: controller))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.shield_rounded,
+        title: ar ? 'الأندية' : 'Clubs',
+        detail: ar ? 'المنافسات والمجموعات' : 'Clubs and communities',
+        tone: const Color(0xFF6AFFC2),
+        onTap: () => Navigator.push<void>(context,
+          MaterialPageRoute<void>(builder: (_) => ClubsPage(controller: controller))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.account_circle_rounded,
+        title: ar ? 'تخصيص الملف' : 'Personalize',
+        detail: ar ? 'الصورة والإطار والغلاف' : 'Avatar, frame and cover',
+        tone: const Color(0xFF91E9FF),
+        onTap: () => showAvatarPicker(context, controller),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.emoji_emotions_rounded,
+        title: ar ? 'ردود الفعل' : 'Reactions',
+        detail: ar ? 'إيموجي وباقات مميزة' : 'Emojis and collections',
+        tone: const Color(0xFFFFDC88),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'emoji'))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.smart_toy_rounded,
+        title: ar ? 'الروبوتات' : 'Practice bots',
+        detail: ar ? 'تدرّب داخل الألعاب' : 'Train in supported games',
+        tone: const Color(0xFFCDB8FF),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43BotRosterPage(controller: controller, onTab: onTab))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.style_rounded,
+        title: ar ? 'خلفيات الورق' : 'Card backs',
+        detail: ar ? 'ألوان وتصميمات فاخرة' : 'Premium card collections',
+        tone: const Color(0xFFFFAB8E),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'cards'))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.bolt_rounded,
+        title: ar ? 'معزز النقاط' : 'XP Boosters',
+        detail: ar ? 'المميزات المتاحة' : 'Available special features',
+        tone: const Color(0xFF96F5AB),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43ReferenceCatalogPage(controller: controller, category: 'boost'))),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.storefront_rounded,
+        title: ar ? 'المتجر' : 'Store',
+        detail: ar ? 'العروض والصناديق' : 'Offers and prize boxes',
+        tone: const Color(0xFFFFE382),
+        onTap: () => onTab(0),
+      ),
+      R43ReferenceDestination(
+        icon: Icons.info_outline_rounded,
+        title: ar ? 'معلومات عامة' : 'About Warqnaa',
+        detail: ar ? 'التطبيق والألعاب والخدمات' : 'Apps, games and services',
+        tone: const Color(0xFFA3E9FF),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+          builder: (_) => R43GeneralInformationPage(controller: controller))),
+      ),
+    ];
+    return R35ReferencePanel(
+      key: const ValueKey('r43-reference-navigation'),
+      title: ar ? 'اكتشف عالم ورقنا' : 'Discover the Warqnaa world',
+      icon: Icons.auto_awesome_rounded,
+      child: LayoutBuilder(
+        builder: (context, bounds) {
+          final columns = bounds.maxWidth >= 1150
+              ? 4
+              : bounds.maxWidth >= 600
+                  ? 4
+                  : 2;
+          return GridView.builder(
+            key: const ValueKey('r43-reference-destinations-grid'),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 9,
+              mainAxisSpacing: 9,
+              childAspectRatio: bounds.maxWidth < 380 ? 1.14 : 1.47,
+            ),
+            itemBuilder: (context, index) => R43DestinationTile(
+              destination: items[index],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class R43ReferenceDestination {
+  const R43ReferenceDestination({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.tone,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String detail;
+  final Color tone;
+  final VoidCallback onTap;
+}
+
+class R43DestinationTile extends StatelessWidget {
+  const R43DestinationTile({super.key, required this.destination});
+  final R43ReferenceDestination destination;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: destination.title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: destination.onTap,
+          borderRadius: BorderRadius.circular(15),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: destination.tone.withValues(alpha: .85), width: 1.3),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Color(0xFF119DEB),Color(0xFF086BC0),Color(0xFF063A7D)],
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(color: R35ReferenceColors.navy.withValues(alpha: .27),
+                  blurRadius: 8, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(destination.icon, size: 30, color: destination.tone),
+                  const SizedBox(height: 5),
+                  Text(
+                    destination.title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900,
+                      fontSize: 13.5, color: Colors.white),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    destination.detail,
+                    textAlign: TextAlign.center,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12,
+                      color: R35ReferenceColors.cyan, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Reference-screen category browser. Renders actual inventory from the same
+/// store model and invokes its existing preview/checkout flow; no invented
+/// offers or prices are displayed. Works in both portrait and landscape.
+class R43ReferenceCatalogPage extends StatelessWidget {
+  const R43ReferenceCatalogPage({
+    super.key,
+    required this.controller,
+    required this.category,
+  }) : assert(category == 'cards' || category == 'boost' || category == 'emoji');
+
+  final AppController controller;
+  final String category;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final title = switch (category) {
+      'cards' => ar ? 'خلفيات أوراق اللعب' : 'Card-back collection',
+      'boost' => ar ? 'معزز النقاط' : 'XP Boosters',
+      _ => ar ? 'الإيموجي وردود الفعل' : 'Emojis and reactions',
+    };
+    final description = ar
+        ? 'الأسعار والمقتنيات من المتجر الحقيقي، وتظهر لك التفاصيل قبل تأكيد الشراء.'
+        : 'Real store prices and items. Review each item before confirming a purchase.';
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        actions: <Widget>[
+          IconButton(
+            tooltip: ar ? 'المحفظة' : 'Wallet',
+            onPressed: () => showWallet(context, controller),
+            icon: const Icon(Icons.account_balance_wallet_rounded),
+          ),
+        ],
+      ),
+      body: AnimatedBuilder(
+        animation: controller,
+        builder: (context, _) {
+          final items = controller.storeProductsR36.where((product) =>
+            product.category == category &&
+            controller.isStoreProductVisible(product) &&
+            !product.id.startsWith('table_reference_')
+          ).toList(growable: false);
+          return LayoutBuilder(
+            builder: (context, bounds) {
+              final columns = bounds.maxWidth >= 1080
+                  ? 5
+                  : bounds.maxWidth >= 740
+                      ? 4
+                      : bounds.maxWidth >= 370
+                          ? 3
+                          : 2;
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1180),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                        child: R35ReferencePanel(
+                          title: title,
+                          icon: category == 'cards'
+                              ? Icons.style_rounded
+                              : category == 'boost'
+                                  ? Icons.bolt_rounded
+                                  : Icons.emoji_emotions_rounded,
+                          actionLabel: ar ? 'المتجر الكامل' : 'Full store',
+                          onAction: () => Navigator.push<void>(context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => StorePage(controller: controller),
+                            )),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(description,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  fontWeight: FontWeight.w700,
+                                )),
+                              const SizedBox(height: 6),
+                              Text(
+                                ar ? 'العناصر المتاحة: ${items.length}' : 'Available items: ${items.length}',
+                                style: const TextStyle(
+                                  color: R35ReferenceColors.paleGold,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: items.isEmpty
+                            ? Center(child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Text(
+                                  ar
+                                      ? 'لا تتوفر مقتنيات في هذا القسم حاليًا. يمكنك العودة للمتجر للاطلاع على الأقسام الأخرى.'
+                                      : 'No items are currently available in this category. Browse the full store for more.',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ))
+                            : GridView.builder(
+                                key: const ValueKey('r43-live-catalog-grid'),
+                                padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+                                itemCount: items.length,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  mainAxisExtent: 185,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                ),
+                                itemBuilder: (context, index) => R35StoreTreasureTile(
+                                  key: ValueKey('r43-product-${items[index].id}'),
+                                  product: items[index],
+                                  controller: controller,
+                                  onTap: () => showProductPreview(context, controller, items[index]),
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+/// Information screen is a native, readable widget, not the small screenshot
+/// itself. The wording describes available project modules, not guaranteed
+/// publication in an external app store.
+class R43GeneralInformationPage extends StatelessWidget {
+  const R43GeneralInformationPage({super.key, required this.controller});
+  final AppController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    final features = <(IconData, String, String)>[
+      (
+        Icons.devices_rounded,
+        ar ? 'متعددة المنصات' : 'Multi-platform',
+        ar ? 'واجهات للويب والهاتف مع مشاريع بناء Android وiOS.'
+           : 'Web and mobile interfaces with Android and iOS build projects.',
+      ),
+      (
+        Icons.style_rounded,
+        ar ? 'ألعاب ورق عربية' : 'Arabic card games',
+        ar ? 'مكتبة ألعاب وصالات وغرف ومباريات.'
+           : 'Card-game library, lobbies, rooms and matches.',
+      ),
+      (
+        Icons.people_alt_rounded,
+        ar ? 'المجتمع والأندية' : 'Community and clubs',
+        ar ? 'ملفات شخصية وأصدقاء وأندية ودعوات.'
+           : 'Profiles, friends, clubs and invitations.',
+      ),
+      (
+        Icons.emoji_events_rounded,
+        ar ? 'البطولات والمنافسات' : 'Tournaments',
+        ar ? 'المشاركة وفق شروط كل بطولة ومواعيدها وجوائزها الفعلية.'
+           : 'Participation follows each event’s actual terms, dates and prizes.',
+      ),
+      (
+        Icons.storefront_rounded,
+        ar ? 'المتجر والمكافآت' : 'Store and rewards',
+        ar ? 'مقتنيات افتراضية، ومكافآت وصناديق بحسب المتاح.'
+           : 'Digital collectibles, rewards and prize boxes where available.',
+      ),
+      (
+        Icons.palette_rounded,
+        ar ? 'التخصيص' : 'Customization',
+        ar ? 'طاولات وخلفيات أوراق وإطارات وألوان.'
+           : 'Tables, card backs, profile frames and colors.',
+      ),
+    ];
+    return Scaffold(
+      appBar: AppBar(title: Text(ar ? 'معلومات عامة' : 'About Warqnaa')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: ListView(
+            key: const ValueKey('r43-general-information-list'),
+            padding: const EdgeInsets.all(14),
+            children: <Widget>[
+              R35ReferencePanel(
+                title: ar ? 'ورقنا — ألعاب الورق العربية' : 'Warqnaa — Arabic card games',
+                icon: Icons.info_outline_rounded,
+                child: Text(
+                  ar ? 'منصة اجتماعية للألعاب والتواصل والمنافسة على الهاتف والويب. توفر الميزات والمكافآت يعتمد على حالة الخادم والإصدار.'
+                     : 'A social card-game platform for play, connection and competition on web and mobile. Availability depends on the server and release.',
+                  style: const TextStyle(
+                    fontSize: 14, height: 1.55,
+                    color: Colors.white, fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...features.map((feature) => Padding(
+                padding: const EdgeInsets.only(bottom: 9),
+                child: R35FeatureLine(
+                  icon: feature.$1,
+                  title: feature.$2,
+                  detail: feature.$3,
+                ),
+              )),
+              const SizedBox(height: 8),
+              R35GoldAction(
+                label: ar ? 'تصفح المتجر' : 'Browse store',
+                icon: Icons.storefront_rounded,
+                onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+                  builder: (_) => StorePage(controller: controller),
+                )),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Reuses the verified bot identities already shipped with the Flutter app.
+/// Avatar cards are illustrative; joining a real practice match remains
+/// governed by the engine and room capabilities in the existing Games tab.
+class R43BotRosterPage extends StatelessWidget {
+  const R43BotRosterPage({
+    super.key,
+    required this.controller,
+    required this.onTab,
+  });
+  final AppController controller;
+  final ValueChanged<int> onTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
+    return Scaffold(
+      appBar: AppBar(title: Text(ar ? 'شخصيات الروبوتات الذكية' : 'Computer-player roster')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: ListView(
+            key: const ValueKey('r43-bot-roster-screen'),
+            padding: const EdgeInsets.all(12),
+            children: <Widget>[
+              R35ReferencePanel(
+                title: ar ? 'شخصيات الروبوتات' : 'Bot personalities',
+                icon: Icons.smart_toy_rounded,
+                child: Text(
+                  ar ? 'شاهد الشخصيات ومستوياتها. اختر لعبة متوافقة لبدء التدريب من صالة الألعاب.'
+                     : 'Browse personalities and their levels. Choose a compatible game to begin practice from the game hall.',
+                  style: const TextStyle(
+                    color: Colors.white, height: 1.45, fontSize: 13, fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              BotRosterShowcase(locale: controller.localeCode),
+              const SizedBox(height: 16),
+              R35GoldAction(
+                label: ar ? 'اختر لعبة للتدريب' : 'Choose a game to practice',
+                icon: Icons.sports_esports_rounded,
+                onTap: () {
+                  Navigator.pop(context);
+                  onTab(1);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

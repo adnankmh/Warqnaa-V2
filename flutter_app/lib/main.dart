@@ -56,6 +56,7 @@ part 'r35_reference_world.dart';
 part 'r52_playability.dart';
 part 'r53_prize_opening.dart';
 part 'r36_meld_workspace.dart';
+part 'r44_rummy_table.dart';
 part 'r41_board_legibility.dart';
 part 'r36_store_sync.dart';
 part 'r5_world_class.dart';
@@ -1831,13 +1832,15 @@ class AppController extends ChangeNotifier {
 
   Future<void> _applyPreferredOrientationV174() async {
     try {
-      // Portrait-first by design, but allow the real device rotation to switch
-      // the table to landscape. The table widgets read the current viewport.
-      await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
+      // Phone app launches portrait by default. Landscape is an explicit
+      // preference, never forced by room/card-table layouts. Web and desktop
+      // remain responsive without imposing a physical device orientation.
+      await SystemChrome.setPreferredOrientations(landscapeMode
+          ? <DeviceOrientation>[
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ]
+          : <DeviceOrientation>[DeviceOrientation.portraitUp]);
     } catch (_) {}
   }
 
@@ -2061,7 +2064,7 @@ class AppController extends ChangeNotifier {
       case 2:
         return <String, dynamic>{'type':'name_color','value':'#ef4444','icon':'🎨','label_ar':'لون لاعب أحمر لمدة 12 ساعة','label_en':'Red player color for 12 hours','rarity':'rare','duration_hours':12,'store_item_key':'challenge_name_red_r91'};
       case 3:
-        return <String, dynamic>{'type':'xp_booster','value':'1.5','icon':'⚡','label_ar':'مسرع XP ×1.5 لمدة 6 ساعات','label_en':'1.5× XP booster for 6 hours','rarity':'rare','duration_hours':6,'store_item_key':'challenge_xp_15x_r91'};
+        return <String, dynamic>{'type':'xp_booster','value':'1.5','icon':'⚡','label_ar':'معزز النقاط ×1.5 لمدة 6 ساعات','label_en':'1.5× XP booster for 6 hours','rarity':'rare','duration_hours':6,'store_item_key':'challenge_xp_15x_r91'};
       case 4:
         return <String, dynamic>{'type':'table','value':'table_v202_obsidian_vertical','icon':'🃏','label_ar':'طاولة أوبسيديان لمدة 24 ساعة','label_en':'Obsidian table for 24 hours','rarity':'epic','duration_hours':24,'store_item_key':'table_v202_obsidian_vertical'};
       case 5:
@@ -3019,7 +3022,7 @@ final List<StoreProduct> products = <StoreProduct>[
   ...buildV201R4StoreProducts(),
   StoreProduct(id: 'daily_pack_name_gold_24h_v176', category: 'names', icon: '🎨', nameAr: 'صندوق الجوائز: لون لاعب ذهبي', nameEn: 'Prize Box: Golden Player Color', descriptionAr: 'لون لاعب ذهبي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary golden player color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#facc15', previewColor1: Color(0xfffacc15), previewColor2: Color(0xff422006), collection: 'daily_pack_v176'),
   StoreProduct(id: 'daily_pack_chat_cyan_24h_v176', category: 'chat_colors', icon: '💬', nameAr: 'صندوق الجوائز: لون كتابة سماوي', nameEn: 'Prize Box: Cyan Writing Color', descriptionAr: 'لون كتابة سماوي مؤقت من صندوق الجوائز اليومي، يظهر في مقتنياتك حتى انتهاء الصلاحية.', descriptionEn: 'A temporary cyan writing color awarded by the daily prize box.', price: 0, durationHours: 24, value: '#22d3ee', previewColor1: Color(0xff22d3ee), previewColor2: Color(0xff083344), collection: 'daily_pack_v176'),
-  StoreProduct(id: 'daily_pack_xp_15x_6h_v176', category: 'boost', icon: '⚡', nameAr: 'صندوق الجوائز: مسرّع XP ×1.5', nameEn: 'Prize Box: XP Booster ×1.5', descriptionAr: 'مسرّع خبرة مؤقت لمدة 6 ساعات من صندوق الجوائز اليومي، يُضاف إلى مقتنيات المتجر مباشرة.', descriptionEn: 'A six-hour XP booster awarded by the daily prize box.', price: 0, durationHours: 6, multiplier: 1.5, previewColor1: Color(0xfff59e0b), previewColor2: Color(0xff7c2d12), collection: 'daily_pack_v176'),
+  StoreProduct(id: 'daily_pack_xp_15x_6h_v176', category: 'boost', icon: '⚡', nameAr: 'صندوق الجوائز: معزز النقاط ×1.5', nameEn: 'Prize Box: XP Booster ×1.5', descriptionAr: 'مسرّع خبرة مؤقت لمدة 6 ساعات من صندوق الجوائز اليومي، يُضاف إلى مقتنيات المتجر مباشرة.', descriptionEn: 'A six-hour XP booster awarded by the daily prize box.', price: 0, durationHours: 6, multiplier: 1.5, previewColor1: Color(0xfff59e0b), previewColor2: Color(0xff7c2d12), collection: 'daily_pack_v176'),
   StoreProduct(id: 'daily_prize_cover_v02', category: 'covers', icon: '🖼️', nameAr: 'صندوق الجوائز: غلاف ملكي', nameEn: 'Prize Box: Royal Profile Cover', descriptionAr: 'غلاف شخصي ملكي مؤقت لمدة 3 أيام من صندوق الجوائز اليومي.', descriptionEn: 'A royal profile cover active for three days from the daily prize box.', price: 0, durationHours: 72, value: 'cover_v02_royal', previewColor1: Color(0xff581c87), previewColor2: Color(0xfffacc15), collection: 'daily_pack_v176'),
   StoreProduct(id: "pasha_1_day_v132", category: "pasha", icon: "👑", nameAr: "باشا يوم واحد", nameEn: "Pasha 1 Day", descriptionAr: "طرد من الغرفة، شارة باشا، إنشاء مجموعات ومنافسات، ومضاعفة خبرة حسب الخطة.", descriptionEn: "Pasha badge, room controls, club and tournament privileges, and bonus XP.", price: 1700, durationDays: 1, value: "pasha"),
   StoreProduct(id: "pasha_3_days_v132", category: "pasha", icon: "👑", nameAr: "باشا 3 أيام", nameEn: "Pasha 3 Days", descriptionAr: "طرد من الغرفة، شارة باشا، إنشاء مجموعات ومنافسات، ومضاعفة خبرة حسب الخطة.", descriptionEn: "Pasha badge, room controls, club and tournament privileges, and bonus XP.", price: 5000, durationDays: 3, value: "pasha"),
@@ -3189,13 +3192,13 @@ final List<StoreProduct> products = <StoreProduct>[
   StoreProduct(id: "emoji_legend_big", category: "emoji", icon: "🦁🐉🦅🌌💥🎆", nameAr: "إيموجي أسطورية كبيرة", nameEn: "Legendary Big", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 15000),
   StoreProduct(id: "emoji_animated_vip", category: "emoji", icon: "😂🔥👑💎⚡🏆🎉", nameAr: "إيموجي متحركة VIP", nameEn: "Animated VIP", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 15000),
   StoreProduct(id: "emoji_huge_reactions", category: "emoji", icon: "😂👑🔥😡😭🤯", nameAr: "ردود فعل عملاقة", nameEn: "Huge Reactions", descriptionAr: "حزمة ردود سريعة كبيرة مع مؤثرات وصوت داخل الدردشة واللعبة.", descriptionEn: "Large quick reactions with animation and sound.", price: 50000),
-  StoreProduct(id: "booster_yellow_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الأصفر ×1.25", nameEn: "Yellow Booster ×1.25", descriptionAr: "يبقى في المخزون 7 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 7 days; once activated it multiplies eligible XP for 24 hours.", price: 4000, durationHours: 24, multiplier: 1.25, previewColor1: Color(0xffffca28), previewColor2: Color(0xff4a3500), imageAsset: "assets/images/boosters/v183/booster_yellow.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_green_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الأخضر ×1.5", nameEn: "Green Booster ×1.5", descriptionAr: "يبقى في المخزون 8 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 8 days; once activated it multiplies eligible XP for 24 hours.", price: 8000, durationHours: 24, multiplier: 1.5, previewColor1: Color(0xff22c55e), previewColor2: Color(0xff05351a), imageAsset: "assets/images/boosters/v183/booster_green.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_red_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الأحمر ×2", nameEn: "Red Booster ×2", descriptionAr: "يبقى في المخزون 9 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 9 days; once activated it multiplies eligible XP for 24 hours.", price: 15000, durationHours: 24, multiplier: 2.0, previewColor1: Color(0xffef4444), previewColor2: Color(0xff450606), imageAsset: "assets/images/boosters/v183/booster_red.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_blue_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الأزرق ×2.5", nameEn: "Blue Booster ×2.5", descriptionAr: "يبقى في المخزون 10 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 10 days; once activated it multiplies eligible XP for 24 hours.", price: 25000, durationHours: 24, multiplier: 2.5, previewColor1: Color(0xff2388ff), previewColor2: Color(0xff061f4f), imageAsset: "assets/images/boosters/v183/booster_blue.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_black_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الأسود ×3", nameEn: "Black Booster ×3", descriptionAr: "يبقى في المخزون 11 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 11 days; once activated it multiplies eligible XP for 24 hours.", price: 40000, durationHours: 24, multiplier: 3.0, previewColor1: Color(0xff252a32), previewColor2: Color(0xff050607), imageAsset: "assets/images/boosters/v183/booster_black.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_silver_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الفضي ×4", nameEn: "Silver Booster ×4", descriptionAr: "يبقى في المخزون 12 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 12 days; once activated it multiplies eligible XP for 24 hours.", price: 60000, durationHours: 24, multiplier: 4.0, previewColor1: Color(0xffd7dde7), previewColor2: Color(0xff5d6470), imageAsset: "assets/images/boosters/v183/booster_silver.webp", collection: "boosters_v183"),
-  StoreProduct(id: "booster_gold_v183", category: "boost", icon: "🚀", nameAr: "المسرّع الذهبي ×5", nameEn: "Gold Booster ×5", descriptionAr: "يبقى في المخزون 14 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 14 days; once activated it multiplies eligible XP for 24 hours.", price: 100000, durationHours: 24, multiplier: 5.0, previewColor1: Color(0xffffc107), previewColor2: Color(0xff704400), imageAsset: "assets/images/boosters/v183/booster_gold.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_yellow_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الأصفر ×1.25", nameEn: "Yellow Booster ×1.25", descriptionAr: "يبقى في المخزون 7 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 7 days; once activated it multiplies eligible XP for 24 hours.", price: 4000, durationHours: 24, multiplier: 1.25, previewColor1: Color(0xffffca28), previewColor2: Color(0xff4a3500), imageAsset: "assets/images/boosters/v183/booster_yellow.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_green_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الأخضر ×1.5", nameEn: "Green Booster ×1.5", descriptionAr: "يبقى في المخزون 8 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 8 days; once activated it multiplies eligible XP for 24 hours.", price: 8000, durationHours: 24, multiplier: 1.5, previewColor1: Color(0xff22c55e), previewColor2: Color(0xff05351a), imageAsset: "assets/images/boosters/v183/booster_green.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_red_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الأحمر ×2", nameEn: "Red Booster ×2", descriptionAr: "يبقى في المخزون 9 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 9 days; once activated it multiplies eligible XP for 24 hours.", price: 15000, durationHours: 24, multiplier: 2.0, previewColor1: Color(0xffef4444), previewColor2: Color(0xff450606), imageAsset: "assets/images/boosters/v183/booster_red.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_blue_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الأزرق ×2.5", nameEn: "Blue Booster ×2.5", descriptionAr: "يبقى في المخزون 10 أيام، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 10 days; once activated it multiplies eligible XP for 24 hours.", price: 25000, durationHours: 24, multiplier: 2.5, previewColor1: Color(0xff2388ff), previewColor2: Color(0xff061f4f), imageAsset: "assets/images/boosters/v183/booster_blue.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_black_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الأسود ×3", nameEn: "Black Booster ×3", descriptionAr: "يبقى في المخزون 11 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 11 days; once activated it multiplies eligible XP for 24 hours.", price: 40000, durationHours: 24, multiplier: 3.0, previewColor1: Color(0xff252a32), previewColor2: Color(0xff050607), imageAsset: "assets/images/boosters/v183/booster_black.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_silver_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الفضي ×4", nameEn: "Silver Booster ×4", descriptionAr: "يبقى في المخزون 12 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 12 days; once activated it multiplies eligible XP for 24 hours.", price: 60000, durationHours: 24, multiplier: 4.0, previewColor1: Color(0xffd7dde7), previewColor2: Color(0xff5d6470), imageAsset: "assets/images/boosters/v183/booster_silver.webp", collection: "boosters_v183"),
+  StoreProduct(id: "booster_gold_v183", category: "boost", icon: "🚀", nameAr: "معزز النقاط الذهبي ×5", nameEn: "Gold Booster ×5", descriptionAr: "يبقى في المخزون 14 يومًا، وعند تفعيله يضاعف XP المؤهلة لمدة 24 ساعة.", descriptionEn: "Stored for 14 days; once activated it multiplies eligible XP for 24 hours.", price: 100000, durationHours: 24, multiplier: 5.0, previewColor1: Color(0xffffc107), previewColor2: Color(0xff704400), imageAsset: "assets/images/boosters/v183/booster_gold.webp", collection: "boosters_v183"),
   StoreProduct(id: "nameframe_gold_aura", category: "names", icon: "✨", nameAr: "إطار اسم هالة ذهبية", nameEn: "Gold Aura Name Frame", descriptionAr: "معاينة فورية على صورة اللاعب واسمه في البروفايل والغرف.", descriptionEn: "Live preview on the avatar and player name.", price: 9000, value: "#f5c542", previewColor1: Color(0xfff5c542), previewColor2: const Color(0xff111827)),
   StoreProduct(id: "nameframe_emerald_lux", category: "names", icon: "💚", nameAr: "إطار اسم زمرد فاخر", nameEn: "Emerald Lux Name Frame", descriptionAr: "معاينة فورية على صورة اللاعب واسمه في البروفايل والغرف.", descriptionEn: "Live preview on the avatar and player name.", price: 11000, value: "#10b981", previewColor1: Color(0xff10b981), previewColor2: const Color(0xff111827)),
   StoreProduct(id: "nameframe_ruby_flash", category: "names", icon: "❤️", nameAr: "إطار اسم روبي لامع", nameEn: "Ruby Flash Name Frame", descriptionAr: "معاينة فورية على صورة اللاعب واسمه في البروفايل والغرف.", descriptionEn: "Live preview on the avatar and player name.", price: 13000, value: "#ef4444", previewColor1: Color(0xffef4444), previewColor2: const Color(0xff111827)),
@@ -3923,7 +3926,7 @@ class _StorePageState extends State<StorePage> {
       ('cards', lang == 'ar' ? 'ظهر الورق' : 'Card back'),
       ('profile_colors', lang == 'ar' ? 'لون البروفايل' : 'Profile colors'),
       ('emoji', lang == 'ar' ? 'الإيموجي' : 'Emoji'),
-      ('boost', lang == 'ar' ? 'مسرعات XP' : 'XP boosters'),
+      ('boost', lang == 'ar' ? 'معزز النقاط' : 'XP Boosters'),
       ('names', lang == 'ar' ? 'ألوان اللاعب' : 'Player colors'),
       ('chat_colors', lang == 'ar' ? 'ألوان الدردشة' : 'Chat colors'),
       ('covers', lang == 'ar' ? 'أغلفة البروفايل' : 'Profile covers'),
@@ -6247,6 +6250,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     _ => _roomText('جولة ${state['round'] ?? 1}', 'Round ${state['round'] ?? 1}'),
   };
 
+  // ignore: unused_element
   Widget _compactRummyMeldTable() {
     final rummyFamily = widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle';
     if (!rummyFamily) return const SizedBox.shrink();
@@ -6366,11 +6370,27 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
       ..._trickSeatWidgets(),
       if (widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle')
         Positioned.fill(
-          left: 66,
-          right: 66,
+          left: 58,
+          right: 58,
           top: 68,
           bottom: 68,
-          child: Center(child: _compactRummyMeldTable()),
+          child: R44RummyTableOverlay(
+            state: state,
+            players: players,
+            ar: widget.controller.localeCode == 'ar',
+            cardLabel: _cardLabel,
+            partnership: widget.game.id == 'banakil' || widget.game.id == 'hand_partner',
+            onDrawDeck: availableActions.any((a) => a['type'] == 'draw_deck')
+                ? () { _action('draw_deck'); } : null,
+            onDrawDiscard: availableActions.any((a) => a['type'] == 'draw_discard')
+                ? () { _action('draw_discard'); } : null,
+            onDrawStack: availableActions.any((a) => a['type'] == 'draw_discard_stack')
+                ? () {
+                    final stackAction = availableActions.firstWhere(
+                      (a) => a['type'] == 'draw_discard_stack');
+                    _chooseBanakilDiscardStack(stackAction);
+                  } : null,
+          ),
         ),
       if (roundXpNoticesV174.isNotEmpty)
         Positioned(top: 8, left: 12, right: 12, child: RoundXpBannerV174(notices: roundXpNoticesV174)),
@@ -8882,14 +8902,16 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 640 ? 3 : 2;
+            final cellWidth = (constraints.maxWidth - (columns - 1) * 8) / columns;
+            final tileHeight = constraints.maxWidth < 350 ? 68.0 : 60.0;
             return GridView.count(
               key: const ValueKey('r31-lobby-tools-grid'),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: columns,
-              crossAxisSpacing: 7,
-              mainAxisSpacing: 7,
-              childAspectRatio: constraints.maxWidth >= 640 ? 2.15 : 1.65,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: cellWidth / tileHeight,
               children: [
                 _R31LobbyTool(icon: Icons.menu_book_rounded, label: L.t(controller.localeCode, 'rules'), onTap: () => showRules(context, controller.localeCode, game.id)),
                 _R31LobbyTool(icon: Icons.leaderboard_rounded, label: L.t(controller.localeCode, 'leaderboard'), onTap: () => showLeaderboard(context, controller)),
@@ -8974,16 +8996,19 @@ class _R31LobbyTool extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               gradient: B307SkyLuxury.panelGradient,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .24)),
+              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .40)),
             ),
-            child: Row(children: [
-              Icon(icon, color: B307SkyLuxury.cyan, size: 20),
-              const SizedBox(width: 7),
-              Expanded(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 9.5, fontWeight: FontWeight.w900))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(icon, color: B307SkyLuxury.cyan, size: 23),
+              const SizedBox(width: 8),
+              Flexible(child: Text(label, textAlign: TextAlign.center, maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 15,
+                  height: 1.18, fontWeight: FontWeight.w900))),
             ]),
           ),
         ),
@@ -9508,7 +9533,7 @@ class _StorePreviewContentV183 extends StatelessWidget {
                 final ok = await controller.buy(product);
                 if (!context.mounted) return;
                 Navigator.pop(context);
-                showToast(context, ok ? (product.category == 'boost' ? 'تمت إضافة المسرّع إلى المخزون. فعّله قبل انتهاء صلاحيته.' : 'تم الشراء وإضافة العنصر إلى مقتنياتك.') : (controller.lastStoreError ?? 'تعذر الشراء.'));
+                showToast(context, ok ? (product.category == 'boost' ? 'تمت إضافة معزز النقاط إلى المخزون. فعّله قبل انتهاء صلاحيته.' : 'تم الشراء وإضافة العنصر إلى مقتنياتك.') : (controller.lastStoreError ?? 'تعذر الشراء.'));
               },
         icon: Icon(controller.isOwnedActiveV176(product.id) && !product.reusable ? Icons.play_arrow_rounded : Icons.shopping_bag_outlined),
         label: Text(controller.isOwnedActiveV176(product.id) && !product.reusable ? 'تفعيل العنصر' : '${L.t(controller.localeCode, 'buy')} • ${formatNumber(controller.priceFor(product))} 🪙'),

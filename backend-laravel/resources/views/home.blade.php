@@ -111,7 +111,20 @@
    </article>
    <article class="w36-panel w36-bots">
     <header class="w36-panel-head"><h2>🤖 {{ $ar?'التدريب والروبوتات':'Practice & bots' }}</h2><a href="{{ $isAuthed?route('games'):route('login') }}">{{ $ar?'ابدأ':'Start' }} ←</a></header>
-    <div class="w36-bot-badges" aria-hidden="true"><span>♠</span><span>♥</span><span>♦</span><span>♣</span><span>★</span></div>
+    @php
+      $r43BotCatalogPath = public_path('assets/bots/royal/catalog.json');
+      $r43BotCatalog = is_readable($r43BotCatalogPath)
+        ? (json_decode(file_get_contents($r43BotCatalogPath), true) ?: [])
+        : [];
+    @endphp
+    <div class="r43-bot-identity-grid" aria-label="{{ $ar?'شخصيات الروبوتات':'Bot personalities' }}">
+     @foreach($r43BotCatalog as $bot)
+      <div class="r43-bot-identity">
+       <img loading="lazy" decoding="async" src="{{ $bot['avatar'] ?? '/assets/avatars/bot.svg' }}" alt="">
+       <strong>{{ $bot['name'] ?? 'Bot' }}</strong>
+      </div>
+     @endforeach
+    </div>
     <p>{{ $ar?'تدرّب على الألعاب المدعومة بالروبوتات عبر غرف اللعب الحقيقية.':'Practice supported games against bots in real game rooms.' }}</p>
     <a class="w36-gold-cta w36-panel-button" href="{{ $isAuthed?route('games'):route('login') }}">{{ $ar?'اختر لعبة':'Choose a game' }}</a>
    </article>

@@ -33,7 +33,7 @@ void main() {
   for (final locale in ['ar', 'en']) {
     for (final layout in <({Size size, bool stacked, int gameColumns})>[
       (size: Size(320, 640), stacked: true, gameColumns: 2),
-      (size: Size(390, 844), stacked: true, gameColumns: 2),
+      (size: Size(390, 844), stacked: true, gameColumns: 3),
       (size: Size(600, 800), stacked: true, gameColumns: 3),
       (size: Size(844, 390), stacked: false, gameColumns: 3),
       (size: Size(1440, 900), stacked: false, gameColumns: 4),
@@ -70,7 +70,7 @@ void main() {
           expect((grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount).crossAxisCount, layout.gameColumns);
           final firstCard = find.byKey(const ValueKey('r35-game-tarneeb'));
           expect(firstCard, findsOneWidget);
-          expect(tester.getSize(firstCard).width, greaterThan(110));
+          expect(tester.getSize(firstCard).width, greaterThan(layout.size.width < 400 && layout.gameColumns == 3 ? 96 : 110));
           final tournaments = find.byKey(const ValueKey('r51-tournaments-panel'));
           final gameRect = tester.getRect(games);
           final tournamentRect = tester.getRect(tournaments);

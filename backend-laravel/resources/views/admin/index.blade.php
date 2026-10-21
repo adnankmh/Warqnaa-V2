@@ -259,7 +259,7 @@ $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من ا�
  <div class="admin-builder-grid no-code-hub-v137">
   <div class="builder-card"><b>مصمم كل الواجهة</b><p>غيّر عرض/ارتفاع/لون/حواف الأزرار والبطاقات والطاولات والمتجر والدردشة من منزلقات وألوان.</p><button type="button" onclick="document.querySelector('[data-admin-tab=designer]')?.click()">فتح المصمم الشامل</button></div>
   <div class="builder-card"><b>الألعاب والقوانين</b><p>تفعيل/تعطيل أي لعبة، تعديل اسمها، عدد اللاعبين، المحرك، القوانين بالعربي والإنجليزي و JSON القواعد.</p><button type="button" onclick="document.querySelector('[data-admin-tab=games-admin]')?.click()">إدارة الألعاب</button></div>
-  <div class="builder-card"><b>المتجر والأسعار</b><p>إضافة، تعديل، إخفاء، تغيير سعر، مدة، لون، أيقونة، مسرّع، طاولة أو ظهر ورق مع معاينة.</p><button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">إدارة المتجر</button></div>
+  <div class="builder-card"><b>المتجر والأسعار</b><p>إضافة، تعديل، إخفاء، تغيير سعر، مدة، لون، أيقونة، معزز النقاط، طاولة أو ظهر ورق مع معاينة.</p><button type="button" onclick="document.querySelector('[data-admin-tab=store]')?.click()">إدارة المتجر</button></div>
   <div class="builder-card"><b>اللاعبون والنوادي والمنافسات</b><p>إدارة الحسابات، التوكنز، الحظر، الغرف، النوادي، المنافسات، الرسائل والحماية من واجهات مباشرة.</p><button type="button" onclick="document.querySelector('[data-admin-tab=players]')?.click()">إدارة اللاعبين</button></div>
  </div>
 </section>
