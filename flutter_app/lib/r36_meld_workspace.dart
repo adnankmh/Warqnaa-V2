@@ -33,6 +33,46 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
     // taking that card AND every newer discard above it. No hidden cards shown.
     final beginning = math.max(0, all.length - 18);
     final chosen = all.skip(math.max(0, all.length - count)).toList();
+    // Lightweight tappable card faces keep the original PlayingCard preview
+    // semantically separate, and Row avoids AlertDialog viewport intrinsics.
+    Widget discardChoice(int index) {
+      final needed = all.length - index;
+      final included = needed <= count;
+      return Padding(
+        padding: const EdgeInsetsDirectional.only(end: 5),
+        child: Semantics(
+          button: true,
+          selected: included,
+          label: '${label(all[index])} - ${text('اسحب', 'Take')} $needed',
+          child: InkWell(
+            key: ValueKey('r44-discard-select-$needed'),
+            onTap: () => setState(() =>
+              count = math.max(2, math.min(widget.maxCount, needed))),
+            borderRadius: BorderRadius.circular(9),
+            child: Container(
+              width: 47,
+              height: 69,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FBFF),
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(
+                  color: included ? B307SkyLuxury.goldSoft : B307SkyLuxury.cyan,
+                  width: included ? 3 : 1,
+                ),
+              ),
+              child: Text(
+                label(all[index]),
+                maxLines: 1,
+                style: const TextStyle(color: Color(0xFF082C60),
+                  fontWeight: FontWeight.w900, fontSize: 17),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 420,
         maxHeight: math.min(470.0, MediaQuery.sizeOf(context).height * .64)),
@@ -43,43 +83,15 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
                     'Tap a discard. You will take it and every newer card above it.'),
             style: const TextStyle(fontSize: 14, height: 1.45, fontWeight: FontWeight.w800)),
           const SizedBox(height: 9),
-          if (all.isNotEmpty) SizedBox(
-            height: 87,
-            child: ListView.separated(
+          if (all.isNotEmpty)
+            SingleChildScrollView(
               key: const ValueKey('r44-discard-tap-strip'),
               scrollDirection: Axis.horizontal,
-              itemCount: all.length - beginning,
-              separatorBuilder: (_, __) => const SizedBox(width: 5),
-              itemBuilder: (context, i) {
-                final index = beginning + i;
-                final needed = all.length - index;
-                final included = needed <= count;
-                return Semantics(
-                  button: true,
-                  selected: included,
-                  label: '${label(all[index])} - ${text('اسحب', 'Take')} $needed',
-                  child: InkWell(
-                    key: ValueKey('r44-discard-select-$needed'),
-                    onTap: () => setState(() =>
-                      count = math.max(2, math.min(widget.maxCount, needed))),
-                    borderRadius: BorderRadius.circular(9),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: included ? B307SkyLuxury.sky.withValues(alpha: .18) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(9),
-                        border: Border.all(
-                          color: included ? B307SkyLuxury.goldSoft : Colors.white24,
-                          width: included ? 2 : 1,
-                        ),
-                      ),
-                      child: PlayingCard(label: label(all[index]), width: 42, height: 65),
-                    ),
-                  ),
-                );
-              },
+              child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                for (var i = beginning; i < all.length; i++)
+                  discardChoice(i),
+              ]),
             ),
-          ),
           const SizedBox(height: 8),
           Text(text('عدد أوراق النار', 'Discard count'),
             style: const TextStyle(fontWeight: FontWeight.w800)),
