@@ -119,7 +119,10 @@ class GlobalCardEngineRules implements GameRuleContract
             'syrian_tarneeb' => new \SyrianTarneebEngine(),
             'tarneeb_400','400' => new \Tarneeb400Engine(),
             'hand_partner' => new \HandPartnershipEngine(),
-            'saudi_hand','hand' => new \SaudiHandEngine(),
+            'saudi_hand' => new \SaudiHandEngine(),
+            // Regular Hand keeps its official fixed 51-point opening. Saudi
+            // Hand raises unopened players to the last opening total + 1.
+            'hand' => new \SaudiHandEngine(['openingEscalates'=>false]),
             'banakil' => new \BanakilEngine(),
             'pinochle' => new \BanakilClassicEngine(),
             'solitaire_multiplayer' => new \CompetitiveSolitaireEngine(),
@@ -187,6 +190,7 @@ class GlobalCardEngineRules implements GameRuleContract
             'discard'=>$this->longDiscard($g['discard'] ?? []),
             'melds'=>$this->longMelds($g['melds'] ?? []),
             'team_opened'=>$g['teamOpened'] ?? null,
+            'opening_threshold'=>$g['individualOpeningThreshold'] ?? null,
             'opening_thresholds'=>$g['teamOpeningThresholds'] ?? null,
             'rummy_turn_meta'=>$g['rummyTurnMeta'] ?? null,
             'single_round'=>(bool)($g['config']['singleRound'] ?? false),

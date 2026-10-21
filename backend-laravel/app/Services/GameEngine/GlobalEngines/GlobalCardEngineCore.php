@@ -124,6 +124,7 @@ class GlobalCardEngineCore
             'deck'=>$deck,
             'discard'=>$discard,
             'melds'=>[],
+            'individualOpeningThreshold'=>(int)($cfg['opening'] ?? 51),
             'teamOpeningThresholds'=>[0=>(int)($cfg['opening'] ?? 51),1=>(int)($cfg['opening'] ?? 51)],
             'teamOpened'=>[0=>false,1=>false],
             'tableau'=>$tableau,
@@ -818,12 +819,13 @@ class GlobalCardEngineCore
         if (!$this->containsCards($state['hands'][$playerId] ?? [], $cards)) throw new GameEngineException('إحدى الأوراق المختارة غير موجودة بالعدد المطلوب في اليد.');
         if (!$this->isValidMeld($cards)) throw new GameEngineException('المجموعة/السلسلة غير صحيحة.');
         $value = $this->meldValue($cards);
-        if (!$this->hasRummyOpened($state,$playerId) && $value < $this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('قيمة الافتتاح أقل من المطلوب.');
+        $openedBefore = $this->hasRummyOpened($state,$playerId);
+        if (!$openedBefore && $value < $this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('قيمة الافتتاح أقل من المطلوب.');
         $clearsDiscardRequirement = $this->meldConsumesRequiredDiscard($state, $playerId, $cards);
         if (!$clearsDiscardRequirement) throw new GameEngineException('يجب استخدام ورقة النار المسحوبة في أول تنزيل قانوني قبل أي تنزيل آخر.');
         foreach ($cards as $c) $state['hands'][$playerId] = $this->removeOneCard($state['hands'][$playerId], $c);
         $state['melds'][$playerId][] = ['cards'=>$cards, 'value'=>$value];
-        $state = $this->recordRummyOpening($state,$playerId,$value);
+        $state = $this->recordRummyOpening($state,$playerId,$value,$openedBefore);
         $state['rummyTurnMeta'][$playerId]['melded'] = true;
         if ($clearsDiscardRequirement) {
             $state['rummyTurnMeta'][$playerId]['must_meld'] = false;
@@ -846,12 +848,13 @@ class GlobalCardEngineCore
             $normalized[]=$cards;$all=array_merge($all,$cards);$total+=$this->meldValue($cards);
         }
         if(!$this->containsCards($state['hands'][$playerId] ?? [],$all)) throw new GameEngineException('الأوراق المختارة غير موجودة بالعدد المطلوب.');
-        if(!$this->hasRummyOpened($state,$playerId) && $total<$this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('مجموع افتتاحك أقل من المطلوب.');
+        $openedBefore=$this->hasRummyOpened($state,$playerId);
+        if(!$openedBefore && $total<$this->rummyOpeningRequirement($state,$playerId)) throw new GameEngineException('مجموع افتتاحك أقل من المطلوب.');
         $clearsDiscardRequirement=$this->meldConsumesRequiredDiscard($state,$playerId,$all);
         if(!$clearsDiscardRequirement) throw new GameEngineException('يجب أن تتضمن مجموعات الافتتاح ورقة النار المسحوبة قبل أي تنزيل آخر.');
         foreach($all as $card) $state['hands'][$playerId]=$this->removeOneCard($state['hands'][$playerId],$card);
         foreach($normalized as $cards) $state['melds'][$playerId][]=['cards'=>$cards,'value'=>$this->meldValue($cards)];
-        $state=$this->recordRummyOpening($state,$playerId,$total);
+        $state=$this->recordRummyOpening($state,$playerId,$total,$openedBefore);
         $state['rummyTurnMeta'][$playerId]['melded']=true;
         if($clearsDiscardRequirement){
             $state['rummyTurnMeta'][$playerId]['must_meld']=false;
@@ -941,10 +944,13 @@ class GlobalCardEngineCore
             $team=(int)$this->teamOf($state,$playerId);
             return (int)($state['teamOpeningThresholds'][$team] ?? ($state['config']['opening'] ?? 51));
         }
+        if (!empty($state['config']['openingEscalates'])) {
+            return (int)($state['individualOpeningThreshold'] ?? ($state['config']['opening'] ?? 51));
+        }
         return (int)($state['config']['opening'] ?? 51);
     }
 
-    protected function recordRummyOpening(array $state,string $playerId,int $value): array
+    protected function recordRummyOpening(array $state,string $playerId,int $value,bool $openedBefore): array
     {
         if (!empty($state['config']['teamOpening'])) {
             $team=(int)$this->teamOf($state,$playerId);
@@ -957,6 +963,11 @@ class GlobalCardEngineCore
                     }
                 }
             }
+        } elseif (!$openedBefore && !empty($state['config']['openingEscalates'])) {
+            $state['individualOpeningThreshold']=max(
+                (int)($state['individualOpeningThreshold'] ?? ($state['config']['opening'] ?? 51)),
+                $value+1,
+            );
         }
         return $state;
     }
