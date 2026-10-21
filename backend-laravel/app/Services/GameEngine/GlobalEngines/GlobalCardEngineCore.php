@@ -35,6 +35,7 @@ class GlobalCardEngineCore
         $discard = [];
         $mode = $cfg['mode'];
         $dealerIndex = max(0, min(count($players) - 1, (int)($options['dealerIndex'] ?? $cfg['dealerIndex'] ?? (count($players) - 1))));
+        $startingIndex = 0;
         $revealedCard = null;
 
         foreach ($players as $i => $p) {
@@ -88,7 +89,12 @@ class GlobalCardEngineCore
 
             // In Banakil the starting player receives one extra card and must discard first.
             if (!empty($cfg['starterExtraCard'])) {
-                $firstId = (string)($players[0]['id'] ?? '');
+                // Turns advance by increasing seat index, so the seat directly
+                // after the dealer owns the extra card and first discard.
+                // With the default final-seat dealer, the first round remains
+                // backward-compatible and starts at seat zero.
+                $startingIndex = ($dealerIndex + 1) % count($players);
+                $firstId = (string)($players[$startingIndex]['id'] ?? '');
                 $extra = array_shift($deck);
                 if ($extra === null) throw new GameEngineException('تعذر توزيع الورقة الإضافية للاعب البادئ.');
                 $hands[$firstId][] = $extra;
@@ -118,7 +124,7 @@ class GlobalCardEngineCore
                 'missedTurns'=>0,
             ], $players, array_keys($players))),
             'phase'=>$phase,
-            'currentIndex'=>0,
+            'currentIndex'=>$startingIndex,
             'dealerIndex'=>$dealerIndex,
             'hands'=>$hands,
             'deck'=>$deck,
