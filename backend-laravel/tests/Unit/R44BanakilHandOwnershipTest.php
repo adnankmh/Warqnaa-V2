@@ -21,7 +21,8 @@ class R44BanakilHandOwnershipTest extends TestCase
         $state['hands']['p0'] = ['10_C', 'Q_D'];
         $state['discard'] = ['4_H', '5_H', '6_H', '7_H'];
         $state['melds'] = [
-            'p0'=>[],
+            // Banakil personal opening is established by an existing own meld.
+            'p0'=>[['cards'=>['J_H','Q_H','K_H'], 'value'=>30]],
             'p1'=>[['cards'=>['7_C','8_C','9_C'], 'value'=>24]],
             'p2'=>[['cards'=>['7_C','8_C','9_C'], 'value'=>24]],
             'p3'=>[],
