@@ -154,7 +154,8 @@ class CompetitiveMatchmakingService
         foreach ($participantIds as $index=>$id) $teamMap[(string)$id] = $game->partnership ? ($index % 2 === 0 ? 'teamA' : 'teamB') : 'player:'.$id;
         $engine = GameFactory::make($game->key);
         $target = $this->defaultTarget($game->key);
-        $state = $engine->initialState($keys,['target'=>$target,'turn_seconds'=>10,'partners'=>(bool)$game->partnership,'single_round'=>false,'deal_nonce'=>bin2hex(random_bytes(8))]);
+        $state = $engine->initialState($keys,['target'=>$target,'turn_seconds'=>10,'partners'=>(bool)$game->partnership,'single_round'=>false,'deal_nonce'=>bin2hex(random_bytes(8)),
+             'ranked'=>true,'competitive'=>true,'match_mode'=>'ranked','dealPolicy'=>'random']);
         $state = array_merge($state,[
             'game'=>$game->key,'ranked'=>true,'competitive'=>true,'competitive_release'=>config('warqna_competitive.release'),
             'season_id'=>$season->id,'season_key'=>$season->key,'queue_mode'=>'ranked','team_map'=>$teamMap,

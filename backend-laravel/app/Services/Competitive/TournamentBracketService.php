@@ -240,7 +240,8 @@ class TournamentBracketService
         $teamMap=[];
         foreach ($participantIds as $index=>$id) $teamMap[(string)$id]=$game->partnership ? ($index%2===0?'teamA':'teamB') : 'player:'.$id;
         $target=$this->defaultTarget($game->key);
-        $state=GameFactory::make($game->key)->initialState($keys,['target'=>$target,'turn_seconds'=>(int)($tournament->turn_seconds ?: 10),'partners'=>(bool)$game->partnership,'single_round'=>false,'deal_nonce'=>bin2hex(random_bytes(8))]);
+        $state=GameFactory::make($game->key)->initialState($keys,['target'=>$target,'turn_seconds'=>(int)($tournament->turn_seconds ?: 10),'partners'=>(bool)$game->partnership,'single_round'=>false,'deal_nonce'=>bin2hex(random_bytes(8)),
+            'competitive'=>true,'match_mode'=>'tournament','dealPolicy'=>'random']);
         $state=array_merge($state,[
             'game'=>$game->key,'tournament_id'=>$tournament->id,'tournament_key'=>$tournament->key,
             'tournament_stage'=>$this->roundLabel($round,(int)$tournament->stages),'tournament_round'=>$round,
