@@ -59,7 +59,9 @@ class R44RummyTableOverlay extends StatelessWidget {
         for (var i = 0; i < raw.length && i < owners.length; i++) {
           final seat = int.tryParse(owners[i].toString());
           if (seat == null || seat < 0 || seat >= players.length ||
-              players[seat] is! Map) continue;
+              players[seat] is! Map) {
+            continue;
+          }
           addGroup(playerKey(players[seat] as Map), raw[i]);
         }
       }
