@@ -28,11 +28,18 @@ class TarneebRules implements GameRuleContract
         foreach($players as $i=>$p){
             $standalonePlayers[]=['id'=>$p,'name'=>$this->shortName($p),'bot'=>str_starts_with((string)$p,'bot:')];
         }
+        // The standalone adapter deals before competitive room metadata exists.
+        // Keep this policy in the rules so later rounds and all-pass redeals
+        // also use the ordinary unconditioned shuffle in official matches.
+        $competitive = !empty($options['ranked']) || !empty($options['competitive'])
+            || in_array(strtolower((string)($options['match_mode'] ?? $options['matchMode'] ?? '')),
+                ['ranked','competitive','tournament','league','cup'], true);
         $state=$this->engine->newGameWithTarget(
             $standalonePlayers,
             $target,
             (int)($options['seed'] ?? random_int(1,PHP_INT_MAX)),
             [
+            'dealPolicy'=>$competitive ? 'random' : (string)($options['dealPolicy'] ?? 'balanced_playable'),
             'turnSeconds'=>max(5,min(10,(int)($options['turn_seconds'] ?? 7))),
             'targetScore'=>$target,
             'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
