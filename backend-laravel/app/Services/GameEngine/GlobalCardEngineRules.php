@@ -41,6 +41,13 @@ class GlobalCardEngineRules implements GameRuleContract
             'dealerIndex'=>(int)($options['dealer_index'] ?? $options['dealerIndex'] ?? ($cfgPlayers-1)),
             'targetScore'=>$target,
             'singleRound'=>(bool)($options['single_round'] ?? $options['singleRound'] ?? false),
+            // R66: game strength conditioning must be decided BEFORE the cards
+            // are dealt. Never infer Ranked/Tournament status from room metadata
+            // that is added only after initialState() has returned.
+            'dealPolicy'=>(string)($options['dealPolicy'] ?? 'balanced_playable'),
+            'ranked'=>!empty($options['ranked']),
+            'competitive'=>!empty($options['competitive']),
+            'match_mode'=>(string)($options['match_mode'] ?? ''),
         ]);
         $g=$this->autoBots($g,30);
         return $this->fromGlobal($g,$players,['messages'=>['تم تشغيل '.$this->arabicName($this->key).' بمحرك الألعاب العالمي النهائي final-v1.']]);
