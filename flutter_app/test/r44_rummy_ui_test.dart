@@ -48,6 +48,61 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final locale in ['ar', 'en']) {
+    for (final local in [true, false]) {
+      for (final size in [const Size(204, 184), const Size(274, 440), const Size(700, 330)]) {
+        testWidgets('R67 public rummy state $locale local=$local $size', (tester) async {
+          var draws = 0;
+          final players = <Map<String, dynamic>>[
+            {'key': 'user:0', 'name': 'Adnan'},
+            {'user_key': 'bot:1', 'name': 'Kinan'},
+            {'id': 'bot:2', 'name': 'Bayan'},
+            {'player_id': 'bot:3', 'name': 'Omar'},
+          ];
+          final state = <String, dynamic>{
+            'deck_count': 47,
+            if (local) ...{
+              'melds': [['3_H', '4_H', '5_H'], ['A_C', 'A_D', 'A_S']],
+              'meld_owners': [1, 2],
+              'discard_pile': ['9_C', '8_H'],
+            } else ...{
+              'melds': {
+                'bot:1': [{'cards': ['3_H', '4_H', '5_H']}],
+                'bot:2': [{'cards': ['A_C', 'A_D', 'A_S']}],
+              },
+              'discard': [{'player': 'user:0', 'card': '9_C'}, {'player': 'bot:3', 'card': '8_H'}],
+            },
+            if (!local) 'teams': {'teamA': ['user:0', 'bot:2'], 'teamB': ['bot:1', 'bot:3']},
+          };
+          await tester.pumpWidget(MaterialApp(home: Scaffold(body: Directionality(
+            textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+            child: Center(child: SizedBox(width: size.width, height: size.height,
+              child: R44RummyTableOverlay(state: state, players: players,
+                ar: locale == 'ar', partnership: true, cardLabel: (card) => card,
+                onDrawDeck: () => draws++, onDrawDiscard: () => draws += 10,
+                onDrawStack: () => draws += 100))),
+          ))));
+          final groups = find.byKey(const ValueKey('r44-meld-owner-scroll'));
+          final piles = find.byKey(const ValueKey('r44-central-rummy-piles'));
+          expect(find.byKey(const ValueKey('r44-meld-owner-bot:1')), findsOneWidget);
+          expect(find.byKey(const ValueKey('r44-meld-owner-bot:2')), findsOneWidget);
+          expect(find.text('${locale == 'ar' ? 'فريق' : 'Team'} 1 • Kinan'), findsOneWidget);
+          expect(find.text('${locale == 'ar' ? 'فريق' : 'Team'} 0 • Bayan'), findsOneWidget);
+          expect(tester.getRect(groups).bottom, lessThanOrEqualTo(tester.getRect(piles).top));
+          final fire = find.byKey(const ValueKey('r44-fire-pile'));
+          expect(find.descendant(of: fire, matching: find.text('${locale == 'ar' ? 'الرمي' : 'Discard'} · 2')), findsOneWidget);
+          final top = tester.widget<PlayingCard>(find.descendant(of: fire, matching: find.byType(PlayingCard)));
+          expect(top.label, '8_H');
+          await tester.tap(find.byKey(const ValueKey('r44-stock-pile')));
+          await tester.tap(fire);
+          await tester.tap(find.byKey(const ValueKey('r44-stack-pick')));
+          expect(draws, 111);
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
+  }
+
   testWidgets('R44 tapping buried discard takes exactly that and newer cards',
       (tester) async {
     int? drawn;

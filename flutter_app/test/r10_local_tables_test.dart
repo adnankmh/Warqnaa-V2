@@ -60,6 +60,58 @@ void main() {
   });
 
   for (final locale in ['ar', 'en']) {
+    for (final gameId in ['hand', 'banakil']) {
+      for (final size in [const Size(320, 640), const Size(844, 390), const Size(1280, 800)]) {
+        testWidgets('R67 actual rummy room has one owned meld surface $gameId $locale $size', (tester) async {
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final session = LocalGameSession(gameId: gameId, humanName: 'Adnan', localeCode: locale, seed: 67);
+          var actualRoom = session.room();
+          for (var step = 0; step < 300 && (actualRoom['state']['melds'] as List).isEmpty && !session.gameOver; step++) {
+            actualRoom = session.timeout();
+          }
+          final melds = actualRoom['state']['melds'] as List;
+          expect(melds, isNotEmpty, reason: 'Exercise a real engine deal after legal automated turns');
+          final controller = AppController()..localeCode = locale;
+          await controller.loginAsLocalAdmin();
+          final key = GlobalKey();
+          final game = gamesCatalog.firstWhere((game) => game.id == gameId);
+          await tester.pumpWidget(reviewApp(GameRoomPage(controller: controller, game: game,
+            options: const RoomLaunchOptions(turnSeconds: 120)), controller, key));
+          await tester.pump(const Duration(milliseconds: 200));
+          final dynamic roomState = tester.state(find.byType(ServerEngineRoomPage));
+          roomState.localSession = session;
+          roomState.room = actualRoom;
+          roomState.loading = false;
+          roomState.seconds = 120;
+          roomState.setState(() {});
+          await tester.pump();
+          final board = find.byKey(const ValueKey('r10-engine-table'));
+          final overlay = find.descendant(of: board, matching: find.byType(R44RummyTableOverlay));
+          expect(overlay, findsOneWidget);
+          final piles = find.descendant(of: overlay, matching: find.byKey(const ValueKey('r44-central-rummy-piles')));
+          expect(piles, findsOneWidget);
+          // Every card on the table belongs to that one public-state surface.
+          expect(find.descendant(of: board, matching: find.byType(PlayingCard)).evaluate().length,
+            find.descendant(of: overlay, matching: find.byType(PlayingCard)).evaluate().length);
+          final owner = (actualRoom['state']['meld_owners'] as List).first as int;
+          final ownerKey = (actualRoom['players'] as List)[owner]['key'];
+          expect(find.byKey(ValueKey('r44-meld-owner-$ownerKey')), findsOneWidget);
+          final scroll = find.byKey(const ValueKey('r44-meld-owner-scroll'));
+          expect(tester.getRect(scroll).bottom, lessThanOrEqualTo(tester.getRect(piles).top));
+          expect(tester.takeException(), isNull);
+          await snapshot(tester, key, '$locale-r67-$gameId-${size.width.toInt()}x${size.height.toInt()}');
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump(const Duration(seconds: 6));
+          controller.dispose();
+        });
+      }
+    }
+  }
+
+  for (final locale in ['ar', 'en']) {
     testWidgets('Trix shows a clear pass control when no card is legal in $locale', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;

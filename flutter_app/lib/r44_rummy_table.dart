@@ -22,41 +22,64 @@ class R44RummyTableOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final raw = state['melds'] ?? state['table_groups'];
-    final ownerGroups = <String, List<List<String>>>{};
-    if (raw is Map) {
-      for (final entry in raw.entries) {
-        final groups = <List<String>>[];
-        if (entry.value is List) {
-          for (final group in entry.value as List) {
-            final cards = group is Map ? group['cards'] : group;
-            if (cards is List && cards.isNotEmpty) {
-              groups.add(cards.map((value) => value.toString()).toList());
-            }
-          }
-        }
-        if (groups.isNotEmpty) ownerGroups[entry.key.toString()] = groups;
-      }
-    }
-
+    // Room players use key/user_key; direct engine fixtures can use id.
+    // Normalize only public table data, never an opponent's hidden hand.
+    String playerKey(Map player) =>
+        (player['key'] ?? player['user_key'] ?? player['id'] ??
+            player['player_id'] ?? '').toString();
     final playerInfo = <String, Map<String, dynamic>>{};
     for (final player in players) {
       if (player is! Map) continue;
       final item = Map<String, dynamic>.from(player);
-      final id = (item['id'] ?? item['player_id'] ?? '').toString();
+      final id = playerKey(item);
       if (id.isNotEmpty) playerInfo[id] = item;
+    }
+
+    final raw = state['melds'] ?? state['table_groups'];
+    final ownerGroups = <String, List<List<String>>>{};
+    void addGroup(String owner, dynamic group) {
+      final cards = group is Map ? group['cards'] : group;
+      if (owner.isEmpty || cards is! List || cards.isEmpty) return;
+      ownerGroups.putIfAbsent(owner, () => <List<String>>[])
+          .add(cards.map((value) => value.toString()).toList());
+    }
+    if (raw is Map) {
+      // Authoritative rooms group melds by player key.
+      for (final entry in raw.entries) {
+        if (entry.value is List) {
+          for (final group in entry.value as List) {
+            addGroup(entry.key.toString(), group);
+          }
+        }
+      }
+    } else if (raw is List) {
+      // Offline sessions keep parallel meld and owner-seat lists.
+      final owners = state['meld_owners'];
+      if (owners is List) {
+        for (var i = 0; i < raw.length && i < owners.length; i++) {
+          final seat = int.tryParse(owners[i].toString());
+          if (seat == null || seat < 0 || seat >= players.length ||
+              players[seat] is! Map) continue;
+          addGroup(playerKey(players[seat] as Map), raw[i]);
+        }
+      }
     }
     final teams = state['teams'] is Map ? state['teams'] as Map : const {};
     String teamOfOwner(String owner, int index) {
       if (teams['teamA'] is List && (teams['teamA'] as List).contains(owner)) return '0';
       if (teams['teamB'] is List && (teams['teamB'] as List).contains(owner)) return '1';
-      return playerInfo[owner]?['team']?.toString() ?? '${index % 2}';
+      final seat = players.indexWhere((player) => player is Map && playerKey(player) == owner);
+      return playerInfo[owner]?['team']?.toString() ?? '${(seat >= 0 ? seat : index) % 2}';
     }
     final ordered = ownerGroups.entries.toList(growable: false);
     final count = int.tryParse('${state['deck_count'] ?? ''}')
         ?? (state['deck'] is List ? (state['deck'] as List).length : 0);
-    final publicDiscard = state['discard'] is List ? state['discard'] as List : const [];
-    final topDiscard = publicDiscard.isEmpty ? null : publicDiscard.last.toString();
+    final rawDiscard = state['discard'] ?? state['discard_pile'];
+    final publicDiscard = rawDiscard is List ? rawDiscard : const [];
+    final lastDiscard = publicDiscard.isEmpty ? null : publicDiscard.last;
+    // Server discards can retain their public player/card metadata.
+    final topDiscard = (lastDiscard is Map
+        ? lastDiscard['card'] : lastDiscard)?.toString();
 
     return LayoutBuilder(builder: (context, area) {
       final compact = area.maxWidth < 250;

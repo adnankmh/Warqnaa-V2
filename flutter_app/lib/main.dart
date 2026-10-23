@@ -6367,7 +6367,8 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         return Positioned(left: relative == 1 ? null : 4, right: relative == 1 ? 4 : null,
           top: math.max(72, (board.maxHeight - 80) / 2), child: seat);
       }),
-      ..._trickSeatWidgets(),
+      if (!(widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle'))
+        ..._trickSeatWidgets(),
       if (widget.game.id.contains('hand') || widget.game.id == 'banakil' || widget.game.id == 'pinochle')
         Positioned.fill(
           left: 58,
