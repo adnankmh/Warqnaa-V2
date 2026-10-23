@@ -122,7 +122,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                 onTap: onDrawDeck,
                 compact: compact,
               ),
-              const SizedBox(width: 11),
+              SizedBox(width: compact ? 7 : 11),
               _pile(
                 key: const ValueKey('r44-fire-pile'),
                 icon: Icons.local_fire_department_rounded,
