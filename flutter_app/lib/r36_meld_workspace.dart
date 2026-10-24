@@ -1,5 +1,49 @@
 part of 'main.dart';
 
+/// R69: gameplay surfaces must inherit the selected cosmetic theme just like
+/// navigation, dialogs and store screens.  This adapter keeps the established
+/// sky-luxury depth while sourcing accents, readable ink and surfaces from the
+/// active Material [ColorScheme].  It is visual-only and never enters engine
+/// state, card ownership or server actions.
+class R69PlaySurfaceColors {
+  const R69PlaySurfaceColors({
+    required this.accent,
+    required this.secondary,
+    required this.surface,
+    required this.onSurface,
+  });
+
+  final Color accent;
+  final Color secondary;
+  final Color surface;
+  final Color onSurface;
+
+  factory R69PlaySurfaceColors.of(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return R69PlaySurfaceColors(
+      accent: scheme.primary,
+      secondary: scheme.secondary,
+      surface: Color.lerp(
+        scheme.surface,
+        theme.scaffoldBackgroundColor,
+        theme.brightness == Brightness.dark ? .34 : .16,
+      )!,
+      onSurface: scheme.onSurface,
+    );
+  }
+
+  Color group(int index) {
+    const legacy = <Color>[
+      Color(0xFF30C9FF), Color(0xFFFFCD55), Color(0xFF60E9A9),
+      Color(0xFFC5A6FF), Color(0xFFFF9AAB), Color(0xFF72DDDE),
+      Color(0xFFFFB46E), Color(0xFF94B8FF),
+    ];
+    final themeAccent = index.isEven ? accent : secondary;
+    return Color.lerp(legacy[index % legacy.length], themeAccent, .38)!;
+  }
+}
+
 /// Drafts use hand positions, so the two identical cards in a double deck can
 /// be selected independently. The engine validates the whole opening atomically.
 class R36MeldWorkspace extends StatefulWidget {
@@ -28,6 +72,7 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
     final all = widget.cards;
     // The newest card is at the end; tapping any exposed older card means
     // taking that card AND every newer discard above it. No hidden cards shown.
@@ -57,7 +102,7 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
                 color: const Color(0xFFF7FBFF),
                 borderRadius: BorderRadius.circular(9),
                 border: Border.all(
-                  color: included ? B307SkyLuxury.goldSoft : B307SkyLuxury.cyan,
+                  color: included ? colors.accent : colors.secondary,
                   width: included ? 3 : 1,
                 ),
               ),
@@ -150,11 +195,6 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
     }
     return indices;
   }
-  static const groupColors = <Color>[
-    Color(0xFF30C9FF), Color(0xFFFFCD55), Color(0xFF60E9A9),
-    Color(0xFFC5A6FF), Color(0xFFFF9AAB), Color(0xFF72DDDE),
-    Color(0xFFFFB46E), Color(0xFF94B8FF),
-  ];
   String text(String ar, String en) => widget.ar ? ar : en;
   String label(String card) => r52CardLabel(card);
 
@@ -166,6 +206,7 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
     final used = groups.expand((group) => group).toSet();
     return AlertDialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
@@ -208,15 +249,16 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
                           selected.contains(i) ? selected.remove(i) : selected.add(i)),
                         borderRadius: BorderRadius.circular(9),
                         child: Container(
+                          key: ValueKey('r69-meld-card-surface-$i'),
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(9),
                             color: selected.contains(i)
-                                ? B307SkyLuxury.goldSoft.withValues(alpha: .22)
-                                : B307SkyLuxury.navy.withValues(alpha: .25),
+                                ? colors.accent.withValues(alpha: .22)
+                                : colors.surface.withValues(alpha: .72),
                             border: Border.all(
                               color: selected.contains(i)
-                                  ? B307SkyLuxury.goldSoft : B307SkyLuxury.cyan.withValues(alpha: .3),
+                                  ? colors.accent : colors.secondary.withValues(alpha: .42),
                               width: selected.contains(i) ? 2 : 1,
                             ),
                           ),
@@ -241,17 +283,17 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
                 const SizedBox(height: 10),
                 if (groups.isEmpty) Text(
                   text('ستظهر مجموعاتك هنا بألوان مختلفة.', 'Your prepared groups will appear here with different colors.'),
-                  style: const TextStyle(color: Colors.white70)),
+                  style: TextStyle(color: colors.onSurface.withValues(alpha: .72))),
                 for (var i=0; i<groups.length; i++) Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: Container(
                     key: ValueKey('r44-meld-group-$i'),
                     padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
-                      color: groupColors[i % groupColors.length].withValues(alpha: .16),
+                      color: colors.group(i).withValues(alpha: .16),
                       borderRadius: BorderRadius.circular(13),
                       border: Border.all(
-                        color: groupColors[i % groupColors.length], width: 2),
+                        color: colors.group(i), width: 2),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
