@@ -139,6 +139,17 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
 class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
   final selected = <int>{};
   final groups = <List<int>>[];
+  bool sortedPreview = false; // Visual-only; hand indices and server ownership stay unchanged.
+  Iterable<int> previewOrder(Set<int> used) {
+    final indices = <int>[for (var i = 0; i < widget.cards.length; i++) if (!used.contains(i)) i];
+    if (sortedPreview) {
+      indices.sort((a, b) {
+        final result = widget.cards[a].compareTo(widget.cards[b]);
+        return result != 0 ? result : a.compareTo(b);
+      });
+    }
+    return indices;
+  }
   static const groupColors = <Color>[
     Color(0xFF30C9FF), Color(0xFFFFCD55), Color(0xFF60E9A9),
     Color(0xFFC5A6FF), Color(0xFFFF9AAB), Color(0xFF72DDDE),
@@ -173,8 +184,20 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
                           'Tap 3 or more cards, save them as a colored group, and edit each group before submitting.'),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.4)),
                 const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    key: const ValueKey('r64-sort-meld-cards'),
+                    onPressed: () => setState(() => sortedPreview = !sortedPreview),
+                    icon: Icon(sortedPreview ? Icons.reorder_rounded : Icons.sort_rounded),
+                    label: Text(sortedPreview
+                      ? text('الترتيب الأصلي', 'Original hand order')
+                      : text('رتّب الأوراق حسب النوع والقيمة', 'Sort by suit and value'),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
+                  ),
+                ),
                 Wrap(spacing: 6, runSpacing: 7, children: [
-                  for (var i=0; i<widget.cards.length; i++) if (!used.contains(i))
+                  for (final i in previewOrder(used))
                     Semantics(
                       selected: selected.contains(i),
                       button: true,
