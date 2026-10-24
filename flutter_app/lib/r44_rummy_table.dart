@@ -22,6 +22,7 @@ class R44RummyTableOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
     // Room players use key/user_key; direct engine fixtures can use id.
     // Normalize only public table data, never an opponent's hidden hand.
     String playerKey(Map player) =>
@@ -103,6 +104,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                       player: playerInfo[ordered[i].key],
                       team: partnership ? teamOfOwner(ordered[i].key, i) : '$i',
                       compact: compact,
+                      colors: colors,
                     ),
                 ],
               ),
@@ -121,6 +123,8 @@ class R44RummyTableOverlay extends StatelessWidget {
                 card: null,
                 onTap: onDrawDeck,
                 compact: compact,
+                colors: colors,
+                surfaceKey: const ValueKey('r69-stock-pile-surface'),
               ),
               SizedBox(width: compact ? 7 : 11),
               _pile(
@@ -131,6 +135,8 @@ class R44RummyTableOverlay extends StatelessWidget {
                 card: topDiscard,
                 onTap: onDrawDiscard,
                 compact: compact,
+                colors: colors,
+                surfaceKey: const ValueKey('r69-discard-pile-surface'),
               ),
               if (onDrawStack != null) ...<Widget>[
                 const SizedBox(width: 5),
@@ -139,8 +145,8 @@ class R44RummyTableOverlay extends StatelessWidget {
                   onPressed: onDrawStack,
                   tooltip: tr('اختر ورقة من النار واسحبها مع التي فوقها',
                     'Take a selected discard with all newer cards'),
-                  icon: const Icon(Icons.layers_rounded,
-                    color: B307SkyLuxury.goldSoft, size: 23),
+                  icon: Icon(Icons.layers_rounded,
+                    color: colors.accent, size: 23),
                   constraints: const BoxConstraints(minWidth: 42, minHeight: 44),
                 ),
               ],
@@ -154,14 +160,18 @@ class R44RummyTableOverlay extends StatelessWidget {
   Widget _ownerTile({
     required Key key, required String id, required List<List<String>> groups,
     required Map<String, dynamic>? player, required String team,
-    required bool compact,
+    required bool compact, required R69PlaySurfaceColors colors,
   }) {
     final teamIndex = int.tryParse(team) ?? team.hashCode.abs();
-    const colors = <Color>[
+    const legacyTeamColors = <Color>[
       Color(0xFF51D8FF), Color(0xFFFFD16A),
       Color(0xFF92EBB0), Color(0xFFCEACFF),
     ];
-    final tint = colors[teamIndex % colors.length];
+    final tint = Color.lerp(
+      legacyTeamColors[teamIndex % legacyTeamColors.length],
+      teamIndex.isEven ? colors.accent : colors.secondary,
+      .38,
+    )!;
     final name = (player?['name'] ?? player?['username'] ??
       player?['display_name'] ?? player?['id'] ?? id).toString();
     final ownerLabel = partnershipLabel(team, name);
@@ -172,7 +182,7 @@ class R44RummyTableOverlay extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: compact ? 150 : 195),
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: B307SkyLuxury.navy.withValues(alpha: .77),
+          color: colors.surface.withValues(alpha: .90),
           border: Border.all(color: tint, width: 1.7),
           borderRadius: BorderRadius.circular(10),
         ),
@@ -218,6 +228,7 @@ class R44RummyTableOverlay extends StatelessWidget {
     required Key key, required IconData icon, required String label,
     required int number, required String? card,
     required VoidCallback? onTap, required bool compact,
+    required R69PlaySurfaceColors colors, required Key surfaceKey,
   }) {
     return Semantics(
       button: onTap != null,
@@ -227,26 +238,27 @@ class R44RummyTableOverlay extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(11),
         child: Container(
+          key: surfaceKey,
           width: compact ? 72 : 82,
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(11),
-            color: B307SkyLuxury.deep.withValues(alpha: .92),
+            color: colors.surface.withValues(alpha: .94),
             border: Border.all(color: onTap != null
-              ? B307SkyLuxury.goldSoft : B307SkyLuxury.cyan.withValues(alpha: .45)),
+              ? colors.accent : colors.secondary.withValues(alpha: .45)),
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
             SizedBox(
               height: compact ? 32 : 37,
               child: card == null
-                ? Icon(icon, color: B307SkyLuxury.goldSoft, size: 29)
+                ? Icon(icon, color: colors.accent, size: 29)
                 : PlayingCard(label: cardLabel(card),
                     width: compact ? 24 : 28, height: compact ? 32 : 37),
             ),
             Text('$label · $number',
               textAlign: TextAlign.center,
               maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 10.5,
+              style: TextStyle(color: colors.onSurface, fontSize: 10.5,
                 fontWeight: FontWeight.w900)),
           ]),
         ),
