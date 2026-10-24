@@ -44,6 +44,7 @@ void main() {
         for (final i in <int>[0,1,2]) {
           await tester.tap(find.byKey(ValueKey('r36-meld-card-$i')));
         }
+        await tester.pump();
         await tester.tap(find.byKey(const ValueKey('r36-add-meld-group')));
         await tester.pump();
         expect(find.byKey(const ValueKey('r44-meld-group-0')), findsOneWidget);
