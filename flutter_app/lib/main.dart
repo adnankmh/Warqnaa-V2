@@ -8904,7 +8904,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= 640 ? 3 : 2;
             final cellWidth = (constraints.maxWidth - (columns - 1) * 8) / columns;
-            final tileHeight = constraints.maxWidth < 350 ? 68.0 : 60.0;
+            final tileHeight = constraints.maxWidth < 350 ? 68.0 : 56.0;
             return GridView.count(
               key: const ValueKey('r31-lobby-tools-grid'),
               shrinkWrap: true,
@@ -8997,19 +8997,19 @@ class _R31LobbyTool extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
             decoration: BoxDecoration(
               gradient: B307SkyLuxury.panelGradient,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .40)),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, color: B307SkyLuxury.cyan, size: 23),
-              const SizedBox(width: 8),
+              Icon(icon, color: B307SkyLuxury.cyan, size: 21),
+              const SizedBox(width: 6),
               Flexible(child: Text(label, textAlign: TextAlign.center, maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 15,
-                  height: 1.18, fontWeight: FontWeight.w900))),
+                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 17,
+                  height: 1.12, fontWeight: FontWeight.w900))),
             ]),
           ),
         ),
