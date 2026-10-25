@@ -369,6 +369,7 @@ class R8TableSeat extends StatelessWidget {
   final String name; final Widget avatar; final String detail; final bool active; final VoidCallback onTap; final int? seconds; final int turnSeconds; final bool compact;
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
     final tight = MediaQuery.sizeOf(context).shortestSide < 360;
     final seatWidth = compact ? (tight ? 72.0 : 80.0) : (tight ? 84.0 : 96.0);
     final avatarSize = compact ? (tight ? 27.0 : 31.0) : (tight ? 34.0 : 40.0);
@@ -389,17 +390,27 @@ class R8TableSeat extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: active
-                  ? const [B307SkyLuxury.azure, B307SkyLuxury.royal]
-                  : const [Color(0xee07598f), Color(0xee052f54)],
+                  ? <Color>[
+                      Color.lerp(colors.surface, colors.accent, .38)!,
+                      Color.lerp(colors.surface, colors.secondary, .22)!,
+                    ]
+                  : <Color>[
+                      Color.lerp(colors.surface, colors.accent, .14)!,
+                      Color.lerp(colors.surface, colors.secondary, .06)!,
+                    ],
             ),
             borderRadius: BorderRadius.circular(radius),
             border: Border.all(
-              color: active ? B307SkyLuxury.goldSoft : B307SkyLuxury.sky.withValues(alpha: .28),
+              color: active
+                  ? Color.lerp(B307SkyLuxury.goldSoft, colors.accent, .35)!
+                  : colors.accent.withValues(alpha: .28),
               width: active ? 1.9 : .8,
             ),
             boxShadow: <BoxShadow>[
               BoxShadow(
-                color: active ? B307SkyLuxury.sky.withValues(alpha: .22) : Colors.black.withValues(alpha: .26),
+                color: active
+                    ? colors.accent.withValues(alpha: .22)
+                    : colors.onSurface.withValues(alpha: .12),
                 blurRadius: active ? 15 : 9,
                 spreadRadius: active ? .6 : 0,
                 offset: const Offset(0, 5),
@@ -409,8 +420,8 @@ class R8TableSeat extends StatelessWidget {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             SizedBox.square(dimension: avatarSize, child: FittedBox(child: avatar)),
             const SizedBox(height: 3),
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: B307SkyLuxury.text, fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)),
-            Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: B307SkyLuxury.textMuted)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: colors.onSurface, fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)),
+            Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: colors.onSurface.withValues(alpha: .72))),
             if (active && seconds != null) ...[
               const SizedBox(height: 4),
               LinearProgressIndicator(
@@ -418,7 +429,7 @@ class R8TableSeat extends StatelessWidget {
                 minHeight: 3,
                 borderRadius: BorderRadius.circular(3),
                 color: seconds! <= 3 ? Colors.redAccent : B307SkyLuxury.goldSoft,
-                backgroundColor: B307SkyLuxury.navy.withValues(alpha: .52),
+                backgroundColor: colors.onSurface.withValues(alpha: .16),
               ),
             ],
           ]),
