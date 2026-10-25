@@ -78,8 +78,9 @@ void main() {
       expect(find.byIcon(Icons.emoji_events_rounded),findsOneWidget);
       final replay=find.byKey(const ValueKey('r52-replay-finished-game'));
       final replayButton=tester.widget<OutlinedButton>(replay);
-      expect(replayButton.style!.foregroundColor!.resolve(<WidgetState>{}),Colors.white);
-      expect(replayButton.style!.side!.resolve(<WidgetState>{})!.color,R35ReferenceColors.cyan);
+      final resultColors=R69PlaySurfaceColors.of(tester.element(find.byType(R52MatchResult)));
+      expect(replayButton.style!.foregroundColor!.resolve(<WidgetState>{}),resultColors.onSurface);
+      expect(replayButton.style!.side!.resolve(<WidgetState>{})!.color,resultColors.accent);
       expect(tester.getSize(replay).height,greaterThanOrEqualTo(48));
       await tester.tap(replay);expect(replayed,isTrue);
       await tester.tap(find.byKey(const ValueKey('r52-exit-finished-game')));

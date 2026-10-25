@@ -101,6 +101,7 @@ class R52RoundScoreCard extends StatelessWidget {
   final bool ar;
   @override
   Widget build(BuildContext context) {
+    final colors=R69PlaySurfaceColors.of(context);
     final results=state['round_results'];
     final last=results is List && results.isNotEmpty && results.last is Map ? results.last as Map : const {};
     final raw=last['delta'] ?? state['player_round_score_delta'];
@@ -108,13 +109,13 @@ class R52RoundScoreCard extends StatelessWidget {
     final names=<String,String>{for(final p in players.whereType<Map>())
       if(p['key']!=null) p['key'].toString():p['name']?.toString() ?? p['key'].toString()};
     return Container(key:const ValueKey('r52-round-points'),margin:const EdgeInsets.symmetric(horizontal:10,vertical:5),
-      padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:R35ReferenceColors.navy,
-        borderRadius:BorderRadius.circular(14),border:Border.all(color:R35ReferenceColors.cyan)),
+      padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:colors.surface,
+        borderRadius:BorderRadius.circular(14),border:Border.all(color:colors.accent.withValues(alpha:.72))),
       child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Text(ar?'نقاط الجولة السابقة':'Previous round points',style:const TextStyle(color:R35ReferenceColors.paleGold,fontSize:14,fontWeight:FontWeight.w900)),
+        Text(ar?'نقاط الجولة السابقة':'Previous round points',style:TextStyle(color:colors.accent,fontSize:14,fontWeight:FontWeight.w900)),
         Wrap(spacing:12,runSpacing:6,children:[for(final entry in raw.entries)
           Text('${names[entry.key.toString()] ?? entry.key}: ${entry.value is num && (entry.value as num)>0 ? '+' : ''}${entry.value}',
-            key:ValueKey('r52-round-points-${entry.key}'),style:const TextStyle(color:Colors.white,fontSize:14,fontWeight:FontWeight.w800))]),
+            key:ValueKey('r52-round-points-${entry.key}'),style:TextStyle(color:colors.onSurface,fontSize:14,fontWeight:FontWeight.w800))]),
       ]));
   }
 }
@@ -152,30 +153,33 @@ class R52MatchResult extends StatelessWidget {
   final VoidCallback? onReplay;
   final String? points;
   @override
-  Widget build(BuildContext context) => Container(
-    key:const ValueKey('r52-match-result'),padding:const EdgeInsets.all(12),
-    decoration:BoxDecoration(color:R35ReferenceColors.navy,borderRadius:BorderRadius.circular(18),
-      border:Border.all(color:won?R35ReferenceColors.gold:R35ReferenceColors.cyan,width:2)),
-    child:Column(mainAxisSize:MainAxisSize.min,children:[
-      TweenAnimationBuilder<double>(tween:Tween(begin:won ? .65 : 1.0,end:1.0),
-        duration:MediaQuery.disableAnimationsOf(context)?Duration.zero:const Duration(milliseconds:650),
-        curve:Curves.easeOutBack,builder:(_,scale,child)=>Transform.scale(scale:scale,child:child),
-        child:Icon(won?Icons.emoji_events_rounded:Icons.sports_esports_rounded,size:38,
-          color:won?R35ReferenceColors.gold:R35ReferenceColors.cyan)),
-      Text(won?(ar?'مبارك الفوز!':'Victory!'):(ar?'انتهت المباراة — فرصة جديدة بانتظارك':'Match complete — another chance awaits'),
-        textAlign:TextAlign.center,style:const TextStyle(color:Colors.white,fontSize:17,fontWeight:FontWeight.w900)),
-      if(points!=null) Text(points!,textAlign:TextAlign.center,style:const TextStyle(color:R35ReferenceColors.paleGold,fontSize:14)),
-      const SizedBox(height:8),
-      Wrap(alignment:WrapAlignment.center,spacing:10,runSpacing:8,children:[
-        FilledButton.icon(key:const ValueKey('r52-exit-finished-game'),onPressed:onExit,
-          icon:const Icon(Icons.exit_to_app_rounded),label:Text(ar?'العودة للألعاب':'Back to games')),
-        if(onReplay!=null) OutlinedButton.icon(key:const ValueKey('r52-replay-finished-game'),
-          onPressed:onReplay,icon:const Icon(Icons.replay_rounded),
-          style:OutlinedButton.styleFrom(foregroundColor:Colors.white,
-            side:const BorderSide(color:R35ReferenceColors.cyan),minimumSize:const Size(0,48),
-            textStyle:(Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontSize:14,fontWeight:FontWeight.w800)),
-          label:Text(ar?'العب مجددًا':'Play again')),
+  Widget build(BuildContext context) {
+    final colors=R69PlaySurfaceColors.of(context);
+    final resultAccent=won ? B307SkyLuxury.goldSoft : colors.accent;
+    return Container(
+      key:const ValueKey('r52-match-result'),padding:const EdgeInsets.all(12),
+      decoration:BoxDecoration(color:colors.surface,borderRadius:BorderRadius.circular(18),
+        border:Border.all(color:resultAccent,width:2)),
+      child:Column(mainAxisSize:MainAxisSize.min,children:[
+        TweenAnimationBuilder<double>(tween:Tween(begin:won ? .65 : 1.0,end:1.0),
+          duration:MediaQuery.disableAnimationsOf(context)?Duration.zero:const Duration(milliseconds:650),
+          curve:Curves.easeOutBack,builder:(_,scale,child)=>Transform.scale(scale:scale,child:child),
+          child:Icon(won?Icons.emoji_events_rounded:Icons.sports_esports_rounded,size:38,color:resultAccent)),
+        Text(won?(ar?'مبارك الفوز!':'Victory!'):(ar?'انتهت المباراة — فرصة جديدة بانتظارك':'Match complete — another chance awaits'),
+          textAlign:TextAlign.center,style:TextStyle(color:colors.onSurface,fontSize:17,fontWeight:FontWeight.w900)),
+        if(points!=null) Text(points!,textAlign:TextAlign.center,style:TextStyle(color:colors.onSurface.withValues(alpha:.78),fontSize:14)),
+        const SizedBox(height:8),
+        Wrap(alignment:WrapAlignment.center,spacing:10,runSpacing:8,children:[
+          FilledButton.icon(key:const ValueKey('r52-exit-finished-game'),onPressed:onExit,
+            icon:const Icon(Icons.exit_to_app_rounded),label:Text(ar?'العودة للألعاب':'Back to games')),
+          if(onReplay!=null) OutlinedButton.icon(key:const ValueKey('r52-replay-finished-game'),
+            onPressed:onReplay,icon:const Icon(Icons.replay_rounded),
+            style:OutlinedButton.styleFrom(foregroundColor:colors.onSurface,
+              side:BorderSide(color:colors.accent),minimumSize:const Size(0,48),
+              textStyle:(Theme.of(context).textTheme.labelLarge ?? const TextStyle()).copyWith(fontSize:14,fontWeight:FontWeight.w800)),
+            label:Text(ar?'العب مجددًا':'Play again')),
+        ]),
       ]),
-    ]),
-  );
+    );
+  }
 }
