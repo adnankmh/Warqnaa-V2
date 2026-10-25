@@ -62,6 +62,9 @@ void main() {
         expect(find.text(locale == 'ar'
             ? 'يمكنك القبول من مركز الأصدقاء.'
             : 'You can accept it from the Friends center.'), findsOneWidget);
+        expect(find.byIcon(Icons.emoji_events_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.card_giftcard_rounded), findsOneWidget);
+        expect(find.byIcon(Icons.person_add_alt_1_rounded), findsOneWidget);
         expect(tester.takeException(), isNull);
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(tester, key,
@@ -94,6 +97,7 @@ void main() {
             findsOneWidget);
         expect(find.text(locale == 'ar' ? 'شراء حزمة المرح' : 'Fun pack purchase'),
             findsOneWidget);
+        expect(find.textContaining('🪙'), findsNothing);
         expect(tester.takeException(), isNull);
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(

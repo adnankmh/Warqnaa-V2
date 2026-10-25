@@ -7889,12 +7889,13 @@ class QuickButton extends StatelessWidget {
 
 class PremiumListTile extends StatelessWidget {
   final String icon;
+  final IconData? materialIcon;
   final String title;
   final String subtitle;
   final Widget action;
   final VoidCallback? onTap;
 
-  const PremiumListTile({super.key, required this.icon, required this.title, required this.subtitle, required this.action, this.onTap});
+  const PremiumListTile({super.key, required this.icon, this.materialIcon, required this.title, required this.subtitle, required this.action, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -7906,7 +7907,15 @@ class PremiumListTile extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(width: 46, height: 46, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Text(icon, style: const TextStyle(fontSize: 26))),
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)),
+              child: materialIcon == null
+                  ? Text(icon, style: const TextStyle(fontSize: 26))
+                  : Icon(materialIcon, size: 25),
+            ),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)), const SizedBox(height: 3), Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4))])),
             const SizedBox(width: 7),
@@ -8422,6 +8431,13 @@ String r80NoticeTitle(String value, bool ar) {
   }[value] ?? value;
 }
 
+IconData r80NoticeIcon(String value) => switch (value) {
+  '🏆' => Icons.emoji_events_rounded,
+  '🎁' => Icons.card_giftcard_rounded,
+  '👤' => Icons.person_add_alt_1_rounded,
+  _ => Icons.notifications_rounded,
+};
+
 String r80NoticeBody(String value, bool ar) {
   if (ar) return value;
   return const <String, String>{
@@ -8501,6 +8517,7 @@ void showNotifications(BuildContext context, AppController controller) {
             padding: const EdgeInsets.only(bottom: 8),
             child: PremiumListTile(
               icon: notice.icon,
+              materialIcon: r80NoticeIcon(notice.icon),
               title: r80NoticeTitle(notice.title, ar),
               subtitle: r80NoticeBody(notice.body, ar),
               action: IconButton(onPressed: () { controller.removeNotice(notice); setLocalState(() {}); }, icon: const Icon(Icons.delete_outline)),
@@ -8546,7 +8563,7 @@ void showWallet(BuildContext context, AppController controller) {
             const SizedBox(height: 5),
             Text(ar ? 'الرصيد المتاح' : 'Available balance', style: TextStyle(color: colors.onSurface.withValues(alpha: .68), fontSize: 10, fontWeight: FontWeight.w800)),
             const SizedBox(height: 5),
-            Text('${formatNumber(controller.coins)} 🪙', style: TextStyle(fontSize: 30, color: colors.accent, fontWeight: FontWeight.w900)),
+            Text(formatNumber(controller.coins), style: TextStyle(fontSize: 30, color: colors.accent, fontWeight: FontWeight.w900)),
           ]),
         ),
         const SizedBox(height: 12),
