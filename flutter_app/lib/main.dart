@@ -9072,6 +9072,29 @@ class _R31LobbyTool extends StatelessWidget {
   }
 }
 
+Color r77RoomEntryAccent(BuildContext context, {bool positive = false}) {
+  final colors = R69PlaySurfaceColors.of(context);
+  if (!positive) return colors.accent;
+  return Color.lerp(Colors.greenAccent, colors.accent, .22)!;
+}
+
+BoxDecoration r77VoicePrivacyDecoration(BuildContext context) {
+  final colors = R69PlaySurfaceColors.of(context);
+  final accent = r77RoomEntryAccent(context, positive: true);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, accent, .13)!,
+        Color.lerp(colors.surface, colors.secondary, .06)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(14),
+    border: Border.all(color: accent.withValues(alpha: .38)),
+  );
+}
+
 Future<void> showAvailableRooms(BuildContext context, AppController controller, GameInfo game) async {
   try {
     final List rooms;
@@ -9121,13 +9144,14 @@ Future<void> showAvailableRooms(BuildContext context, AppController controller, 
             subtitle: L.t(controller.localeCode, 'openRoomsHint'),
             trailing: Icon(
               controller.serverConnected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
-              color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+              key: const ValueKey('r77-available-rooms-status'),
+              color: r77RoomEntryAccent(context, positive: controller.serverConnected),
               size: 26,
             ),
           ),
           const SizedBox(height: 12),
           if (rooms.isEmpty)
-            Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Center(child: Text(L.t(controller.localeCode, 'noOpenRooms'), style: const TextStyle(color: Colors.white60))))
+            Padding(padding: const EdgeInsets.symmetric(vertical: 28), child: Center(child: Text(L.t(controller.localeCode, 'noOpenRooms'), style: TextStyle(color: R69PlaySurfaceColors.of(context).onSurface.withValues(alpha: .68)))))
           else
             ...rooms.map((raw) {
               final room = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
@@ -9174,7 +9198,7 @@ void showJoinRoomByCode(BuildContext context, AppController controller, GameInfo
           icon: Icons.password_rounded,
           title: L.t(controller.localeCode, 'joinByCode'),
           subtitle: L.t(controller.localeCode, 'joinByCodeHint'),
-          trailing: const Icon(Icons.lock_open_rounded, color: B307SkyLuxury.goldSoft, size: 26),
+          trailing: Icon(Icons.lock_open_rounded, key: const ValueKey('r77-join-room-code-status'), color: r77RoomEntryAccent(context), size: 26),
         ),
         const SizedBox(height: 12),
         TextField(controller: codeController, textCapitalization: TextCapitalization.characters, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomCode'), prefixIcon: const Icon(Icons.tag_rounded))),
@@ -9352,7 +9376,8 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             subtitle: L.t(controller.localeCode, 'roomModeDescription'),
             trailing: Icon(
               voiceEnabled ? Icons.mic_rounded : Icons.style_rounded,
-              color: voiceEnabled ? B307SkyLuxury.emerald : B307SkyLuxury.goldSoft,
+              key: const ValueKey('r77-create-room-mode-status'),
+              color: r77RoomEntryAccent(context, positive: voiceEnabled),
               size: 26,
             ),
           ),
@@ -9371,9 +9396,10 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           if (voiceEnabled) ...[
             const SizedBox(height: 8),
             Container(
+              key: const ValueKey('r77-voice-privacy-notice'),
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: .07), borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.greenAccent.withValues(alpha: .25))),
-              child: Row(children: [const Icon(Icons.verified_user_outlined, color: Colors.greenAccent), const SizedBox(width: 8), Expanded(child: Text(L.t(controller.localeCode, 'voicePrivacyHint'), style: const TextStyle(fontSize: 11, height: 1.45)))]),
+              decoration: r77VoicePrivacyDecoration(context),
+              child: Row(children: [Icon(Icons.verified_user_outlined, color: r77RoomEntryAccent(context, positive: true)), const SizedBox(width: 8), Expanded(child: Text(L.t(controller.localeCode, 'voicePrivacyHint'), style: TextStyle(color: R69PlaySurfaceColors.of(context).onSurface, fontSize: 11, height: 1.45)))]),
             ),
           ],
           const SizedBox(height: 10),
