@@ -53,7 +53,11 @@ void main() {
           key,
         ));
         await tester.tap(find.text('Open profile'));
-        await tester.pumpAndSettle();
+        // The profile deliberately contains ambient animation. Pump the modal
+        // transition for a bounded interval instead of waiting for all frames
+        // to settle, which can never happen while that animation is active.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
 
         final expected = R69PlaySurfaceColors.of(
           tester.element(find.byKey(const ValueKey('r79-profile-club-panel'))),
