@@ -8106,7 +8106,28 @@ String localClubLogoV03(String? id) => const <String, String>{
   'aces': '🂡',
 }[id] ?? '🛡️';
 
+BoxDecoration r79ProfilePanelDecoration(BuildContext context) {
+  final colors = R69PlaySurfaceColors.of(context);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, colors.accent, .13)!,
+        Color.lerp(colors.surface, colors.secondary, .07)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(18),
+    border: Border.all(color: colors.accent.withValues(alpha: .36)),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: colors.accent.withValues(alpha: .08), blurRadius: 12, offset: const Offset(0, 5)),
+    ],
+  );
+}
+
 void showProfile(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
   showPremiumSheet(
     context,
     child: Column(
@@ -8177,33 +8198,37 @@ void showProfile(BuildContext context, AppController controller) {
         ),
         if (controller.activeClub != null) ...[
           const SizedBox(height: 10),
-          PremiumPanel(
+          Container(
+            key: const ValueKey('r79-profile-club-panel'),
+            decoration: r79ProfilePanelDecoration(context),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(children: [
-                Container(width: 48, height: 48, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(15)), child: Text(controller.clubImageEmojiV182, style: const TextStyle(fontSize: 27))),
+                Container(width: 48, height: 48, alignment: Alignment.center, decoration: BoxDecoration(color: colors.accent.withValues(alpha: .10), borderRadius: BorderRadius.circular(15), border: Border.all(color: colors.accent.withValues(alpha: .28))), child: Text(controller.clubImageEmojiV182, style: const TextStyle(fontSize: 27))),
                 const SizedBox(width: 10),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('النادي الحالي', style: TextStyle(color: Colors.white54, fontSize: 9)), Text(controller.activeClub ?? localClubNameV03(controller.activeClub), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), const Text('تظهر هوية النادي في البروفايل وسجل المنافسات.', style: TextStyle(color: Colors.white54, fontSize: 9))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي الحالي' : 'Current club', style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 9)), Text(controller.activeClub ?? localClubNameV03(controller.activeClub), style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900, fontSize: 15)), Text(ar ? 'تظهر هوية النادي في البروفايل وسجل المنافسات.' : 'Your club identity appears in your profile and competition history.', style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 9))])),
                 const Icon(Icons.verified_rounded, color: Colors.greenAccent),
               ]),
             ),
           ),
         ],
         const SizedBox(height: 10),
-        PremiumPanel(child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Row(children:[const Icon(Icons.auto_graph_rounded),const SizedBox(width:7),const Expanded(child:Text('تقدم اللاعب ونقاطه',style:TextStyle(fontWeight:FontWeight.w900))),Text('${controller.xp}/${controller.xpNext} XP',style:TextStyle(color:Theme.of(context).colorScheme.primary,fontWeight:FontWeight.w900))]),
-          const SizedBox(height:8),LinearProgressIndicator(value:controller.levelProgress,minHeight:8,borderRadius:BorderRadius.circular(20)),const SizedBox(height:9),
-          Wrap(spacing:7,runSpacing:7,children:[Chip(label:Text('🎯 ${controller.roundPoints} جولة')),Chip(label:Text('🏆 ${controller.tournamentPoints} مسابقات')),Chip(label:Text('🛡️ ${controller.clubPoints} نادي')),Chip(label:Text('⬆️ ${controller.pointsToNextLevel} للمستوى التالي'))]),
+        Container(key: const ValueKey('r79-profile-progress-panel'), decoration: r79ProfilePanelDecoration(context), child:Padding(padding:const EdgeInsets.all(12),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+          Row(children:[Icon(Icons.auto_graph_rounded, color: colors.accent),const SizedBox(width:7),Expanded(child:Text(ar ? 'تقدم اللاعب ونقاطه' : 'Player progress and points',style:TextStyle(color: colors.onSurface, fontWeight:FontWeight.w900))),Text('${controller.xp}/${controller.xpNext} XP',style:TextStyle(color:colors.accent,fontWeight:FontWeight.w900))]),
+          const SizedBox(height:8),LinearProgressIndicator(value:controller.levelProgress,minHeight:8,borderRadius:BorderRadius.circular(20), color: colors.accent, backgroundColor: colors.onSurface.withValues(alpha: .12)),const SizedBox(height:9),
+          Wrap(spacing:7,runSpacing:7,children:[Chip(label:Text(ar ? '🎯 ${controller.roundPoints} جولة' : '🎯 ${controller.roundPoints} rounds')),Chip(label:Text(ar ? '🏆 ${controller.tournamentPoints} مسابقات' : '🏆 ${controller.tournamentPoints} competitions')),Chip(label:Text(ar ? '🛡️ ${controller.clubPoints} نادي' : '🛡️ ${controller.clubPoints} club')),Chip(label:Text(ar ? '⬆️ ${controller.pointsToNextLevel} للمستوى التالي' : '⬆️ ${controller.pointsToNextLevel} to next level'))]),
         ]))),
         const SizedBox(height: 10),
-        PremiumPanel(
+        Container(
+          key: const ValueKey('r79-profile-wallet-panel'),
+          decoration: r79ProfilePanelDecoration(context),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(children: [
               const Text('🪙', style: TextStyle(fontSize: 25)),
               const SizedBox(width: 9),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('رصيد التوكنز', style: TextStyle(color: Colors.white60, fontSize: 9)), FittedBox(child: Text(formatNumber(controller.coins), style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, fontSize: 17)))])),
-              Text('${controller.vipDays} يوم باشا', style: const TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w800)),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'رصيد التوكنز' : 'Token balance', style: TextStyle(color: colors.onSurface.withValues(alpha: .70), fontSize: 9)), FittedBox(child: Text(formatNumber(controller.coins), style: TextStyle(color: colors.accent, fontWeight: FontWeight.w900, fontSize: 17)))])),
+              Text(ar ? '${controller.vipDays} يوم باشا' : '${controller.vipDays} Pasha days', style: const TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w800)),
             ]),
           ),
         ),
@@ -8213,51 +8238,51 @@ void showProfile(BuildContext context, AppController controller) {
           spacing: 6,
           runSpacing: 6,
           children: [
-            Chip(avatar: PashaHatV173(controller: controller, width: 30, height: 22), label: Text('${controller.vipDays} يوم باشا')),
-            Chip(avatar: const Icon(Icons.table_restaurant_outlined, size: 16), label: Text(storeProductById(controller.selectedTable)?.name(controller.localeCode) ?? 'طاولة افتراضية')),
-            Chip(avatar: const Icon(Icons.style_outlined, size: 16), label: Text(storeProductById(controller.selectedCardBack)?.name(controller.localeCode) ?? 'ظهر افتراضي')),
+            Chip(avatar: PashaHatV173(controller: controller, width: 30, height: 22), label: Text(ar ? '${controller.vipDays} يوم باشا' : '${controller.vipDays} Pasha days')),
+            Chip(avatar: const Icon(Icons.table_restaurant_outlined, size: 16), label: Text(storeProductById(controller.selectedTable)?.name(controller.localeCode) ?? (ar ? 'طاولة افتراضية' : 'Default table'))),
+            Chip(avatar: const Icon(Icons.style_outlined, size: 16), label: Text(storeProductById(controller.selectedCardBack)?.name(controller.localeCode) ?? (ar ? 'ظهر افتراضي' : 'Default card back'))),
             Chip(avatar: const Icon(Icons.bolt, size: 16), label: Text('XP ×${controller.activeXpMultiplier.toStringAsFixed(2)}')),
-            Chip(avatar: const Text('😀'), label: Text(storeProductById(controller.selectedEmojiPack)?.name(controller.localeCode) ?? 'إيموجي أساسية')),
+            Chip(avatar: const Text('😀'), label: Text(storeProductById(controller.selectedEmojiPack)?.name(controller.localeCode) ?? (ar ? 'إيموجي أساسية' : 'Basic emoji'))),
           ],
         ),
         const SizedBox(height: 11),
         SectionTitle(title: L.t(controller.localeCode, 'statistics'), action: '${controller.wins} / ${controller.losses}'),
         const SizedBox(height: 7),
         PremiumPanel(child: Padding(padding: const EdgeInsets.all(12), child: Wrap(spacing: 7, runSpacing: 7, children: [
-          _AchievementChip(icon: '🏆', label: controller.wins >= 500 ? 'أسطورة الانتصارات' : 'محترف الانتصارات', unlocked: controller.wins >= 100),
-          _AchievementChip(icon: '🔥', label: 'سلسلة ${controller.consecutiveLoginDays} أيام', unlocked: controller.consecutiveLoginDays >= 3),
-          _AchievementChip(icon: '👑', label: 'عضو الباشا', unlocked: controller.vipDays > 0),
-          _AchievementChip(icon: '🧠', label: 'خبير المحركات', unlocked: controller.level >= 50),
+          _AchievementChip(icon: '🏆', label: controller.wins >= 500 ? (ar ? 'أسطورة الانتصارات' : 'Victory legend') : (ar ? 'محترف الانتصارات' : 'Victory pro'), unlocked: controller.wins >= 100),
+          _AchievementChip(icon: '🔥', label: ar ? 'سلسلة ${controller.consecutiveLoginDays} أيام' : '${controller.consecutiveLoginDays}-day streak', unlocked: controller.consecutiveLoginDays >= 3),
+          _AchievementChip(icon: '👑', label: ar ? 'عضو الباشا' : 'Pasha member', unlocked: controller.vipDays > 0),
+          _AchievementChip(icon: '🧠', label: ar ? 'خبير المحركات' : 'Engine expert', unlocked: controller.level >= 50),
         ]))),
         const SizedBox(height: 10),
-        const SectionTitle(title: 'آخر المباريات', action: 'سجل مختصر'),
+        SectionTitle(title: ar ? 'آخر المباريات' : 'Recent matches', action: ar ? 'سجل مختصر' : 'Quick history'),
         const SizedBox(height: 7),
         PremiumPanel(child: Column(children: [
-          _RecentMatchTile(game: 'طرنيب', result: 'فوز', score: '41–28', icon: '🂡', win: true),
+          _RecentMatchTile(game: ar ? 'طرنيب' : 'Tarneeb', result: ar ? 'فوز' : 'Win', score: '41–28', icon: '🂡', win: true),
           const Divider(height: 1),
-          _RecentMatchTile(game: 'تركس', result: 'فوز', score: '186 نقطة', icon: '🃏', win: true),
+          _RecentMatchTile(game: ar ? 'تركس' : 'Trix', result: ar ? 'فوز' : 'Win', score: ar ? '186 نقطة' : '186 points', icon: '🃏', win: true),
           const Divider(height: 1),
-          _RecentMatchTile(game: 'هاند', result: 'خسارة', score: '92–101', icon: '🎴', win: false),
+          _RecentMatchTile(game: ar ? 'هاند' : 'Hand', result: ar ? 'خسارة' : 'Loss', score: '92–101', icon: '🎴', win: false),
         ])),
         const SizedBox(height: 11),
-        Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>showCountryPicker(context,controller),icon:Text(controller.countryFlag,style:const TextStyle(fontSize:20)),label:const Text('الدولة والعلم'))),const SizedBox(width:7),Expanded(child:FilledButton.tonalIcon(onPressed: () => showAvatarPicker(context, controller), icon: const Icon(Icons.add_a_photo_outlined), label: const Text('الصورة والرمز')))]),
+        Row(children:[Expanded(child:FilledButton.tonalIcon(onPressed:()=>showCountryPicker(context,controller),icon:Text(controller.countryFlag,style:const TextStyle(fontSize:20)),label:Text(ar ? 'الدولة والعلم' : 'Country & flag'))),const SizedBox(width:7),Expanded(child:FilledButton.tonalIcon(onPressed: () => showAvatarPicker(context, controller), icon: const Icon(Icons.add_a_photo_outlined), label: Text(ar ? 'الصورة والرمز' : 'Avatar & icon')))]),
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(child: FilledButton.tonalIcon(onPressed: () => showWallet(context, controller), icon: const Icon(Icons.account_balance_wallet_outlined), label: const Text('المحفظة'))),
+            Expanded(child: FilledButton.tonalIcon(onPressed: () => showWallet(context, controller), icon: const Icon(Icons.account_balance_wallet_outlined), label: Text(ar ? 'المحفظة' : 'Wallet'))),
             const SizedBox(width: 7),
-            Expanded(child: FilledButton.tonalIcon(onPressed: () { Navigator.pop(context); showFriends(context, controller); }, icon: const Icon(Icons.people_outline), label: const Text('الأصدقاء'))),
+            Expanded(child: FilledButton.tonalIcon(onPressed: () { Navigator.pop(context); showFriends(context, controller); }, icon: const Icon(Icons.people_outline), label: Text(ar ? 'الأصدقاء' : 'Friends'))),
           ],
         ),
         if (controller.isAdmin) ...[
           const SizedBox(height: 8),
-          FilledButton.icon(onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboardPage(controller: controller))); }, icon: const Icon(Icons.admin_panel_settings_outlined), label: const Text('فتح لوحة الإدارة'), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(46))),
+          FilledButton.icon(onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboardPage(controller: controller))); }, icon: const Icon(Icons.admin_panel_settings_outlined), label: Text(ar ? 'فتح لوحة الإدارة' : 'Open admin dashboard'), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(46))),
         ],
         const SizedBox(height: 8),
         Row(children: [
-          Expanded(child: OutlinedButton.icon(onPressed: () { Navigator.pop(context); showSettings(context, controller); }, icon: const Icon(Icons.settings_outlined), label: const Text('الإعدادات'))),
+          Expanded(child: OutlinedButton.icon(onPressed: () { Navigator.pop(context); showSettings(context, controller); }, icon: const Icon(Icons.settings_outlined), label: Text(ar ? 'الإعدادات' : 'Settings'))),
           const SizedBox(width: 7),
-          Expanded(child: OutlinedButton.icon(onPressed: () async { Navigator.pop(context); await controller.logout(); }, icon: const Icon(Icons.logout, color: Colors.redAccent), label: const Text('الخروج'))),
+          Expanded(child: OutlinedButton.icon(onPressed: () async { Navigator.pop(context); await controller.logout(); }, icon: const Icon(Icons.logout, color: Colors.redAccent), label: Text(ar ? 'الخروج' : 'Log out'))),
         ]),
       ],
     ),
