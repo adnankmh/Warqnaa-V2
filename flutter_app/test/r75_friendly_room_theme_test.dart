@@ -69,8 +69,10 @@ void main() {
         final normal = r75ModeDecoration(
           tester, const ValueKey('r75-normal-mode-card'));
         expect(normal.gradient, isA<LinearGradient>());
-        expect(normal.border!.top.color,
-            theme.colorScheme.primary.withValues(alpha: .52));
+        expect(
+          normal.border!.top.color.toARGB32(),
+          theme.colorScheme.primary.withValues(alpha: .52).toARGB32(),
+        );
 
         await tester.tap(find.byKey(const ValueKey('r75-normal-mode-card')));
         await tester.pumpAndSettle();
