@@ -7,7 +7,7 @@ void main() {
   test('R64 room tools use compact tiles with readable text', () {
     final source = File('lib/main.dart').readAsStringSync();
     expect(source, contains("final tileHeight = constraints.maxWidth < 350 ? 68.0 : 56.0;"));
-    expect(source, contains("style: const TextStyle(color: B307SkyLuxury.text, fontSize: 17,"));
+    expect(source, contains("style: TextStyle(color: colors.onSurface, fontSize: 17,"));
     expect(source, contains("key: const ValueKey('r31-lobby-tools-grid')"));
   });
 

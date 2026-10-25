@@ -76,6 +76,9 @@ class _R64PlayCommandBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    final colors = R69PlaySurfaceColors.of(context);
+    final panelStart = Color.lerp(colors.surface, colors.accent, .16)!;
+    final panelEnd = Color.lerp(colors.surface, colors.secondary, .10)!;
     final actions = <(IconData, String, VoidCallback)>[
       (Icons.bolt_rounded, ar ? 'لعب سريع' : 'Quick match', onQuickMatch),
       (Icons.meeting_room_outlined, ar ? 'الغرف' : 'Rooms', onRooms),
@@ -84,22 +87,29 @@ class _R64PlayCommandBar extends StatelessWidget {
       (Icons.workspace_premium_outlined, 'Ranked', onRanked),
     ];
     return Container(
+      key: const ValueKey('r70-play-command-panel'),
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 3),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: B307SkyLuxury.heroGradient,
-        border: B307SkyLuxury.border(alpha: .42),
-        boxShadow: B307SkyLuxury.glow,
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: <Color>[panelStart, panelEnd],
+        ),
+        border: Border.all(color: colors.accent.withValues(alpha: .42)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(color: colors.accent.withValues(alpha: .16), blurRadius: 22),
+        ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
         Row(children: <Widget>[
-          const Icon(Icons.public_rounded, color: B307SkyLuxury.goldSoft),
+          Icon(Icons.public_rounded, color: colors.accent),
           const SizedBox(width: 8),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
               Text(ar ? 'مركز اللعب العالمي' : 'World play center', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
+              Text(ar ? 'غرف • مجموعات • مشاهدة • منافسة' : 'ROOMS • PARTY • LIVE • RANKED', style: TextStyle(color: colors.onSurface.withValues(alpha: .72), fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700)),
             ]),
           ),
           _R64NetworkBadge(online: controller.serverConnected, ar: ar),

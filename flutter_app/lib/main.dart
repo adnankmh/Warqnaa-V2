@@ -8944,7 +8944,17 @@ class _R31LobbyActionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
+  Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
+    final panelGradient = LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, accent, .12)!,
+        Color.lerp(colors.surface, colors.secondary, .07)!,
+      ],
+    );
+    return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
@@ -8952,7 +8962,7 @@ class _R31LobbyActionTile extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 105),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: B307SkyLuxury.panelGradient,
+            gradient: panelGradient,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: accent.withValues(alpha: .48)),
             boxShadow: <BoxShadow>[BoxShadow(color: accent.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5))],
@@ -8972,15 +8982,16 @@ class _R31LobbyActionTile extends StatelessWidget {
             const SizedBox(width: 9),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontSize: 12.5, fontWeight: FontWeight.w900)),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: colors.onSurface, fontSize: 12.5, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 3),
-                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9, height: 1.3, fontWeight: FontWeight.w700)),
+                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: colors.onSurface.withValues(alpha: .72), fontSize: 9, height: 1.3, fontWeight: FontWeight.w700)),
               ]),
             ),
-            const Icon(Icons.chevron_right_rounded, color: B307SkyLuxury.textMuted, size: 18),
+            Icon(Icons.chevron_right_rounded, color: colors.onSurface.withValues(alpha: .72), size: 18),
           ]),
         ),
       );
+  }
 }
 
 class _R31LobbyTool extends StatelessWidget {
@@ -8990,30 +9001,41 @@ class _R31LobbyTool extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Semantics(
+  Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
+    return Semantics(
         button: true,
         label: label,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Container(
+            key: ValueKey<String>('r70-lobby-tool-${icon.codePoint}'),
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
             decoration: BoxDecoration(
-              gradient: B307SkyLuxury.panelGradient,
+              gradient: LinearGradient(
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
+                colors: <Color>[
+                  Color.lerp(colors.surface, colors.accent, .13)!,
+                  Color.lerp(colors.surface, colors.secondary, .07)!,
+                ],
+              ),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .40)),
+              border: Border.all(color: colors.accent.withValues(alpha: .40)),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, color: B307SkyLuxury.cyan, size: 21),
+              Icon(icon, color: colors.accent, size: 21),
               const SizedBox(width: 6),
               Flexible(child: Text(label, textAlign: TextAlign.center, maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: B307SkyLuxury.text, fontSize: 17,
+                style: TextStyle(color: colors.onSurface, fontSize: 17,
                   height: 1.12, fontWeight: FontWeight.w900))),
             ]),
           ),
         ),
       );
+  }
 }
 
 Future<void> showAvailableRooms(BuildContext context, AppController controller, GameInfo game) async {
