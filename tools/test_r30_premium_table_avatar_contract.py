@@ -26,7 +26,8 @@ def main() -> None:
     require(main_dart, "Premium symbols", 'premium avatar symbols')
 
     require(play, "r30-seat-$name", 'premium player seat marker')
-    require(play, "B307SkyLuxury.azure", 'active seat sky palette')
+    require(play, "R69PlaySurfaceColors.of(context)", 'selected-theme seat palette')
+    require(play, "Color.lerp(B307SkyLuxury.goldSoft, colors.accent, .35)", 'theme-aware active seat outline')
     require(play, "B307SkyLuxury.goldSoft", 'active turn gold highlight')
     require(premium, "r30-sky-reaction-dock", 'premium reaction dock')
     require(premium, "r30-sky-floating-reaction", 'premium floating reaction')
