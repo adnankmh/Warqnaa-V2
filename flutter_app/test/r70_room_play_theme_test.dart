@@ -24,7 +24,7 @@ void main() {
         await tester.pumpWidget(MaterialApp(
           locale: Locale(locale),
           theme: theme,
-          home: R64PlayHubPage(controller: controller),
+          home: Scaffold(body: R64PlayHubPage(controller: controller)),
         ));
         await tester.pump();
         final command = r70Decoration(
