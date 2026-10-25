@@ -8800,6 +8800,7 @@ void showCompetitions(BuildContext context, AppController controller) {
 
 void showGameLobby(BuildContext context, AppController controller, GameInfo game) {
   final ar = controller.localeCode == 'ar';
+  final surfaceColors = R69PlaySurfaceColors.of(context);
   if (game.serverOnly && !controller.serverConnected) {
     showToast(context, ar
         ? 'هذه اللعبة تستخدم محرك الخادم الكامل. اربط التطبيق بخادم Laravel للعبها بصورة صحيحة.'
@@ -8819,12 +8820,13 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
               ? (controller.serverConnected ? 'اختر طريقة اللعب وادخل إلى طاولة ورقنا بسرعة.' : 'تدريب محلي فاخر مع لاعبي الكمبيوتر.')
               : (controller.serverConnected ? 'Choose how to play and enter your Warqnaa table quickly.' : 'Premium local practice with computer players.'),
           trailing: Container(
+            key: const ValueKey('r76-lobby-game-art'),
             width: 74,
             height: 54,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .44)),
+              border: Border.all(color: surfaceColors.accent.withValues(alpha: .44)),
             ),
             child: Stack(fit: StackFit.expand, children: <Widget>[
               Opacity(opacity: .14, child: Image.asset(gameArtAsset(game.id), fit: BoxFit.cover,
@@ -8837,17 +8839,14 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
         Container(
           key: const ValueKey('r31-lobby-connection-strip'),
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: B307SkyLuxury.panelGradient,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: (controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan).withValues(alpha: .34),
-            ),
+          decoration: r76LobbyConnectionDecoration(
+            context,
+            connected: controller.serverConnected,
           ),
           child: Row(children: [
             Icon(
               controller.serverConnected ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
-              color: controller.serverConnected ? B307SkyLuxury.emerald : B307SkyLuxury.cyan,
+              color: r76LobbyConnectionAccent(context, controller.serverConnected),
               size: 19,
             ),
             const SizedBox(width: 7),
@@ -8856,7 +8855,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
                 controller.serverConnected
                     ? (ar ? 'متصل بالخادم • الغرف والبطولات متاحة' : 'Server connected • rooms and competitions available')
                     : (ar ? 'وضع محلي • التدريب متاح بدون خادم' : 'Local mode • practice available without server'),
-                style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 9.5, fontWeight: FontWeight.w800),
+                style: TextStyle(color: surfaceColors.onSurface.withValues(alpha: .72), fontSize: 9.5, fontWeight: FontWeight.w800),
               ),
             ),
           ]),
@@ -8934,6 +8933,33 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
         ),
       ],
     ),
+  );
+}
+
+Color r76LobbyConnectionAccent(BuildContext context, bool connected) {
+  final colors = R69PlaySurfaceColors.of(context);
+  return connected
+      ? Color.lerp(B307SkyLuxury.emerald, colors.accent, .20)!
+      : colors.accent;
+}
+
+BoxDecoration r76LobbyConnectionDecoration(
+  BuildContext context, {
+  required bool connected,
+}) {
+  final colors = R69PlaySurfaceColors.of(context);
+  final statusAccent = r76LobbyConnectionAccent(context, connected);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, statusAccent, .13)!,
+        Color.lerp(colors.surface, colors.secondary, .07)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(14),
+    border: Border.all(color: statusAccent.withValues(alpha: .40)),
   );
 }
 
