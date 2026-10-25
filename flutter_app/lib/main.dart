@@ -8697,32 +8697,60 @@ void showNoCodeDesignerSheet(BuildContext context, AppController controller) {
   );
 }
 
+BoxDecoration r78RewardSummaryDecoration(BuildContext context) {
+  final colors = R69PlaySurfaceColors.of(context);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, colors.accent, .15)!,
+        Color.lerp(colors.surface, colors.secondary, .08)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(18),
+    border: Border.all(color: colors.accent.withValues(alpha: .38)),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: colors.accent.withValues(alpha: .09), blurRadius: 12, offset: const Offset(0, 5)),
+    ],
+  );
+}
+
 void showGiftRoadSheet(BuildContext context, AppController controller) {
-  const steps = <(int, String, String)>[
-    (5, '🎁', '50 توكن'),
-    (10, '💎', '100 توكن'),
-    (20, '👑', '100 توكن'),
-    (30, '🏆', '200 توكن'),
+  final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
+  final steps = <(int, String, String)>[
+    (5, '🎁', ar ? '50 توكن' : '50 tokens'),
+    (10, '💎', ar ? '100 توكن' : '100 tokens'),
+    (20, '👑', ar ? '100 توكن' : '100 tokens'),
+    (30, '🏆', ar ? '200 توكن' : '200 tokens'),
   ];
   showPremiumSheet(
     context,
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Text('طريق الهدايا', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-      const SizedBox(height: 5),
-      const Text('كل فوز قانوني يرفع تقدمك خطوة. استلم المكافآت عند بلوغ المراحل.', style: TextStyle(color: Colors.white60, height: 1.5)),
-      const SizedBox(height: 12),
-      LinearProgressIndicator(value: controller.giftRoadProgress / 30, minHeight: 9),
+      Container(
+        key: const ValueKey('r78-gift-road-summary'),
+        padding: const EdgeInsets.all(14),
+        decoration: r78RewardSummaryDecoration(context),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [Icon(Icons.card_giftcard_rounded, color: colors.accent), const SizedBox(width: 8), Expanded(child: Text(ar ? 'طريق الهدايا' : 'Gift Road', style: TextStyle(color: colors.onSurface, fontSize: 22, fontWeight: FontWeight.w900)))]),
+          const SizedBox(height: 5),
+          Text(ar ? 'كل فوز قانوني يرفع تقدمك خطوة. استلم المكافآت عند بلوغ المراحل.' : 'Every valid win advances your progress. Claim rewards when you reach each milestone.', style: TextStyle(color: colors.onSurface.withValues(alpha: .72), height: 1.5)),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(value: (controller.giftRoadProgress / 30).clamp(0, 1).toDouble(), minHeight: 9, color: colors.accent, backgroundColor: colors.onSurface.withValues(alpha: .12)),
+        ]),
+      ),
       const SizedBox(height: 13),
       ...steps.map((entry) {
         final available = controller.giftRoadProgress >= entry.$1;
         final claimed = controller.claimedGiftSteps.contains(entry.$1);
         return Padding(padding: const EdgeInsets.only(bottom: 8), child: PremiumListTile(
           icon: entry.$2,
-          title: 'مرحلة ${entry.$1} انتصار',
+          title: ar ? 'مرحلة ${entry.$1} انتصار' : '${entry.$1}-win milestone',
           subtitle: entry.$3,
           action: FilledButton.tonal(
-            onPressed: available && !claimed ? () { final ok = controller.claimGiftRoad(entry.$1); showToast(context, ok ? 'تم استلام ${entry.$3}.' : 'المكافأة غير متاحة.'); Navigator.pop(context); } : null,
-            child: Text(claimed ? 'مستلمة' : available ? 'استلام' : '${controller.giftRoadProgress}/${entry.$1}'),
+            onPressed: available && !claimed ? () { final ok = controller.claimGiftRoad(entry.$1); showToast(context, ok ? (ar ? 'تم استلام ${entry.$3}.' : '${entry.$3} claimed.') : (ar ? 'المكافأة غير متاحة.' : 'Reward unavailable.')); Navigator.pop(context); } : null,
+            child: Text(claimed ? (ar ? 'مستلمة' : 'Claimed') : available ? (ar ? 'استلام' : 'Claim') : '${controller.giftRoadProgress}/${entry.$1}'),
           ),
         ));
       }),
@@ -8731,25 +8759,35 @@ void showGiftRoadSheet(BuildContext context, AppController controller) {
 }
 
 void showPashaBenefits(BuildContext context, AppController controller) {
+  final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
   final pasha = products.where((p) => p.category == 'pasha').toList();
   showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
     Center(child: PashaHatV173(controller: controller, width: 160, height: 104)),
-    const Text('مزايا الباشا', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 8),
-    const Text('شارة ذهبية • 20 XP لكل جولة • إنشاء مجموعات ومنافسات • صلاحية إدارة الغرفة • أولوية دخول وملف شخصي فاخر.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60, height: 1.6)),
+    Container(
+      key: const ValueKey('r78-pasha-benefits-summary'),
+      padding: const EdgeInsets.all(14),
+      decoration: r78RewardSummaryDecoration(context),
+      child: Column(children: [
+        Text(ar ? 'مزايا الباشا' : 'Pasha benefits', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurface, fontSize: 22, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        Text(ar ? 'شارة ذهبية • 20 XP لكل جولة • إنشاء مجموعات ومنافسات • صلاحية إدارة الغرفة • أولوية دخول وملف شخصي فاخر.' : 'Golden badge • 20 XP per round • Create groups and competitions • Room management • Priority entry and a premium profile.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurface.withValues(alpha: .72), height: 1.6)),
+      ]),
+    ),
     const SizedBox(height: 12),
     const SizedBox(height: 10),
-    SizedBox(height: 118, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: pasha.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, i) { final product = pasha[i]; return SizedBox(width: 148, child: FilledButton.tonal(onPressed: () => showProductPreview(context, controller, product), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [PashaHatV173(controller: controller, width: 48, height: 34), const SizedBox(height: 3), Text('${controller.durationFor(product) ?? 0} يوم', style: const TextStyle(fontWeight: FontWeight.w900)), Text('🪙 ${formatNumber(controller.priceFor(product))}', style: const TextStyle(fontSize: 9))]))); })),
+    SizedBox(height: 118, child: ListView.separated(scrollDirection: Axis.horizontal, itemCount: pasha.length, separatorBuilder: (_, __) => const SizedBox(width: 8), itemBuilder: (_, i) { final product = pasha[i]; return SizedBox(width: 148, child: FilledButton.tonal(onPressed: () => showProductPreview(context, controller, product), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [PashaHatV173(controller: controller, width: 48, height: 34), const SizedBox(height: 3), Text(ar ? '${controller.durationFor(product) ?? 0} يوم' : '${controller.durationFor(product) ?? 0} days', style: const TextStyle(fontWeight: FontWeight.w900)), Text('🪙 ${formatNumber(controller.priceFor(product))}', style: const TextStyle(fontSize: 9))]))); })),
   ]));
 }
 
 void showClubChallenges(BuildContext context, AppController controller, String clubName) {
+  final ar = controller.localeCode == 'ar';
   showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-    Text('تحديات $clubName', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+    Container(key: const ValueKey('r78-club-challenges-summary'), padding: const EdgeInsets.all(14), decoration: r78RewardSummaryDecoration(context), child: Text(ar ? 'تحديات $clubName' : '$clubName challenges', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))),
     const SizedBox(height: 9),
-    PremiumListTile(icon: '⚔️', title: 'فوزان في الطرنيب', subtitle: 'مكافأة 200 توكن + 100 XP', action: FilledButton(onPressed: () { controller.joinChallenge('club_tarneeb'); Navigator.pop(context); showToast(context, 'تم تفعيل تحدي المجموعة.'); }, child: const Text('ابدأ'))),
+    PremiumListTile(icon: '⚔️', title: ar ? 'فوزان في الطرنيب' : 'Win twice in Tarneeb', subtitle: ar ? 'مكافأة 200 توكن + 100 XP' : 'Reward: 200 tokens + 100 XP', action: FilledButton(onPressed: () { controller.joinChallenge('club_tarneeb'); Navigator.pop(context); showToast(context, ar ? 'تم تفعيل تحدي المجموعة.' : 'Club challenge activated.'); }, child: Text(ar ? 'ابدأ' : 'Start'))),
     const SizedBox(height: 8),
-    PremiumListTile(icon: '🎴', title: 'فوز في الهاند أو البناكل', subtitle: 'مكافأة 100 توكن + نقطة للمجموعة', action: FilledButton(onPressed: () { controller.joinChallenge('club_rummy'); Navigator.pop(context); showToast(context, 'تم تفعيل التحدي.'); }, child: const Text('ابدأ'))),
+    PremiumListTile(icon: '🎴', title: ar ? 'فوز في الهاند أو البناكل' : 'Win in Hand or Banakil', subtitle: ar ? 'مكافأة 100 توكن + نقطة للمجموعة' : 'Reward: 100 tokens + one club point', action: FilledButton(onPressed: () { controller.joinChallenge('club_rummy'); Navigator.pop(context); showToast(context, ar ? 'تم تفعيل التحدي.' : 'Challenge activated.'); }, child: Text(ar ? 'ابدأ' : 'Start'))),
   ]));
 }
 
