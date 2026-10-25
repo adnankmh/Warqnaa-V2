@@ -9194,6 +9194,7 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
           children: [
             Expanded(
               child: _GameModeCard(
+                key: const ValueKey('r75-normal-mode-card'),
                 icon: Icons.style_rounded,
                 title: L.t(controller.localeCode, 'normalGame'),
                 subtitle: L.t(controller.localeCode, 'normalGameHint'),
@@ -9208,6 +9209,7 @@ void showPlayModePicker(BuildContext context, AppController controller, GameInfo
             const SizedBox(width: 10),
             Expanded(
               child: _GameModeCard(
+                key: const ValueKey('r75-voice-mode-card'),
                 icon: Icons.mic_rounded,
                 title: L.t(controller.localeCode, 'voiceGame'),
                 subtitle: L.t(controller.localeCode, 'voiceGameHint'),
@@ -9232,10 +9234,12 @@ class _GameModeCard extends StatelessWidget {
   final String subtitle;
   final Color color;
   final VoidCallback onTap;
-  const _GameModeCard({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
+  const _GameModeCard({super.key, required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
+    final cardAccent = Color.lerp(color, colors.accent, .34)!;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -9243,26 +9247,56 @@ class _GameModeCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 160),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: B307SkyLuxury.panelGradient,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[
+              Color.lerp(colors.surface, cardAccent, .16)!,
+              Color.lerp(colors.surface, colors.secondary, .07)!,
+            ],
+          ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: .46)),
+          border: Border.all(color: cardAccent.withValues(alpha: .52)),
           boxShadow: <BoxShadow>[
-            BoxShadow(color: color.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5)),
+            BoxShadow(color: cardAccent.withValues(alpha: .12), blurRadius: 12, offset: const Offset(0, 5)),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(width: 54, height: 54, decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: .16)), child: Icon(icon, color: color, size: 29)),
+            Container(width: 54, height: 54, decoration: BoxDecoration(shape: BoxShape.circle, color: cardAccent.withValues(alpha: .16)), child: Icon(icon, color: cardAccent, size: 29)),
             const SizedBox(height: 10),
-            Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+            Text(title, textAlign: TextAlign.center, style: TextStyle(color: colors.onSurface, fontSize: 16, fontWeight: FontWeight.w900)),
             const SizedBox(height: 5),
-            Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, height: 1.4, color: Colors.white60)),
+            Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, height: 1.4, color: colors.onSurface.withValues(alpha: .68))),
           ],
         ),
       ),
     );
   }
+}
+
+BoxDecoration r75FriendlyParticipantDecoration(BuildContext context) {
+  final colors = R69PlaySurfaceColors.of(context);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: <Color>[
+        Color.lerp(colors.surface, colors.accent, .14)!,
+        Color.lerp(colors.surface, colors.secondary, .07)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(18),
+    border: Border.all(color: colors.accent.withValues(alpha: .34)),
+    boxShadow: <BoxShadow>[
+      BoxShadow(
+        color: colors.accent.withValues(alpha: .09),
+        blurRadius: 10,
+        offset: const Offset(0, 5),
+      ),
+    ],
+  );
 }
 
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
@@ -9360,21 +9394,17 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ),
           const SizedBox(height: 10),
           Container(
+            key: const ValueKey('r75-participant-panel'),
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: B307SkyLuxury.panelGradient,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .26)),
-              boxShadow: <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 10, offset: const Offset(0, 5))],
-            ),
+            decoration: r75FriendlyParticipantDecoration(context),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Row(children: [
-                Icon(Icons.group_add_rounded, color: Colors.amberAccent),
+                Icon(Icons.group_add_rounded, color: Theme.of(context).colorScheme.primary),
                 SizedBox(width: 8),
                 Expanded(child: Text(ar ? 'اختيار المشاركين قبل إنشاء الغرفة' : 'Choose players before creating the room', style: const TextStyle(fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 7),
-              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: const TextStyle(fontSize: 10.5, height: 1.45, color: Colors.white60)),
+              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .68))),
               if (controller.friends.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Wrap(
@@ -9412,7 +9442,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 onChanged: (value) => setLocalState(() => botCount = value ?? 0),
               ),
               const SizedBox(height: 6),
-              Text(ar ? 'المحدد: ${selectedInviteeIds.length} لاعب حقيقي • $botCount بوت • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} مقاعد مفتوحة' : '${selectedInviteeIds.length} invited • $botCount computer • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} open seats', style: const TextStyle(fontSize: 11, color: B307SkyLuxury.textMuted)),
+              Text(ar ? 'المحدد: ${selectedInviteeIds.length} لاعب حقيقي • $botCount بوت • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} مقاعد مفتوحة' : '${selectedInviteeIds.length} invited • $botCount computer • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} open seats', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .64))),
             ]),
           ),
           const SizedBox(height: 10),
