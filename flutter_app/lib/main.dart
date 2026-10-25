@@ -7692,6 +7692,7 @@ class RoomTool extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
     return Semantics(
       button: true,
       child: InkWell(
@@ -7703,14 +7704,21 @@ class RoomTool extends StatelessWidget {
           height: 38,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: B307SkyLuxury.panelGradient,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[
+                Color.lerp(colors.surface, colors.accent, .18)!,
+                Color.lerp(colors.surface, colors.secondary, .08)!,
+              ],
+            ),
             borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .34)),
+            border: Border.all(color: colors.accent.withValues(alpha: .34)),
             boxShadow: <BoxShadow>[
-              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .08), blurRadius: 8, offset: const Offset(0, 4)),
+              BoxShadow(color: colors.accent.withValues(alpha: .10), blurRadius: 8, offset: const Offset(0, 4)),
             ],
           ),
-          child: Icon(icon, color: B307SkyLuxury.goldSoft, size: 19),
+          child: Icon(icon, color: Color.lerp(B307SkyLuxury.goldSoft, colors.accent, .30), size: 19),
         ),
       ),
     );
