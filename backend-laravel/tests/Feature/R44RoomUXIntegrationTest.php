@@ -44,6 +44,16 @@ class R44RoomUXIntegrationTest extends TestCase
         $this->assertStringContainsString('Mute this player for me only', $seatBlade);
         $this->assertStringContainsString('Empty seat', $seatBlade);
         $this->assertStringContainsString('Sit here', $seatBlade);
+        $roomIndex = file_get_contents(resource_path('views/room/index.blade.php'));
+        $this->assertStringContainsString("app()->getLocale() === 'en'", $roomIndex);
+        $this->assertStringContainsString('Rooms for', $roomIndex);
+        $this->assertStringContainsString("'Public'", $roomIndex);
+        $this->assertStringContainsString("'Private'", $roomIndex);
+        $this->assertStringContainsString('Voice game — deducts 100 tokens from each player', $roomIndex);
+        $this->assertStringContainsString('Pasha room-owner kick permission', $roomIndex);
+        $this->assertStringContainsString('XP penalty for manual exit', $roomIndex);
+        $this->assertStringContainsString('Create room', $roomIndex);
+        $this->assertStringContainsString("'Close'", $roomIndex);
         $this->assertStringContainsString('Away mode is active', $blade);
         $this->assertStringContainsString('Leave and return to', $blade);
         $this->assertStringContainsString('Waiting for selection', $blade);
