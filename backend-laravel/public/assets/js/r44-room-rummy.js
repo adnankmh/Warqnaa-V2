@@ -114,20 +114,36 @@
     const melds = state.melds && typeof state.melds === 'object' ? state.melds : {};
     const teams = state.teams && typeof state.teams === 'object' ? state.teams : {};
     const cols=create('div','r44-owner-grid');
+    const buckets=new Map();
     Object.entries(melds).forEach(([owner,groups])=>{
       if(!Array.isArray(groups) || !groups.length)return;
       const team = (teams.teamA||[]).includes(owner) ? 'a' :
                    (teams.teamB||[]).includes(owner) ? 'b' : 'solo';
-      const tile=create('div','r44-meld-owner team-'+(isPartner ? team : 'solo'));
-      tile.dataset.owner=owner;
       const display = owner===window.MY_PLAYER_KEY ? 'أنت' : owner.startsWith('bot:') ? 'روبوت' : 'لاعب';
-      tile.append(create('strong','',isPartner ? (team==='a'?'فريق أ • ':'فريق ب • ')+display : display));
-      for(const record of groups) {
-        const cards=Array.isArray(record) ? record : record?.cards;
-        if(!Array.isArray(cards) || !cards.length)continue;
-        const set=create('div','r44-meld-set');
-        for(const card of cards)set.append(create('span','r44-meld-card',labelCard(card)));
-        tile.append(set);
+      const bucketKey=isPartner && team!=='solo' ? 'team-'+team : 'owner-'+owner;
+      if(!buckets.has(bucketKey))buckets.set(bucketKey,{team,owners:[]});
+      buckets.get(bucketKey).owners.push({owner,display,groups});
+    });
+    const english=String(document.documentElement.lang||'').toLowerCase().startsWith('en');
+    buckets.forEach(bucket=>{
+      const tile=create('div','r44-meld-owner team-'+(isPartner ? bucket.team : 'solo'));
+      tile.dataset.owners=bucket.owners.map(item=>item.owner).join(',');
+      const names=bucket.owners.map(item=>item.display).join(' + ');
+      const teamName=bucket.team==='a' ? (english?'Team A':'فريق أ') :
+                     bucket.team==='b' ? (english?'Team B':'فريق ب') : '';
+      tile.append(create('strong','',isPartner ? teamName+' • '+names : names));
+      for(const item of bucket.owners) {
+        const ownerSection=create('div','r84-meld-owner-section');
+        ownerSection.dataset.owner=item.owner;
+        if(isPartner)ownerSection.append(create('small','r84-meld-owner-name',item.display));
+        for(const record of item.groups) {
+          const cards=Array.isArray(record) ? record : record?.cards;
+          if(!Array.isArray(cards) || !cards.length)continue;
+          const set=create('div','r44-meld-set');
+          for(const card of cards)set.append(create('span','r44-meld-card',labelCard(card)));
+          ownerSection.append(set);
+        }
+        tile.append(ownerSection);
       }
       cols.append(tile);
     });

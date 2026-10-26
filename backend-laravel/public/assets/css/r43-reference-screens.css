@@ -571,12 +571,14 @@ body.warqna-b304 .r44-owner-grid{display:flex;justify-content:center;flex-wrap:w
 body.warqna-b304 .r44-meld-owner {
   flex:1 1 122px;max-width:220px;min-width:105px;
   border:2px solid #8cddff;border-radius:12px;
-  padding:6px;background:#03366ddc;color:white;
+  padding:6px;background:linear-gradient(150deg,var(--r44-b,#0864a2),var(--r44-c,#03366d));color:white;
 }
 body.warqna-b304 .r44-meld-owner.team-a{border-color:#47d9ff}
 body.warqna-b304 .r44-meld-owner.team-b{border-color:#ffd56d}
 body.warqna-b304 .r44-meld-owner strong {display:block;font-size:12px;text-align:center;margin-bottom:4px}
 body.warqna-b304 .r44-meld-set{display:flex;gap:3px;flex-wrap:wrap;margin-block-end:4px}
+body.warqna-b304 .r84-meld-owner-section + .r84-meld-owner-section{border-block-start:1px solid rgba(255,255,255,.16);padding-block-start:5px;margin-block-start:3px}
+body.warqna-b304 .r84-meld-owner-name{display:block;color:rgba(255,255,255,.78);font-weight:800;margin-block-end:3px}
 body.warqna-b304 .r44-meld-card{
   display:inline-flex;align-items:center;justify-content:center;
   width:24px;height:32px;border:1px solid #e2e5ff;border-radius:4px;

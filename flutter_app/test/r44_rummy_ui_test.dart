@@ -39,8 +39,10 @@ void main() {
     ))));
     expect(find.byKey(const ValueKey('r44-stock-pile')), findsOneWidget);
     expect(find.byKey(const ValueKey('r44-fire-pile')), findsOneWidget);
+    expect(find.byKey(const ValueKey('r84-meld-team-0')), findsOneWidget);
     expect(find.byKey(const ValueKey('r44-meld-owner-p0')), findsOneWidget);
     expect(find.byKey(const ValueKey('r44-meld-owner-p2')), findsOneWidget);
+    expect(find.text('فريق أ • Player + Partner'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('r44-stock-pile')));
     await tester.tap(find.byKey(const ValueKey('r44-fire-pile')));
     expect(stockDraws, 1);
@@ -86,8 +88,10 @@ void main() {
           final piles = find.byKey(const ValueKey('r44-central-rummy-piles'));
           expect(find.byKey(const ValueKey('r44-meld-owner-bot:1')), findsOneWidget);
           expect(find.byKey(const ValueKey('r44-meld-owner-bot:2')), findsOneWidget);
-          expect(find.text('${locale == 'ar' ? 'فريق' : 'Team'} 1 • Kinan'), findsOneWidget);
-          expect(find.text('${locale == 'ar' ? 'فريق' : 'Team'} 0 • Bayan'), findsOneWidget);
+          expect(find.byKey(const ValueKey('r84-meld-team-1')), findsOneWidget);
+          expect(find.byKey(const ValueKey('r84-meld-team-0')), findsOneWidget);
+          expect(find.text('${locale == 'ar' ? 'فريق ب' : 'Team B'} • Kinan'), findsOneWidget);
+          expect(find.text('${locale == 'ar' ? 'فريق أ' : 'Team A'} • Bayan'), findsOneWidget);
           expect(tester.getRect(groups).bottom, lessThanOrEqualTo(tester.getRect(piles).top));
           final fire = find.byKey(const ValueKey('r44-fire-pile'));
           expect(find.descendant(of: fire, matching: find.text('${locale == 'ar' ? 'الرمي' : 'Discard'} · 2')), findsOneWidget);
