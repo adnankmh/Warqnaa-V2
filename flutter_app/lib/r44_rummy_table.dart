@@ -75,6 +75,13 @@ class R44RummyTableOverlay extends StatelessWidget {
       return playerInfo[owner]?['team']?.toString() ?? '${(seat >= 0 ? seat : index) % 2}';
     }
     final ordered = ownerGroups.entries.toList(growable: false);
+    final teamGroups = <String, List<MapEntry<String, List<List<String>>>>>{};
+    if (partnership) {
+      for (var i = 0; i < ordered.length; i++) {
+        final entry = ordered[i];
+        teamGroups.putIfAbsent(teamOfOwner(entry.key, i), () => []).add(entry);
+      }
+    }
     final count = int.tryParse('${state['deck_count'] ?? ''}')
         ?? (state['deck'] is List ? (state['deck'] as List).length : 0);
     final rawDiscard = state['discard'] ?? state['discard_pile'];
@@ -96,16 +103,27 @@ class R44RummyTableOverlay extends StatelessWidget {
                 alignment: WrapAlignment.center,
                 spacing: 5, runSpacing: 5,
                 children: <Widget>[
-                  for (var i = 0; i < ordered.length; i++)
-                    _ownerTile(
-                      key: ValueKey('r44-meld-owner-${ordered[i].key}'),
-                      id: ordered[i].key,
-                      groups: ordered[i].value,
-                      player: playerInfo[ordered[i].key],
-                      team: partnership ? teamOfOwner(ordered[i].key, i) : '$i',
-                      compact: compact,
-                      colors: colors,
-                    ),
+                  if (partnership)
+                    for (final team in teamGroups.entries)
+                      _teamTile(
+                        key: ValueKey('r84-meld-team-${team.key}'),
+                        team: team.key,
+                        owners: team.value,
+                        playerInfo: playerInfo,
+                        compact: compact,
+                        colors: colors,
+                      )
+                  else
+                    for (var i = 0; i < ordered.length; i++)
+                      _ownerTile(
+                        key: ValueKey('r44-meld-owner-${ordered[i].key}'),
+                        id: ordered[i].key,
+                        groups: ordered[i].value,
+                        player: playerInfo[ordered[i].key],
+                        team: '$i',
+                        compact: compact,
+                        colors: colors,
+                      ),
                 ],
               ),
             ),
@@ -214,6 +232,89 @@ class R44RummyTableOverlay extends StatelessWidget {
             ),
           if (groups.length > 4) Text('+${groups.length - 4}',
             style: TextStyle(color: tint, fontSize: 10)),
+        ]),
+      ),
+    );
+  }
+
+  Widget _teamTile({
+    required Key key, required String team,
+    required List<MapEntry<String, List<List<String>>>> owners,
+    required Map<String, Map<String, dynamic>> playerInfo,
+    required bool compact, required R69PlaySurfaceColors colors,
+  }) {
+    final teamIndex = int.tryParse(team) ?? team.hashCode.abs();
+    final tint = Color.lerp(
+      const <Color>[Color(0xFF51D8FF), Color(0xFFFFD16A)]
+          [teamIndex % 2],
+      teamIndex.isEven ? colors.accent : colors.secondary,
+      .38,
+    )!;
+    String ownerName(String id) =>
+      (playerInfo[id]?['name'] ?? playerInfo[id]?['username'] ??
+        playerInfo[id]?['display_name'] ?? playerInfo[id]?['id'] ?? id)
+      .toString();
+    final names = owners.map((entry) => ownerName(entry.key)).join(' + ');
+    final letter = teamIndex == 0 ? tr('أ', 'A') : tr('ب', 'B');
+    final teamLabel = '${tr('فريق', 'Team')} $letter';
+    return Semantics(
+      label: tr('مجموعات $teamLabel المشتركة: $names',
+        '$teamLabel shared melds: $names'),
+      child: Container(
+        key: key,
+        constraints: BoxConstraints(maxWidth: compact ? 190 : 290),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: .90),
+          border: Border.all(color: tint, width: 1.8),
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          Text('$teamLabel • $names', maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: tint, fontSize: compact ? 10 : 11,
+              fontWeight: FontWeight.w900)),
+          const SizedBox(height: 3),
+          for (var ownerIndex = 0; ownerIndex < owners.length; ownerIndex++) ...[
+            if (ownerIndex > 0) Divider(height: 7, thickness: .7,
+              color: tint.withValues(alpha: .35)),
+            KeyedSubtree(
+              key: ValueKey('r44-meld-owner-${owners[ownerIndex].key}'),
+              child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(ownerName(owners[ownerIndex].key),
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.onSurface.withValues(alpha: .72),
+                      fontSize: compact ? 9 : 10,
+                      fontWeight: FontWeight.w700)),
+                ),
+                for (final group in owners[ownerIndex].value.take(4))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: SizedBox(
+                      height: 26,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        children: <Widget>[
+                          for (final card in group)
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(end: 2),
+                              child: PlayingCard(label: cardLabel(card),
+                                width: 19, height: 25),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (owners[ownerIndex].value.length > 4)
+                  Text('+${owners[ownerIndex].value.length - 4}',
+                    style: TextStyle(color: tint, fontSize: 10)),
+              ]),
+            ),
+          ],
         ]),
       ),
     );

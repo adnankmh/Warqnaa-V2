@@ -18,6 +18,10 @@ class R44RoomUXIntegrationTest extends TestCase
         $this->assertStringContainsString("window.roomAction('draw_discard_stack',{count:amount})", $script);
         $this->assertStringContainsString("enginePhase === 'draw'", $script);
         $this->assertStringContainsString('state.melds', $script);
+        $this->assertStringContainsString("buckets.set(bucketKey,{team,owners:[]})", $script);
+        $this->assertStringContainsString("tile.dataset.owners", $script);
+        $this->assertStringContainsString("ownerSection.dataset.owner=item.owner", $script);
+        $this->assertStringContainsString('r84-meld-owner-section', $styles);
         $this->assertStringContainsString('r44-pick-card', $styles);
         $this->assertStringContainsString('theme-emerald', $styles);
         $this->assertStringContainsString('theme-galaxy', $styles);
