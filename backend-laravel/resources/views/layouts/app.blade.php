@@ -46,6 +46,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/r43-reference-screens.css') }}?v=43">
 </head>
 @php
+    $english = app()->getLocale() === 'en';
+    $t = fn(string $ar, string $en) => $english ? $en : $ar;
     $currentUser = auth()->user();
     $currentProfile = $currentUser?->profile;
     $soundEnabled = $currentUser ? (($currentProfile?->sound_enabled !== false) ? '1' : '0') : '1';
@@ -101,41 +103,41 @@
     .game-table.premium-table,.game-table{min-height:var(--admin-table-height)!important;border-radius:@if($tableShape==='stadium')999px @elseif($tableShape==='square-soft')var(--admin-table-radius) @else var(--admin-table-radius) @endif!important;border-width:var(--admin-table-border)!important;border-color:var(--admin-table-border-color)!important;background:radial-gradient(circle at center,var(--admin-table-bg1),var(--admin-table-bg2) 72%)!important}.center-board{scale:calc(var(--admin-table-scale) / 100)!important}.hand-row .card,.card{width:var(--admin-play-card-w)!important;height:var(--admin-play-card-h)!important}.seat-profile img,.player-ring,.player-ring img{width:var(--admin-player-avatar)!important;height:var(--admin-player-avatar)!important}.chat-dock{width:var(--admin-chat-w)!important;height:var(--admin-chat-h)!important;border-radius:var(--admin-chat-radius)!important;font-size:var(--admin-chat-font)!important;background:linear-gradient(145deg,var(--admin-chat-bg),color-mix(in srgb,var(--admin-chat-bg),#000 28%))!important}.chat-head{background:linear-gradient(135deg,var(--admin-chat-head),color-mix(in srgb,var(--admin-chat-head),#000 34%))!important}.chat-tabs{gap:var(--admin-chat-gap)!important;padding:var(--admin-chat-gap)!important}.chat-tabs button,.chat-head button,.chat-send button{min-width:var(--admin-chat-btn-w)!important;min-height:var(--admin-chat-btn-h)!important;border-radius:var(--admin-chat-btn-radius)!important;background:var(--admin-chat-btn-bg)!important;color:var(--admin-chat-btn-text)!important}.chat-send input,.chat-search{min-height:var(--admin-chat-input-h)!important;background:var(--admin-chat-input-bg)!important}.chat-body .msg,.game-chat-msg{background:var(--admin-chat-message-bg)!important}.emoji-palette button,.quick-reactions-box-v132 button{font-size:var(--admin-chat-emoji)!important;min-width:calc(var(--admin-chat-emoji) + 18px)!important;min-height:calc(var(--admin-chat-emoji) + 18px)!important}.notification-drawer,.notification-drawer-v136{width:min(var(--admin-notif-w),calc(100vw - 24px))!important}.profile-modal,.profile-modal-card{width:min(var(--admin-profile-w),calc(100vw - 22px))!important;font-size:var(--admin-profile-font)!important}@if($animationLevel==='none')*,*:before,*:after{animation:none!important;transition:none!important}@elseif($animationLevel==='premium').btn:hover,button:hover,.game-card:hover,.store-card:hover{transform:translateY(-4px) scale(1.015)!important;filter:brightness(1.08)!important}@endif
     </style>
     <div class="topbar">
-        <a class="brand" href="{{ auth()->check() ? route('games') : route('home') }}">ورقنا زون</a>
+        <a class="brand" href="{{ auth()->check() ? route('games') : route('home') }}">{{ $t('ورقنا زون','Warqnaa Zone') }}</a>
         @auth
-            <button type="button" class="nav-drop-btn games-top-only-v128" onclick="toggleTopPanel('gamesCurtain')" data-i18n="all_games">🎮 الألعاب ▾</button>
-            <a href="{{ route('game.rules') }}" data-i18n="rules">قوانين الألعاب</a>
-            <a href="{{ route('store') }}" data-i18n="store">المتجر</a><a href="{{ route('rewards') }}">المكافآت</a>
-            <a href="{{ route('social-world') }}">✦ {{ app()->getLocale()==='ar'?'العالم الاجتماعي':'Social World' }}</a>
-            <a href="{{ route('competitive') }}">♛ {{ app()->getLocale()==='ar'?'الساحة التنافسية':'Competitive' }}</a>
-            <a href="{{ route('clubs') }}" data-i18n="groups">المجموعات</a>
-            <a href="{{ route('tournaments') }}" data-i18n="competitions">المنافسات</a>
-            <a class="nav-drop-btn" href="{{ route('notifications') }}">الإشعارات</a>
-            <button type="button" class="nav-drop-btn" onclick="openProfile({{ auth()->id() }})"><span data-i18n="my_profile">بروفايلي</span></button>
-            <a href="{{ route('settings') }}" data-i18n="settings">الإعدادات</a>
-            <a href="{{ route('about') }}"><span data-i18n="about">حول</span></a>
-            <a href="{{ route('contact') }}" data-i18n="contact">اتصل بنا</a>
-            @if($currentUser?->is_admin)<a href="{{ route('admin') }}"><span data-i18n="admin">الإدارة</span></a>@endif
+            <button type="button" class="nav-drop-btn games-top-only-v128" onclick="toggleTopPanel('gamesCurtain')" data-i18n="all_games" aria-haspopup="dialog">🎮 {{ $t('الألعاب','Games') }} ▾</button>
+            <a href="{{ route('game.rules') }}" data-i18n="rules">{{ $t('قوانين الألعاب','Game rules') }}</a>
+            <a href="{{ route('store') }}" data-i18n="store">{{ $t('المتجر','Store') }}</a><a href="{{ route('rewards') }}">{{ $t('المكافآت','Rewards') }}</a>
+            <a href="{{ route('social-world') }}">✦ {{ $t('العالم الاجتماعي','Social World') }}</a>
+            <a href="{{ route('competitive') }}">♛ {{ $t('الساحة التنافسية','Competitive') }}</a>
+            <a href="{{ route('clubs') }}" data-i18n="groups">{{ $t('المجموعات','Clubs') }}</a>
+            <a href="{{ route('tournaments') }}" data-i18n="competitions">{{ $t('المنافسات','Competitions') }}</a>
+            <a class="nav-drop-btn" href="{{ route('notifications') }}">{{ $t('الإشعارات','Notifications') }}</a>
+            <button type="button" class="nav-drop-btn" onclick="openProfile({{ auth()->id() }})"><span data-i18n="my_profile">{{ $t('بروفايلي','My profile') }}</span></button>
+            <a href="{{ route('settings') }}" data-i18n="settings">{{ $t('الإعدادات','Settings') }}</a>
+            <a href="{{ route('about') }}"><span data-i18n="about">{{ $t('حول','About') }}</span></a>
+            <a href="{{ route('contact') }}" data-i18n="contact">{{ $t('اتصل بنا','Contact us') }}</a>
+            @if($currentUser?->is_admin)<a href="{{ route('admin') }}"><span data-i18n="admin">{{ $t('الإدارة','Admin') }}</span></a>@endif
         @endauth
     </div>
     @auth
         
         
-        <div id="gamesCurtain" class="wz-games-menu-v130 hidden" role="dialog" aria-label="قائمة الألعاب">
+        <div id="gamesCurtain" class="wz-games-menu-v130 hidden" role="dialog" aria-label="{{ $t('قائمة الألعاب','Games menu') }}">
             <div class="wz-games-menu-card-v130">
                 <div class="wz-games-menu-head-v130">
                     <div>
-                        <b>🎮 الألعاب</b>
-                        <small>اختر لعبة بسرعة. تختفي القائمة مباشرة بعد اختيار اللعبة أو الضغط خارجها.</small>
+                        <b>🎮 {{ $t('الألعاب','Games') }}</b>
+                        <small>{{ $t('اختر لعبة بسرعة. تختفي القائمة مباشرة بعد اختيار اللعبة أو الضغط خارجها.','Choose a game quickly. The menu closes after a selection or an outside click.') }}</small>
                     </div>
                     <div class="wz-games-menu-tools-v130">
-                        <input id="navGameSearchV130" type="search" placeholder="ابحث عن لعبة...">
-                        <a href="{{ route('games') }}">صفحة الألعاب</a>
+                        <input id="navGameSearchV130" type="search" placeholder="{{ $t('ابحث عن لعبة...','Search games...') }}" aria-label="{{ $t('البحث في الألعاب','Search games') }}">
+                        <a href="{{ route('games') }}">{{ $t('صفحة الألعاب','Games page') }}</a>
                         <button type="button" class="wz-games-close-v130" data-games-close-v130>×</button>
                     </div>
                 </div>
                 @php
-                    $navFamilies=['all'=>'الكل'];
+                    $navFamilies=['all'=>$t('الكل','All')];
                 @endphp
                 <div class="wz-games-tabs-v130">
                     @foreach($navFamilies as $fk=>$fl)
@@ -151,8 +153,8 @@
                            data-name="{{ strtolower($g->key.' '.($g->name['ar'] ?? '').' '.($g->name['en'] ?? '').' '.$engine) }}"
                            href="{{ route('rooms.index',$g->key) }}">
                             <span class="game-icon-pro-v130">{{ $g->rules['icon'] ?? game_icon($g->key) }}</span>
-                            <b>{{ $g->name['ar'] ?? $g->key }}</b>
-                            <small>{{ $g->min_players }}-{{ $g->max_players }} • {{ $g->partnership ? 'شراكة' : 'فردي' }}</small>
+                            <b>{{ $g->name[$english ? 'en' : 'ar'] ?? $g->name['ar'] ?? $g->key }}</b>
+                            <small>{{ $g->min_players }}-{{ $g->max_players }} • {{ $g->partnership ? $t('شراكة','Partnership') : $t('فردي','Solo') }}</small>
                         </a>
                     @endforeach
                 </div>
@@ -160,8 +162,8 @@
         </div>
 
         <div id="themePanel" class="top-panel theme-picker-panel hidden">
-            <b>🎨 الثيمات</b>
-            <p class="muted">اختر ثيم الموقع، ويتم تفعيله مباشرة على حسابك.</p>
+            <b>🎨 {{ $t('الثيمات','Themes') }}</b>
+            <p class="muted">{{ $t('اختر ثيم الموقع، ويتم تفعيله مباشرة على حسابك.','Choose a site theme; it is applied to your account immediately.') }}</p>
             <div class="theme-grid-v108">
                 <button type="button" data-theme-pick="dark" onclick="setSiteTheme('dark');toggleTopPanel('themePanel')">🌑 {{ app()->getLocale()==='ar'?'ليلي':'Midnight' }}</button>
                 <button type="button" data-theme-pick="light" onclick="setSiteTheme('light');toggleTopPanel('themePanel')">☀️ {{ app()->getLocale()==='ar'?'عاجي':'Ivory' }}</button>
@@ -173,8 +175,8 @@
         </div>
 
         <div id="languagePanel" class="top-panel language-picker-panel hidden">
-            <b data-i18n="site_language">لغة الموقع</b>
-            <p class="muted">اختر اللغة وسيتم تطبيق الاتجاه والترجمة مباشرة على الواجهة.</p>
+            <b data-i18n="site_language">{{ $t('لغة الموقع','Site language') }}</b>
+            <p class="muted">{{ $t('اختر اللغة وسيتم تطبيق الاتجاه والترجمة مباشرة على الواجهة.','Choose a language to apply its direction and translations immediately.') }}</p>
             <div class="language-grid-v138">
                 <button type="button" data-lang-pick="ar" onclick="setWarqnaLang('ar');toggleTopPanel('languagePanel')">🇵🇸 عربي</button>
                 <button type="button" data-lang-pick="en" onclick="setWarqnaLang('en');toggleTopPanel('languagePanel')">🇬🇧 English</button>            </div>
@@ -186,12 +188,12 @@
                 <img loading="lazy" decoding="async" class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
                 <span>{{ $currentUser->username }}</span>
             </button>
-            <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png?v=36-luxury" alt="باشا"><span data-i18n="pasha">باشا</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">يوم</span></span>
-            <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="سجل التوكنز">🪙 {{ token_display($currentUser) }}</a>
+            <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png?v=36-luxury" alt="{{ $t('باشا','Pasha') }}"><span data-i18n="pasha">{{ $t('باشا','Pasha') }}</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">{{ $t('يوم','days') }}</span></span>
+            <a class="tokens tokens-ledger-link-v136" href="{{ route('tokens') }}" title="{{ $t('سجل التوكنز','Token ledger') }}">🪙 {{ token_display($currentUser) }}</a>
             <span id="siteClock" class="site-clock">--:--</span>
-            <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="الثيمات">🎨</button>
-            <button type="button" class="language-switch-btn" onclick="toggleTopPanel('languagePanel')" title="اللغات">🌐</button>
-            <label class="sound-range-wrap" title="تحكم بالصوت من 0 إلى 100"><span>🔊</span><input id="soundVolumeRange" type="range" min="0" max="100" step="1" value="80" aria-label="مستوى الصوت"></label>
+            <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="{{ $t('الثيمات','Themes') }}" aria-label="{{ $t('فتح قائمة الثيمات','Open theme menu') }}">🎨</button>
+            <button type="button" class="language-switch-btn" onclick="toggleTopPanel('languagePanel')" title="{{ $t('اللغات','Languages') }}" aria-label="{{ $t('فتح قائمة اللغات','Open language menu') }}">🌐</button>
+            <label class="sound-range-wrap" title="{{ $t('تحكم بالصوت من 0 إلى 100','Volume from 0 to 100') }}"><span>🔊</span><input id="soundVolumeRange" type="range" min="0" max="100" step="1" value="80" aria-label="{{ $t('مستوى الصوت','Volume') }}"></label>
             <div id="clubPanel" class="top-panel hidden"><b>إشعارات المجموعات</b><p>طلبات الانضمام وتحديثات المجموعة تظهر هنا داخل نفس الصفحة.</p><a href="{{route('clubs')}}">فتح المجموعات</a></div>
             <div id="invitePanel" class="top-panel hidden"><b>دعوات الألعاب</b><p>أي دعوة غرفة من لاعب آخر تظهر هنا بدون مغادرة الصفحة.</p><a href="{{route('notifications')}}">كل الدعوات</a></div>
             <div id="tourPanel" class="top-panel hidden"><b>المنافسات</b><p>متابعة المنافسات المفتوحة والمكتملة.</p><a href="{{route('tournaments')}}">فتح المنافسات</a></div>
