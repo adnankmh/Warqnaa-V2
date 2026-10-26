@@ -36,6 +36,14 @@ class R44RoomUXIntegrationTest extends TestCase
         $this->assertStringContainsString('Groups ready to meld', $blade);
         $this->assertStringContainsString('Stock and discard piles', $blade);
         $this->assertStringContainsString('Write a game message', $blade);
+        $seatBlade = file_get_contents(resource_path('views/room/seat.blade.php'));
+        $this->assertStringContainsString('Bot ready', $seatBlade);
+        $this->assertStringContainsString('Disconnected', $seatBlade);
+        $this->assertStringContainsString('Pasha options', $seatBlade);
+        $this->assertStringContainsString('Replace player with bot', $seatBlade);
+        $this->assertStringContainsString('Mute this player for me only', $seatBlade);
+        $this->assertStringContainsString('Empty seat', $seatBlade);
+        $this->assertStringContainsString('Sit here', $seatBlade);
         $this->assertStringContainsString('Away mode is active', $blade);
         $this->assertStringContainsString('Leave and return to', $blade);
         $this->assertStringContainsString('Waiting for selection', $blade);
