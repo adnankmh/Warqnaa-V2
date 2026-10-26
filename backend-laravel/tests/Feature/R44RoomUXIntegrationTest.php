@@ -14,10 +14,18 @@ class R44RoomUXIntegrationTest extends TestCase
 
         $this->assertStringContainsString('id="r44RoomPiles"', $blade);
         $this->assertStringContainsString('id="r44OwnerMelds"', $blade);
-        $this->assertStringContainsString("asset('assets/js/r44-room-rummy.js')", $blade);
+        $this->assertStringContainsString("asset('assets/js/r44-room-rummy.js') }}?v=85", $blade);
         $this->assertStringContainsString("window.roomAction('draw_discard_stack',{count:amount})", $script);
         $this->assertStringContainsString("enginePhase === 'draw'", $script);
         $this->assertStringContainsString('state.melds', $script);
+        $this->assertStringContainsString("text('الرزمة','Stock')", $script);
+        $this->assertStringContainsString("text('الرمي','Discard')", $script);
+        $this->assertStringContainsString("text('إلغاء','Cancel')", $script);
+        $this->assertStringContainsString("text('أنت','You')", $script);
+        $this->assertStringContainsString("modal.dir=english?'ltr':'rtl'", $script);
+        $this->assertStringContainsString("'Draw selected cards'", $script);
+        $this->assertStringContainsString('const playerName=owner=>', $script);
+        $this->assertStringContainsString("player?.name||player?.username||player?.display_name", $script);
         $this->assertStringContainsString("buckets.set(bucketKey,{team,owners:[]})", $script);
         $this->assertStringContainsString("tile.dataset.owners", $script);
         $this->assertStringContainsString("ownerSection.dataset.owner=item.owner", $script);

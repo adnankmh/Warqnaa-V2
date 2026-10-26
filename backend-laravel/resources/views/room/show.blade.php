@@ -214,6 +214,6 @@ window.GAME_KEY=@json($gameKey);
 window.HAND_LIKE={{$handLike ? 'true' : 'false'}};
 </script>
 @if($handLike)
-<script src="{{ asset('assets/js/r44-room-rummy.js') }}?v=44" defer></script>
+<script src="{{ asset('assets/js/r44-room-rummy.js') }}?v=85" defer></script>
 @endif
 @endsection

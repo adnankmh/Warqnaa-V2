@@ -8,6 +8,8 @@
   const byId = id => document.getElementById(id);
   const isBanakil = game === 'banakil';
   const isPartner = game === 'banakil' || game === 'hand_partner';
+  const english=String(document.documentElement.lang||'').toLowerCase().startsWith('en');
+  const text=(ar,en)=>english?en:ar;
   const labelCard = card => {
     const c = String(card || '');
     const parts = c.split('_');
@@ -37,21 +39,23 @@
     const discards = Array.isArray(state.discard) ? state.discard : [];
     if (!isBanakil || discards.length < 2 || !canDraw(state)) return;
     const modal = create('dialog','r44-pick-dialog');
-    const title = create('h2','', 'اختيار ورقة من كومة الرمي');
-    const detail = create('p','', 'اختر أي ورقة؛ ستسحبها مع كل الأوراق الموضوعة فوقها.');
+    modal.dir=english?'ltr':'rtl';
+    const title = create('h2','',text('اختيار ورقة من كومة الرمي','Choose from the discard pile'));
+    const detail = create('p','',text('اختر أي ورقة؛ ستسحبها مع كل الأوراق الموضوعة فوقها.','Choose a card; you will take it and every newer card above it.'));
     const list = create('div','r44-fire-selection');
     let amount = 2;
-    const confirmation = create('b','r44-pick-count','سحب ورقتين');
+    const drawCount=n=>text('سحب '+n+' أوراق','Draw '+n+' cards');
+    const confirmation = create('b','r44-pick-count',drawCount(2));
     const visibleStart = Math.max(0,discards.length - 18);
     const options = [];
     for(let index=visibleStart;index<discards.length;index++){
       const n=discards.length-index;
       const button=create('button','r44-pick-card',labelCard(discards[index]));
       button.type='button';
-      button.setAttribute('aria-label','اسحب '+n+' أوراق، بدءًا من '+labelCard(discards[index]));
+      button.setAttribute('aria-label',text('اسحب '+n+' أوراق، بدءًا من ','Draw '+n+' cards, starting with ')+labelCard(discards[index]));
       const select=()=>{
         amount=Math.max(2,n);
-        confirmation.textContent='سيتم سحب '+amount+' أوراق';
+        confirmation.textContent=text('سيتم سحب '+amount+' أوراق','You will draw '+amount+' cards');
         for(const item of options) {
           item.button.classList.toggle('selected',item.count<=amount);
           item.button.setAttribute('aria-pressed',String(item.count<=amount));
@@ -62,10 +66,10 @@
       list.append(button);
     }
     const controls=create('div','r44-dialog-actions');
-    const cancel=create('button','r44-dialog-cancel','إلغاء');
+    const cancel=create('button','r44-dialog-cancel',text('إلغاء','Cancel'));
     cancel.type='button';
     cancel.addEventListener('click',()=>modal.close());
-    const confirm=create('button','r44-dialog-confirm','اسحب الأوراق المختارة');
+    const confirm=create('button','r44-dialog-confirm',text('اسحب الأوراق المختارة','Draw selected cards'));
     confirm.type='button';
     confirm.addEventListener('click',()=>{
       modal.close();
@@ -93,17 +97,17 @@
     const stock=create('button','r44-central-pile r44-stock');
     stock.type='button';
     stock.disabled=!allow;
-    stock.append(create('span','r44-card-back','🂠'),create('strong','','الرزمة · '+number));
+    stock.append(create('span','r44-card-back','🂠'),create('strong','',text('الرزمة','Stock')+' · '+number));
     stock.addEventListener('click',()=>window.roomAction?.('draw_deck',{}));
     const discard=create('button','r44-central-pile r44-discard');
     discard.type='button';
     discard.disabled=!allow || !discarded.length;
     discard.append(create('span','r44-face-card',discarded.length ? labelCard(discarded.at(-1)) : '—'),
-                   create('strong','','الرمي · '+discarded.length));
+                   create('strong','',text('الرمي','Discard')+' · '+discarded.length));
     discard.addEventListener('click',()=>window.roomAction?.('draw_discard',{}));
     stack.append(stock,discard);
     if(isBanakil && discarded.length>=2) {
-      const multi=create('button','r44-select-stack','اختر من النار');
+      const multi=create('button','r44-select-stack',text('اختر من النار','Choose discard cards'));
       multi.type='button';
       multi.disabled=!allow;
       multi.addEventListener('click',()=>showStackPicker(state));
@@ -113,18 +117,26 @@
 
     const melds = state.melds && typeof state.melds === 'object' ? state.melds : {};
     const teams = state.teams && typeof state.teams === 'object' ? state.teams : {};
+    const players = Array.isArray(state.players) ? state.players : [];
+    const playerName=owner=>{
+      const player=players.find(item=>item && typeof item==='object' &&
+        String(item.id??item.key??item.user_key??item.player_id??'')===String(owner));
+      if(owner===window.MY_PLAYER_KEY)return text('أنت','You');
+      if(player?.name||player?.username||player?.display_name)
+        return String(player.name||player.username||player.display_name);
+      return owner.startsWith('bot:')?text('روبوت','Bot'):text('لاعب','Player');
+    };
     const cols=create('div','r44-owner-grid');
     const buckets=new Map();
     Object.entries(melds).forEach(([owner,groups])=>{
       if(!Array.isArray(groups) || !groups.length)return;
       const team = (teams.teamA||[]).includes(owner) ? 'a' :
                    (teams.teamB||[]).includes(owner) ? 'b' : 'solo';
-      const display = owner===window.MY_PLAYER_KEY ? 'أنت' : owner.startsWith('bot:') ? 'روبوت' : 'لاعب';
+      const display = playerName(owner);
       const bucketKey=isPartner && team!=='solo' ? 'team-'+team : 'owner-'+owner;
       if(!buckets.has(bucketKey))buckets.set(bucketKey,{team,owners:[]});
       buckets.get(bucketKey).owners.push({owner,display,groups});
     });
-    const english=String(document.documentElement.lang||'').toLowerCase().startsWith('en');
     buckets.forEach(bucket=>{
       const tile=create('div','r44-meld-owner team-'+(isPartner ? bucket.team : 'solo'));
       tile.dataset.owners=bucket.owners.map(item=>item.owner).join(',');
