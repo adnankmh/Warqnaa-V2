@@ -36,7 +36,8 @@ void main() {
           ..themeCode = themeCode
           ..uiAccentHex = '#25e4df'
           ..displayName = locale == 'ar' ? 'لاعب ورقنا' : 'Warqnaa Player'
-          ..username = 'player';
+          ..username = 'player'
+          ..avatarEmoji = 'A';
         addTearDown(controller.dispose);
         final key = GlobalKey();
 
@@ -76,6 +77,11 @@ void main() {
         expect(avatarDecoration.gradient, isA<LinearGradient>());
         expect(avatarDecoration.border!.top.color.toARGB32(),
             expected.accent.withValues(alpha: .40).toARGB32());
+        final name = tester.widget<Text>(find.text(controller.displayName));
+        expect(name.style!.color!.toARGB32(),
+            r82ReadableProfileName(tester.element(find.text(controller.displayName)),
+                    controller.selectedNameColor)
+                .toARGB32());
         expect(find.text(locale == 'ar' ? 'إغلاق' : 'Close'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'تعديل' : 'Edit'), findsOneWidget);
         expect(tester.takeException(), isNull);
@@ -101,6 +107,7 @@ void main() {
         expect(find.text(locale == 'ar'
             ? 'ابحث باسم الدولة أو الرمز'
             : 'Search by country name or code'), findsOneWidget);
+        expect(find.text('IS'), findsWidgets);
         expect(tester.takeException(), isNull);
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(

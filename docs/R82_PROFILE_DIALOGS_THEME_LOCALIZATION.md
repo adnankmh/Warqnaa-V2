@@ -5,6 +5,10 @@ dialogs: avatar preview, country selection and account cancellation. Their
 surfaces and borders now derive from the selected theme, while the destructive
 account action remains semantically red.
 
+Country rows use compact ISO-code badges instead of platform-dependent flag
+glyphs, and a chosen profile-name colour falls back to the theme foreground
+only when its contrast against the dialog surface is below WCAG AA.
+
 The existing avatar edit callback, country search and selection, 30-day account
 recovery policy, password confirmation and cancellation API call are unchanged.
 No game engine, networking authority, permission or economy behavior is altered.

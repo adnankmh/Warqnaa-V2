@@ -8009,6 +8009,17 @@ Future<void> showAvatarPicker(BuildContext context, AppController controller) as
   );
 }
 
+Color r82ReadableProfileName(BuildContext context, String value) {
+  final selected = colorFromHex(value);
+  final colors = R69PlaySurfaceColors.of(context);
+  final background = Color.lerp(colors.surface, colors.accent, .16)!;
+  final lighter = math.max(selected.computeLuminance(), background.computeLuminance());
+  final darker = math.min(selected.computeLuminance(), background.computeLuminance());
+  return (lighter + .05) / (darker + .05) >= 4.5
+      ? selected
+      : colors.onSurface;
+}
+
 Future<void> showAvatarPreview(BuildContext context, AppController controller) async {
   final ar = controller.localeCode == 'ar';
   await showDialog<void>(
@@ -8039,7 +8050,7 @@ Future<void> showAvatarPreview(BuildContext context, AppController controller) a
                   ),
                 ),
                 const SizedBox(height: 13),
-                Text(controller.displayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: colorFromHex(controller.selectedNameColor))),
+                Text(controller.displayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: r82ReadableProfileName(dialogContext, controller.selectedNameColor))),
                 const SizedBox(height: 4),
                 Text('@${controller.username}', style: TextStyle(color: colors.onSurface.withValues(alpha: .68))),
                 const SizedBox(height: 12),
@@ -8115,7 +8126,19 @@ Future<void> showCountryPicker(BuildContext context, AppController controller) a
             setState(() => filtered=allCountries.where((c)=>c.code.toLowerCase().contains(q)||c.ar.contains(q)||c.en.toLowerCase().contains(q)).toList());
           }),
           const SizedBox(height:8),
-          Expanded(child: ListView.builder(itemCount:filtered.length,itemBuilder:(context,index){final c=filtered[index];return ListTile(leading:Text(c.flag,style:const TextStyle(fontSize:28)),title:Text(c.name(controller.localeCode)),subtitle:Text('${c.code} • ${c.en}'),selected:c.code==controller.countryCode,onTap:()=>Navigator.pop(dialogContext,c));})),
+          Expanded(child: ListView.builder(itemCount:filtered.length,itemBuilder:(context,index){final c=filtered[index];return ListTile(
+            leading: Container(
+              width: 40,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Color.lerp(colors.surface, colors.accent, .18),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: colors.accent.withValues(alpha: .42)),
+              ),
+              child: Text(c.code, style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900, fontSize: 11)),
+            ),
+            title:Text(c.name(controller.localeCode)),subtitle:Text('${c.code} • ${c.en}'),selected:c.code==controller.countryCode,onTap:()=>Navigator.pop(dialogContext,c));})),
         ]),
       ),
       actions:[TextButton(onPressed:()=>Navigator.pop(dialogContext),child:Text(ar ? 'إلغاء' : 'Cancel'))],
