@@ -8009,19 +8009,35 @@ Future<void> showAvatarPicker(BuildContext context, AppController controller) as
   );
 }
 
+Color r82ReadableProfileName(BuildContext context, String value) {
+  final selected = colorFromHex(value);
+  final colors = R69PlaySurfaceColors.of(context);
+  final background = Color.lerp(colors.surface, colors.accent, .16)!;
+  final lighter = math.max(selected.computeLuminance(), background.computeLuminance());
+  final darker = math.min(selected.computeLuminance(), background.computeLuminance());
+  return (lighter + .05) / (darker + .05) >= 4.5
+      ? selected
+      : colors.onSurface;
+}
+
 Future<void> showAvatarPreview(BuildContext context, AppController controller) async {
+  final ar = controller.localeCode == 'ar';
   await showDialog<void>(
     context: context,
-    builder: (dialogContext) => Dialog(
-      backgroundColor: Colors.transparent,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: PremiumPanel(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+    builder: (dialogContext) {
+      final colors = R69PlaySurfaceColors.of(dialogContext);
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: Container(
+            key: const ValueKey('r82-avatar-preview-dialog'),
+            decoration: r80AccountSummaryDecoration(dialogContext),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                 ProfileCover(
                   coverId: controller.selectedCover,
                   height: 300,
@@ -8034,71 +8050,105 @@ Future<void> showAvatarPreview(BuildContext context, AppController controller) a
                   ),
                 ),
                 const SizedBox(height: 13),
-                Text(controller.displayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: colorFromHex(controller.selectedNameColor))),
+                Text(controller.displayName, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: r82ReadableProfileName(dialogContext, controller.selectedNameColor))),
                 const SizedBox(height: 4),
-                Text('@${controller.username}', style: const TextStyle(color: Colors.white60)),
+                Text('@${controller.username}', style: TextStyle(color: colors.onSurface.withValues(alpha: .68))),
                 const SizedBox(height: 12),
                 Row(children: [
-                  Expanded(child: OutlinedButton.icon(onPressed: () => Navigator.pop(dialogContext), icon: const Icon(Icons.close), label: const Text('إغلاق'))),
+                  Expanded(child: OutlinedButton.icon(onPressed: () => Navigator.pop(dialogContext), icon: const Icon(Icons.close), label: Text(ar ? 'إغلاق' : 'Close'))),
                   const SizedBox(width: 8),
-                  Expanded(child: FilledButton.icon(onPressed: () { Navigator.pop(dialogContext); showAvatarPicker(context, controller); }, icon: const Icon(Icons.edit_outlined), label: const Text('تعديل'))),
+                  Expanded(child: FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: colors.accent, foregroundColor: r101ReadableInk(colors.accent)),
+                    onPressed: () { Navigator.pop(dialogContext); showAvatarPicker(context, controller); },
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(ar ? 'تعديل' : 'Edit'),
+                  )),
                 ]),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 
 Future<void> showCancelAccountDialog(BuildContext context, AppController controller) async {
+  final ar = controller.localeCode == 'ar';
   final password = TextEditingController();
   bool confirmed = false;
-  final shouldCancel = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setState) => AlertDialog(
-    title: const Text('إلغاء الحساب'),
+  final shouldCancel = await showDialog<bool>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, setState) {
+    final colors = R69PlaySurfaceColors.of(context);
+    return AlertDialog(
+    key: const ValueKey('r82-cancel-account-dialog'),
+    backgroundColor: colors.surface,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: colors.accent.withValues(alpha: .40))),
+    title: Text(ar ? 'إلغاء الحساب' : 'Cancel account'),
     content: Column(mainAxisSize: MainAxisSize.min, children: [
-      const Text('هل أنت متأكد أنك سوف تلغي الحساب؟ سيتم تسجيل خروجك فوراً، وسيبقى الحساب محفوظاً لمدة 30 يوماً. إذا لم تفتح الحساب وتسجل الدخول خلال هذه المدة فسيتم حذفه نهائياً مع بياناته.', style: TextStyle(height: 1.55)),
+      Text(ar
+          ? 'هل أنت متأكد أنك سوف تلغي الحساب؟ سيتم تسجيل خروجك فوراً، وسيبقى الحساب محفوظاً لمدة 30 يوماً. إذا لم تفتح الحساب وتسجل الدخول خلال هذه المدة فسيتم حذفه نهائياً مع بياناته.'
+          : 'Are you sure you want to cancel your account? You will be signed out immediately. Sign in within 30 days to restore it before permanent deletion.', style: const TextStyle(height: 1.55)),
       const SizedBox(height: 12),
-      TextField(controller: password, obscureText: true, decoration: const InputDecoration(labelText: 'كلمة المرور للتأكيد')),
-      CheckboxListTile(contentPadding: EdgeInsets.zero, value: confirmed, onChanged: (v) => setState(() => confirmed = v == true), title: const Text('أفهم أن عدم فتح الحساب لمدة 30 يوماً سيؤدي إلى حذفه نهائياً', style: TextStyle(fontSize: 12))),
+      TextField(controller: password, obscureText: true, decoration: InputDecoration(labelText: ar ? 'كلمة المرور للتأكيد' : 'Password confirmation')),
+      CheckboxListTile(contentPadding: EdgeInsets.zero, value: confirmed, onChanged: (v) => setState(() => confirmed = v == true), title: Text(ar ? 'أفهم أن عدم فتح الحساب لمدة 30 يوماً سيؤدي إلى حذفه نهائياً' : 'I understand that the account will be permanently deleted if I do not sign in within 30 days.', style: const TextStyle(fontSize: 12))),
     ]),
-    actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')), FilledButton(onPressed: confirmed ? () => Navigator.pop(dialogContext, true) : null, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: const Text('إلغاء الحساب'))],
-  ))) ?? false;
+    actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(ar ? 'تراجع' : 'Back')), FilledButton(onPressed: confirmed ? () => Navigator.pop(dialogContext, true) : null, style: FilledButton.styleFrom(backgroundColor: Colors.red), child: Text(ar ? 'إلغاء الحساب' : 'Cancel account'))],
+  );
+  })) ?? false;
   if (!shouldCancel) { password.dispose(); return; }
   final error = await controller.cancelAccount(password.text);
   password.dispose();
   if (!context.mounted) return;
   if (error == null) Navigator.pop(context);
-  showToast(context, error ?? 'تم إلغاء الحساب. يمكنك استعادته بتسجيل الدخول خلال 30 يوماً.');
+  showToast(context, error ?? (ar ? 'تم إلغاء الحساب. يمكنك استعادته بتسجيل الدخول خلال 30 يوماً.' : 'Account cancelled. You can restore it by signing in within 30 days.'));
 }
 
 Future<void> showCountryPicker(BuildContext context, AppController controller) async {
+  final ar = controller.localeCode == 'ar';
   final search = TextEditingController();
   var filtered = List<CountryInfo>.from(allCountries);
   final selected = await showDialog<CountryInfo>(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(builder: (context, setState) => AlertDialog(
-      title: const Text('اختر الدولة والعلم'),
+    builder: (dialogContext) => StatefulBuilder(builder: (context, setState) {
+      final colors = R69PlaySurfaceColors.of(context);
+      return AlertDialog(
+      key: const ValueKey('r82-country-dialog'),
+      backgroundColor: colors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: colors.accent.withValues(alpha: .40))),
+      title: Text(ar ? 'اختر الدولة والعلم' : 'Choose country and flag'),
       content: SizedBox(
         width: 520,
         height: math.min(MediaQuery.sizeOf(context).height * .68, 620),
         child: Column(children: [
-          TextField(controller: search, decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'ابحث باسم الدولة أو الرمز'), onChanged: (value) {
+          TextField(controller: search, decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: ar ? 'ابحث باسم الدولة أو الرمز' : 'Search by country name or code'), onChanged: (value) {
             final q=value.trim().toLowerCase();
             setState(() => filtered=allCountries.where((c)=>c.code.toLowerCase().contains(q)||c.ar.contains(q)||c.en.toLowerCase().contains(q)).toList());
           }),
           const SizedBox(height:8),
-          Expanded(child: ListView.builder(itemCount:filtered.length,itemBuilder:(context,index){final c=filtered[index];return ListTile(leading:Text(c.flag,style:const TextStyle(fontSize:28)),title:Text(c.name(controller.localeCode)),subtitle:Text('${c.code} • ${c.en}'),selected:c.code==controller.countryCode,onTap:()=>Navigator.pop(dialogContext,c));})),
+          Expanded(child: ListView.builder(itemCount:filtered.length,itemBuilder:(context,index){final c=filtered[index];return ListTile(
+            leading: Container(
+              width: 40,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Color.lerp(colors.surface, colors.accent, .18),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: colors.accent.withValues(alpha: .42)),
+              ),
+              child: Text(c.code, style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900, fontSize: 11)),
+            ),
+            title:Text(c.name(controller.localeCode)),subtitle:Text('${c.code} • ${c.en}'),selected:c.code==controller.countryCode,onTap:()=>Navigator.pop(dialogContext,c));})),
         ]),
       ),
-      actions:[TextButton(onPressed:()=>Navigator.pop(dialogContext),child:const Text('إلغاء'))],
-    )),
+      actions:[TextButton(onPressed:()=>Navigator.pop(dialogContext),child:Text(ar ? 'إلغاء' : 'Cancel'))],
+    );
+    }),
   );
   search.dispose();
   if(selected==null) return;
   final error=await controller.changeCountry(selected);
-  if(context.mounted) showToast(context,error ?? 'تم تحديث الدولة والعلم في البروفايل وكل صفحات التطبيق.');
+  if(context.mounted) showToast(context,error ?? (ar ? 'تم تحديث الدولة والعلم في البروفايل وكل صفحات التطبيق.' : 'Country and flag updated across your profile and the app.'));
 }
 
 String localClubNameV03(String? id) => const <String, String>{
