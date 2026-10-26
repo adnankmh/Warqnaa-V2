@@ -30,6 +30,12 @@ class R44RoomUXIntegrationTest extends TestCase
         $this->assertStringContainsString("tile.dataset.owners", $script);
         $this->assertStringContainsString("ownerSection.dataset.owner=item.owner", $script);
         $this->assertStringContainsString('r84-meld-owner-section', $styles);
+        $this->assertStringContainsString('$phaseLabel = match($phase)', $blade);
+        $this->assertStringContainsString('Waiting for players', $blade);
+        $this->assertStringContainsString('Draw stock', $blade);
+        $this->assertStringContainsString('Groups ready to meld', $blade);
+        $this->assertStringContainsString('Stock and discard piles', $blade);
+        $this->assertStringContainsString('Write a game message', $blade);
         $this->assertStringContainsString('r44-pick-card', $styles);
         $this->assertStringContainsString('theme-emerald', $styles);
         $this->assertStringContainsString('theme-galaxy', $styles);
