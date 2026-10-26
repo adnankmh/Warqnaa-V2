@@ -7889,12 +7889,13 @@ class QuickButton extends StatelessWidget {
 
 class PremiumListTile extends StatelessWidget {
   final String icon;
+  final IconData? materialIcon;
   final String title;
   final String subtitle;
   final Widget action;
   final VoidCallback? onTap;
 
-  const PremiumListTile({super.key, required this.icon, required this.title, required this.subtitle, required this.action, this.onTap});
+  const PremiumListTile({super.key, required this.icon, this.materialIcon, required this.title, required this.subtitle, required this.action, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -7906,7 +7907,15 @@ class PremiumListTile extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            Container(width: 46, height: 46, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)), child: Text(icon, style: const TextStyle(fontSize: 26))),
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)),
+              child: materialIcon == null
+                  ? Text(icon, style: const TextStyle(fontSize: 26))
+                  : Icon(materialIcon, size: 25),
+            ),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)), const SizedBox(height: 3), Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4))])),
             const SizedBox(width: 7),
@@ -8387,8 +8396,92 @@ class R47StoreProgressPanel extends StatelessWidget {
   }
 }
 
+BoxDecoration r80AccountSummaryDecoration(BuildContext context) {
+  final colors = R69PlaySurfaceColors.of(context);
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
+      colors: <Color>[
+        Color.lerp(colors.surface, colors.accent, .16)!,
+        Color.lerp(colors.surface, colors.secondary, .08)!,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(color: colors.accent.withValues(alpha: .40)),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: colors.accent.withValues(alpha: .09), blurRadius: 14, offset: const Offset(0, 6)),
+    ],
+  );
+}
+
+String r80NoticeTitle(String value, bool ar) {
+  if (ar) return value;
+  return const <String, String>{
+    'بدأ التسجيل في بطولة الأبطال': 'Champions tournament registration is open',
+    'مكافأتك اليومية جاهزة': 'Your daily reward is ready',
+    'أرسل سامر طلب صداقة': 'Samer sent a friend request',
+    'مكافأة الاستمرارية': 'Login streak reward',
+    'تمت استعادة الحساب': 'Account restored',
+    'يوم باشا مجاني': 'Free Pasha day',
+    'نقاط الجولة': 'Round points',
+    'فوز جديد': 'New win',
+    'المكافأة اليومية': 'Daily reward',
+    'تم التحويل': 'Transfer complete',
+  }[value] ?? value;
+}
+
+IconData r80NoticeIcon(String value) => switch (value) {
+  '🏆' => Icons.emoji_events_rounded,
+  '🎁' => Icons.card_giftcard_rounded,
+  '👤' => Icons.person_add_alt_1_rounded,
+  _ => Icons.notifications_rounded,
+};
+
+String r80NoticeBody(String value, bool ar) {
+  if (ar) return value;
+  return const <String, String>{
+    'المقاعد محدودة والتسجيل متاح الآن.': 'Seats are limited and registration is available now.',
+    'استلم 100 توكن و20 نقطة خبرة.': 'Claim 100 tokens and 20 XP.',
+    'يمكنك القبول من مركز الأصدقاء.': 'You can accept it from the Friends center.',
+    'حصلت على يوم باشا مجاني بعد 3 أيام دخول متواصلة.': 'You earned a free Pasha day after a three-day login streak.',
+    'أكملت 3 أيام دخول متواصلة، وتمت إضافة يوم باشا.': 'You completed a three-day login streak and received one Pasha day.',
+    'يلزم اتصال فعّال بالخادم لاستلام المكافأة.': 'An active server connection is required to claim the reward.',
+    'استلمت مكافأة اليوم بالفعل. عد غداً.': 'You already claimed today’s reward. Come back tomorrow.',
+    'تعذر استلام المكافأة من الخادم. حاول مرة أخرى.': 'The server could not deliver the reward. Please try again.',
+    'اعتمد الخادم 100 توكن و20 XP.': 'The server approved 100 tokens and 20 XP.',
+  }[value] ?? value;
+}
+
+String r80TransactionLabel(String value, bool ar) {
+  if (ar) return value;
+  final exact = const <String, String>{
+    'مكافأة يومية': 'Daily reward',
+    'شراء حزمة المرح': 'Fun pack purchase',
+    'مكافأة مشاهدة إعلان': 'Ad viewing reward',
+    'مكافأة فوز': 'Win reward',
+  }[value];
+  if (exact != null) return exact;
+  if (value.startsWith('شراء ')) return 'Purchase: ${value.substring(5)}';
+  if (value.startsWith('تحويل إلى ')) return 'Transfer to ${value.substring(10)}';
+  if (value.startsWith('مكافأة المستوى ')) return 'Level reward ${value.substring(15)}';
+  return value;
+}
+
+String r80TransactionDate(String value, bool ar) {
+  if (ar) return value;
+  if (value.startsWith('اليوم ')) return 'Today ${value.substring(6)}';
+  if (value.startsWith('أمس ')) return 'Yesterday ${value.substring(4)}';
+  return const <String, String>{
+    'الآن': 'Now',
+    'الآن • محلي': 'Now • local',
+    'الآن • خادم': 'Now • server',
+  }[value] ?? value;
+}
+
 void showNotifications(BuildContext context, AppController controller) {
   final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
   showPremiumSheet(
     context,
     child: StatefulBuilder(
@@ -8407,13 +8500,26 @@ void showNotifications(BuildContext context, AppController controller) {
             ),
           ),
           const SizedBox(height: 10),
-          if (controller.notices.isEmpty) const Padding(padding: EdgeInsets.all(30), child: Center(child: Text('لا توجد إشعارات'))),
+          if (controller.notices.isEmpty)
+            Container(
+              key: const ValueKey('r80-notifications-empty'),
+              padding: const EdgeInsets.all(30),
+              decoration: r80AccountSummaryDecoration(context),
+              child: Column(children: [
+                Icon(Icons.notifications_none_rounded, color: colors.accent, size: 34),
+                const SizedBox(height: 8),
+                Text(ar ? 'لا توجد إشعارات' : 'No notifications', style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 3),
+                Text(ar ? 'ستظهر التحديثات الجديدة هنا.' : 'New updates will appear here.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurface.withValues(alpha: .68), fontSize: 11)),
+              ]),
+            ),
           ...controller.notices.map((notice) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: PremiumListTile(
               icon: notice.icon,
-              title: notice.title,
-              subtitle: notice.body,
+              materialIcon: r80NoticeIcon(notice.icon),
+              title: r80NoticeTitle(notice.title, ar),
+              subtitle: r80NoticeBody(notice.body, ar),
               action: IconButton(onPressed: () { controller.removeNotice(notice); setLocalState(() {}); }, icon: const Icon(Icons.delete_outline)),
             ),
           )),
@@ -8425,6 +8531,7 @@ void showNotifications(BuildContext context, AppController controller) {
 
 void showWallet(BuildContext context, AppController controller) {
   final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
   showPremiumSheet(
     context,
     child: Column(
@@ -8450,25 +8557,29 @@ void showWallet(BuildContext context, AppController controller) {
         Container(
           key: const ValueKey('r32-wallet-balance-card'),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-          decoration: BoxDecoration(
-            gradient: B307SkyLuxury.heroGradient,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .42)),
-            boxShadow: B307SkyLuxury.glow,
-          ),
+          decoration: r80AccountSummaryDecoration(context),
           child: Column(children: [
-            Text(ar ? 'الرصيد المتاح' : 'Available balance', style: const TextStyle(color: B307SkyLuxury.textMuted, fontSize: 10, fontWeight: FontWeight.w800)),
+            Icon(Icons.account_balance_wallet_rounded, color: colors.accent, size: 27),
             const SizedBox(height: 5),
-            Text('${formatNumber(controller.coins)} 🪙', style: const TextStyle(fontSize: 30, color: B307SkyLuxury.goldSoft, fontWeight: FontWeight.w900)),
+            Text(ar ? 'الرصيد المتاح' : 'Available balance', style: TextStyle(color: colors.onSurface.withValues(alpha: .68), fontSize: 10, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 5),
+            Text(formatNumber(controller.coins), style: TextStyle(fontSize: 30, color: colors.accent, fontWeight: FontWeight.w900)),
           ]),
         ),
         const SizedBox(height: 12),
-        PremiumPanel(
-          child: Column(
+        Container(
+          key: const ValueKey('r80-wallet-transactions'),
+          decoration: r80AccountSummaryDecoration(context),
+          child: controller.transactions.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(ar ? 'لا توجد حركات في المحفظة.' : 'No wallet activity yet.', textAlign: TextAlign.center, style: TextStyle(color: colors.onSurface.withValues(alpha: .68))),
+                )
+              : Column(
             children: controller.transactions.map((tx) => ListTile(
               leading: Icon(tx.amount > 0 ? Icons.south_west : Icons.north_east, color: tx.amount > 0 ? Colors.greenAccent : Colors.redAccent),
-              title: Text(tx.label),
-              subtitle: Text(tx.date),
+              title: Text(r80TransactionLabel(tx.label, ar), style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w800)),
+              subtitle: Text(r80TransactionDate(tx.date, ar), style: TextStyle(color: colors.onSurface.withValues(alpha: .66))),
               trailing: Text('${tx.amount > 0 ? '+' : ''}${formatNumber(tx.amount)}', style: TextStyle(color: tx.amount > 0 ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.w900)),
             )).toList(),
           ),
