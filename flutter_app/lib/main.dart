@@ -8664,8 +8664,18 @@ void showRewards(BuildContext context, AppController controller) {
   );
 }
 
+Widget r81SettingsSection(BuildContext context, String key, List<Widget> children) {
+  return Container(
+    key: ValueKey(key),
+    clipBehavior: Clip.antiAlias,
+    decoration: r80AccountSummaryDecoration(context),
+    child: Column(children: children),
+  );
+}
+
 void showSettings(BuildContext context, AppController controller) {
   final ar = controller.localeCode == 'ar';
+  final colors = R69PlaySurfaceColors.of(context);
   bool vibration = true;
   bool autoPlay = true;
   showPremiumSheet(
@@ -8695,81 +8705,89 @@ void showSettings(BuildContext context, AppController controller) {
           const SizedBox(height: 10),
           B307SectionHeader(title: ar ? 'تجربة اللعب' : 'Gameplay experience'),
           const SizedBox(height: 5),
-          SwitchListTile(value: controller.soundEnabled, onChanged: (v) { controller.toggleSound(v); setLocalState(() {}); }, title: const Text('الأصوات'), subtitle: const Text('أصوات اللعب والإيموجي والتنبيهات')),
-          SwitchListTile(value: vibration, onChanged: (v) => setLocalState(() => vibration = v), title: const Text('الاهتزاز'), subtitle: const Text('اهتزاز خفيف عند وصول الدور')),
-          SwitchListTile(value: autoPlay, onChanged: (v) => setLocalState(() => autoPlay = v), title: const Text('اللعب التلقائي القانوني'), subtitle: const Text('يتصرف الكمبيوتر عند انتهاء وقت الدور')),
-          SwitchListTile(value: controller.landscapeMode, onChanged: (_) async { await controller.toggleOrientationMode(); setLocalState(() {}); }, title: const Text('الوضع الأفقي'), subtitle: const Text('تخطيط كامل للطاولة والورق والدردشة')),
-          SwitchListTile(value: controller.tableAmbientEffects, onChanged: (v) { controller.updateNoCodeDesign(ambientEffects: v); setLocalState(() {}); }, title: const Text('مؤثرات الطاولة الهادئة'), subtitle: const Text('إضاءات وحركة خفيفة بدون تشتيت')),
-          AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => SwitchListTile(value: R10AssetDelivery.instance.dataSaver, onChanged: (v) async { await R10AssetDelivery.instance.setDataSaver(v); setLocalState(() {}); }, title: Text(controller.localeCode == 'ar' ? 'توفير البيانات' : 'Data Saver'), subtitle: Text(controller.localeCode == 'ar' ? 'صور معاينة أصغر عند استخدام CDN مع بقاء الجودة الكاملة عند إيقافه.' : 'Use smaller CDN previews while keeping full quality when disabled.'))),
-          AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => ListTile(leading: const Icon(Icons.cloud_download_outlined), title: Text(controller.localeCode == 'ar' ? 'تسليم الأصول R10' : 'R10 Asset Delivery'), subtitle: Text('${R10AssetDelivery.instance.manifestEntries} assets • ${R10AssetDelivery.instance.ondemandEntries} on-demand • ${R10AssetDelivery.instance.cdnEnabled ? 'CDN' : 'bundled fallback'}'), trailing: IconButton(icon: const Icon(Icons.cleaning_services_outlined), tooltip: controller.localeCode == 'ar' ? 'مسح الذاكرة المؤقتة' : 'Clear memory cache', onPressed: () { R10AssetDelivery.instance.clearMemoryCache(); setLocalState(() {}); }))),
+          r81SettingsSection(context, 'r81-settings-gameplay', [
+            SwitchListTile(value: controller.soundEnabled, onChanged: (v) { controller.toggleSound(v); setLocalState(() {}); }, title: Text(ar ? 'الأصوات' : 'Sounds'), subtitle: Text(ar ? 'أصوات اللعب والإيموجي والتنبيهات' : 'Gameplay, emoji and notification sounds')),
+            SwitchListTile(value: vibration, onChanged: (v) => setLocalState(() => vibration = v), title: Text(ar ? 'الاهتزاز' : 'Vibration'), subtitle: Text(ar ? 'اهتزاز خفيف عند وصول الدور' : 'A subtle vibration when your turn begins')),
+            SwitchListTile(value: autoPlay, onChanged: (v) => setLocalState(() => autoPlay = v), title: Text(ar ? 'اللعب التلقائي القانوني' : 'Legal auto-play'), subtitle: Text(ar ? 'يتصرف الكمبيوتر عند انتهاء وقت الدور' : 'The computer makes a legal move when turn time expires')),
+            SwitchListTile(value: controller.landscapeMode, onChanged: (_) async { await controller.toggleOrientationMode(); setLocalState(() {}); }, title: Text(ar ? 'الوضع الأفقي' : 'Landscape mode'), subtitle: Text(ar ? 'تخطيط كامل للطاولة والورق والدردشة' : 'Full table, cards and chat layout')),
+            SwitchListTile(value: controller.tableAmbientEffects, onChanged: (v) { controller.updateNoCodeDesign(ambientEffects: v); setLocalState(() {}); }, title: Text(ar ? 'مؤثرات الطاولة الهادئة' : 'Subtle table effects'), subtitle: Text(ar ? 'إضاءات وحركة خفيفة بدون تشتيت' : 'Gentle lighting and motion without distraction')),
+            AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => SwitchListTile(value: R10AssetDelivery.instance.dataSaver, onChanged: (v) async { await R10AssetDelivery.instance.setDataSaver(v); setLocalState(() {}); }, title: Text(ar ? 'توفير البيانات' : 'Data Saver'), subtitle: Text(ar ? 'صور معاينة أصغر عند استخدام CDN مع بقاء الجودة الكاملة عند إيقافه.' : 'Use smaller CDN previews while keeping full quality when disabled.'))),
+            AnimatedBuilder(animation: R10AssetDelivery.instance, builder: (context, _) => ListTile(leading: const Icon(Icons.cloud_download_outlined), title: Text(ar ? 'تسليم الأصول R10' : 'R10 Asset Delivery'), subtitle: Text(ar ? '${R10AssetDelivery.instance.manifestEntries} أصل • ${R10AssetDelivery.instance.ondemandEntries} عند الطلب • ${R10AssetDelivery.instance.cdnEnabled ? 'CDN' : 'نسخة مدمجة'}' : '${R10AssetDelivery.instance.manifestEntries} assets • ${R10AssetDelivery.instance.ondemandEntries} on-demand • ${R10AssetDelivery.instance.cdnEnabled ? 'CDN' : 'bundled fallback'}'), trailing: IconButton(icon: const Icon(Icons.cleaning_services_outlined), tooltip: ar ? 'مسح الذاكرة المؤقتة' : 'Clear memory cache', onPressed: () { R10AssetDelivery.instance.clearMemoryCache(); setLocalState(() {}); }))),
+          ]),
           const SizedBox(height: 6),
           B307SectionHeader(title: ar ? 'الهوية واللاعب' : 'Identity & player'),
           const SizedBox(height: 5),
-          ListTile(leading: AccountAvatar(controller: controller, size: 42), title: Text(ar ? 'الصورة الشخصية' : 'Profile picture'), subtitle: Text(ar ? 'معاينة وقص قبل الاعتماد' : 'Preview and crop before applying'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
-          ListTile(
-            leading: SizedBox(width: 52, height: 38, child: ClipRRect(borderRadius: BorderRadius.circular(10), child: ProfileCover(coverId: controller.selectedCover, colors: b304ProfileGradient(controller), child: const Center(child: Icon(Icons.person, size: 18))))),
-            title: Text(L.t(controller.localeCode, 'covers')),
-            subtitle: Text(storeProductById(controller.selectedCover)?.name(controller.localeCode) ?? controller.selectedCover),
-            trailing: const Icon(Icons.storefront_outlined),
-            onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(appBar: AppBar(title: Text(L.t(controller.localeCode, 'covers'))), body: StorePage(controller: controller)))); },
-          ),
-          ListTile(
-            leading: const Icon(Icons.smart_toy_outlined),
-            title: Text(L.t(controller.localeCode, 'difficulty')),
-            subtitle: Text(L.t(controller.localeCode, controller.botDifficultyCode)),
-            trailing: DropdownButton<String>(
-              value: controller.botDifficultyCode,
-              underline: const SizedBox.shrink(),
-              items: const [
-                DropdownMenuItem(value:'easy',child:Text('EASY')),
-                DropdownMenuItem(value:'normal',child:Text('NORMAL')),
-                DropdownMenuItem(value:'pro',child:Text('HARD')),
-                DropdownMenuItem(value:'master',child:Text('EXPERT')),
-              ],
-              onChanged: (value) { if (value != null) { controller.changeBotDifficulty(value); setLocalState(() {}); } },
+          r81SettingsSection(context, 'r81-settings-identity', [
+            ListTile(leading: AccountAvatar(controller: controller, size: 42), title: Text(ar ? 'الصورة الشخصية' : 'Profile picture'), subtitle: Text(ar ? 'معاينة وقص قبل الاعتماد' : 'Preview and crop before applying'), trailing: const Icon(Icons.chevron_right), onTap: () => showAvatarPicker(context, controller)),
+            ListTile(
+              leading: SizedBox(width: 52, height: 38, child: ClipRRect(borderRadius: BorderRadius.circular(10), child: ProfileCover(coverId: controller.selectedCover, colors: b304ProfileGradient(controller), child: const Center(child: Icon(Icons.person, size: 18))))),
+              title: Text(L.t(controller.localeCode, 'covers')),
+              subtitle: Text(storeProductById(controller.selectedCover)?.name(controller.localeCode) ?? controller.selectedCover),
+              trailing: const Icon(Icons.storefront_outlined),
+              onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(appBar: AppBar(title: Text(L.t(controller.localeCode, 'covers'))), body: StorePage(controller: controller)))); },
             ),
-          ),
+            ListTile(
+              leading: const Icon(Icons.smart_toy_outlined),
+              title: Text(L.t(controller.localeCode, 'difficulty')),
+              subtitle: Text(L.t(controller.localeCode, controller.botDifficultyCode)),
+              trailing: DropdownButton<String>(
+                value: controller.botDifficultyCode,
+                underline: const SizedBox.shrink(),
+                items: <DropdownMenuItem<String>>[
+                  DropdownMenuItem(value:'easy',child:Text(ar ? 'سهل' : 'EASY')),
+                  DropdownMenuItem(value:'normal',child:Text(ar ? 'عادي' : 'NORMAL')),
+                  DropdownMenuItem(value:'pro',child:Text(ar ? 'صعب' : 'HARD')),
+                  DropdownMenuItem(value:'master',child:Text(ar ? 'خبير' : 'EXPERT')),
+                ],
+                onChanged: (value) { if (value != null) { controller.changeBotDifficulty(value); setLocalState(() {}); } },
+              ),
+            ),
+          ]),
           const SizedBox(height: 6),
           B307SectionHeader(title: ar ? 'العرض والوصول' : 'Display & accessibility'),
           const SizedBox(height: 5),
-          ListTile(leading:const Icon(Icons.font_download_outlined),title:Text(L.t(controller.localeCode,'font')),subtitle:Text(controller.uiFontFamily),trailing:PopupMenuButton<String>(onSelected:(value){controller.changeFontFamily(value);setLocalState((){});},itemBuilder:(_)=>const [PopupMenuItem(value:'Roboto',child:Text('Roboto')),PopupMenuItem(value:'Arial',child:Text('Arial')),PopupMenuItem(value:'Tahoma',child:Text('Tahoma')),PopupMenuItem(value:'Verdana',child:Text('Verdana')),PopupMenuItem(value:'serif',child:Text('Serif')),PopupMenuItem(value:'monospace',child:Text('Monospace'))])),
-          ListTile(leading:const Icon(Icons.format_size),title:Text(L.t(controller.localeCode,'fontSize')),subtitle:Text('${(controller.uiFontScale*100).round()}%'),trailing:Wrap(spacing:4,children:[IconButton.filledTonal(onPressed:(){controller.adjustFontScale(-.08);setLocalState((){});},icon:const Text('A−')),IconButton.filledTonal(onPressed:(){controller.adjustFontScale(.08);setLocalState((){});},icon:const Text('A+'))])),
-          ListTile(leading:const Icon(Icons.health_and_safety_outlined),title:Text(L.t(controller.localeCode,'connectionCheck')),subtitle:const Text('الخادم والإنترنت والميكروفون'),trailing:const Icon(Icons.chevron_right),onTap:()=>showConnectionDiagnosticsDialog(context,controller)),
-          ListTile(leading:const Icon(Icons.privacy_tip_outlined),title:Text(L.t(controller.localeCode,'privacyPolicy')),trailing:const Icon(Icons.chevron_right),onTap:()=>showPrivacyPolicyPage(context,controller)),
-          ListTile(
-            leading: const Icon(Icons.security_rounded, color: Colors.lightBlueAccent),
-            title: Text(controller.localeCode == 'ar' ? 'أمان الحساب' : 'Account security'),
-            subtitle: Text(controller.localeCode == 'ar' ? 'تغيير البريد وكلمة المرور بأمان' : 'Securely change email and password'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => R143AccountSecurityPage(controller: controller)));
-            },
-          ),
+          r81SettingsSection(context, 'r81-settings-accessibility', [
+            ListTile(leading:const Icon(Icons.font_download_outlined),title:Text(L.t(controller.localeCode,'font')),subtitle:Text(controller.uiFontFamily),trailing:PopupMenuButton<String>(onSelected:(value){controller.changeFontFamily(value);setLocalState((){});},itemBuilder:(_)=>const [PopupMenuItem(value:'Roboto',child:Text('Roboto')),PopupMenuItem(value:'Arial',child:Text('Arial')),PopupMenuItem(value:'Tahoma',child:Text('Tahoma')),PopupMenuItem(value:'Verdana',child:Text('Verdana')),PopupMenuItem(value:'serif',child:Text('Serif')),PopupMenuItem(value:'monospace',child:Text('Monospace'))])),
+            ListTile(leading:const Icon(Icons.format_size),title:Text(L.t(controller.localeCode,'fontSize')),subtitle:Text('${(controller.uiFontScale*100).round()}%'),trailing:Wrap(spacing:4,children:[IconButton.filledTonal(onPressed:(){controller.adjustFontScale(-.08);setLocalState((){});},icon:const Text('A−')),IconButton.filledTonal(onPressed:(){controller.adjustFontScale(.08);setLocalState((){});},icon:const Text('A+'))])),
+            ListTile(leading:const Icon(Icons.health_and_safety_outlined),title:Text(L.t(controller.localeCode,'connectionCheck')),subtitle:Text(ar ? 'الخادم والإنترنت والميكروفون' : 'Server, internet and microphone'),trailing:const Icon(Icons.chevron_right),onTap:()=>showConnectionDiagnosticsDialog(context,controller)),
+            ListTile(leading:const Icon(Icons.privacy_tip_outlined),title:Text(L.t(controller.localeCode,'privacyPolicy')),trailing:const Icon(Icons.chevron_right),onTap:()=>showPrivacyPolicyPage(context,controller)),
+            ListTile(
+              leading: Icon(Icons.security_rounded, color: colors.accent),
+              title: Text(ar ? 'أمان الحساب' : 'Account security'),
+              subtitle: Text(ar ? 'تغيير البريد وكلمة المرور بأمان' : 'Securely change email and password'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => R143AccountSecurityPage(controller: controller)));
+              },
+            ),
+          ]),
           const SizedBox(height: 6),
           B307SectionHeader(title: ar ? 'اللغة والنظام' : 'Language & system'),
           const SizedBox(height: 5),
-          ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => b304ActiveLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(code == 'ar' ? 'العربية' : 'English'))).toList())),
-          ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: Text(L.t(controller.localeCode, 'theme')),
-            subtitle: Text(controller.themeCode),
-            trailing: PopupMenuButton<String>(
-              onSelected: (v) { controller.changeTheme(v); setLocalState(() {}); },
-              itemBuilder: (_) => r101Themes.keys.map((code) => PopupMenuItem<String>(value: code, child: Text(code.replaceAll('_', ' ').toUpperCase()))).toList(),
+          r81SettingsSection(context, 'r81-settings-system', [
+            ListTile(leading: const Icon(Icons.language), title: Text(L.t(controller.localeCode, 'language')), subtitle: Text(controller.localeCode.toUpperCase()), trailing: PopupMenuButton<String>(onSelected: (v) { controller.changeLocale(v); setLocalState(() {}); }, itemBuilder: (_) => b304ActiveLocaleCodes.map((code) => PopupMenuItem<String>(value:code, child:Text(code == 'ar' ? 'العربية' : 'English'))).toList())),
+            ListTile(
+              leading: const Icon(Icons.palette_outlined),
+              title: Text(L.t(controller.localeCode, 'theme')),
+              subtitle: Text(controller.themeCode.replaceAll('_', ' ')),
+              trailing: PopupMenuButton<String>(
+                onSelected: (v) { controller.changeTheme(v); setLocalState(() {}); },
+                itemBuilder: (_) => r101Themes.keys.map((code) => PopupMenuItem<String>(value: code, child: Text(code.replaceAll('_', ' ').toUpperCase()))).toList(),
+              ),
             ),
-          ),
-          if (controller.isPrimaryAdmin) ListTile(leading: const Icon(Icons.tune_rounded), title: Text(L.t(controller.localeCode, 'noCode')), subtitle: const Text('مصمم شامل خاص بحساب Adnan مع معاينة فورية'), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); showNoCodeDesignerSheet(context, controller); }),
-          ListTile(leading: const Icon(Icons.install_mobile_rounded), title: const Text('تثبيت التطبيق على الهاتف'), subtitle: const Text('استخدم زر التثبيت أو إضافة إلى الشاشة الرئيسية من المتصفح.')),
-          ListTile(leading: const Icon(Icons.security_rounded, color: Colors.lightBlueAccent), title: Text(v153Text(controller.localeCode, 'productionCenter')), subtitle: Text(v153Text(controller.localeCode, 'productionCenterHint')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); openProductionCenterV153(context, controller); }),
-          const ListTile(leading: Icon(Icons.restore_rounded), title: Text('مهلة استعادة الحساب'), subtitle: Text('بعد إلغاء الحساب يمكنك استعادته بمجرد تسجيل الدخول خلال 30 يوماً؛ لا تُحذف الحسابات العادية بسبب عدم النشاط.')),
-          const Divider(),
-          if (!controller.isAdmin) OutlinedButton.icon(onPressed: () => showCancelAccountDialog(context, controller), icon: const Icon(Icons.person_off_rounded, color: Colors.redAccent), label: Text(L.t(controller.localeCode, 'deleteAccount'), style: const TextStyle(color: Colors.redAccent))),
-          if (controller.isAdmin) const ListTile(leading: Icon(Icons.shield_outlined, color: Colors.amber), title: Text('حساب المدير محمي'), subtitle: Text('بيانات المدير لا تُضمّن داخل التطبيق، وتُدار من مركز أمان الحساب.')),
+            if (controller.isPrimaryAdmin) ListTile(leading: const Icon(Icons.tune_rounded), title: Text(L.t(controller.localeCode, 'noCode')), subtitle: Text(ar ? 'مصمم شامل خاص بحساب Adnan مع معاينة فورية' : 'Adnan-only visual designer with live preview'), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); showNoCodeDesignerSheet(context, controller); }),
+            ListTile(leading: const Icon(Icons.install_mobile_rounded), title: Text(ar ? 'تثبيت التطبيق على الهاتف' : 'Install the app on your phone'), subtitle: Text(ar ? 'استخدم زر التثبيت أو إضافة إلى الشاشة الرئيسية من المتصفح.' : 'Use the browser install button or Add to Home Screen.')),
+            ListTile(leading: Icon(Icons.security_rounded, color: colors.accent), title: Text(v153Text(controller.localeCode, 'productionCenter')), subtitle: Text(v153Text(controller.localeCode, 'productionCenterHint')), trailing: const Icon(Icons.chevron_right), onTap: () { Navigator.pop(context); openProductionCenterV153(context, controller); }),
+            ListTile(leading: const Icon(Icons.restore_rounded), title: Text(ar ? 'مهلة استعادة الحساب' : 'Account recovery period'), subtitle: Text(ar ? 'بعد إلغاء الحساب يمكنك استعادته بمجرد تسجيل الدخول خلال 30 يوماً؛ لا تُحذف الحسابات العادية بسبب عدم النشاط.' : 'After cancellation, sign in within 30 days to restore the account. Regular accounts are not deleted for inactivity.')),
+            const Divider(),
+            if (!controller.isAdmin) OutlinedButton.icon(onPressed: () => showCancelAccountDialog(context, controller), icon: const Icon(Icons.person_off_rounded, color: Colors.redAccent), label: Text(L.t(controller.localeCode, 'deleteAccount'), style: const TextStyle(color: Colors.redAccent))),
+            if (controller.isAdmin) ListTile(leading: const Icon(Icons.shield_outlined, color: Colors.amber), title: Text(ar ? 'حساب المدير محمي' : 'Administrator account protected'), subtitle: Text(ar ? 'بيانات المدير لا تُضمّن داخل التطبيق، وتُدار من مركز أمان الحساب.' : 'Administrator credentials are not embedded in the app and are managed in Account Security.')),
+          ]),
           const SizedBox(height: 10),
           FilledButton.icon(
             key: const ValueKey('r32-settings-save'),
-            style: FilledButton.styleFrom(backgroundColor: B307SkyLuxury.azure, foregroundColor: r101ReadableInk(B307SkyLuxury.azure), minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(backgroundColor: colors.accent, foregroundColor: r101ReadableInk(colors.accent), minimumSize: const Size.fromHeight(50)),
             onPressed: () {
               Navigator.pop(context);
               showToast(context, ar ? 'تم حفظ الإعدادات وتطبيقها على التطبيق.' : 'Settings saved and applied.');
