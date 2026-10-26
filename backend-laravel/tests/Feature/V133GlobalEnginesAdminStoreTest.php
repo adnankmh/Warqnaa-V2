@@ -23,7 +23,8 @@ class V133GlobalEnginesAdminStoreTest extends TestCase
     public function test_navigation_keeps_the_flat_customer_catalog(): void
     {
         $layout=file_get_contents(resource_path('views/layouts/app.blade.php'));
-        $this->assertStringContainsString("\$navFamilies=['all'=>'الكل'];",$layout);
+        $this->assertStringContainsString("\$navFamilies=['all'=>\$t('الكل','All')];",$layout);
+        $this->assertStringContainsString("\$g->name[\$english ? 'en' : 'ar']",$layout);
     }
 
     public function test_basha_uploaded_asset_and_store_ajax_script_exist(): void
