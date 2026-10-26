@@ -285,7 +285,8 @@ class R44RummyTableOverlay extends StatelessWidget {
                   alignment: AlignmentDirectional.centerStart,
                   child: Text(ownerName(owners[ownerIndex].key),
                     maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: colors.textMuted,
+                    style: TextStyle(
+                      color: colors.onSurface.withValues(alpha: .72),
                       fontSize: compact ? 9 : 10,
                       fontWeight: FontWeight.w700)),
                 ),
