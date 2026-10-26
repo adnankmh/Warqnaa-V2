@@ -6487,18 +6487,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
   Future<void> _kickRoomPlayer(Map<String, dynamic> player) async {
     final userId = int.tryParse(player['user_id']?.toString() ?? '');
     if (userId == null || userId <= 0 || roomCode.isEmpty) return;
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: const Text('إخراج اللاعب من الغرفة'),
-            content: Text('هل تريد إخراج ${player['name'] ?? 'هذا اللاعب'} ومنعه من العودة إلى هذه المباراة؟'),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')),
-              FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('إخراج')),
-            ],
-          ),
-        ) ??
-        false;
+    final confirmed = await showR83KickPlayerDialog(
+      context,
+      name: player['name']?.toString() ?? _roomText('هذا اللاعب', 'this player'),
+      ar: widget.controller.localeCode == 'ar',
+    );
     if (!confirmed) return;
     try {
       final result = await widget.controller.api.kickRoomPlayer(roomCode, userId);
@@ -6512,42 +6505,31 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Future<void> _showRoomMembersManager() async {
     final rawPlayers = room?['players'] is List ? room!['players'] as List : const [];
+    final players = rawPlayers.whereType<Map>().map((raw) => Map<String, dynamic>.from(raw)).toList();
+    final ar = widget.controller.localeCode == 'ar';
     await showPremiumSheet(
       context,
-      child: Column(
-        children: [
-          const Text('إدارة لاعبي الغرفة', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-          const SizedBox(height: 8),
-          const Text('اضغط على اللاعب لعرض بروفايله، أو استخدم زر الإخراج إذا كنت منشئ الغرفة.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60)),
-          const SizedBox(height: 12),
-          for (final raw in rawPlayers)
-            if (raw is Map)
-              Builder(builder: (context) {
-                final player = Map<String, dynamic>.from(raw);
-                final bot = player['bot'] == true;
-                final mine = player['key']?.toString() == state['you']?.toString();
-                return PremiumListTile(
-                  icon: bot ? '🤖' : (player['flag']?.toString() ?? '👤'),
-                  title: player['name']?.toString() ?? 'لاعب',
-                  subtitle: bot ? 'لاعب آلي احترافي' : 'LV.${player['level'] ?? 1} • ${player['connected'] == true ? 'متصل' : 'غير متصل'}',
-                  onTap: () => openPlayerProfileV021(
-                    context,
-                    widget.controller,
-                    userId: bot ? null : int.tryParse(player['user_id']?.toString() ?? ''),
-                    name: player['name']?.toString() ?? 'لاعب',
-                    username: player['username']?.toString(),
-                    avatar: bot ? '🤖' : player['avatar']?.toString(),
-                    level: int.tryParse(player['level']?.toString() ?? '') ?? 1,
-                    countryCode: player['country_code']?.toString() ?? 'PS',
-                    online: player['connected'] == true,
-                    activity: bot ? 'لاعب آلي احترافي' : 'لاعب في الغرفة',
-                  ),
-                  action: (!bot && !mine && room?['is_owner'] == true && room?['allow_owner_kick'] == true)
-                      ? IconButton(onPressed: () => _kickRoomPlayer(player), icon: const Icon(Icons.person_remove_alt_1_rounded, color: Colors.redAccent))
-                      : const SizedBox.shrink(),
-                );
-              }),
-        ],
+      child: R83RoomMembersPanel(
+        players: players,
+        ar: ar,
+        currentPlayerKey: state['you']?.toString(),
+        canKick: room?['is_owner'] == true && room?['allow_owner_kick'] == true,
+        onOpenProfile: (player) {
+          final bot = player['bot'] == true;
+          openPlayerProfileV021(
+            context,
+            widget.controller,
+            userId: bot ? null : int.tryParse(player['user_id']?.toString() ?? ''),
+            name: player['name']?.toString() ?? _roomText('لاعب', 'Player'),
+            username: player['username']?.toString(),
+            avatar: bot ? null : player['avatar']?.toString(),
+            level: int.tryParse(player['level']?.toString() ?? '') ?? 1,
+            countryCode: player['country_code']?.toString() ?? 'PS',
+            online: player['connected'] == true,
+            activity: bot ? _roomText('لاعب آلي احترافي', 'Professional computer player') : _roomText('لاعب في الغرفة', 'Player in this room'),
+          );
+        },
+        onKick: _kickRoomPlayer,
       ),
     );
   }
@@ -7926,6 +7908,205 @@ class PremiumListTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// R83 keeps room moderation legible in every cosmetic theme without changing
+/// who is allowed to remove a player or the server-authoritative kick request.
+class R83RoomMembersPanel extends StatelessWidget {
+  const R83RoomMembersPanel({
+    super.key,
+    required this.players,
+    required this.ar,
+    required this.currentPlayerKey,
+    required this.canKick,
+    required this.onOpenProfile,
+    required this.onKick,
+  });
+
+  final List<Map<String, dynamic>> players;
+  final bool ar;
+  final String? currentPlayerKey;
+  final bool canKick;
+  final ValueChanged<Map<String, dynamic>> onOpenProfile;
+  final ValueChanged<Map<String, dynamic>> onKick;
+
+  String text(String arabic, String english) => ar ? arabic : english;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = R69PlaySurfaceColors.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    return Directionality(
+      textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
+      child: Column(
+        key: const ValueKey('r83-room-members-panel'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: <Color>[
+                Color.lerp(colors.surface, colors.accent, .18)!,
+                Color.lerp(colors.surface, colors.secondary, .09)!,
+              ]),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: colors.accent.withValues(alpha: .38)),
+            ),
+            child: Row(children: <Widget>[
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.groups_2_rounded, color: colors.accent),
+              ),
+              const SizedBox(width: 11),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(text('إدارة لاعبي الغرفة', 'Room players'),
+                    style: TextStyle(color: colors.onSurface, fontSize: 20,
+                      fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 4),
+                  Text(text(
+                    'افتح ملف اللاعب، أو أخرجه إذا كنت مالك الغرفة.',
+                    'Open a player profile, or remove them if you own the room.'),
+                    style: TextStyle(color: colors.onSurface.withValues(alpha: .72),
+                      fontSize: 12, height: 1.4)),
+                ],
+              )),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          for (final player in players) ...<Widget>[
+            Builder(builder: (context) {
+              final bot = player['bot'] == true;
+              final mine = player['key']?.toString() == currentPlayerKey;
+              final connected = player['connected'] == true;
+              final countryCode = (player['country_code']?.toString() ?? '--').toUpperCase();
+              return Container(
+                key: ValueKey<String>('r83-room-player-${player['key'] ?? player['user_id'] ?? player['name']}'),
+                margin: const EdgeInsets.only(bottom: 9),
+                decoration: BoxDecoration(
+                  color: Color.lerp(colors.surface, colors.accent, .055),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: colors.accent.withValues(alpha: .22)),
+                ),
+                child: InkWell(
+                  onTap: () => onOpenProfile(player),
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.all(11),
+                    child: Row(children: <Widget>[
+                      Container(
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: colors.accent.withValues(alpha: .13),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(bot ? Icons.smart_toy_rounded : Icons.person_rounded,
+                          color: colors.accent, size: 25),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(player['name']?.toString() ?? text('لاعب', 'Player'),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: colors.onSurface,
+                              fontWeight: FontWeight.w900, fontSize: 14)),
+                          const SizedBox(height: 3),
+                          Text(bot
+                            ? text('لاعب آلي احترافي', 'Professional computer player')
+                            : 'LV.${player['level'] ?? 1} • ${connected ? text('متصل', 'Online') : text('غير متصل', 'Offline')}',
+                            style: TextStyle(
+                              color: connected || bot
+                                ? scheme.tertiary
+                                : colors.onSurface.withValues(alpha: .62),
+                              fontSize: 11, height: 1.35)),
+                        ],
+                      )),
+                      if (!bot) ...<Widget>[
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 34),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: colors.secondary.withValues(alpha: .13),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: colors.secondary.withValues(alpha: .28)),
+                          ),
+                          child: Text(countryCode, textAlign: TextAlign.center,
+                            style: TextStyle(color: colors.onSurface,
+                              fontWeight: FontWeight.w900, fontSize: 10)),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      if (canKick && !bot && !mine)
+                        IconButton(
+                          key: ValueKey<String>('r83-kick-${player['user_id']}'),
+                          tooltip: text('إخراج اللاعب', 'Remove player'),
+                          onPressed: () => onKick(player),
+                          icon: const Icon(Icons.person_remove_alt_1_rounded),
+                          color: scheme.error,
+                        ),
+                    ]),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+Future<bool> showR83KickPlayerDialog(BuildContext context, {
+  required String name,
+  required bool ar,
+}) async {
+  return await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      final colors = R69PlaySurfaceColors.of(dialogContext);
+      final scheme = Theme.of(dialogContext).colorScheme;
+      return Directionality(
+        textDirection: ar ? TextDirection.rtl : TextDirection.ltr,
+        child: AlertDialog(
+          key: const ValueKey('r83-kick-player-dialog'),
+          backgroundColor: colors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: scheme.error.withValues(alpha: .55)),
+          ),
+          icon: Icon(Icons.person_remove_alt_1_rounded, color: scheme.error),
+          title: Text(ar ? 'إخراج اللاعب من الغرفة' : 'Remove player from room'),
+          content: Text(ar
+            ? 'هل تريد إخراج $name ومنعه من العودة إلى هذه المباراة؟'
+            : 'Remove $name and prevent them from returning to this match?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(ar ? 'إلغاء' : 'Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.error,
+                foregroundColor: scheme.onError,
+              ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(ar ? 'إخراج' : 'Remove'),
+            ),
+          ],
+        ),
+      );
+    },
+  ) ?? false;
 }
 
 Future<void> showAvatarPicker(BuildContext context, AppController controller) async {
