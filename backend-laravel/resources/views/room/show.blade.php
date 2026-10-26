@@ -93,10 +93,10 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
   </div>
   @if((auth()->user()->profile?->pasha_days ?? 0)>0)
    @php $isAway = !empty(($state['away_players'] ?? [])[$myKey]); @endphp
-   <div class="away-status {{$isAway ? 'active' : ''}}">{{$isAway ? '🟡 أنت الآن في وضع الغائب، الكمبيوتر يلعب بدلك.' : '🟢 أنت حاضر وتلعب بنفسك.'}}</div>
-   <form method="post" action="{{route('rooms.away',$room->code)}}" data-confirm="تفعيل/إلغاء وضع الغائب؟ الكمبيوتر سيلعب بدلًا عنك مؤقتًا.">@csrf<button type="submit" class="btn big-action away-btn">{{$isAway ? '✅ العودة للعب بنفسي' : '🕒 تفعيل وضع الغائب'}}</button></form>
+   <div class="away-status {{$isAway ? 'active' : ''}}">{{$isAway ? $t('🟡 أنت الآن في وضع الغائب، الكمبيوتر يلعب بدلك.','🟡 Away mode is active; the computer is playing for you.') : $t('🟢 أنت حاضر وتلعب بنفسك.','🟢 You are present and playing.') }}</div>
+   <form method="post" action="{{route('rooms.away',$room->code)}}" data-confirm="{{ $t('تفعيل/إلغاء وضع الغائب؟ الكمبيوتر سيلعب بدلًا عنك مؤقتًا.','Toggle away mode? The computer will play for you temporarily.') }}">@csrf<button type="submit" class="btn big-action away-btn">{{$isAway ? $t('✅ العودة للعب بنفسي','✅ Return to playing') : $t('🕒 تفعيل وضع الغائب','🕒 Enable away mode')}}</button></form>
   @endif
-  <form method="post" action="{{route('rooms.leave',$room->code)}}" data-confirm="هل تريد الخروج من اللعبة؟ إذا خرجت 5 مرات يدويًا من هذه الغرفة نفسها فلن تستطيع العودة إلى هذه الغرفة فقط.">@csrf<button class="danger big-action">🚪 خروج والعودة لغرف {{$room->game->name['ar'] ?? $room->game->key}}</button></form>
+  <form method="post" action="{{route('rooms.leave',$room->code)}}" data-confirm="{{ $t('هل تريد الخروج من اللعبة؟ إذا خرجت 5 مرات يدويًا من هذه الغرفة نفسها فلن تستطيع العودة إلى هذه الغرفة فقط.','Leave this game? After five manual exits from this room, you cannot return to this room.') }}">@csrf<button class="danger big-action">🚪 {{ $t('خروج والعودة لغرف','Leave and return to') }} {{$gameName}}</button></form>
   <a class="btn big-action" href="{{route('rooms.index',$room->game->key)}}">{{ $t('العودة للغرف','Back to rooms') }}</a>
  </aside>
  <section class="table-wrap">
@@ -125,14 +125,14 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
     <div class="phase-title" id="phaseTitle">{{$phaseLabel}}</div>
     <div class="last-trick" id="lastAction">{{$lastActionText}}</div>
     <div class="center-status-grid r91-tarneeb-clarity-grid">
-      @if($needsBid)<div class="r91-status-hot"><small>الطلب</small><b id="centerBidValue">{{$bid['value'] ?? '—'}}</b></div>@endif
-      @if($needsBid)<div class="r91-status-hot"><small>صاحب الطلب</small><b id="centerBidderName">{{$bidderName}}</b></div>@endif
-      <div class="r91-status-hot"><small>الطرنيب</small><b>{{ $trump ? ($suitNames[$trump] ?? $trump) : 'بانتظار الاختيار' }}</b></div>
-      <div><small>لمات الجولة</small><b>{{(int)($roundTricks['teamA'] ?? 0)}} — {{(int)($roundTricks['teamB'] ?? 0)}}</b></div>
-      <div><small>نقاط آخر جولة</small><b>{{$roundDeltaALabel}} — {{$roundDeltaBLabel}}</b></div>
-      <div><small>نمط الغرفة</small><b>{{ $singleRound ? 'جولة واحدة' : 'متعددة الجولات' }}</b></div>
-      <div><small>السرعة</small><b>{{$fixedTimeout}} ثوانٍ</b></div>
-      <div><small>آخر حركة</small><b id="lastActionCenter">{{$lastActionText}}</b></div>
+      @if($needsBid)<div class="r91-status-hot"><small>{{ $t('الطلب','Bid') }}</small><b id="centerBidValue">{{$bid['value'] ?? '—'}}</b></div>@endif
+      @if($needsBid)<div class="r91-status-hot"><small>{{ $t('صاحب الطلب','Bidder') }}</small><b id="centerBidderName">{{$bidderName}}</b></div>@endif
+      <div class="r91-status-hot"><small>{{ $t('الطرنيب','Trump') }}</small><b>{{ $trump ? ($suitNames[$trump] ?? $trump) : $t('بانتظار الاختيار','Waiting for selection') }}</b></div>
+      <div><small>{{ $t('لمات الجولة','Round tricks') }}</small><b>{{(int)($roundTricks['teamA'] ?? 0)}} — {{(int)($roundTricks['teamB'] ?? 0)}}</b></div>
+      <div><small>{{ $t('نقاط آخر جولة','Last round points') }}</small><b>{{$roundDeltaALabel}} — {{$roundDeltaBLabel}}</b></div>
+      <div><small>{{ $t('نمط الغرفة','Room mode') }}</small><b>{{ $singleRound ? $t('جولة واحدة','Single round') : $t('متعددة الجولات','Multiple rounds') }}</b></div>
+      <div><small>{{ $t('السرعة','Speed') }}</small><b>{{$fixedTimeout}} {{ $t('ثوانٍ','seconds') }}</b></div>
+      <div><small>{{ $t('آخر حركة','Last action') }}</small><b id="lastActionCenter">{{$lastActionText}}</b></div>
     </div>
     <div id="tableTrick" class="table-trick"></div>
      @if($handLike)
@@ -157,7 +157,7 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
       <div class="tarneeb-request-title">{{ $t('مرحلة الطلب','Bidding') }}</div>
       <button data-action="pass" class="pass-btn tarneeb-pass">{{ $t('تمرير','Pass') }}</button>
       <div class="tarneeb-bid-grid">
-       @for($i=7;$i<=13;$i++) <button data-action="bid" data-value="{{$i}}" class="tarneeb-bid pro-bid-btn" title="اعتماد طلب {{$i}}"><span>{{$i}}</span></button> @endfor
+       @for($i=7;$i<=13;$i++) <button data-action="bid" data-value="{{$i}}" class="tarneeb-bid pro-bid-btn" title="{{ $t('اعتماد طلب','Bid') }} {{$i}}"><span>{{$i}}</span></button> @endfor
       </div>
       <div class="estimation-bid-grid">
        @for($i=0;$i<=6;$i++) <button data-action="bid" data-value="{{$i}}" class="estimation-bid">{{$i}}</button> @endfor
@@ -165,13 +165,13 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
      </div>
      <div class="trump-chooser-panel">
       <div class="trump-title">{{ $t('اختر نوع الطرنيب بعد تأكيد الطلب','Choose trump after confirming the bid') }}</div>
-      <button data-action="choose_trump" data-suit="hearts" class="trump-card red-suit"><b>♥</b><span>كبة</span></button>
-      <button data-action="choose_trump" data-suit="diamonds" class="trump-card red-suit"><b>♦</b><span>ديناري</span></button>
-      <button data-action="choose_trump" data-suit="spades" class="trump-card black-suit"><b>♠</b><span>بستوني</span></button>
-      <button data-action="choose_trump" data-suit="clubs" class="trump-card black-suit"><b>♣</b><span>سباتي</span></button>
+      <button data-action="choose_trump" data-suit="hearts" class="trump-card red-suit"><b>♥</b><span>{{ $t('كبة','Hearts') }}</span></button>
+      <button data-action="choose_trump" data-suit="diamonds" class="trump-card red-suit"><b>♦</b><span>{{ $t('ديناري','Diamonds') }}</span></button>
+      <button data-action="choose_trump" data-suit="spades" class="trump-card black-suit"><b>♠</b><span>{{ $t('بستوني','Spades') }}</span></button>
+      <button data-action="choose_trump" data-suit="clubs" class="trump-card black-suit"><b>♣</b><span>{{ $t('سباتي','Clubs') }}</span></button>
      </div>
      <button data-action="draw_deck" class="hand-btn">{{ $t('اسحب من الرزمة','Draw stock') }}</button><button data-action="draw_discard" class="hand-btn">{{ $t('اسحب من الرمي','Draw discard') }}</button><button type="button" class="meld-btn hand-btn" onclick="meldSelectedCards()">{{ $t('تجميع المحدد','Group selected') }}</button><button type="button" class="meld-btn hand-btn" onclick="arrangeMelds()">{{ $t('اعتماد ترتيب المجموعات','Confirm groups') }}</button><button type="button" class="sort-btn hand-btn" onclick="sortHandVisual()">{{ $t('ترتيب الورق','Sort cards') }}</button>
-     <button data-action="roll" class="backgammon-btn">🎲 رمي النرد</button><button data-action="draw" class="domino-btn">اسحب دومينو</button>
+     <button data-action="roll" class="backgammon-btn">🎲 {{ $t('رمي النرد','Roll dice') }}</button><button data-action="draw" class="domino-btn">{{ $t('اسحب دومينو','Draw domino') }}</button>
     </div>
     @if($handLike)
     <div class="meld-zone" id="meldZone"><b>{{ $t('مجموعاتك الجاهزة للنزول','Groups ready to meld') }}</b><small>{{ $t('اسحب الورق هنا أو حدده ثم اضغط نزّل مجموعة. يسمح بإعادة ترتيب المجموعات حسب القانون.','Drag cards here or select them, then meld the group. Groups remain reorderable within the rules.') }}</small><div id="myMelds"><div class="meld-slot" data-cards="[]">{{ $t('ضع المجموعة هنا','Place group here') }}</div><div class="meld-slot" data-cards="[]">{{ $t('مجموعة أخرى','Another group') }}</div><div class="meld-slot" data-cards="[]">{{ $t('مجموعة ثالثة','Third group') }}</div></div></div>
@@ -186,14 +186,14 @@ $acceptedFriendsV132=\App\Models\Friendship::with(['requester.profile','addresse
 
  @if(!empty(($state['voice_room'] ?? false)))
  <aside id="voiceRoomPanel" class="voice-room-panel pro-panel">
-  <div class="voice-head"><b>🎙️ اللعبة الصوتية</b><small>تم خصم 100 توكنز من كل لاعب ينضم لهذه الغرفة الصوتية.</small></div>
-  <div class="voice-status" id="voiceStatus">اضغط تشغيل المايك للسماح بالصوت.</div>
+  <div class="voice-head"><b>🎙️ {{ $t('اللعبة الصوتية','Voice game') }}</b><small>{{ $t('تم خصم 100 توكنز من كل لاعب ينضم لهذه الغرفة الصوتية.','100 tokens are deducted from every player who joins this voice room.') }}</small></div>
+  <div class="voice-status" id="voiceStatus">{{ $t('اضغط تشغيل المايك للسماح بالصوت.','Start the microphone to enable voice.') }}</div>
   <div class="voice-controls">
-   <button type="button" class="primary voice-icon-only" title="تشغيل المايك" onclick="WarqnaVoice?.start()">🎙️</button>
-   <button type="button" class="voice-icon-only" title="كتم/تشغيل" onclick="WarqnaVoice?.mute()">🔇</button>
-   <button type="button" class="danger voice-icon-only" title="إيقاف" onclick="WarqnaVoice?.stop()">⏹️</button>
+   <button type="button" class="primary voice-icon-only" title="{{ $t('تشغيل المايك','Start microphone') }}" onclick="WarqnaVoice?.start()">🎙️</button>
+   <button type="button" class="voice-icon-only" title="{{ $t('كتم/تشغيل','Mute or unmute') }}" onclick="WarqnaVoice?.mute()">🔇</button>
+   <button type="button" class="danger voice-icon-only" title="{{ $t('إيقاف','Stop') }}" onclick="WarqnaVoice?.stop()">⏹️</button>
   </div>
-  <div id="voicePeers" class="voice-peers"><small>يمكنك كتم أي لاعب من الأيقونات أمام اسمه على الطاولة.</small></div><div class="voice-note">ملاحظة تقنية: اسمح للمايك من المتصفح. للصوت بين الأجهزة شغّل سيرفر Socket/WebRTC من ملفات المشروع.</div>
+  <div id="voicePeers" class="voice-peers"><small>{{ $t('يمكنك كتم أي لاعب من الأيقونات أمام اسمه على الطاولة.','You can mute any player using the icon beside their name.') }}</small></div><div class="voice-note">{{ $t('ملاحظة تقنية: اسمح للمايك من المتصفح. للصوت بين الأجهزة شغّل سيرفر Socket/WebRTC من ملفات المشروع.','Technical note: allow microphone access in the browser. Cross-device voice requires the project Socket/WebRTC server.') }}</div>
  </aside>
  @endif
  <aside id="gameRoomChat" class="game-room-chat pro-panel">

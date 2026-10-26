@@ -36,6 +36,11 @@ class R44RoomUXIntegrationTest extends TestCase
         $this->assertStringContainsString('Groups ready to meld', $blade);
         $this->assertStringContainsString('Stock and discard piles', $blade);
         $this->assertStringContainsString('Write a game message', $blade);
+        $this->assertStringContainsString('Away mode is active', $blade);
+        $this->assertStringContainsString('Leave and return to', $blade);
+        $this->assertStringContainsString('Waiting for selection', $blade);
+        $this->assertStringContainsString('Roll dice', $blade);
+        $this->assertStringContainsString('Voice game', $blade);
         $this->assertStringContainsString('r44-pick-card', $styles);
         $this->assertStringContainsString('theme-emerald', $styles);
         $this->assertStringContainsString('theme-galaxy', $styles);
