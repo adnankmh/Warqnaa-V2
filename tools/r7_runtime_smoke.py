@@ -253,6 +253,8 @@ def main():
                     report['checks'].append('r79_profile_bilingual_theme_visual_review')
                     subprocess.run(['flutter', 'test', 'test/r80_wallet_notifications_theme_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
                     report['checks'].append('r80_wallet_and_notifications_bilingual_theme_visual_review')
+                    subprocess.run(['flutter', 'test', 'test/r81_settings_theme_localization_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
+                    report['checks'].append('r81_settings_bilingual_theme_visual_review')
                     report['checks'].append('r51_actual_home_games_and_tournaments_bilingual_five_sizes')
                     report['checks'].append('flutter_live_identity_and_rendered_layouts')
                     subprocess.run(['flutter', 'test', 'test/r10_local_tables_test.dart', '--dart-define-from-file=' + str(config), '--dart-define=R10_REVIEW_DIR=' + str(report_dir / 'local-tables')], cwd=ROOT / 'flutter_app', check=True, timeout=600)
