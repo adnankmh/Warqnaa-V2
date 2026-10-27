@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Warqnaa | العروض والشراء')
+@section('title', app()->isLocale('ar') ? 'Warqnaa | العروض والشراء' : 'Warqnaa | Offers & checkout')
 @section('content')
 @php
     $catalog=$commerceCatalog ?? [];
