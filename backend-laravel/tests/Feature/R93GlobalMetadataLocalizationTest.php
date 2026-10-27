@@ -18,7 +18,7 @@ class R93GlobalMetadataLocalizationTest extends TestCase
         $this->assertStringContainsString("'en' ? 'en' : 'ar'", $source);
         $this->assertStringContainsString("A polished social card-game platform", $source);
         $this->assertStringContainsString("منصة ألعاب ورق عربية اجتماعية احترافية", $source);
-        $this->assertStringContainsString("$t('الصورة الشخصية','Profile picture')", $source);
+        $this->assertStringContainsString("\$t('الصورة الشخصية','Profile picture')", $source);
         $this->assertStringNotContainsString('"inLanguage":"ar","description":"منصة ألعاب ورق عربية اجتماعية احترافية"', $source);
         $this->assertStringNotContainsString('alt="avatar"', $source);
     }
