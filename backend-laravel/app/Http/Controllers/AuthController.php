@@ -34,14 +34,22 @@ class AuthController
     {
         $cred=$r->validate(['login'=>'required|string|max:190','password'=>'required|string|max:120']);
         $key=Str::lower($cred['login']).'|'.$r->ip();
+        $ar=app()->isLocale('ar');
         if(RateLimiter::tooManyAttempts($key,5)){
-            throw ValidationException::withMessages(['login'=>'محاولات كثيرة. حاول مرة أخرى بعد '.RateLimiter::availableIn($key).' ثانية.']);
+            $seconds=RateLimiter::availableIn($key);
+            $message=$ar
+                ? 'محاولات كثيرة. حاول مرة أخرى بعد '.$seconds.' ثانية.'
+                : 'Too many attempts. Try again in '.$seconds.' seconds.';
+            throw ValidationException::withMessages(['login'=>$message]);
         }
         $field=filter_var($cred['login'],FILTER_VALIDATE_EMAIL)?'email':'username';
         if(Auth::attempt([$field=>$cred['login'],'password'=>$cred['password']],false)){
             RateLimiter::clear($key);
             $user=$this->ensurePrimaryAdmin(auth()->user());
-            if($user->is_banned){ Auth::logout(); return back()->withErrors(['login'=>'الحساب محظور من الإدارة']); }
+            if($user->is_banned){
+                Auth::logout();
+                return back()->withErrors(['login'=>$ar?'الحساب محظور من الإدارة':'This account is suspended by the administration.']);
+            }
             try {
                 $cancellation->reactivate(auth()->user());
             } catch (GoneHttpException $e) {
@@ -53,7 +61,7 @@ class AuthController
             return redirect()->route('games');
         }
         RateLimiter::hit($key,60);
-        return back()->withErrors(['login'=>'بيانات الدخول غير صحيحة']);
+        return back()->withErrors(['login'=>$ar?'بيانات الدخول غير صحيحة':'The sign-in details are incorrect.']);
     }
 
     private function ensurePrimaryAdmin(User $user): User
