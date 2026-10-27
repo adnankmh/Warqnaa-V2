@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Warqnaa | العب وتواصل بطريقتك')
+@section('title', app()->isLocale('ar') ? 'Warqnaa | العب وتواصل بطريقتك' : 'Warqnaa | Play and connect your way')
 @section('content')
 @php
   $ar=app()->getLocale()==='ar';

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Live Stands '.$room->code.' | Warqnaa')
+@section('title', app()->isLocale('ar') ? 'المدرجات المباشرة '.$room->code.' | ورقنا' : 'Live Stands '.$room->code.' | Warqnaa')
 @section('content')
 <div class="r11-viewer" data-room-code="{{$room->code}}" data-state-url="{{route('social-world.spectator.state',$room->code)}}">
   <header><div><span class="r11-live-label"><i></i> LIVE • READ ONLY</span><h1>🏟️ {{data_get($room->state,'room_name',$room->code)}}</h1><p>{{$room->game?->name[app()->getLocale()] ?? $room->game?->key}} • {{$room->code}}</p></div><a href="{{route('social-world')}}">← Social World</a></header>
