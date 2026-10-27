@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', app()->isLocale('ar') ? 'المكافآت | ورقنا' : 'Rewards | Warqnaa')
 @section('content')
 @php($ar=app()->getLocale()==='ar')
 <style>
@@ -7,7 +8,7 @@
 </style>
 @if(session('r52_reward'))
  <section class="r52-rewards r52-reward-result" role="status" aria-live="polite">
-  <span class="r52-icon">{{ session('r52_reward.icon','🎁') }}</span>
+  <span class="r52-icon" aria-hidden="true">{{ session('r52_reward.icon','🎁') }}</span>
   <h2>{{ $ar?'تمت إضافة جائزتك':'Your reward has been added' }}</h2>
   <p>{{ session('r52_reward.'.($ar?'label_ar':'label_en')) }}</p>
   @if(session('r52_reward.expires_at'))<small>{{ $ar?'صالحة حتى':'Valid until' }} {{ session('r52_reward.expires_at') }}</small>@endif
@@ -19,7 +20,7 @@
  @error('reward')<p class="r52-error" role="alert">{{ $message }}</p>@enderror
  <div class="r52-prizes">
  @foreach($wheel['segments'] as $segment)
-  <div class="r52-prize"><span class="r52-icon">{{ $segment['icon'] }}</span><strong>{{ $segment[$ar?'label_ar':'label_en'] }}</strong><small>{{ $segment['reward']['duration_hours']?:($ar?'دائمة':'Permanent') }} {{ $segment['reward']['duration_hours']?($ar?'ساعة':'hours'):'' }}</small></div>
+  <div class="r52-prize"><span class="r52-icon" aria-hidden="true">{{ $segment['icon'] }}</span><strong>{{ $segment[$ar?'label_ar':'label_en'] }}</strong><small>{{ $segment['reward']['duration_hours']?:($ar?'دائمة':'Permanent') }} {{ $segment['reward']['duration_hours']?($ar?'ساعة':'hours'):'' }}</small></div>
  @endforeach
  </div>
  <form method="post" action="{{ route('rewards.wheel') }}">@csrf<input type="hidden" name="source" value="free"><button class="primary" @disabled(!$wheel['free_available'])>{{ $ar?'تدوير مجاني':'Free spin' }}</button></form>
@@ -30,34 +31,36 @@
  <h2>🎁 {{ $ar?'صناديقي':'My prize boxes' }}</h2>
  <div class="r52-prizes">
  @forelse($boxes['boxes'] as $box)
-  <div class="r52-prize"><span class="r52-icon">🎁</span><strong>{{ $box['box_key'] }}</strong>
+  <div class="r52-prize"><span class="r52-icon" aria-hidden="true">🎁</span><strong>{{ $box['box_key'] }}</strong>
    @if(empty($box['opened_at']))<form method="post" action="{{ route('rewards.box.open',$box['id']) }}">@csrf<button class="primary">{{ $ar?'افتح الصندوق':'Open box' }}</button></form>
    @else<small>{{ $ar?'تم فتحه':'Opened' }}</small>@endif
   </div>
  @empty<p>{{ $ar?'أكمل مباراة للحصول على صندوق مكافأة.':'Complete a match to earn a reward box.' }}</p>@endforelse
  </div>
 </section>
-<section class="rewards-hero-v118 pro-card">
- <h1>🎁 المكافآت اليومية</h1>
- <p>ادخل يوميًا للحصول على توكنز ومكافآت خاصة، وكلما زادت السلسلة زادت قيمة المكافأة.</p>
+<section class="rewards-hero-v118 pro-card" data-testid="daily-reward-summary">
+ <h1>🎁 {{ $ar ? 'المكافآت اليومية' : 'Daily rewards' }}</h1>
+ <p>{{ $ar
+    ? 'ادخل يوميًا للحصول على توكنز ومكافآت خاصة، وكلما زادت السلسلة زادت قيمة المكافأة.'
+    : 'Come back every day for tokens and special rewards. The longer your streak, the more valuable the reward.' }}</p>
  @if($today)
-  <div class="reward-claimed-v118">✅ استلمت مكافأة اليوم: {{ number_format($today->coins) }} توكنز</div>
+  <div class="reward-claimed-v118" role="status">✅ {{ $ar ? 'استلمت مكافأة اليوم:' : "Today's reward claimed:" }} {{ number_format($today->coins) }} {{ $ar ? 'توكنز' : 'tokens' }}</div>
  @else
-  <form method="post" action="{{ route('rewards.claim') }}">@csrf<button class="primary big-btn">استلام مكافأة اليوم</button></form>
+  <form method="post" action="{{ route('rewards.claim') }}">@csrf<button class="primary big-btn">{{ $ar ? 'استلام مكافأة اليوم' : "Claim today's reward" }}</button></form>
  @endif
 </section>
 
-<section class="pro-card">
- <h2>آخر المكافآت</h2>
+<section class="pro-card" data-testid="daily-reward-history">
+ <h2>{{ $ar ? 'آخر المكافآت' : 'Recent rewards' }}</h2>
  <div class="reward-grid-v118">
  @forelse($claims as $claim)
   <div class="reward-card-v118">
-   <b>اليوم {{ $claim->streak }}</b>
-   <span>🪙 {{ number_format($claim->coins) }}</span>
+   <b>{{ $ar ? 'اليوم' : 'Day' }} {{ $claim->streak }}</b>
+   <span aria-label="{{ $ar ? 'قيمة المكافأة' : 'Reward value' }}">🪙 {{ number_format($claim->coins) }}</span>
    <small>{{ $claim->claim_date?->format('Y-m-d') }}</small>
   </div>
  @empty
-  <p class="muted">لا توجد مكافآت بعد.</p>
+  <p class="muted">{{ $ar ? 'لا توجد مكافآت بعد.' : 'No rewards yet.' }}</p>
  @endforelse
  </div>
 </section>
