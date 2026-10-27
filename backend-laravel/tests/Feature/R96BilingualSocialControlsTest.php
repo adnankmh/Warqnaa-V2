@@ -20,7 +20,7 @@ class R96BilingualSocialControlsTest extends TestCase
             'Followers',
             'قادمة',
             'Scheduled',
-            'الحالة العامة',
+            'المستوى',
             'Privacy-safe replay',
             'الظهور في البحث',
             'Appear in search',
