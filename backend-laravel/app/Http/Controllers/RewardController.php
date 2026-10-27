@@ -45,7 +45,8 @@ class RewardController
    $wallet=Wallet::firstOrCreate(['user_id'=>auth()->id()],['tokens'=>0,'gems'=>0]);
    $wallet->increment('tokens',$claim->coins);
   }
-  if($r->expectsJson() || $r->ajax()) return response()->json(['ok'=>true,'message'=>'تم استلام المكافأة اليومية','claim'=>$claim]);
-  return back()->with('ok','تم استلام المكافأة اليومية');
+  $message=app()->isLocale('ar') ? 'تم استلام المكافأة اليومية' : 'Daily reward claimed';
+  if($r->expectsJson() || $r->ajax()) return response()->json(['ok'=>true,'message'=>$message,'claim'=>$claim]);
+  return back()->with('ok',$message);
  }
 }
