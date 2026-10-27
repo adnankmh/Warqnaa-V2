@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>@yield('title','Warqnaa | منصة ألعاب ورق عربية')</title>
-    <meta name="description" content="Warqnaa منصة ألعاب ورق عربية اجتماعية: طرنيب، هاند، بناكل، بلوت، تركس وطاولة مع غرف، مجموعات، منافسات ومتجر.">
-    <meta name="keywords" content="ألعاب ورق, طرنيب, هاند, بناكل, بلوت, تركس, طاولة, Warqnaa">
+    <title>@yield('title', app()->getLocale() === 'en' ? 'Warqnaa | Social card games' : 'Warqnaa | منصة ألعاب ورق عربية')</title>
+    <meta name="description" content="{{ app()->getLocale() === 'en' ? 'Warqnaa is a social card-game platform for Tarneeb, Hand, Banakel, Baloot, Trix and Tawla, with rooms, clubs, competitions and a store.' : 'Warqnaa منصة ألعاب ورق عربية اجتماعية: طرنيب، هاند، بناكل، بلوت، تركس وطاولة مع غرف، مجموعات، منافسات ومتجر.' }}">
+    <meta name="keywords" content="{{ app()->getLocale() === 'en' ? 'card games, Tarneeb, Hand, Banakel, Baloot, Trix, Tawla, Warqnaa' : 'ألعاب ورق, طرنيب, هاند, بناكل, بلوت, تركس, طاولة, Warqnaa' }}">
     <meta property="og:title" content="Warqnaa">
-    <meta property="og:description" content="منصة ألعاب ورق عربية احترافية وآمنة وممتعة.">
+    <meta property="og:description" content="{{ app()->getLocale() === 'en' ? 'A polished, secure and social card-game platform.' : 'منصة ألعاب ورق عربية احترافية وآمنة وممتعة.' }}">
     <meta name="theme-color" content="#0879c8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.webmanifest">
@@ -21,7 +21,7 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebApplication","name":"Warqnaa","applicationCategory":"GameApplication","operatingSystem":"Web","inLanguage":"ar","description":"منصة ألعاب ورق عربية اجتماعية احترافية"}
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Warqnaa","applicationCategory":"GameApplication","operatingSystem":"Web","inLanguage":"{{ app()->getLocale() === 'en' ? 'en' : 'ar' }}","description":"{{ app()->getLocale() === 'en' ? 'A polished social card-game platform' : 'منصة ألعاب ورق عربية اجتماعية احترافية' }}"}
     </script>
     <link rel="stylesheet" href="/assets/css/app.css?v=139-mobile-app-no-studio">
     <link rel="stylesheet" href="/assets/css/mobile-app.css?v=139-mobile-app-no-studio">
@@ -187,7 +187,7 @@
         <div class="userbar">
             <button type="button" class="user-chip player-glow {{ $nameFrame }}" onclick="openProfile({{ auth()->id() }})" style="--player-color:{{ $nameColor }}">
                 {!! flag_img($currentProfile?->country_code ?? 'PS','flag-img flag-small') !!}
-                <img loading="lazy" decoding="async" class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="avatar">
+                <img loading="lazy" decoding="async" class="avatar-xs" src="{{ $currentProfile?->avatar ?: '/assets/avatars/default.svg' }}" alt="{{ $t('الصورة الشخصية','Profile picture') }}">
                 <span>{{ $currentUser->username }}</span>
             </button>
             <span class="pasha pasha-days-chip-v136"><img loading="lazy" decoding="async" class="pasha-mini-icon-v136" src="/assets/store/basha1.png?v=36-luxury" alt="{{ $t('باشا','Pasha') }}"><span data-i18n="pasha">{{ $t('باشا','Pasha') }}</span>: {{ $currentProfile?->pasha_days ?? 0 }} <span data-i18n="days">{{ $t('يوم','days') }}</span></span>
