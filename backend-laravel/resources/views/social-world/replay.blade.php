@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Replay '.$replay->room?->code.' | Warqnaa')
+@section('title', app()->isLocale('ar') ? 'إعادة المباراة '.$replay->room?->code.' | ورقنا' : 'Match Replay '.$replay->room?->code.' | Warqnaa')
 @section('content')
 <div class="r11-viewer r11-replay-viewer">
   <header><div><span class="r11-kicker">↻ PRIVACY-SAFE REPLAY</span><h1>{{$replay->game?->name[app()->getLocale()] ?? $replay->game?->key}} • {{$replay->room?->code}}</h1><p>{{$replay->frames_count}} frames • {{gmdate('i:s',(int)$replay->duration_seconds)}} • SHA-256 {{$replay->sha256 ? substr($replay->sha256,0,12).'…' : '—'}}</p></div><a href="{{route('social-world')}}">← Social World</a></header>
