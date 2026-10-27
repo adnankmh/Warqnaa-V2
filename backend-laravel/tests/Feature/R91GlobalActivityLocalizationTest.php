@@ -30,7 +30,8 @@ class R91GlobalActivityLocalizationTest extends TestCase
             $this->assertStringContainsString($englishContract, $layout);
         }
 
-        $this->assertStringContainsString("\$n->title['ar']", $layout);
+        $this->assertStringContainsString("data_get(\$n->title,\$localeCode)", $layout);
+        $this->assertStringContainsString("data_get(\$n->body,\$localeCode)", $layout);
         $this->assertStringContainsString("route('notifications.read',\$n)", $layout);
         $this->assertStringContainsString("route('notifications.delete',\$n)", $layout);
         $this->assertStringContainsString("route('rooms.leave',\$activeRoom->code)", $layout);

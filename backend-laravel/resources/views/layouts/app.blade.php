@@ -47,6 +47,8 @@
 </head>
 @php
     $english = app()->getLocale() === 'en';
+    $localeCode = $english ? 'en' : 'ar';
+    $fallbackLocale = $english ? 'ar' : 'en';
     $t = fn(string $ar, string $en) => $english ? $en : $ar;
     $currentUser = auth()->user();
     $currentProfile = $currentUser?->profile;
@@ -203,11 +205,16 @@
                 <div class="notif-type-list-v136">
                     @php $notifGroups=['room_invite'=>$t('دعوات الألعاب','Game invitations'),'game_invite'=>$t('دعوات الألعاب','Game invitations'),'tournament'=>$t('المسابقات','Competitions'),'club'=>$t('النادي','Club'),'private_message'=>$t('الرسائل','Messages'),'friend_request'=>$t('الأصدقاء','Friends')]; @endphp
                     @forelse($recentNotifs as $n)
-                        @php $label=$t('عام','General'); foreach($notifGroups as $needle=>$txt){ if(str_contains((string)$n->type,$needle)){ $label=$txt; break; } } @endphp
+                        @php
+                            $label=$t('عام','General');
+                            foreach($notifGroups as $needle=>$txt){ if(str_contains((string)$n->type,$needle)){ $label=$txt; break; } }
+                            $notifTitle=data_get($n->title,$localeCode) ?: data_get($n->title,$fallbackLocale) ?: $n->type;
+                            $notifBody=data_get($n->body,$localeCode) ?: data_get($n->body,$fallbackLocale) ?: '';
+                        @endphp
                         <article class="drawer-row notif-row-v136 {{ $n->read ? 'is-read' : 'is-unread' }}">
                             <span class="notif-kind-v136">{{ $label }}</span>
-                            <b>{{ $n->title['ar'] ?? $n->type }}</b>
-                            <p>{{ $n->body['ar'] ?? '' }}</p>
+                            <b>{{ $notifTitle }}</b>
+                            @if($notifBody!=='')<p>{{ $notifBody }}</p>@endif
                             <div class="notif-actions-v136">
                                 @if($n->url)<a href="{{ $n->url }}">{{ $t('فتح','Open') }}</a>@endif
                                 <form method="post" action="{{ route('notifications.read',$n) }}" data-ajax-soft>@csrf<button type="submit">{{ $t('قراءة','Read') }}</button></form>
