@@ -194,65 +194,65 @@
             <button type="button" class="theme-switch-btn" onclick="toggleTopPanel('themePanel')" title="{{ $t('الثيمات','Themes') }}" aria-label="{{ $t('فتح قائمة الثيمات','Open theme menu') }}">🎨</button>
             <button type="button" class="language-switch-btn" onclick="toggleTopPanel('languagePanel')" title="{{ $t('اللغات','Languages') }}" aria-label="{{ $t('فتح قائمة اللغات','Open language menu') }}">🌐</button>
             <label class="sound-range-wrap" title="{{ $t('تحكم بالصوت من 0 إلى 100','Volume from 0 to 100') }}"><span>🔊</span><input id="soundVolumeRange" type="range" min="0" max="100" step="1" value="80" aria-label="{{ $t('مستوى الصوت','Volume') }}"></label>
-            <div id="clubPanel" class="top-panel hidden"><b>إشعارات المجموعات</b><p>طلبات الانضمام وتحديثات المجموعة تظهر هنا داخل نفس الصفحة.</p><a href="{{route('clubs')}}">فتح المجموعات</a></div>
-            <div id="invitePanel" class="top-panel hidden"><b>دعوات الألعاب</b><p>أي دعوة غرفة من لاعب آخر تظهر هنا بدون مغادرة الصفحة.</p><a href="{{route('notifications')}}">كل الدعوات</a></div>
-            <div id="tourPanel" class="top-panel hidden"><b>المنافسات</b><p>متابعة المنافسات المفتوحة والمكتملة.</p><a href="{{route('tournaments')}}">فتح المنافسات</a></div>
-            <div id="msgPanel" class="top-panel hidden chat-center-panel"><b>مركز الدردشة</b><div class="mini-chat-tabs"><button type="button" onclick="setChatMode('room');document.getElementById('chatDock')?.classList.remove('hidden')">دردشة اللعبة</button><button type="button" onclick="setChatMode('friends');document.getElementById('chatDock')?.classList.remove('hidden')">الأصدقاء</button><button type="button" onclick="setChatMode('search');document.getElementById('chatDock')?.classList.remove('hidden')">بحث</button></div><input placeholder="ابحث عن لاعب أو صديق" oninput="filterChatList(this.value)"><p>تبويبة دردشة اللعبة مدمجة مع مركز الدردشة على اليسار وتعمل داخل الغرفة نفسها.</p><a href="{{route('friends')}}">الأصدقاء</a></div>
+            <div id="clubPanel" class="top-panel hidden"><b>{{ $t('إشعارات المجموعات','Club notifications') }}</b><p>{{ $t('طلبات الانضمام وتحديثات المجموعة تظهر هنا داخل نفس الصفحة.','Join requests and club updates appear here without leaving the page.') }}</p><a href="{{route('clubs')}}">{{ $t('فتح المجموعات','Open clubs') }}</a></div>
+            <div id="invitePanel" class="top-panel hidden"><b>{{ $t('دعوات الألعاب','Game invitations') }}</b><p>{{ $t('أي دعوة غرفة من لاعب آخر تظهر هنا بدون مغادرة الصفحة.','Room invitations from other players appear here without leaving the page.') }}</p><a href="{{route('notifications')}}">{{ $t('كل الدعوات','All invitations') }}</a></div>
+            <div id="tourPanel" class="top-panel hidden"><b>{{ $t('المنافسات','Competitions') }}</b><p>{{ $t('متابعة المنافسات المفتوحة والمكتملة.','Follow open and completed competitions.') }}</p><a href="{{route('tournaments')}}">{{ $t('فتح المنافسات','Open competitions') }}</a></div>
+            <div id="msgPanel" class="top-panel hidden chat-center-panel"><b>{{ $t('مركز الدردشة','Chat center') }}</b><div class="mini-chat-tabs"><button type="button" onclick="setChatMode('room');document.getElementById('chatDock')?.classList.remove('hidden')">{{ $t('دردشة اللعبة','Game chat') }}</button><button type="button" onclick="setChatMode('friends');document.getElementById('chatDock')?.classList.remove('hidden')">{{ $t('الأصدقاء','Friends') }}</button><button type="button" onclick="setChatMode('search');document.getElementById('chatDock')?.classList.remove('hidden')">{{ $t('بحث','Search') }}</button></div><input placeholder="{{ $t('ابحث عن لاعب أو صديق','Search for a player or friend') }}" aria-label="{{ $t('البحث في الدردشة','Search chat') }}" oninput="filterChatList(this.value)"><p>{{ $t('تبويبة دردشة اللعبة مدمجة مع مركز الدردشة على اليسار وتعمل داخل الغرفة نفسها.','Game chat is integrated with the chat center and remains available inside the room.') }}</p><a href="{{route('friends')}}">{{ $t('الأصدقاء','Friends') }}</a></div>
             <div id="notifPanel" class="top-panel hidden notification-drawer notification-drawer-v136">
-                <div class="notif-drawer-head-v136"><b>🔔 مركز الإشعارات</b><form method="post" action="{{ route('notifications.readAll') }}" data-ajax-soft>@csrf<button type="submit">قراءة الكل</button></form></div>
+                <div class="notif-drawer-head-v136"><b>🔔 {{ $t('مركز الإشعارات','Notification center') }}</b><form method="post" action="{{ route('notifications.readAll') }}" data-ajax-soft>@csrf<button type="submit">{{ $t('قراءة الكل','Mark all read') }}</button></form></div>
                 <div class="notif-type-list-v136">
-                    @php $notifGroups=['room_invite'=>'دعوات الألعاب','game_invite'=>'دعوات الألعاب','tournament'=>'المسابقات','club'=>'النادي','private_message'=>'الرسائل','friend_request'=>'الأصدقاء']; @endphp
+                    @php $notifGroups=['room_invite'=>$t('دعوات الألعاب','Game invitations'),'game_invite'=>$t('دعوات الألعاب','Game invitations'),'tournament'=>$t('المسابقات','Competitions'),'club'=>$t('النادي','Club'),'private_message'=>$t('الرسائل','Messages'),'friend_request'=>$t('الأصدقاء','Friends')]; @endphp
                     @forelse($recentNotifs as $n)
-                        @php $label='عام'; foreach($notifGroups as $needle=>$txt){ if(str_contains((string)$n->type,$needle)){ $label=$txt; break; } } @endphp
+                        @php $label=$t('عام','General'); foreach($notifGroups as $needle=>$txt){ if(str_contains((string)$n->type,$needle)){ $label=$txt; break; } } @endphp
                         <article class="drawer-row notif-row-v136 {{ $n->read ? 'is-read' : 'is-unread' }}">
                             <span class="notif-kind-v136">{{ $label }}</span>
                             <b>{{ $n->title['ar'] ?? $n->type }}</b>
                             <p>{{ $n->body['ar'] ?? '' }}</p>
                             <div class="notif-actions-v136">
-                                @if($n->url)<a href="{{ $n->url }}">فتح</a>@endif
-                                <form method="post" action="{{ route('notifications.read',$n) }}" data-ajax-soft>@csrf<button type="submit">قراءة</button></form>
-                                <form method="post" action="{{ route('notifications.delete',$n) }}" data-ajax-soft data-confirm="حذف هذا الإشعار؟">@csrf<button type="submit" class="danger">حذف</button></form>
+                                @if($n->url)<a href="{{ $n->url }}">{{ $t('فتح','Open') }}</a>@endif
+                                <form method="post" action="{{ route('notifications.read',$n) }}" data-ajax-soft>@csrf<button type="submit">{{ $t('قراءة','Read') }}</button></form>
+                                <form method="post" action="{{ route('notifications.delete',$n) }}" data-ajax-soft data-confirm="{{ $t('حذف هذا الإشعار؟','Delete this notification?') }}">@csrf<button type="submit" class="danger">{{ $t('حذف','Delete') }}</button></form>
                             </div>
                         </article>
-                    @empty<p class="muted">لا توجد إشعارات جديدة.</p>@endforelse
+                    @empty<p class="muted">{{ $t('لا توجد إشعارات جديدة.','No new notifications.') }}</p>@endforelse
                 </div>
             </div>
 
-            <div class="top-icons" aria-label="مركز الإشعارات">
-                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="club" onclick="toggleTopPanel('notifPanel')" title="إشعارات المجموعات">🏛️<b class="{{ $clubNotif ? '' : 'hidden' }}">{{ $clubNotif }}</b></button>
-                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="game" onclick="toggleTopPanel('notifPanel')" title="دعوات الألعاب">🎮<b class="{{ $gameNotif ? '' : 'hidden' }}">{{ $gameNotif }}</b></button>
-                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="competition" onclick="toggleTopPanel('notifPanel')" title="المنافسات">🏆<b class="{{ $tourNotif ? '' : 'hidden' }}">{{ $tourNotif }}</b></button>
-                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="message" onclick="setChatMode('friends');reopenChat();" title="الرسائل والأصدقاء">💬<b class="{{ $msgNotif ? '' : 'hidden' }}">{{ $msgNotif }}</b></button>
+            <div class="top-icons" aria-label="{{ $t('مركز الإشعارات','Notification center') }}">
+                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="club" onclick="toggleTopPanel('notifPanel')" title="{{ $t('إشعارات المجموعات','Club notifications') }}" aria-label="{{ $t('إشعارات المجموعات','Club notifications') }}">🏛️<b class="{{ $clubNotif ? '' : 'hidden' }}">{{ $clubNotif }}</b></button>
+                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="game" onclick="toggleTopPanel('notifPanel')" title="{{ $t('دعوات الألعاب','Game invitations') }}" aria-label="{{ $t('دعوات الألعاب','Game invitations') }}">🎮<b class="{{ $gameNotif ? '' : 'hidden' }}">{{ $gameNotif }}</b></button>
+                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="competition" onclick="toggleTopPanel('notifPanel')" title="{{ $t('المنافسات','Competitions') }}" aria-label="{{ $t('المنافسات','Competitions') }}">🏆<b class="{{ $tourNotif ? '' : 'hidden' }}">{{ $tourNotif }}</b></button>
+                <button type="button" class="notif-live-btn notif-page-go" data-notif-type="message" onclick="setChatMode('friends');reopenChat();" title="{{ $t('الرسائل والأصدقاء','Messages and friends') }}" aria-label="{{ $t('الرسائل والأصدقاء','Messages and friends') }}">💬<b class="{{ $msgNotif ? '' : 'hidden' }}">{{ $msgNotif }}</b></button>
             </div>
             <button type="button" onclick="changeFont(1);window.WarqnaSound?.ui()">A+</button>
             <button type="button" onclick="changeFont(-1);window.WarqnaSound?.ui()">A-</button>
-            <button type="button" id="soundToggle" title="تشغيل/إيقاف الصوت" onclick="window.WarqnaSound?.toggleMute?.()">🔊</button>
+            <button type="button" id="soundToggle" title="{{ $t('تشغيل/إيقاف الصوت','Toggle sound') }}" aria-label="{{ $t('تشغيل/إيقاف الصوت','Toggle sound') }}" onclick="window.WarqnaSound?.toggleMute?.()">🔊</button>
             @if($activeRoom)
-                <a class="active-room-chip active-room-right" href="{{ route('rooms.show',$activeRoom->code) }}">🎮 داخل لعبة {{ $activeRoom->code }}</a>
-                <form method="post" class="global-leave-game active-room-right" action="{{ route('rooms.leave',$activeRoom->code) }}" data-confirm="هل تريد الخروج من اللعبة؟ تنبيه: إذا خرجت 3 مرات من نفس اللعبة لن تستطيع العودة لها مرة أخرى.">@csrf<button type="submit">🚪 خروج من اللعبة</button></form>
+                <a class="active-room-chip active-room-right" href="{{ route('rooms.show',$activeRoom->code) }}">🎮 {{ $t('داخل لعبة','In game') }} {{ $activeRoom->code }}</a>
+                <form method="post" class="global-leave-game active-room-right" action="{{ route('rooms.leave',$activeRoom->code) }}" data-confirm="{{ $t('هل تريد الخروج من اللعبة؟ تنبيه: إذا خرجت 3 مرات من نفس اللعبة لن تستطيع العودة لها مرة أخرى.','Leave this game? Warning: after leaving the same game 3 times, you cannot return to it.') }}">@csrf<button type="submit">🚪 {{ $t('خروج من اللعبة','Leave game') }}</button></form>
             @endif
-            <form method="post" action="{{ route('logout') }}" data-confirm="هل تريد تسجيل الخروج؟">@csrf<button type="submit"><span data-i18n="logout">خروج</span></button></form>
+            <form method="post" action="{{ route('logout') }}" data-confirm="{{ $t('هل تريد تسجيل الخروج؟','Log out?') }}">@csrf<button type="submit"><span data-i18n="logout">{{ $t('خروج','Log out') }}</span></button></form>
         </div>
     @endauth
     <main class="page">
         @if(session('ok'))<script>window.addEventListener('DOMContentLoaded',()=>showNotice(@json(session('ok'))));</script>@endif
         @if($errors->any())<script>window.addEventListener('DOMContentLoaded',()=>showNotice(@json($errors->first())));</script>@endif
         @yield('content')
-<button id="installAppBtn" class="install-app-btn hidden" type="button">📲 تثبيت التطبيق</button>
+<button id="installAppBtn" class="install-app-btn hidden" type="button">📲 {{ $t('تثبيت التطبيق','Install app') }}</button>
 <div id="mobileSafeToast" class="mobile-safe-toast hidden"></div>
     </main>
     @auth
         <aside id="chatDock" class="chat-dock chat-expanded">
-            <div class="chat-head"><span data-i18n="chat_center">مركز الدردشة</span> <span><button type="button" onclick="toggleChat()">—</button><button type="button" onclick="minimizeChat()">▾</button><button type="button" onclick="maximizeChat()">□</button><button type="button" onclick="closeChat()">×</button></span></div>
+            <div class="chat-head"><span data-i18n="chat_center">{{ $t('مركز الدردشة','Chat center') }}</span> <span><button type="button" onclick="toggleChat()" aria-label="{{ $t('طي الدردشة','Collapse chat') }}">—</button><button type="button" onclick="minimizeChat()" aria-label="{{ $t('تصغير الدردشة','Minimize chat') }}">▾</button><button type="button" onclick="maximizeChat()" aria-label="{{ $t('تكبير الدردشة','Maximize chat') }}">□</button><button type="button" onclick="closeChat()" aria-label="{{ $t('إغلاق الدردشة','Close chat') }}">×</button></span></div>
             <div class="chat-tabs">
-                <button type="button" data-chat-tab="room" onclick="setChatMode('room')"><span data-i18n="game_chat">دردشة اللعبة</span></button>
-                <button type="button" data-chat-tab="friends" onclick="setChatMode('friends')"><span data-i18n="friends">الأصدقاء</span></button>
-                <button type="button" data-chat-tab="search" onclick="setChatMode('search')"><span data-i18n="search">بحث</span></button>
+                <button type="button" data-chat-tab="room" onclick="setChatMode('room')"><span data-i18n="game_chat">{{ $t('دردشة اللعبة','Game chat') }}</span></button>
+                <button type="button" data-chat-tab="friends" onclick="setChatMode('friends')"><span data-i18n="friends">{{ $t('الأصدقاء','Friends') }}</span></button>
+                <button type="button" data-chat-tab="search" onclick="setChatMode('search')"><span data-i18n="search">{{ $t('بحث','Search') }}</span></button>
             </div>
-            <input id="chatSearch" class="chat-search" placeholder="ابحث باسم لاعب أو صديق" oninput="chatSearchChanged(this.value)">
+            <input id="chatSearch" class="chat-search" placeholder="{{ $t('ابحث باسم لاعب أو صديق','Search by player or friend name') }}" aria-label="{{ $t('البحث في الدردشة','Search chat') }}" oninput="chatSearchChanged(this.value)">
             <div class="emoji-palette" id="emojiPalette"></div>
-            <div class="chat-body" id="chatBody"><p class="muted">اختر <span data-i18n="game_chat">دردشة اللعبة</span> أو صديقًا للبدء.</p></div>
-            <form class="chat-send" onsubmit="sendChat(event)"><input id="chatInput" placeholder="{{ app()->getLocale()==="ar" ? "اكتب رسالة واضغط Enter" : "Type message" }}"><button type="submit"><span data-i18n="send">إرسال</span></button></form>
+            <div class="chat-body" id="chatBody"><p class="muted">{{ $t('اختر دردشة اللعبة أو صديقًا للبدء.','Choose game chat or a friend to begin.') }}</p></div>
+            <form class="chat-send" onsubmit="sendChat(event)"><input id="chatInput" placeholder="{{ $t('اكتب رسالة واضغط Enter','Type a message and press Enter') }}" aria-label="{{ $t('نص الرسالة','Message text') }}"><button type="submit"><span data-i18n="send">{{ $t('إرسال','Send') }}</span></button></form>
         </aside>
         <script>window.WARQNA_EMOJIS=@json($emojiList); window.CHAT_HAS_ROOM=@json(request()->routeIs('room.show')); window.CHAT_ROOM_LABEL=@json($activeRoom?->code ?? null);</script>
         <button id="chatReopen" class="chat-reopen hidden" type="button" onclick="reopenChat()">💬</button>
