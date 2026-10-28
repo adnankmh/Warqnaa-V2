@@ -4901,9 +4901,22 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       }
       // Expanded chat, keyboard and accessibility text may leave a short area.
       // Scroll that area rather than compressing cards or overflowing the board.
+      final localTableWidth = proportionalTableWidthV186(
+        availableWidth: constraints.maxWidth,
+        tableHeight: math.max(320.0, constraints.maxHeight - 150).toDouble(),
+        desktop: isDesktopWebV183(MediaQuery.sizeOf(context).width),
+      );
       return SingleChildScrollView(child: SizedBox(height: math.max(constraints.maxHeight, 500.0), child: Column(children: [
         score, status,
-        Expanded(child: _localBoard(context, compact: compact, withHand: true)),
+        Expanded(
+          child: Center(
+            child: SizedBox(
+              key: const ValueKey('r115-local-table-viewport'),
+              width: localTableWidth,
+              child: _localBoard(context, compact: compact, withHand: true),
+            ),
+          ),
+        ),
         _actionPanel(context, compact: compact),
         _roomTools(context, compactLandscape: shortLandscape),
       ])));
