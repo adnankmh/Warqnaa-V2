@@ -180,6 +180,18 @@ List<DeviceOrientation> preferredPhoneOrientationsV185(bool landscape) =>
           ]
         : <DeviceOrientation>[DeviceOrientation.portraitUp];
 
+double proportionalTableWidthV186({
+  required double availableWidth,
+  required double tableHeight,
+  required bool desktop,
+}) {
+  final safeWidth = math.max(0.0, availableWidth);
+  if (!desktop) return safeWidth;
+  final twoThirds = safeWidth * .66;
+  final aspectBound = math.max(0.0, tableHeight) * 1.65;
+  return math.min(safeWidth, math.min(twoThirds, aspectBound));
+}
+
 class AppController extends ChangeNotifier {
   AppController({WarqnaApiClient? api}) : api=api ?? WarqnaApiClient();
   final WarqnaApiClient api;
@@ -6483,8 +6495,25 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     // Small phones and expanded chat scroll while card ranks stay readable.
     return SingleChildScrollView(child: Column(children: [
       ...status,
-      Center(child:SizedBox(width:MediaQuery.sizeOf(context).width>=1100 ? math.min(area.maxWidth,MediaQuery.sizeOf(context).width*.66) : area.maxWidth,
-        height: math.max(320, area.maxHeight - (_isTarneebFamilyServer ? 350 : 230)), child: _engineTable())),
+      Builder(builder: (context) {
+        final tableHeight = math.max(
+          320.0,
+          area.maxHeight - (_isTarneebFamilyServer ? 350 : 230),
+        );
+        final tableWidth = proportionalTableWidthV186(
+          availableWidth: area.maxWidth,
+          tableHeight: tableHeight,
+          desktop: isDesktopWebV183(MediaQuery.sizeOf(context).width),
+        );
+        return Center(
+          child: SizedBox(
+            key: const ValueKey('r114-proportional-table-viewport'),
+            width: tableWidth,
+            height: tableHeight,
+            child: _engineTable(),
+          ),
+        );
+      }),
       ...controls,
     ]));
   });
