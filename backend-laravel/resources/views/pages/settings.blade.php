@@ -37,6 +37,7 @@ $globalTheme=class_exists('\\App\\Models\\SiteSetting') ? \App\Models\SiteSettin
 $forceGlobalTheme=class_exists('\\App\\Models\\SiteSetting') ? (bool) \App\Models\SiteSetting::getValue('force_global_theme',false) : false;
 $profileTheme=auth()->user()->profile?->active_site_theme ?? 'dark';
 $activeTheme=$forceGlobalTheme ? $globalTheme : $profileTheme;
+$themeUiJson=json_encode(['saving'=>$ui['theme_saving'],'saved'=>$ui['theme_saved'],'error'=>$ui['theme_error'],'locked'=>$ui['theme_locked']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 @endphp
 <div class="settings-page" dir="{{$isAr?'rtl':'ltr'}}">
  <h1>⚙️ {{ $ui['title'] }}</h1>
@@ -105,7 +106,7 @@ $activeTheme=$forceGlobalTheme ? $globalTheme : $profileTheme;
 </div>
 <script>
 (()=>{
- const themeUi=@json(['saving'=>$ui['theme_saving'],'saved'=>$ui['theme_saved'],'error'=>$ui['theme_error'],'locked'=>$ui['theme_locked']]);
+ const themeUi={!! $themeUiJson !!};
  const syncThemeControls=(theme)=>{const select=document.getElementById('settingsSiteTheme');if(select&&!select.disabled)select.value=theme;document.querySelectorAll('[data-theme-choice]').forEach(button=>button.setAttribute('aria-pressed',button.dataset.themeChoice===theme?'true':'false'));};
  window.saveThemePreference=async(theme)=>{
   const status=document.getElementById('themePreferenceStatus'),previous=document.body?.dataset?.theme||'dark';
