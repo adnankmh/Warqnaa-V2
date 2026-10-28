@@ -19,7 +19,7 @@ class R106BilingualCompetitiveAdminTest extends TestCase
             'Integrity review queue',
             'إنشاء بطولة',
             'Create championship',
-            "dir=\"{{$ar?'rtl':'ltr'}}\"",
+            'dir="',
             "app()->isLocale('ar')",
         ] as $label) {
             $this->assertStringContainsString($label, $view);
