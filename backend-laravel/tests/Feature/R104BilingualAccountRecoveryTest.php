@@ -59,19 +59,19 @@ class R104BilingualAccountRecoveryTest extends TestCase
         }
 
         foreach ([
-            "$request->validate(['email'=>'required|email|max:190'])",
-            "Password::broker()->createToken($user)",
+            "\$request->validate(['email'=>'required|email|max:190'])",
+            "Password::broker()->createToken(\$user)",
             "'email'=>'required|email|max:190'",
             "'token'=>'required|string'",
             "'password'=>'required|string|min:8|max:120|confirmed'",
-            "Password::broker()->reset($data",
-            "Hash::make($password)",
+            "Password::broker()->reset(\$data",
+            "Hash::make(\$password)",
             "setRememberToken(Str::random(60))",
-            "$user->tokens()->delete()",
-            "event(new PasswordReset($user))",
+            "\$user->tokens()->delete()",
+            "event(new PasswordReset(\$user))",
             "now()->addMinutes(60)",
-            "$request->hasValidSignature()",
-            "hash_equals(sha1($user->email), $hash)",
+            "\$request->hasValidSignature()",
+            "hash_equals(sha1(\$user->email), \$hash)",
             "['email_verified_at'=>now()]",
         ] as $stableSecurityContract) {
             $this->assertStringContainsString($stableSecurityContract, $controller);
