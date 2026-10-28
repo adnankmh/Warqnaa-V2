@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', app()->isLocale('ar') ? 'الإعدادات' : 'Settings')
 @section('content')
 @php
 $isAr=app()->getLocale()==='ar';
@@ -9,6 +10,7 @@ $ui=$isAr ? [
  'choose_photo'=>'اختيار صورة جديدة','save_photo'=>'حفظ الصورة','cancel_preview'=>'إلغاء المعاينة',
  'display_name'=>'الاسم المعروض','country'=>'الدولة','sound_enabled'=>'تشغيل أصوات اللعبة والإشعارات والرسائل',
  'site_theme'=>'ثيم الموقع','save'=>'حفظ الإعدادات','typography'=>'حجم الخط',
+ 'theme_locked'=>'الثيم مفروض من الإدارة ويظهر موحدًا لجميع اللاعبين.','theme_saving'=>'جارٍ حفظ الثيم…','theme_saved'=>'تم حفظ الثيم وتطبيقه على جميع الشاشات.','theme_error'=>'تعذر حفظ الثيم؛ تمت استعادة الاختيار السابق.',
  'typography_help'=>'تحكم سريع ومريح بحجم الخط في كل الموقع.','increase_font'=>'تكبير قوي','decrease_font'=>'تصغير',
  'audio'=>'الأصوات','audio_help'=>'تحكم كامل بالصوت من 0 إلى 100. استخدم الماوس أو أسهم لوحة المفاتيح.',
  'volume'=>'مستوى الصوت','mute_toggle'=>'كتم/تشغيل','test_win'=>'تجربة صوت الفوز','test_message'=>'تجربة صوت رسالة',
@@ -18,6 +20,7 @@ $ui=$isAr ? [
  'choose_photo'=>'Choose a new photo','save_photo'=>'Save photo','cancel_preview'=>'Cancel preview',
  'display_name'=>'Display name','country'=>'Country','sound_enabled'=>'Play game, notification and message sounds',
  'site_theme'=>'Site theme','save'=>'Save settings','typography'=>'Typography',
+ 'theme_locked'=>'The administrator has locked one theme for every player.','theme_saving'=>'Saving theme…','theme_saved'=>'Theme saved and applied across every screen.','theme_error'=>'The theme could not be saved; the previous choice was restored.',
  'typography_help'=>'Quickly adjust the text size across the entire website.','increase_font'=>'Increase text','decrease_font'=>'Decrease text',
  'audio'=>'Audio','audio_help'=>'Set volume from 0 to 100 using the pointer or keyboard arrow keys.',
  'volume'=>'Volume','mute_toggle'=>'Mute / unmute','test_win'=>'Test victory sound','test_message'=>'Test message sound',
@@ -30,9 +33,15 @@ $themes=[
  'purple'=>['label'=>$isAr?'مخملي':'Velvet','colors'=>['#2b153a','#d39bff']],
  'classic'=>['label'=>$isAr?'مجلس كلاسيكي':'Classic Majlis','colors'=>['#2a2116','#d6aa61']],
 ];
+$globalTheme=class_exists('\\App\\Models\\SiteSetting') ? \App\Models\SiteSetting::getValue('default_theme','dark') : 'dark';
+$forceGlobalTheme=class_exists('\\App\\Models\\SiteSetting') ? (bool) \App\Models\SiteSetting::getValue('force_global_theme',false) : false;
+$profileTheme=auth()->user()->profile?->active_site_theme ?? 'dark';
+$activeTheme=$forceGlobalTheme ? $globalTheme : $profileTheme;
+$themeUiJson=json_encode(['saving'=>$ui['theme_saving'],'saved'=>$ui['theme_saved'],'error'=>$ui['theme_error'],'locked'=>$ui['theme_locked']],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 @endphp
-<div class="settings-page">
+<div class="settings-page" dir="{{$isAr?'rtl':'ltr'}}">
  <h1>⚙️ {{ $ui['title'] }}</h1>
+ @if($forceGlobalTheme)<p class="pro-card muted" role="status">🔒 {{ $ui['theme_locked'] }}</p>@endif
  <div class="pro-card settings-avatar-upload-v108">
   <h3>{{ $ui['profile_photo'] }}</h3>
   <div class="r101-avatar-editor">
@@ -64,16 +73,17 @@ $themes=[
   </select>
   <label class="check-row"><input type="hidden" name="sound_enabled" value="0"><input type="checkbox" name="sound_enabled" value="1" {{auth()->user()->profile?->sound_enabled!==false?'checked':''}}> {{ $ui['sound_enabled'] }}</label>
   <label for="settingsSiteTheme">{{ $ui['site_theme'] }}</label>
-  <select id="settingsSiteTheme" name="active_site_theme" onchange="window.setSiteTheme?.(this.value);fetch(window.PREF_URL,{method:'POST',headers:{'X-CSRF-TOKEN':window.CSRF,'Accept':'application/json','Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({theme:this.value})}).catch(()=>{});WarqnaSound?.ui()">
+  <select id="settingsSiteTheme" name="active_site_theme" {{$forceGlobalTheme?'disabled':''}} onchange="window.saveThemePreference?.(this.value)">
    @foreach($themes as $key=>$theme)
-    <option value="{{$key}}" {{(auth()->user()->profile?->active_site_theme ?? 'dark')===$key?'selected':''}}>{{$theme['label']}}</option>
+    <option value="{{$key}}" {{$activeTheme===$key?'selected':''}}>{{$theme['label']}}</option>
    @endforeach
   </select>
   <div class="r101-theme-swatches">
    @foreach($themes as $themeKey=>$theme)
-    <button type="button" class="r101-theme-chip" onclick="window.setSiteTheme?.('{{$themeKey}}');document.querySelector('select[name=active_site_theme]').value='{{$themeKey}}'"><i style="background:linear-gradient(135deg,{{$theme['colors'][0]}},{{$theme['colors'][1]}})"></i>{{$theme['label']}}</button>
+    <button type="button" class="r101-theme-chip" data-theme-choice="{{$themeKey}}" aria-pressed="{{$activeTheme===$themeKey?'true':'false'}}" {{$forceGlobalTheme?'disabled':''}} onclick="window.saveThemePreference?.('{{$themeKey}}')"><i style="background:linear-gradient(135deg,{{$theme['colors'][0]}},{{$theme['colors'][1]}})"></i>{{$theme['label']}}</button>
    @endforeach
   </div>
+  <p id="themePreferenceStatus" class="muted" role="status" aria-live="polite"></p>
   <button class="primary" type="submit">{{ $ui['save'] }}</button>
  </form>
 
@@ -95,6 +105,25 @@ $themes=[
  </div>
 </div>
 <script>
+(()=>{
+ const themeUi={!! $themeUiJson !!};
+ const syncThemeControls=(theme)=>{const select=document.getElementById('settingsSiteTheme');if(select&&!select.disabled)select.value=theme;document.querySelectorAll('[data-theme-choice]').forEach(button=>button.setAttribute('aria-pressed',button.dataset.themeChoice===theme?'true':'false'));};
+ window.saveThemePreference=async(theme)=>{
+  const status=document.getElementById('themePreferenceStatus'),previous=document.body?.dataset?.theme||'dark';
+  if(!window.setSiteTheme?.(theme)){if(status)status.textContent=themeUi.locked;syncThemeControls(previous);return false;}
+  syncThemeControls(theme);if(status)status.textContent=themeUi.saving;
+  try{
+   const response=await fetch(window.PREF_URL,{method:'POST',headers:{'X-CSRF-TOKEN':window.CSRF,'Accept':'application/json','Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},body:JSON.stringify({theme})});
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok||payload.ok===false)throw new Error('theme preference rejected');
+   if(status)status.textContent=payload.message||themeUi.saved;
+   return true;
+  }catch(error){
+   window.setSiteTheme?.(previous);syncThemeControls(previous);if(status)status.textContent=themeUi.error;return false;
+  }
+ };
+ syncThemeControls(document.body?.dataset?.theme||'{{$activeTheme}}');
+})();
 (()=>{const input=document.getElementById('r101AvatarInput'),preview=document.getElementById('r101AvatarPreview'),reset=document.getElementById('r101AvatarReset');if(!input||!preview)return;const original=preview.src;let temp=null;input.addEventListener('change',()=>{const file=input.files?.[0];if(!file)return;if(temp)URL.revokeObjectURL(temp);temp=URL.createObjectURL(file);preview.src=temp;input.closest('form')?.querySelector('.avatar-save-btn')?.classList.remove('hidden');});reset?.addEventListener('click',()=>{input.value='';preview.src=original;if(temp){URL.revokeObjectURL(temp);temp=null;}input.closest('form')?.querySelector('.avatar-save-btn')?.classList.add('hidden');});})();
 </script>
 @endsection
