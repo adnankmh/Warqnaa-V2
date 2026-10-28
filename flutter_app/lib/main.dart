@@ -165,6 +165,21 @@ class _WarqnaAppState extends State<WarqnaApp> {
   }
 }
 
+bool supportsPhysicalOrientationLockV185({
+  required bool isWeb,
+  required TargetPlatform platform,
+}) =>
+    !isWeb &&
+    (platform == TargetPlatform.android || platform == TargetPlatform.iOS);
+
+List<DeviceOrientation> preferredPhoneOrientationsV185(bool landscape) =>
+    landscape
+        ? <DeviceOrientation>[
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]
+        : <DeviceOrientation>[DeviceOrientation.portraitUp];
+
 class AppController extends ChangeNotifier {
   AppController({WarqnaApiClient? api}) : api=api ?? WarqnaApiClient();
   final WarqnaApiClient api;
@@ -1831,16 +1846,19 @@ class AppController extends ChangeNotifier {
   int get losses => math.max(0, gamesPlayed - wins);
 
   Future<void> _applyPreferredOrientationV174() async {
+    // Only phones receive a physical orientation lock. Web and desktop keep
+    // using their responsive layouts, while a phone starts in portrait unless
+    // the player explicitly saved the landscape preference.
+    if (!supportsPhysicalOrientationLockV185(
+      isWeb: kIsWeb,
+      platform: defaultTargetPlatform,
+    )) {
+      return;
+    }
     try {
-      // Phone app launches portrait by default. Landscape is an explicit
-      // preference, never forced by room/card-table layouts. Web and desktop
-      // remain responsive without imposing a physical device orientation.
-      await SystemChrome.setPreferredOrientations(landscapeMode
-          ? <DeviceOrientation>[
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight,
-            ]
-          : <DeviceOrientation>[DeviceOrientation.portraitUp]);
+      await SystemChrome.setPreferredOrientations(
+        preferredPhoneOrientationsV185(landscapeMode),
+      );
     } catch (_) {}
   }
 
