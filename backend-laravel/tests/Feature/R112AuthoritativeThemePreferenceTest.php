@@ -32,7 +32,7 @@ class R112AuthoritativeThemePreferenceTest extends TestCase
             "SiteSetting::getValue('default_theme','dark')",
             "SiteSetting::getValue('force_global_theme',false)",
             '$activeTheme=$forceGlobalTheme ? $globalTheme : $profileTheme;',
-            "{{$forceGlobalTheme?'disabled':''}}",
+            "{{\$forceGlobalTheme?'disabled':''}}",
             'data-theme-choice="{{$themeKey}}"',
             'aria-pressed="{{$activeTheme===$themeKey?',
             'aria-live="polite"',
