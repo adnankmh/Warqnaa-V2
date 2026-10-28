@@ -15,7 +15,7 @@ $ui=$ar ? [
  'integrity_queue'=>'قائمة مراجعة النزاهة','match'=>'المباراة','room'=>'الغرفة','mode'=>'الوضع','anti_cheat'=>'مكافحة الغش','approve'=>'اعتماد النتيجة','void'=>'إبطال المباراة','resolve'=>'حسم','no_review'=>'لا توجد مباريات بانتظار مراجعة النزاهة.',
  'brackets'=>'جداول المسابقات','tournament'=>'المسابقة','players'=>'اللاعبون','round'=>'الجولة','build'=>'البناء','build_resume'=>'بناء / استئناف',
 ] : [
- 'live'=>'Control plane','title'=>'Competitive Arena Admin','subtitle'=>'Seasons · MMR · Ranked queues · Integrity review · Leagues · Cups · Rewards','audited'=>'Audited actions',
+ 'live'=>'Control plane','title'=>'Admin Competitive Arena','subtitle'=>'Seasons · MMR · Ranked queues · Integrity review · Leagues · Cups · Rewards','audited'=>'Audited actions',
  'active_seasons'=>'Active seasons','queue_waiting'=>'Queue waiting','live_matches'=>'Live matches','integrity_review'=>'Integrity review','rated_players'=>'Rated players','open_tournaments'=>'Open tournaments',
  'switches'=>'Competitive switches','competitive'=>'Competitive Arena','ranked'=>'Ranked matchmaking','season_rewards'=>'Season rewards','club_championships'=>'Club championships','country_championships'=>'Country championships','queue_timeout'=>'Queue timeout (minutes)','abandon_penalty'=>'Abandon penalty','save'=>'Save control plane',
  'create_season'=>'Create season','season_key'=>'Season key','arabic_name'=>'Arabic name','english_name'=>'English name','starts'=>'Starts','ends'=>'Ends','soft_reset'=>'Soft reset factor','placement_games'=>'Placement games','create_audited_season'=>'Create audited season',
