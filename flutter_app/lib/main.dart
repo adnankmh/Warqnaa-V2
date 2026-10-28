@@ -185,11 +185,11 @@ double proportionalTableWidthV186({
   required double tableHeight,
   required bool desktop,
 }) {
-  final safeWidth = math.max(0.0, availableWidth);
+  final safeWidth = math.max(0.0, availableWidth).toDouble();
   if (!desktop) return safeWidth;
   final twoThirds = safeWidth * .66;
-  final aspectBound = math.max(0.0, tableHeight) * 1.65;
-  return math.min(safeWidth, math.min(twoThirds, aspectBound));
+  final aspectBound = math.max(0.0, tableHeight).toDouble() * 1.65;
+  return math.min(safeWidth, math.min(twoThirds, aspectBound)).toDouble();
 }
 
 class AppController extends ChangeNotifier {
@@ -6499,7 +6499,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         final tableHeight = math.max(
           320.0,
           area.maxHeight - (_isTarneebFamilyServer ? 350 : 230),
-        );
+        ).toDouble();
         final tableWidth = proportionalTableWidthV186(
           availableWidth: area.maxWidth,
           tableHeight: tableHeight,
