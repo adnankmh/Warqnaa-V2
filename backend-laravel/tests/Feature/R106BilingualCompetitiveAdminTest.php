@@ -14,7 +14,7 @@ class R106BilingualCompetitiveAdminTest extends TestCase
 
         foreach ([
             'إدارة ساحة المنافسات',
-            'Competitive Arena Admin',
+            'Admin Competitive Arena',
             'قائمة مراجعة النزاهة',
             'Integrity review queue',
             'إنشاء بطولة',
