@@ -36,7 +36,7 @@ class R108BilingualTournamentReplayTest extends TestCase
             '@json($frames, JSON_UNESCAPED_UNICODE)',
             '@json($finalHands, JSON_UNESCAPED_UNICODE)',
             "route('tournaments')",
-            "route('rooms.show',$room->code)",
+            'route(\'rooms.show\',$room->code)',
             'playTournamentReplay(false)',
             'playTournamentReplay(true)',
             'tournamentReplayCanvas',
