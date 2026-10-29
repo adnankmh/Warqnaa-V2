@@ -5780,6 +5780,41 @@ class R127TarneebStatusItem extends StatelessWidget {
   }
 }
 
+class R128EngineTurnMessage extends StatelessWidget {
+  final String message;
+  final Key? surfaceKey;
+
+  const R128EngineTurnMessage({
+    super.key,
+    required this.message,
+    this.surfaceKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: surfaceKey,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: .88),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: scheme.onSurface,
+          fontSize: 12,
+          height: 1.45,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class ServerEngineRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
@@ -6957,12 +6992,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             }).toList(),
           )
         else
-          Container(
-            key: const ValueKey('r48-readable-turn-message'),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(color: const Color(0xf010314b), borderRadius: BorderRadius.circular(12)),
-            child: Text(current, textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xfff5faff), fontSize: 12, height: 1.45, fontWeight: FontWeight.w700)),
+          R128EngineTurnMessage(
+            message: current,
+            surfaceKey: const ValueKey('r48-readable-turn-message'),
           ),
         if (state['dice'] is List && (state['dice'] as List).isNotEmpty) ...[
           const SizedBox(height: 8),
