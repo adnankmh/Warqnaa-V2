@@ -234,6 +234,7 @@ class PackInventoryStripV176 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final rewards = controller.dailyPackHistoryV176.take(4).toList(growable: false);
     return PremiumPanel(
       child: Padding(
@@ -242,9 +243,9 @@ class PackInventoryStripV176 extends StatelessWidget {
           Row(children: [
             const Text('🎒', style: TextStyle(fontSize: 28)),
             const SizedBox(width: 8),
-            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('مقتنيات الحزم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-              Text('الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700, height: 1.35)),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('مقتنيات الحزم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+              Text(key: const ValueKey('r130-pack-inventory-helper'), 'الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.', style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w700, height: 1.35)),
             ])),
             TextButton.icon(onPressed: onOpenInventory, icon: const Icon(Icons.inventory_2_outlined, size: 18), label: const Text('عرض الكل')),
           ]),
@@ -259,12 +260,13 @@ class PackInventoryStripV176 extends StatelessWidget {
                 final reward = rewards[index];
                 final active = controller.historyRewardActiveV176(reward);
                 return Container(
+                  key: ValueKey('r130-pack-reward-$index'),
                   width: 175,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(17),
-                    color: Colors.white.withValues(alpha: .045),
-                    border: Border.all(color: active ? Colors.amberAccent.withValues(alpha: .35) : Colors.white12),
+                    color: scheme.surfaceContainerHighest.withValues(alpha: .58),
+                    border: Border.all(color: active ? scheme.tertiary.withValues(alpha: .45) : scheme.outlineVariant),
                   ),
                   child: Row(children: [
                     Text(reward['icon']?.toString() ?? '🎁', style: const TextStyle(fontSize: 29)),
@@ -272,7 +274,7 @@ class PackInventoryStripV176 extends StatelessWidget {
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                       Text(reward['label_ar']?.toString() ?? 'هدية', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
                       const SizedBox(height: 4),
-                      Text(active ? controller.historyRewardStatusV176(reward) : 'انتهت الصلاحية', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: active ? Colors.lightGreenAccent : Colors.redAccent, fontSize: 11, fontWeight: FontWeight.w800)),
+                      Text(key: ValueKey('r130-pack-status-$index'), active ? controller.historyRewardStatusV176(reward) : 'انتهت الصلاحية', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: active ? scheme.tertiary : scheme.error, fontSize: 11, fontWeight: FontWeight.w800)),
                     ])),
                   ]),
                 );
