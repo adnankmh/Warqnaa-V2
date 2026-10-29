@@ -25,7 +25,7 @@ void main() {
         theme: theme,
         home: const AppLoadingScreen(),
       ));
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 300));
       final background = tester.widget<DecoratedBox>(
         find.byKey(const ValueKey('r117-themed-loading-background')),
       );
