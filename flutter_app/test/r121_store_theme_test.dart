@@ -20,6 +20,11 @@ void main() {
 
   testWidgets('R121 store summary follows light and dark themes',
       (tester) async {
+    tester.view.physicalSize = const Size(390, 5000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final controller = AppController()..localeCode = 'ar';
     addTearDown(controller.dispose);
 
