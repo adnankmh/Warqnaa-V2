@@ -8735,9 +8735,10 @@ class ProfileMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return PremiumPanel(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 11), child: Column(children: [
       Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-      Text(label, key: ValueKey('r47-store-metric-$label'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, height: 1.15, color: Colors.white70, fontWeight: FontWeight.w700)),
+      Text(label, key: ValueKey('r47-store-metric-$label'), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.15, color: colors.onSurfaceVariant, fontWeight: FontWeight.w700)),
     ])));
   }
 }
@@ -8750,6 +8751,7 @@ class R47StoreProgressPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    final colors = Theme.of(context).colorScheme;
     final multiplier = (controller.vipDays > 0 ? 2.0 : 1.0) *
         math.max(1.0, controller.activeXpMultiplier);
     return PremiumPanel(
@@ -8765,12 +8767,12 @@ class R47StoreProgressPanel extends StatelessWidget {
             Text('${controller.xp} / ${controller.xpNext} XP', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 11)),
           ]),
           const SizedBox(height: 8),
-          ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: controller.levelProgress, minHeight: 12, backgroundColor: Colors.white10)),
+          ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(key: const ValueKey('r122-store-level-progress'), value: controller.levelProgress, minHeight: 12, backgroundColor: colors.surfaceContainerHighest)),
           const SizedBox(height: 6),
           Text(
             ar ? 'تحتاج ${controller.pointsToNextLevel} نقطة XP للمستوى التالي' : '${controller.pointsToNextLevel} XP needed for the next level',
             key: const ValueKey('r47-store-next-level'),
-            style: const TextStyle(color: Colors.white70, fontSize: 11.5, height: 1.3),
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, height: 1.3),
           ),
           const SizedBox(height: 10),
           Row(children: [
