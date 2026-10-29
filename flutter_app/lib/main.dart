@@ -10505,10 +10505,10 @@ class _SocialHubPageState extends State<SocialHubPage> with SingleTickerProvider
           child: Padding(
             padding: const EdgeInsets.all(13),
             child: Row(children: [
-              const Icon(Icons.security_rounded, color: Colors.greenAccent),
+              Icon(Icons.security_rounded, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 9),
-              const Expanded(child: Text('الدردشة والتحويل متاحان للأصدقاء المقبولين فقط. تُحتسب رسوم تحويل ثابتة بنسبة 10%.', style: TextStyle(color: Colors.white60, fontSize: 10, height: 1.5))),
-              Text(widget.controller.serverConnected ? 'LIVE' : 'LOCAL', style: TextStyle(color: widget.controller.serverConnected ? Colors.greenAccent : Colors.amber, fontWeight: FontWeight.w900, fontSize: 9)),
+              Expanded(child: Text('الدردشة والتحويل متاحان للأصدقاء المقبولين فقط. تُحتسب رسوم تحويل ثابتة بنسبة 10%.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10, height: 1.5))),
+              Text(widget.controller.serverConnected ? 'LIVE' : 'LOCAL', style: TextStyle(color: widget.controller.serverConnected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.secondary, fontWeight: FontWeight.w900, fontSize: 9)),
             ]),
           ),
         ),
@@ -10578,7 +10578,7 @@ class _SocialHubPageState extends State<SocialHubPage> with SingleTickerProvider
         const SizedBox(height: 12),
         const SectionTitle(title: 'طلبات مرسلة'),
         const SizedBox(height: 8),
-        if (widget.controller.outgoingRequests.isEmpty) const Text('لا توجد طلبات معلقة.', style: TextStyle(color: Colors.white54)),
+        if (widget.controller.outgoingRequests.isEmpty) Text('لا توجد طلبات معلقة.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ...widget.controller.outgoingRequests.map((friend) => Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: PremiumListTile(onTap: () => showPublicPlayerProfileV170(context, widget.controller, friend), icon: friend.name.substring(0, 1), title: friend.name, subtitle: 'بانتظار القبول', action: TextButton(onPressed: () { widget.controller.cancelFriendRequest(friend); setState(() {}); }, child: const Text('إلغاء'))),
@@ -10658,7 +10658,7 @@ class _SocialHubPageState extends State<SocialHubPage> with SingleTickerProvider
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(controller: amountController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'المبلغ', prefixIcon: Icon(Icons.toll_rounded))),
           const SizedBox(height: 9),
-          const Text('سيُخصم المبلغ من رصيدك بالإضافة إلى رسوم تحويل 10%. يصل المبلغ كاملاً إلى المستلم.', style: TextStyle(color: Colors.white60, fontSize: 10, height: 1.5)),
+          Text('سيُخصم المبلغ من رصيدك بالإضافة إلى رسوم تحويل 10%. يصل المبلغ كاملاً إلى المستلم.', style: TextStyle(color: Theme.of(dialogContext).colorScheme.onSurfaceVariant, fontSize: 10, height: 1.5)),
         ]),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
@@ -10750,7 +10750,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
           child: Row(children: [
             PremiumAvatar(text: widget.friend.avatar?.isNotEmpty == true ? widget.friend.avatar! : widget.friend.name.substring(0, 1), size: 38),
             const SizedBox(width: 9),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.friend.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)), Text(widget.friend.online ? 'متصل الآن' : widget.friend.activity, style: TextStyle(color: widget.friend.online ? Colors.greenAccent : Colors.white54, fontSize: 8))]),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.friend.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)), Text(widget.friend.online ? 'متصل الآن' : widget.friend.activity, style: TextStyle(color: widget.friend.online ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 8))]),
           ]),
         ),
         actions: [IconButton(onPressed: () => showToast(context, 'تم إرسال دعوة لعبة.'), icon: const Icon(Icons.sports_esports_outlined))],
@@ -10768,8 +10768,8 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
                   constraints: const BoxConstraints(maxWidth: 310),
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
-                  decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.only(topLeft: const Radius.circular(17), topRight: const Radius.circular(17), bottomLeft: Radius.circular(message.mine ? 17 : 4), bottomRight: Radius.circular(message.mine ? 4 : 17))),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Colors.white, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: const TextStyle(color: Colors.white38, fontSize: 8))]),
+                  decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.only(topLeft: const Radius.circular(17), topRight: const Radius.circular(17), bottomLeft: Radius.circular(message.mine ? 17 : 4), bottomRight: Radius.circular(message.mine ? 4 : 17))),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 8))]),
                 ),
               );
             },
@@ -10791,7 +10791,17 @@ class _EmptyState extends StatelessWidget {
   final String title;
   const _EmptyState({required this.icon, required this.title});
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.all(38), child: Column(children: [Icon(icon, size: 55, color: Colors.white24), const SizedBox(height: 10), Text(title, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54))]));
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(38),
+      child: Column(children: [
+        Icon(icon, key: const ValueKey('r118-empty-state-icon'), size: 55, color: scheme.outline),
+        const SizedBox(height: 10),
+        Text(title, key: const ValueKey('r118-empty-state-label'), textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
+      ]),
+    );
+  }
 }
 
 class AdminDashboardPage extends StatefulWidget {
