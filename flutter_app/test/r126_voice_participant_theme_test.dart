@@ -69,7 +69,7 @@ void main() {
       lightDecoration.color,
       light.colorScheme.surfaceContainerHighest.withValues(alpha: .72),
     );
-    expect(lightDecoration.border!.top.color, light.colorScheme.outlineVariant);
+    expect((lightDecoration.border! as Border).top.color, light.colorScheme.outlineVariant);
     await tester.tap(find.byKey(tileKey));
     expect(taps, 1);
     await tester.longPress(find.byKey(tileKey));
@@ -81,7 +81,7 @@ void main() {
       dark.colorScheme.surfaceContainerHighest.withValues(alpha: .72),
     );
     expect(
-      darkDecoration.border!.top.color,
+      (darkDecoration.border! as Border).top.color,
       Colors.greenAccent.withValues(alpha: .35),
     );
     expect(darkDecoration.color, isNot(equals(lightDecoration.color)));
