@@ -7809,12 +7809,21 @@ class PremiumPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: Colors.white.withValues(alpha: .08)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .20), blurRadius: 14, offset: const Offset(0, 8))],
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .55)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? .20 : .10,
+            ),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: child,
     );
@@ -7945,6 +7954,7 @@ class QuickButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(13),
@@ -7956,7 +7966,17 @@ class QuickButton extends StatelessWidget {
           children: [
             Text(icon, style: const TextStyle(fontSize: 23)),
             const SizedBox(height: 4),
-            Text(label, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, color: Colors.white60, fontWeight: FontWeight.w800)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 8,
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
       ),
@@ -7976,30 +7996,56 @@ class PremiumListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return PremiumPanel(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(14)),
-              child: materialIcon == null
-                  ? Text(icon, style: const TextStyle(fontSize: 26))
-                  : Icon(materialIcon, size: 25),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)), const SizedBox(height: 3), Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4))])),
-            const SizedBox(width: 7),
-            action,
-          ],
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: materialIcon == null
+                    ? Text(icon, style: const TextStyle(fontSize: 26))
+                    : Icon(materialIcon, size: 25),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 9,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 7),
+              action,
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
