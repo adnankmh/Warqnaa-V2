@@ -5638,6 +5638,28 @@ class R124RoomConnectionError extends StatelessWidget {
   }
 }
 
+class R125VoiceRoomNotice extends StatelessWidget {
+  final String message;
+
+  const R125VoiceRoomNotice({
+    super.key,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          message,
+          key: const ValueKey('r125-voice-room-notice'),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+}
+
 class ServerEngineRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
@@ -6242,9 +6264,19 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           if (voicePanelExpanded) ...[
             const SizedBox(height: 4),
             if (service?.localPreview == true)
-              const Align(alignment: AlignmentDirectional.centerStart, child: Text('المعاينة المحلية تختبر الميكروفون فقط. الصوت بين الأجهزة يبدأ بعد نشر Laravel وربط TURN.', style: TextStyle(fontSize: 10, color: Colors.white60)))
+              R125VoiceRoomNotice(
+                message: _roomText(
+                  'المعاينة المحلية تختبر الميكروفون فقط. الصوت بين الأجهزة يبدأ بعد نشر Laravel وربط TURN.',
+                  'Local preview tests the microphone only. Cross-device audio starts after Laravel and TURN are deployed.',
+                ),
+              )
             else if (participants.isEmpty)
-              const Align(alignment: AlignmentDirectional.centerStart, child: Text('بانتظار انضمام لاعبين حقيقيين للصوت…', style: TextStyle(fontSize: 10, color: Colors.white60)))
+              R125VoiceRoomNotice(
+                message: _roomText(
+                  'بانتظار انضمام لاعبين حقيقيين للصوت…',
+                  'Waiting for real players to join voice…',
+                ),
+              )
             else
               SizedBox(
                 height: 48,
