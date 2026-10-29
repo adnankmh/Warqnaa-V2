@@ -5727,6 +5727,59 @@ class R126VoiceParticipantTile extends StatelessWidget {
   }
 }
 
+class R127TarneebStatusItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Key? surfaceKey;
+
+  const R127TarneebStatusItem({
+    super.key,
+    required this.label,
+    required this.value,
+    this.surfaceKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: surfaceKey,
+      constraints: const BoxConstraints(minWidth: 86),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: .62),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: scheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ServerEngineRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
@@ -6460,16 +6513,14 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         spacing: 7,
         runSpacing: 7,
         alignment: WrapAlignment.center,
-        children: items.map((item) => Container(
-          constraints: const BoxConstraints(minWidth: 86),
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-          decoration: BoxDecoration(color: Colors.white.withValues(alpha: .045), borderRadius: BorderRadius.circular(12)),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(item.$1, textAlign: TextAlign.center, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white.withValues(alpha: .68))),
-            const SizedBox(height: 2),
-            Text(item.$2, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.primary)),
-          ]),
-        )).toList(),
+        children: items
+            .map(
+              (item) => R127TarneebStatusItem(
+                label: item.$1,
+                value: item.$2,
+              ),
+            )
+            .toList(),
       ),
     );
   }
