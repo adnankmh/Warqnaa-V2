@@ -53,7 +53,7 @@ void main() {
           ),
         ),
       ));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       final panelBox = tester.widget<DecoratedBox>(
         find.descendant(
