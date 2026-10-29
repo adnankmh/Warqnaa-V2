@@ -5660,6 +5660,73 @@ class R125VoiceRoomNotice extends StatelessWidget {
       );
 }
 
+class R126VoiceParticipantTile extends StatelessWidget {
+  final String avatarText;
+  final String label;
+  final bool online;
+  final bool muted;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final Key? surfaceKey;
+
+  const R126VoiceParticipantTile({
+    super.key,
+    required this.avatarText,
+    required this.label,
+    required this.online,
+    required this.muted,
+    required this.onTap,
+    this.onLongPress,
+    this.surfaceKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(13),
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Container(
+        key: surfaceKey,
+        width: 118,
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(alpha: .72),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(
+            color: online
+                ? Colors.greenAccent.withValues(alpha: .35)
+                : scheme.outlineVariant,
+          ),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 15,
+              child: Text(avatarText, style: const TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800),
+              ),
+            ),
+            Icon(
+              muted ? Icons.mic_off_rounded : Icons.mic_rounded,
+              size: 14,
+              color: muted ? Colors.redAccent : Colors.greenAccent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ServerEngineRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
@@ -6290,8 +6357,14 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                     final avatarText = participant.avatar?.isNotEmpty == true
                         ? participant.avatar!
                         : (participant.name.trim().isEmpty ? '?' : participant.name.trim().substring(0, 1));
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(13),
+                    return R126VoiceParticipantTile(
+                      key: ValueKey('r126-voice-participant-${participant.userId}'),
+                      avatarText: avatarText,
+                      label: participant.self
+                          ? _roomText('${participant.name} • أنت', '${participant.name} • You')
+                          : participant.name,
+                      online: participant.online,
+                      muted: participant.muted || locallyMuted,
                       onTap: () => openPlayerProfileV021(
                         context,
                         widget.controller,
@@ -6301,24 +6374,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                         online: participant.online,
                         activity: participant.self ? 'أنت • الغرفة الصوتية' : 'الغرفة الصوتية',
                       ),
-                      onLongPress: participant.self || service == null ? null : () => service.togglePeerMute(participant.userId),
-                      child: Container(
-                        width: 118,
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .045),
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(color: participant.online ? Colors.greenAccent.withValues(alpha: .28) : Colors.white12),
-                        ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(radius: 15, child: Text(avatarText, style: const TextStyle(fontSize: 12))),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text(participant.self ? '${participant.name} • أنت' : participant.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800))),
-                            Icon(participant.muted || locallyMuted ? Icons.mic_off_rounded : Icons.mic_rounded, size: 14, color: participant.muted || locallyMuted ? Colors.redAccent : Colors.greenAccent),
-                          ],
-                        ),
-                      ),
+                      onLongPress: participant.self || service == null
+                          ? null
+                          : () => service.togglePeerMute(participant.userId),
                     );
                   },
                 ),
