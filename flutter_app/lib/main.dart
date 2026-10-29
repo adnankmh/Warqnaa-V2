@@ -10335,6 +10335,7 @@ class _StoreFact extends StatelessWidget {
 }
 
 void showRules(BuildContext context, String lang, String gameId) {
+  final colors = Theme.of(context).colorScheme;
   final info = gameRuleBook[gameId] ?? gameRuleBook['tarneeb']!;
   showPremiumSheet(
     context,
@@ -10347,7 +10348,14 @@ void showRules(BuildContext context, String lang, String gameId) {
             const SizedBox(width: 11),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${L.t(lang, 'rules')} — ${L.t(lang, gameId)}', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-              Text('${info.players} لاعبين • ${info.deck} • ${info.hand}', style: const TextStyle(color: Colors.white54, fontSize: 9)),
+              Text(
+                '${info.players} لاعبين • ${info.deck} • ${info.hand}',
+                key: const ValueKey('r120-rules-metadata'),
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 9,
+                ),
+              ),
             ])),
           ],
         ),
@@ -10402,16 +10410,42 @@ class _RuleSection extends StatelessWidget {
   final String text;
   const _RuleSection({required this.title, required this.icon, required this.text});
   @override
-  Widget build(BuildContext context) => PremiumPanel(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return PremiumPanel(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: colors.primary),
             const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900)), const SizedBox(height: 5), Text(text, style: const TextStyle(color: Colors.white70, height: 1.65, fontSize: 11))])),
-          ]),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    text,
+                    key: ValueKey<String>('r120-rule-body-$title'),
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      height: 1.65,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 void showLeaderboard(BuildContext context, AppController controller) {
