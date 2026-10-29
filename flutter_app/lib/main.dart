@@ -4890,7 +4890,22 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
       final status = Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3), child: _tableStatusStrip(context, compact: true));
       if (shortLandscape && constraints.maxWidth >= 600) {
         return Row(children: [
-          Expanded(child: _localBoard(context, compact: true, withHand: false)),
+          Expanded(
+            child: LayoutBuilder(builder: (context, tableArea) {
+              final shortTableWidth = proportionalTableWidthV186(
+                availableWidth: tableArea.maxWidth,
+                tableHeight: tableArea.maxHeight,
+                desktop: isDesktopWebV183(MediaQuery.sizeOf(context).width),
+              );
+              return Center(
+                child: SizedBox(
+                  key: const ValueKey('r116-short-local-table-viewport'),
+                  width: shortTableWidth,
+                  child: _localBoard(context, compact: true, withHand: false),
+                ),
+              );
+            }),
+          ),
           SizedBox(width: 300, child: SingleChildScrollView(child: Column(children: [
             score, status,
             _handWidget(context, maxWidth: 300, compact: true),
