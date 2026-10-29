@@ -5577,6 +5577,67 @@ class RoundXpBannerV174 extends StatelessWidget {
   }
 }
 
+class R124RoomConnectionError extends StatelessWidget {
+  final bool ar;
+  final String message;
+  final VoidCallback onRetry;
+
+  const R124RoomConnectionError({
+    super.key,
+    required this.ar,
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final supportColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: PremiumPanel(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const Icon(Icons.dns_outlined, size: 55, color: Colors.amber),
+                  const SizedBox(height: 14),
+                  Text(
+                    ar ? 'تعذّر الاتصال بالطاولة' : 'Unable to connect to the table',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    message,
+                    key: const ValueKey('r124-room-error-message'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: supportColor, height: 1.65),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    ar ? 'تحقق من اتصالك ثم حاول مجددًا.' : 'Check your connection and try again.',
+                    key: const ValueKey('r124-room-error-hint'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: supportColor),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh),
+                    label: Text(ar ? 'إعادة الاتصال' : 'Reconnect'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ServerEngineRoomPage extends StatefulWidget {
   final AppController controller;
   final GameInfo game;
@@ -6240,31 +6301,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
     );
   }
 
-  Widget _errorView(BuildContext context) => Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: PremiumPanel(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const Icon(Icons.dns_outlined, size: 55, color: Colors.amber),
-                    const SizedBox(height: 14),
-                    Text(widget.controller.localeCode == 'ar' ? 'تعذّر الاتصال بالطاولة' : 'Unable to connect to the table', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 9),
-                    Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, height: 1.65)),
-                    const SizedBox(height: 14),
-                    Text(widget.controller.localeCode == 'ar' ? 'تحقق من اتصالك ثم حاول مجددًا.' : 'Check your connection and try again.', textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white60)),
-                    const SizedBox(height: 16),
-                    FilledButton.icon(onPressed: _create, icon: const Icon(Icons.refresh), label: const Text('إعادة الاتصال')),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+  Widget _errorView(BuildContext context) => R124RoomConnectionError(
+        ar: widget.controller.localeCode == 'ar',
+        message: error!,
+        onRetry: _create,
       );
 
   bool get _isTarneebFamilyServer {
