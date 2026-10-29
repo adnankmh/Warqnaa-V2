@@ -770,16 +770,17 @@ class GroupInnovationHubV170 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ar = controller.localeCode == 'ar';
     final items=<({String icon,String title,String subtitle})>[
-      (icon:'📣',title:'إعلانات مثبتة',subtitle:'نشر أخبار المجموعة وجدولة التنبيهات للأعضاء.'),
-      (icon:'🧑‍✈️',title:'المشرفون والصلاحيات',subtitle:'قبول الطلبات، إنشاء المسابقات، وإدارة الإعلانات.'),
-      (icon:'🏆',title:'دوري المجموعة',subtitle:'مواسم داخلية، جدول مباريات، ونقاط أسبوعية.'),
-      (icon:'🎯',title:'مهام جماعية',subtitle:'تحديات تعاونية بخزينة ومكافآت مشتركة.'),
-      (icon:'📊',title:'سجل الإدارة',subtitle:'توثيق القرارات والتحويلات ونتائج المسابقات.'),
-      (icon:'🛡️',title:'مركز النزاهة',subtitle:'بلاغات، مراجعة المباريات، ومنع التخريب والغش.'),
+      (icon:'📣',title:ar?'إعلانات مثبتة':'Pinned announcements',subtitle:ar?'نشر أخبار المجموعة وجدولة التنبيهات للأعضاء.':'Publish group news and schedule member notifications.'),
+      (icon:'🧑‍✈️',title:ar?'المشرفون والصلاحيات':'Moderators and permissions',subtitle:ar?'قبول الطلبات، إنشاء المسابقات، وإدارة الإعلانات.':'Approve requests, create competitions and manage announcements.'),
+      (icon:'🏆',title:ar?'دوري المجموعة':'Group league',subtitle:ar?'مواسم داخلية، جدول مباريات، ونقاط أسبوعية.':'Internal seasons, match schedules and weekly points.'),
+      (icon:'🎯',title:ar?'مهام جماعية':'Group missions',subtitle:ar?'تحديات تعاونية بخزينة ومكافآت مشتركة.':'Cooperative challenges with a shared treasury and rewards.'),
+      (icon:'📊',title:ar?'سجل الإدارة':'Administration log',subtitle:ar?'توثيق القرارات والتحويلات ونتائج المسابقات.':'Record decisions, transfers and competition results.'),
+      (icon:'🛡️',title:ar?'مركز النزاهة':'Integrity center',subtitle:ar?'بلاغات، مراجعة المباريات، ومنع التخريب والغش.':'Reports, match reviews and protection from disruption and cheating.'),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children:[
-      const SectionTitle(title:'مركز المجموعة الاحترافي'),
+      SectionTitle(title:ar?'مركز المجموعة الاحترافي':'Professional group center'),
       const SizedBox(height:8),
       LayoutBuilder(builder:(context,constraints){
         final columns=constraints.maxWidth>=760?3:2;
@@ -792,13 +793,13 @@ class GroupInnovationHubV170 extends StatelessWidget {
             final item=items[index];
             return PremiumPanel(child:InkWell(
               borderRadius:BorderRadius.circular(20),
-              onTap:()=>showToast(context,'${item.title}: جاهز ضمن صلاحيات المجموعة.'),
+              onTap:()=>showToast(context,ar?'${item.title}: جاهز ضمن صلاحيات المجموعة.':'${item.title}: available within your group permissions.'),
               child:Padding(padding:const EdgeInsets.all(11),child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[
                 Text(item.icon,style:const TextStyle(fontSize:30)),
                 const SizedBox(height:6),
                 FittedBox(child:Text(item.title,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:12))),
                 const SizedBox(height:5),
-                Text(item.subtitle,textAlign:TextAlign.center,maxLines:3,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white70,fontSize:11,height:1.35,fontWeight:FontWeight.w600)),
+                Text(item.subtitle,key:ValueKey('r134-group-hub-subtitle-$index'),textAlign:TextAlign.center,maxLines:3,overflow:TextOverflow.ellipsis,style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,fontSize:11,height:1.35,fontWeight:FontWeight.w600)),
               ])),
             ));
           },
