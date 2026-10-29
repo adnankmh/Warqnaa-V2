@@ -497,7 +497,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
           _PashaColorAvatarV170(name: visible.name, emoji: visible.avatar?.isNotEmpty == true ? visible.avatar! : visible.name.characters.first, bytes: null, color: color, pasha: visible.pashaDays > 0, size: 104),
           const SizedBox(height: 12),
           Text(visible.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, color: color, shadows: [Shadow(color: color, blurRadius: 12)])),
-          Text('@${visible.username}', style: const TextStyle(color: Colors.white60)),
+          Text('@${visible.username}', key: const ValueKey('r133-public-profile-username'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 7),
           Text('${country.flag} ${country.name(controller.localeCode)} • ${ar ? 'المستوى' : 'Level'} ${visible.level}', style: const TextStyle(fontWeight: FontWeight.w900)),
           if (visible.badge != null && visible.badge!.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Chip(label: Text(visible.badge!))),
@@ -541,9 +541,9 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
           child: Padding(
             padding: const EdgeInsets.all(13),
             child: Row(children: [
-              Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: Colors.white.withValues(alpha: .06), borderRadius: BorderRadius.circular(14)), child: Text(visible.clubLogo?.isNotEmpty == true ? visible.clubLogo! : '🛡️', style: const TextStyle(fontSize: 24))),
+              Container(key: const ValueKey('r133-public-profile-club-logo'), width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(14)), child: Text(visible.clubLogo?.isNotEmpty == true ? visible.clubLogo! : '🛡️', style: const TextStyle(fontSize: 24))),
               const SizedBox(width: 9),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي' : 'Club', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي' : 'Club', key: const ValueKey('r133-public-profile-club-label'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w700)), Text(visible.clubName!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))])),
               const Icon(Icons.groups_rounded, color: Colors.lightBlueAccent),
             ]),
           ),
@@ -554,7 +554,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
         child: Padding(
           padding: const EdgeInsets.all(13),
           child: Row(children: [
-            Icon(visible.online ? Icons.circle : Icons.circle_outlined, size: 13, color: visible.online ? Colors.greenAccent : Colors.white38),
+            Icon(visible.online ? Icons.circle : Icons.circle_outlined, key: const ValueKey('r133-public-profile-presence'), size: 13, color: visible.online ? Colors.greenAccent : Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 8),
             Expanded(child: Text(visible.online ? (ar ? 'متصل الآن' : 'Online now') : visible.activity, style: const TextStyle(fontWeight: FontWeight.w800))),
             if (visible.pashaDays > 0) Flexible(child: Text(ar ? '👑 باشا ${visible.pashaDays} يوم' : '👑 Pasha ${visible.pashaDays} days', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900))),
@@ -562,7 +562,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
         ),
       ),
       const SizedBox(height: 10),
-      Text(ar ? 'رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.' : 'Token balance is private and never appears on a public profile.', style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4)),
+      Text(ar ? 'رصيد التوكنز خاص بصاحب الحساب ولا يظهر في البروفايل العام.' : 'Token balance is private and never appears on a public profile.', key: const ValueKey('r133-public-profile-privacy'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.4)),
     ]),
   );
 }
