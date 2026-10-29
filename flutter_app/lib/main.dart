@@ -3311,24 +3311,44 @@ class _AppLoadingScreenState extends State<AppLoadingScreen> with SingleTickerPr
   late final AnimationController animation;
   @override void initState(){super.initState();animation=AnimationController(vsync:this,duration:const Duration(seconds:3))..repeat();}
   @override void dispose(){animation.dispose();super.dispose();}
-  @override Widget build(BuildContext context)=>Scaffold(body:Stack(children:[
-    Positioned.fill(child:DecoratedBox(decoration:const BoxDecoration(gradient:RadialGradient(center:Alignment.topCenter,radius:1.35,colors:[Color(0xff173552),Color(0xff07121e),Color(0xff03070c)])))),
-    Positioned.fill(child:AnimatedBuilder(animation:animation,builder:(_,__)=>CustomPaint(painter:_SplashParticles(animation.value)))),
-    Center(child:Column(mainAxisSize:MainAxisSize.min,children:[
-      RotationTransition(
-        turns: Tween<double>(begin: -.012, end: .012).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
-        child: Image.asset('assets/images/brand/warqna_logo.png', width: 240, height: 190, fit: BoxFit.contain),
-      ),
-      const SizedBox(height: 12),
-      const Text('الورق • الصوت • الأصدقاء • المنافسات', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 24),
-      SizedBox(width: 250, child: LinearProgressIndicator(borderRadius: BorderRadius.circular(20), minHeight: 6)),
-      const SizedBox(height: 10),
-      const Text('نجهّز طاولتك…', style: TextStyle(fontSize: 11, color: Colors.white54))
-    ])),
-  ]));
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold(body:Stack(children:[
+      Positioned.fill(child:DecoratedBox(
+        key: const ValueKey('r117-themed-loading-background'),
+        decoration: BoxDecoration(gradient:RadialGradient(
+          center:Alignment.topCenter,
+          radius:1.35,
+          colors:[scheme.primaryContainer,scheme.surface,scheme.surfaceContainerLowest],
+        )),
+      )),
+      Positioned.fill(child:AnimatedBuilder(
+        animation:animation,
+        builder:(_,__)=>CustomPaint(painter:_SplashParticles(animation.value,scheme.onSurface)),
+      )),
+      Center(child:Column(mainAxisSize:MainAxisSize.min,children:[
+        RotationTransition(
+          turns: Tween<double>(begin: -.012, end: .012).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+          child: Image.asset('assets/images/brand/warqna_logo.png', width: 240, height: 190, fit: BoxFit.contain),
+        ),
+        const SizedBox(height: 12),
+        Text('الورق • الصوت • الأصدقاء • المنافسات', style: TextStyle(color: scheme.onSurface.withValues(alpha:.72), fontWeight: FontWeight.w700)),
+        const SizedBox(height: 24),
+        SizedBox(width: 250, child: LinearProgressIndicator(borderRadius: BorderRadius.circular(20), minHeight: 6)),
+        const SizedBox(height: 10),
+        Text('نجهّز طاولتك…', style: TextStyle(fontSize: 11, color: scheme.onSurface.withValues(alpha:.54)))
+      ])),
+    ]));
+  }
 }
-class _SplashParticles extends CustomPainter { final double progress; const _SplashParticles(this.progress); @override void paint(Canvas canvas,Size size){final paint=Paint()..color=Colors.white.withValues(alpha:.08);for(var i=0;i<18;i++){final x=((i*73.0)+(progress*size.width*(i.isEven?1:-1))).remainder(size.width);final y=(i*97.0).remainder(size.height);canvas.drawCircle(Offset(x,y),1.5+(i%3),paint);}} @override bool shouldRepaint(covariant _SplashParticles old)=>old.progress!=progress;}
+class _SplashParticles extends CustomPainter {
+  final double progress;
+  final Color color;
+  const _SplashParticles(this.progress,this.color);
+  @override void paint(Canvas canvas,Size size){final paint=Paint()..color=color.withValues(alpha:.08);for(var i=0;i<18;i++){final x=((i*73.0)+(progress*size.width*(i.isEven?1:-1))).remainder(size.width);final y=(i*97.0).remainder(size.height);canvas.drawCircle(Offset(x,y),1.5+(i%3),paint);}}
+  @override bool shouldRepaint(covariant _SplashParticles old)=>old.progress!=progress||old.color!=color;
+}
 
 class LoginScreen extends StatefulWidget {
   final AppController controller;
