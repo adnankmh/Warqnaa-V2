@@ -56,6 +56,7 @@ void main() {
     Future<List<Color?>> openProfile(ThemeData theme, String locale) async {
       controller.localeCode = locale;
       await tester.pumpWidget(MaterialApp(
+        key: ValueKey('r133-public-profile-$locale'),
         locale: Locale(locale),
         supportedLocales: const <Locale>[Locale('ar'), Locale('en')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
