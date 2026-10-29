@@ -381,6 +381,7 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final currentReward = reward ?? widget.controller.lastDailyPackRevealV176 ?? <String, dynamic>{};
     final rarity = currentReward['rarity']?.toString() ?? 'common';
     final accent = rarityColor(rarity);
@@ -390,12 +391,13 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: Container(
+          key: const ValueKey('r131-pack-dialog-surface'),
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xff071827), Color(0xff15112b), Color(0xff2a1227)]),
-            border: Border.all(color: (revealed ? accent : Colors.amberAccent).withValues(alpha: .5), width: 1.5),
-            boxShadow: [BoxShadow(color: (revealed ? accent : Colors.purpleAccent).withValues(alpha: .28), blurRadius: 42, spreadRadius: 4)],
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [scheme.surfaceContainerHighest, scheme.surface, scheme.surfaceContainer]),
+            border: Border.all(color: (revealed ? accent : scheme.tertiary).withValues(alpha: .5), width: 1.5),
+            boxShadow: [BoxShadow(color: (revealed ? accent : scheme.primary).withValues(alpha: .24), blurRadius: 42, spreadRadius: 4)],
           ),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 650),
@@ -408,13 +410,14 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
   }
 
   Widget _buildChest() {
+    final scheme = Theme.of(context).colorScheme;
     final available = widget.controller.dailyPackAvailableV173;
     return Column(key: const ValueKey('chest'), mainAxisSize: MainAxisSize.min, children: [
       Row(children: [
         const Expanded(child: Text('الحزمة الملكية اليومية', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900))),
         IconButton(onPressed: opening ? null : () => Navigator.pop(context), icon: const Icon(Icons.close_rounded)),
       ]),
-      const Text('افتحها مرة واحدة يومياً واكتشف جائزة تُضاف مباشرة إلى المتجر أو رصيدك.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, height: 1.5)),
+      Text(key: const ValueKey('r131-pack-dialog-helper'), 'افتحها مرة واحدة يومياً واكتشف جائزة تُضاف مباشرة إلى المتجر أو رصيدك.', textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
       const SizedBox(height: 20),
       SizedBox(
         height: 210,
@@ -455,7 +458,7 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
         const LinearProgressIndicator(minHeight: 8),
       ] else ...[
         if (error != null) ...[
-          Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: .12), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.redAccent.withValues(alpha: .35))), child: Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w800))),
+          Container(width: double.infinity, padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: scheme.errorContainer.withValues(alpha: .72), borderRadius: BorderRadius.circular(16), border: Border.all(color: scheme.error.withValues(alpha: .45))), child: Text(error!, textAlign: TextAlign.center, style: TextStyle(color: scheme.onErrorContainer, fontWeight: FontWeight.w800))),
           const SizedBox(height: 12),
         ],
         FilledButton.icon(
@@ -476,6 +479,7 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
   }
 
   Widget _buildReward(Map<String, dynamic> item, Color accent, String rarity) {
+    final scheme = Theme.of(context).colorScheme;
     final label = item['label_ar']?.toString() ?? widget.controller.dailyPackReward ?? 'هدية يومية';
     final productId = item['product_id']?.toString();
     final hasStoreItem = productId != null && productId.isNotEmpty;
@@ -496,10 +500,10 @@ class _DailyPackOpeningDialogV176State extends State<DailyPackOpeningDialogV176>
         const SizedBox(height: 7),
         Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: accent)),
         const SizedBox(height: 12),
-        Container(width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: Colors.white.withValues(alpha: .05), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white12)), child: Column(children: [
-          Text(hasStoreItem ? 'تمت إضافة الجائزة إلى مقتنياتك في المتجر وتفعيلها مباشرة.' : 'تمت إضافة الجائزة مباشرة إلى رصيد حسابك.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, height: 1.5)),
+        Container(key: const ValueKey('r131-pack-reward-info'), width: double.infinity, padding: const EdgeInsets.all(13), decoration: BoxDecoration(color: scheme.surfaceContainerHighest.withValues(alpha: .72), borderRadius: BorderRadius.circular(18), border: Border.all(color: scheme.outlineVariant)), child: Column(children: [
+          Text(key: const ValueKey('r131-pack-reward-message'), hasStoreItem ? 'تمت إضافة الجائزة إلى مقتنياتك في المتجر وتفعيلها مباشرة.' : 'تمت إضافة الجائزة مباشرة إلى رصيد حسابك.', textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
           const SizedBox(height: 6),
-          Text('⌛ $expiryText', style: const TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.w900)),
+          Text(key: const ValueKey('r131-pack-reward-expiry'), '⌛ $expiryText', style: TextStyle(color: scheme.tertiary, fontWeight: FontWeight.w900)),
         ])),
         const SizedBox(height: 16),
         FilledButton.icon(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.inventory_2_rounded), label: Text(hasStoreItem ? 'العودة إلى المتجر ومشاهدة الجائزة' : 'استمرار'), style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54), backgroundColor: accent, foregroundColor: Colors.black)),
