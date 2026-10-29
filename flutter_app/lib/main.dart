@@ -3949,6 +3949,7 @@ class _StorePageState extends State<StorePage> {
   Widget build(BuildContext context) {
     final lang = widget.controller.localeCode;
     final ar=lang=='ar';
+    final colors = Theme.of(context).colorScheme;
     widget.controller.purgeExpiredPackInventoryV176(DateTime.now());
     final visible = widget.controller.storeProductsR36.where((p) {
       if (p.category == 'pasha_style') return false;
@@ -4027,7 +4028,17 @@ class _StorePageState extends State<StorePage> {
               const SizedBox(width: 10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(ar?'${products.length} عنصر فاخر':'${products.length} premium items', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-                Text(ar?'طاولات ${products.where((p) => p.category == 'tables').length} • أظهر ورق ${products.where((p) => p.category == 'cards').length} • شراء بتأكيد ومعاينة مباشرة':'${products.where((p) => p.category == 'tables').length} tables • ${products.where((p) => p.category == 'cards').length} card backs • Confirmed purchase with live preview', style: const TextStyle(color: Colors.white60, fontSize: 9, height: 1.4)),
+                Text(
+                  ar
+                      ? 'طاولات ${products.where((p) => p.category == 'tables').length} • أظهر ورق ${products.where((p) => p.category == 'cards').length} • شراء بتأكيد ومعاينة مباشرة'
+                      : '${products.where((p) => p.category == 'tables').length} tables • ${products.where((p) => p.category == 'cards').length} card backs • Confirmed purchase with live preview',
+                  key: const ValueKey('r121-store-summary'),
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    fontSize: 9,
+                    height: 1.4,
+                  ),
+                ),
               ])),
               Chip(label: Text(ar?'${widget.controller.activeOwnedCountV176} مملوك':'${widget.controller.activeOwnedCountV176} owned')),
             ]),
@@ -4090,7 +4101,15 @@ class _StorePageState extends State<StorePage> {
           children: [
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 2),
-              child: Text(ar?'التصنيف':'Tier', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white60)),
+              child: Text(
+                ar?'التصنيف':'Tier',
+                key: const ValueKey('r121-store-tier'),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
             ),
             for(final entry in ar?const [('all','الكل'),('beginner','مبتدئ'),('expert','خبير'),('pro','محترف'),('legendary','أسطوري')]:const [('all','All'),('beginner','Beginner'),('expert','Expert'),('pro','Pro'),('legendary','Legendary')])
               FilterChip(
@@ -4127,7 +4146,12 @@ class _StorePageState extends State<StorePage> {
             padding: const EdgeInsets.all(12),
             child: Text(
               ar?'لا تُخصم التوكنز من اللعب أو الغرف. الخصم يتم داخل المتجر فقط وبعد رسالة تأكيد واضحة.':'Tokens are never deducted for playing or joining rooms. Store purchases require a clear confirmation first.',
-              style: TextStyle(color: Colors.white.withValues(alpha: .65), fontSize: 11, height: 1.6),
+              key: const ValueKey('r121-store-safety'),
+              style: TextStyle(
+                color: colors.onSurfaceVariant,
+                fontSize: 11,
+                height: 1.6,
+              ),
             ),
           ),
         ),
