@@ -61,7 +61,10 @@ void main() {
     final activeStatus = tester.widget<Text>(find.text('أضيفت مباشرة إلى الرصيد'));
     final expiredStatus = tester.widget<Text>(find.text('انتهت الصلاحية'));
     expect(helper.style?.fontSize, 11);
-    expect(helper.style?.color, Colors.white70);
+    expect(
+      helper.style?.color,
+      Theme.of(tester.element(find.text('الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.'))).colorScheme.onSurfaceVariant,
+    );
     expect(activeStatus.style?.fontSize, 11);
     expect(expiredStatus.style?.fontSize, 11);
     expect(tester.takeException(), isNull);
