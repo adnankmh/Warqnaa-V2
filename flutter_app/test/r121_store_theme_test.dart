@@ -41,7 +41,9 @@ void main() {
     Future<Color> summaryColor(ThemeData theme) async {
       await tester.pumpWidget(MaterialApp(
         theme: theme,
-        home: StorePage(controller: controller),
+        home: Material(
+          child: StorePage(controller: controller),
+        ),
       ));
       await tester.pump(const Duration(milliseconds: 300));
       final summary = tester.widget<Text>(
