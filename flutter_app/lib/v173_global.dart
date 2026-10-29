@@ -243,12 +243,12 @@ class _OnlineRequiredScreenV173State extends State<OnlineRequiredScreenV173> {
       child: PremiumPanel(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
         const Icon(Icons.wifi_off_rounded, size: 76, color: Colors.orangeAccent),
         const SizedBox(height: 14),
-        const Text('وضع الأوفلاين مفعل', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+        Text(widget.controller.localeCode == 'ar' ? 'وضع الأوفلاين مفعل' : 'Offline mode is active', key: const ValueKey('r132-online-required-title'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 9),
-        const Text('يمكنك متابعة اللعب محلياً دون إنترنت، بينما تحتاج المزامنة والمنافسات والمتجر الشبكي إلى اتصال بالخادم.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, height: 1.6)),
+        Text(widget.controller.localeCode == 'ar' ? 'يمكنك متابعة اللعب محلياً دون إنترنت، بينما تحتاج المزامنة والمنافسات والمتجر الشبكي إلى اتصال بالخادم.' : 'You can keep playing locally without internet. Sync, competitions and the online store require a server connection.', key: const ValueKey('r132-online-required-helper'), textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.6)),
         const SizedBox(height: 18),
-        FilledButton.icon(onPressed: busy ? null : () async { setState(() => busy = true); final ok = await widget.controller.reconnectV173(); if (!mounted) return; setState(() => busy = false); if (!ok) showToast(this.context, 'الخادم غير متاح حالياً. يمكنك متابعة اللعب أوفلاين.'); }, icon: busy ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.refresh_rounded), label: const Text('إعادة الاتصال')),
-        TextButton.icon(onPressed: () => widget.controller.logout(), icon: const Icon(Icons.logout), label: const Text('العودة لتسجيل الدخول')),
+        FilledButton.icon(onPressed: busy ? null : () async { setState(() => busy = true); final ok = await widget.controller.reconnectV173(); if (!mounted) return; setState(() => busy = false); if (!ok) showToast(this.context, widget.controller.localeCode == 'ar' ? 'الخادم غير متاح حالياً. يمكنك متابعة اللعب أوفلاين.' : 'The server is currently unavailable. You can keep playing offline.'); }, icon: busy ? const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.refresh_rounded), label: Text(widget.controller.localeCode == 'ar' ? 'إعادة الاتصال' : 'Reconnect')),
+        TextButton.icon(onPressed: () => widget.controller.logout(), icon: const Icon(Icons.logout), label: Text(widget.controller.localeCode == 'ar' ? 'العودة لتسجيل الدخول' : 'Back to sign in')),
       ]))),
     ))),
   );
