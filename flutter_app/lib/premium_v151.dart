@@ -615,7 +615,7 @@ class _AdminStoreItemCard extends StatelessWidget {
                       Expanded(child: TextField(controller: color2, decoration: const InputDecoration(labelText: 'اللون الثاني HEX', prefixIcon: Icon(Icons.gradient_outlined)))),
                     ]),
                     const SizedBox(height: 10),
-                    Text('المعرّف: ${product.id} • الفئة: ${product.category}', style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600)),
+                    Text('المعرّف: ${product.id} • الفئة: ${product.category}', key: const ValueKey('r145-store-product-metadata'), style: TextStyle(color: Theme.of(dialogContext).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 14),
                     Row(children: [
                       Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء'))),
