@@ -347,7 +347,7 @@ Future<void> showCreateCompetitionV151(BuildContext context, AppController contr
               ),
             ),
             const SizedBox(height: 9),
-            const Text('التوزيع المقترح: الأول 60%، الثاني 30%، والمربع الذهبي أو رسوم الإدارة 10%. تتغير القيم حسب حجم المنافسة.', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600, height: 1.5)),
+            Text('التوزيع المقترح: الأول 60%، الثاني 30%، والمربع الذهبي أو رسوم الإدارة 10%. تتغير القيم حسب حجم المنافسة.', key: const ValueKey('r142-competition-distribution'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600, height: 1.5)),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: () {
