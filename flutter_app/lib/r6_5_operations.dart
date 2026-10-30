@@ -176,6 +176,7 @@ class R65PartyErrorMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
+    key: const ValueKey('r154-party-error-container'),
     padding: const EdgeInsets.symmetric(vertical: 12),
     child: Text(
       message,
