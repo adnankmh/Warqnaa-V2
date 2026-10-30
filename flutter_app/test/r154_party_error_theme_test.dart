@@ -47,7 +47,7 @@ void main() {
           find.byKey(const ValueKey('r154-party-error-message'));
       final errorText = tester.widget<Text>(errorFinder);
       final padding = tester.widget<Padding>(
-        find.ancestor(of: errorFinder, matching: find.byType(Padding)).first,
+        find.byKey(const ValueKey('r154-party-error-container')),
       );
 
       expect(errorText.data, message);
