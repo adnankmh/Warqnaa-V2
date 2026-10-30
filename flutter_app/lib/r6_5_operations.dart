@@ -92,15 +92,30 @@ class _R65OperationsPageState extends State<R65OperationsPage> {
               ));
             }),
             const SizedBox(height: 14),
-            Text(ar
-              ? 'HTTP ووضع التطوير طبيعيان محليًا. يلزم HTTPS وإيقاف وضع التطوير للنشر العام. صحة الجدولة تعني تسجيل تشغيل فعلي خلال آخر ثلاث دقائق.'
-              : 'HTTP and debug mode are expected locally. Public deployment requires HTTPS and debug disabled. Scheduler health needs a recorded run within three minutes.',
-              style: const TextStyle(color: Colors.white60, height: 1.7)),
+            R65OperationsDeploymentNotice(ar: ar),
           ],
         ],
       )),
     );
   }
+}
+
+class R65OperationsDeploymentNotice extends StatelessWidget {
+  const R65OperationsDeploymentNotice({super.key, required this.ar});
+
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    ar
+        ? 'HTTP ووضع التطوير طبيعيان محليًا. يلزم HTTPS وإيقاف وضع التطوير للنشر العام. صحة الجدولة تعني تسجيل تشغيل فعلي خلال آخر ثلاث دقائق.'
+        : 'HTTP and debug mode are expected locally. Public deployment requires HTTPS and debug disabled. Scheduler health needs a recorded run within three minutes.',
+    key: const ValueKey('r151-operations-deployment-notice'),
+    style: TextStyle(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      height: 1.7,
+    ),
+  );
 }
 
 class R65PartyPage extends StatefulWidget {
