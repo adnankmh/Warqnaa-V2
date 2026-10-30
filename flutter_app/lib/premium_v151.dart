@@ -129,7 +129,7 @@ Future<void> inviteFriendsToRoomV151(BuildContext context, AppController control
         children: [
           const Text('دعوة الأصدقاء للغرفة', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
           const SizedBox(height: 5),
-          const Text('يمكن دعوة الأصدقاء المتصلين وغير المتصلين. تصل الدعوة كإشعار Push، وعند الضغط عليها تفتح الغرفة مباشرة.', style: TextStyle(color: Colors.white60, height: 1.5)),
+          Text('يمكن دعوة الأصدقاء المتصلين وغير المتصلين. تصل الدعوة كإشعار Push، وعند الضغط عليها تفتح الغرفة مباشرة.', key: const ValueKey('r140-invite-friends-intro'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5)),
           const SizedBox(height: 10),
           Row(children: [
             Expanded(
@@ -175,7 +175,7 @@ Future<void> inviteFriendsToRoomV151(BuildContext context, AppController control
                   PositionedDirectional(
                     end: -2,
                     bottom: -2,
-                    child: Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: friend.online ? Colors.greenAccent : Colors.grey, border: Border.all(color: Colors.black, width: 2))),
+                    child: Container(key: ValueKey('r140-friend-status-${friend.id}'), width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: friend.online ? Colors.greenAccent : Theme.of(context).colorScheme.outline, border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2))),
                   ),
                 ]),
                 title: Text(friend.name, style: const TextStyle(fontWeight: FontWeight.w900)),
