@@ -81,15 +81,15 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                         const SizedBox(width: 10),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(t('server'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                          Text('${c.serverConnected ? t('online') : t('offline')} • v$warqnaAppVersion ($warqnaAppBuild)', style: const TextStyle(color: Colors.white60)),
+                          Text('${c.serverConnected ? t('online') : t('offline')} • v$warqnaAppVersion ($warqnaAppBuild)', key: const ValueKey('r146-production-status'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ])),
                         Chip(label: Text(warqnaProductionMode ? 'PRODUCTION' : 'PREVIEW', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
                       ]),
                       if (error != null) ...[const SizedBox(height: 10), Text(error!, style: const TextStyle(color: Colors.orangeAccent, fontSize: 11))],
                       if (config != null) ...[
                         const SizedBox(height: 10),
-                        Text('API: ${c.api.baseUrl}', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                        Text('Server: ${config!['version'] ?? '-'} • ${config!['environment'] ?? '-'}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                        Text('API: ${c.api.baseUrl}', key: const ValueKey('r146-production-api'), textDirection: TextDirection.ltr, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text('Server: ${config!['version'] ?? '-'} • ${config!['environment'] ?? '-'}', key: const ValueKey('r146-production-server'), style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       ],
                     ]),
                   )),

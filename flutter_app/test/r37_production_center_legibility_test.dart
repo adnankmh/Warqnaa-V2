@@ -10,7 +10,12 @@ void main() {
     expect(source, contains("warqnaProductionMode ? 'PRODUCTION' : 'PREVIEW'"));
     expect(source, contains(r"'API: ${c.api.baseUrl}'"));
     expect(source, contains("'الجلسات النشطة'"));
-    expect(source, contains('fontSize: 11, color: Colors.white70'));
+    expect(
+      source,
+      contains(
+        'fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant',
+      ),
+    );
 
     final undersized = RegExp(
       r'fontSize:\s*(?:[0-9](?:\.[0-9]+)?|10(?:\.[0-9]+)?)(?![0-9])',
