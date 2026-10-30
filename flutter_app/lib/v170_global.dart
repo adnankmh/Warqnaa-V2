@@ -820,24 +820,28 @@ class TarneebBidButtonV170 extends StatelessWidget {
   final VoidCallback? onPressed;
   const TarneebBidButtonV170({super.key,required this.label,this.subtitle,this.selected=false,this.onPressed});
   @override
-  Widget build(BuildContext context)=>AnimatedContainer(
-    duration:const Duration(milliseconds:180),
-    decoration:BoxDecoration(
-      borderRadius:BorderRadius.circular(16),
-      gradient:LinearGradient(colors:selected?[Theme.of(context).colorScheme.primary,const Color(0xff7c4a08)]:[Colors.white.withValues(alpha:.08),Colors.white.withValues(alpha:.035)]),
-      border:Border.all(color:selected?Theme.of(context).colorScheme.primary:Colors.white12,width:selected?2:1),
-      boxShadow:selected?[BoxShadow(color:Theme.of(context).colorScheme.primary.withValues(alpha:.32),blurRadius:16)]:const[],
-    ),
-    child:InkWell(
-      onTap:onPressed,
-      borderRadius:BorderRadius.circular(16),
-      child:Padding(
-        padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),
-        child:Column(mainAxisSize:MainAxisSize.min,children:[
-          Text(label,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:15)),
-          if(subtitle!=null) Text(subtitle!,style:const TextStyle(fontSize:11,color:Colors.white70,fontWeight:FontWeight.w600)),
-        ]),
+  Widget build(BuildContext context) {
+    final scheme=Theme.of(context).colorScheme;
+    return AnimatedContainer(
+      key:const ValueKey('r137-tarneeb-bid-surface'),
+      duration:const Duration(milliseconds:180),
+      decoration:BoxDecoration(
+        borderRadius:BorderRadius.circular(16),
+        gradient:LinearGradient(colors:selected?[scheme.primary,const Color(0xff7c4a08)]:[scheme.surfaceContainerHighest,scheme.surfaceContainer]),
+        border:Border.all(color:selected?scheme.primary:scheme.outlineVariant,width:selected?2:1),
+        boxShadow:selected?[BoxShadow(color:scheme.primary.withValues(alpha:.32),blurRadius:16)]:const[],
       ),
-    ),
-  );
+      child:InkWell(
+        onTap:onPressed,
+        borderRadius:BorderRadius.circular(16),
+        child:Padding(
+          padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),
+          child:Column(mainAxisSize:MainAxisSize.min,children:[
+            Text(label,key:const ValueKey('r137-tarneeb-bid-label'),style:TextStyle(color:selected?scheme.onPrimary:scheme.onSurface,fontWeight:FontWeight.w900,fontSize:15)),
+            if(subtitle!=null) Text(subtitle!,key:const ValueKey('r137-tarneeb-bid-subtitle'),style:TextStyle(fontSize:11,color:selected?scheme.onPrimary.withValues(alpha:.78):scheme.onSurfaceVariant,fontWeight:FontWeight.w600)),
+          ]),
+        ),
+      ),
+    );
+  }
 }
