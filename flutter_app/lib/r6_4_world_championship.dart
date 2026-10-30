@@ -306,9 +306,31 @@ class _R64StateCard extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .035), borderRadius: BorderRadius.circular(22), border: Border.all(color: Colors.white.withValues(alpha: .07))),
-    child: Column(children: <Widget>[Icon(icon, size: 42, color: Colors.white38), const SizedBox(height: 10), Text(text, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, height: 1.5))]),
-  );
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('r149-room-state-card'),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(children: <Widget>[
+        Icon(
+          icon,
+          key: const ValueKey('r149-room-state-icon'),
+          size: 42,
+          color: colors.outline,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          text,
+          key: const ValueKey('r149-room-state-text'),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: colors.onSurfaceVariant, height: 1.5),
+        ),
+      ]),
+    );
+  }
 }
