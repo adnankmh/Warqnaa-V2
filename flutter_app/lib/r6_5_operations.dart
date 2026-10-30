@@ -63,18 +63,7 @@ class _R65OperationsPageState extends State<R65OperationsPage> {
           if (loading) const LinearProgressIndicator(),
           if (error != null) _R64StateCard(icon: Icons.cloud_off_outlined, text: error!),
           if (report != null) ...<Widget>[
-            Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), gradient: const LinearGradient(colors: <Color>[Color(0xff1b4934), Color(0xff18202a)])),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                const Icon(Icons.monitor_heart_outlined, color: Color(0xffffcf58), size: 36),
-                const SizedBox(height: 12),
-                Text(ar ? 'حالة منصتك الآن' : 'Your platform now', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
-                Text('${report!['release']} • ${report!['environment']}', style: const TextStyle(color: Colors.white60)),
-                const SizedBox(height: 8),
-                Text('${report!['generated_at']}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-              ]),
-            ),
+            R65OperationsStatusHero(report: report!, ar: ar),
             const SizedBox(height: 14),
             Wrap(spacing: 10, runSpacing: 10, children: metrics.entries.map((entry) => SizedBox(
               width: 160, child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
@@ -96,6 +85,68 @@ class _R65OperationsPageState extends State<R65OperationsPage> {
           ],
         ],
       )),
+    );
+  }
+}
+
+class R65OperationsStatusHero extends StatelessWidget {
+  const R65OperationsStatusHero({
+    super.key,
+    required this.report,
+    required this.ar,
+  });
+
+  final Map<String, dynamic> report;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final gradientStart =
+        Color.lerp(colors.surfaceContainerHighest, colors.primary, 0.14)!;
+    final gradientEnd =
+        Color.lerp(colors.surface, colors.secondary, 0.08)!;
+    return Container(
+      key: const ValueKey('r152-operations-status-hero'),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: <Color>[gradientStart, gradientEnd],
+        ),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Icon(
+            Icons.monitor_heart_outlined,
+            color: Color(0xffffcf58),
+            size: 36,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            ar ? 'حالة منصتك الآن' : 'Your platform now',
+            key: const ValueKey('r152-operations-status-title'),
+            style: TextStyle(
+              color: colors.onSurface,
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            '${report['release']} • ${report['environment']}',
+            key: const ValueKey('r152-operations-status-release'),
+            style: TextStyle(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${report['generated_at']}',
+            key: const ValueKey('r152-operations-status-generated-at'),
+            style: TextStyle(color: colors.outline, fontSize: 11),
+          ),
+        ],
+      ),
     );
   }
 }
