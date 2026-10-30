@@ -169,6 +169,21 @@ class R65OperationsDeploymentNotice extends StatelessWidget {
   );
 }
 
+class R65PartyCodeLabel extends StatelessWidget {
+  const R65PartyCodeLabel({super.key, required this.ar});
+
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    ar ? 'رمز المجموعة' : 'Party code',
+    key: const ValueKey('r153-party-code-label'),
+    style: TextStyle(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    ),
+  );
+}
+
 class R65PartyPage extends StatefulWidget {
   const R65PartyPage({super.key, required this.controller});
   final AppController controller;
@@ -225,7 +240,7 @@ class _R65PartyPageState extends State<R65PartyPage> {
             unawaited(_run(() => widget.controller.api.joinPartyV300(value)));
           }, child: Text(ar ? 'قبول الدعوة والانضمام' : 'Accept invitation')),
         ] else ...<Widget>[
-          Text(ar ? 'رمز المجموعة' : 'Party code', style: const TextStyle(color: Colors.white60)),
+          R65PartyCodeLabel(ar: ar),
           SelectableText('${party['code']}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xffffcf58))),
           TextButton.icon(onPressed: () async { await Clipboard.setData(ClipboardData(text: '${party['code']}')); if (context.mounted) showToast(context, ar ? 'تم نسخ الرمز' : 'Code copied'); }, icon: const Icon(Icons.copy), label: Text(ar ? 'نسخ' : 'Copy')),
           ...members.where((member) => member['status'] == 'joined' || member['status'] == 'invited').map((member) {
