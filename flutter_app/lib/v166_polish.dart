@@ -249,9 +249,10 @@ class _DiagnosticsDialogState extends State<_DiagnosticsDialog> {
                     );
                   },
                 ),
-                const Text(
+                Text(
                   'مهم للهاتف: لا تستخدم 127.0.0.1 أو localhost إلا عند تشغيل الخادم على الهاتف نفسه. استخدم رابط HTTPS عام حتى تعمل الغرف الصوتية والإشعارات خارج التطبيق.',
-                  style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.5),
+                  key: const ValueKey('r148-connection-phone-hint'),
+                  style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5),
                 ),
               ],
             ),
