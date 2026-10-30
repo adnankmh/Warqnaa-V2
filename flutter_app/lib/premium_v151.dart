@@ -679,7 +679,7 @@ class PashaStatCardV151 extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(L.t(controller.localeCode, 'vip'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white70)),
+                    Text(L.t(controller.localeCode, 'vip'), key: const ValueKey('r143-pasha-stat-label'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 3),
                     Text('${controller.vipDays} ${L.t(controller.localeCode, 'days')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xffffcf67))),
                   ],
