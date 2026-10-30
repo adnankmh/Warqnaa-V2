@@ -169,6 +169,22 @@ class R65OperationsDeploymentNotice extends StatelessWidget {
   );
 }
 
+class R65PartyErrorMessage extends StatelessWidget {
+  const R65PartyErrorMessage({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Text(
+      message,
+      key: const ValueKey('r154-party-error-message'),
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    ),
+  );
+}
+
 class R65PartyCodeLabel extends StatelessWidget {
   const R65PartyCodeLabel({super.key, required this.ar});
 
@@ -227,7 +243,7 @@ class _R65PartyPageState extends State<R65PartyPage> {
       appBar: AppBar(title: Text(ar ? 'مجموعتي' : 'My party'), actions: <Widget>[IconButton(onPressed: busy ? null : _load, icon: const Icon(Icons.refresh))]),
       body: ListView(padding: const EdgeInsets.all(18), children: <Widget>[
         if (busy) const LinearProgressIndicator(),
-        if (error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(error!, style: const TextStyle(color: Colors.amber))),
+        if (error != null) R65PartyErrorMessage(message: error!),
         if (party.isEmpty) ...<Widget>[
           _R64StateCard(icon: Icons.groups_outlined, text: ar ? 'اجمع أصدقاءك في مجموعة خاصة.' : 'Bring your friends into a private party.'),
           const SizedBox(height: 16),
