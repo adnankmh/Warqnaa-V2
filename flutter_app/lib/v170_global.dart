@@ -5,6 +5,7 @@ part of 'main.dart';
 
 Widget buildV170TopBar(BuildContext context, AppController controller) {
   final lang = controller.localeCode;
+  final ar = lang == 'ar';
   final unread = controller.notices.where((notice) => !notice.read).length;
 
   Widget profile() => InkWell(
@@ -42,10 +43,11 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
                     ),
                   ),
                   Text(
-                    '${controller.countryFlag} ${controller.level} LV • ${controller.serverConnected ? 'LIVE' : 'LOCAL'}',
+                    '${controller.countryFlag} ${controller.level} LV • ${controller.serverConnected ? (ar ? 'متصل' : 'Online') : (ar ? 'محلي' : 'Local')}',
+                    key: const ValueKey('r135-topbar-status'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -87,7 +89,8 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
       );
 
   Widget compactMenu() => PopupMenuButton<String>(
-        tooltip: 'المزيد',
+        key: const ValueKey('r135-topbar-menu'),
+        tooltip: ar ? 'المزيد' : 'More',
         icon: const Icon(Icons.more_horiz_rounded),
         onSelected: (value) {
           switch (value) {
@@ -106,11 +109,11 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
           }
         },
         itemBuilder: (_) => [
-          const PopupMenuItem(value: 'orientation', child: ListTile(leading: Icon(Icons.screen_rotation), title: Text('تدوير الشاشة'))),
-          const PopupMenuItem(value: 'connection', child: ListTile(leading: Icon(Icons.wifi_tethering), title: Text('فحص الاتصال'))),
-          const PopupMenuItem(value: 'settings', child: ListTile(leading: Icon(Icons.settings), title: Text('الإعدادات'))),
+          PopupMenuItem(value: 'orientation', child: ListTile(leading: const Icon(Icons.screen_rotation), title: Text(ar ? 'تدوير الشاشة' : 'Rotate screen'))),
+          PopupMenuItem(value: 'connection', child: ListTile(leading: const Icon(Icons.wifi_tethering), title: Text(ar ? 'فحص الاتصال' : 'Connection diagnostics'))),
+          PopupMenuItem(value: 'settings', child: ListTile(leading: const Icon(Icons.settings), title: Text(ar ? 'الإعدادات' : 'Settings'))),
           const PopupMenuDivider(),
-          const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout, color: Colors.redAccent), title: Text('تسجيل الخروج'))),
+          PopupMenuItem(value: 'logout', child: ListTile(leading: const Icon(Icons.logout, color: Colors.redAccent), title: Text(ar ? 'تسجيل الخروج' : 'Log out'))),
         ],
       );
 
@@ -152,7 +155,7 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
   return Container(
     decoration: BoxDecoration(
       color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: .97),
-      border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: .07))),
+      border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .70))),
     ),
     child: LayoutBuilder(
       builder: (context, constraints) {
@@ -167,7 +170,7 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
               friends(),
               if (controller.isAdmin)
                 IconButton(
-                  tooltip: 'لوحة الإدارة',
+                  tooltip: ar ? 'لوحة الإدارة' : 'Admin dashboard',
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboardPage(controller: controller))),
                   icon: const Icon(Icons.admin_panel_settings_outlined),
                 ),
