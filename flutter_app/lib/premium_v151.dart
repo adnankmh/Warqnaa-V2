@@ -452,12 +452,13 @@ class _AdminStoreStudioV151State extends State<AdminStoreStudioV151> {
               ),
               const SizedBox(height: 9),
               Container(
+                key: const ValueKey('r144-admin-store-category-shell'),
                 width: double.infinity,
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .035),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .35),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: .07)),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Wrap(
                   alignment: WrapAlignment.center,
@@ -490,7 +491,7 @@ class _AdminStoreStudioV151State extends State<AdminStoreStudioV151> {
         ),
         Expanded(
           child: visibleItems.isEmpty
-              ? const Center(child: Text('لا توجد عناصر مطابقة في هذا التبويب.', style: TextStyle(color: Colors.white54)))
+              ? Center(child: Text('لا توجد عناصر مطابقة في هذا التبويب.', key: const ValueKey('r144-admin-store-empty'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)))
               : LayoutBuilder(
                   builder: (context, constraints) {
                     final columns = constraints.maxWidth >= 1500 ? 6 : constraints.maxWidth >= 1180 ? 5 : constraints.maxWidth >= 900 ? 4 : constraints.maxWidth >= 620 ? 3 : 2;
