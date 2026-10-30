@@ -75,7 +75,7 @@ class _R65OperationsPageState extends State<R65OperationsPage> {
             ...labels.entries.map((entry) {
               final ok = checks[entry.key] == true;
               return Card(child: ListTile(
-                leading: Icon(ok ? Icons.check_circle_outline : Icons.info_outline, color: ok ? Colors.greenAccent : Colors.amber),
+                leading: R65OperationsCheckIcon(ok: ok),
                 title: Text(entry.value),
                 subtitle: Text(ok ? (ar ? 'سليم' : 'OK') : (ar ? 'يحتاج متابعة' : 'Check needed')),
               ));
@@ -85,6 +85,22 @@ class _R65OperationsPageState extends State<R65OperationsPage> {
           ],
         ],
       )),
+    );
+  }
+}
+
+class R65OperationsCheckIcon extends StatelessWidget {
+  const R65OperationsCheckIcon({super.key, required this.ok});
+
+  final bool ok;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Icon(
+      ok ? Icons.check_circle_outline : Icons.info_outline,
+      key: ValueKey('r155-operations-check-${ok ? 'ok' : 'attention'}'),
+      color: ok ? colors.tertiary : colors.error,
     );
   }
 }
