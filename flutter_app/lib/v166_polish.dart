@@ -316,7 +316,7 @@ Future<void> showPrivacyPolicyPage(BuildContext context, AppController controlle
     body:ListView(padding:const EdgeInsets.all(18),children:[
       Text(content.$1,style:const TextStyle(fontSize:25,fontWeight:FontWeight.w900)),
       const SizedBox(height:8),
-      Text(content.$2,style:const TextStyle(color:Colors.white60)),
+      Text(content.$2,key:const ValueKey('r147-privacy-updated'),style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant)),
       const SizedBox(height:18),
       for(final section in content.$3) _PrivacySection(title:section.$1,body:section.$2),
       FilledButton.icon(onPressed:()=>launchUrl(Uri.parse('${controller.api.webBaseUrl}/legal/privacy'),mode:LaunchMode.externalApplication),icon:const Icon(Icons.open_in_new),label:Text(lang=='ar'?'فتح النسخة المنشورة':'Open published version')),
@@ -360,6 +360,6 @@ const Map<String,PrivacyPageData> v166PrivacyContent=<String,PrivacyPageData>{
   'es':('Política de privacidad de Warqna','Última actualización: julio de 2026',<PrivacySectionData>[('Datos recopilados','Cuenta, país y bandera, perfil, historial de juegos y puntos, además de los datos sociales y técnicos necesarios.'),('Voz y micrófono','El permiso del micrófono se solicita solo en salas de voz. La aplicación no graba las conversaciones localmente.'),('Notificaciones','Puede usarse un token cifrado del dispositivo para mensajes, invitaciones y competiciones.'),('Cancelación de cuenta','La cuenta puede restaurarse durante 30 días y después se elimina permanentemente si no se vuelve a abrir.'),('Seguridad','La producción usa HTTPS y las contraseñas se almacenan con hash en el servidor.')]),
 };
 
-class _PrivacySection extends StatelessWidget { final String title,body; const _PrivacySection({required this.title,required this.body}); @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:18),child:PremiumPanel(child:Padding(padding:const EdgeInsets.all(15),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900)),const SizedBox(height:7),Text(body,style:const TextStyle(color:Colors.white70,height:1.7))])))); }
+class _PrivacySection extends StatelessWidget { final String title,body; const _PrivacySection({required this.title,required this.body}); @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:18),child:PremiumPanel(child:Padding(padding:const EdgeInsets.all(15),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900)),const SizedBox(height:7),Text(body,key:const ValueKey('r147-privacy-section-body'),style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,height:1.7))])))); }
 
 extension FirstOrNullExtension<T> on Iterable<T> { T? get firstOrNull { final iterator=this.iterator; return iterator.moveNext()?iterator.current:null; } }
