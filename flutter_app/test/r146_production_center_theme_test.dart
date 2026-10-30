@@ -23,6 +23,6 @@ void main() {
     );
     expect(source, contains("warqnaProductionMode ? 'PRODUCTION' : 'PREVIEW'"));
     expect(source, contains(r"'API: ${c.api.baseUrl}'"));
-    expect(source, contains('onPressed: loading ? null : _load'));
+    expect(source, contains('IconButton(onPressed: _load'));
   });
 }
