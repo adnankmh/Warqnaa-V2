@@ -645,6 +645,7 @@ class OpenRoomCardV170 extends StatelessWidget {
   Widget build(BuildContext context) {
     final voice = room['voice_enabled'] == true || room['voice_enabled'] == 1;
     final rawAvatars = room['avatars'] is List ? room['avatars'] as List : const [];
+    final ar = controller.localeCode == 'ar';
     return PremiumPanel(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -652,21 +653,21 @@ class OpenRoomCardV170 extends StatelessWidget {
           ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.asset(gameArtAsset(game.id), width: 72, height: 72, fit: BoxFit.contain)),
           const SizedBox(width: 11),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(room['name']?.toString() ?? room['code']?.toString() ?? 'غرفة', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+            Text(room['name']?.toString() ?? room['code']?.toString() ?? (ar ? 'غرفة' : 'Room'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
             const SizedBox(height: 4),
-            Text('${voice ? '🎙️ صوتية' : '🃏 عادية'} • ${room['players'] ?? 1}/${room['max_players'] ?? 4} • LV.${room['min_level'] ?? 1}+', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
+            Text('${voice ? (ar ? '🎙️ صوتية' : '🎙️ Voice room') : (ar ? '🃏 عادية' : '🃏 Standard')} • ${room['players'] ?? 1}/${room['max_players'] ?? 4} • LV.${room['min_level'] ?? 1}+', key: const ValueKey('r136-open-room-metadata'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w600)),
             const SizedBox(height: 7),
             SizedBox(height: 30, child: Stack(children: [
               for (var index = 0; index < rawAvatars.length && index < 4; index++)
-                Positioned(
-                  left: index * 22,
+                PositionedDirectional(
+                  start: index * 22,
                   child: CircleAvatar(
                     radius: 15,
                     backgroundColor: colorFromHex((rawAvatars[index] is Map ? rawAvatars[index]['name_color'] : null)?.toString() ?? '#38bdf8'),
                     child: Text(((rawAvatars[index] is Map ? rawAvatars[index]['name'] : null)?.toString() ?? '؟').characters.first, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
                   ),
                 ),
-              if (rawAvatars.isEmpty) const Text('بانتظار لاعبين…', style: TextStyle(color: Colors.white70, fontSize: 11)),
+              if (rawAvatars.isEmpty) Text(ar ? 'بانتظار لاعبين…' : 'Waiting for players…', key: const ValueKey('r136-open-room-waiting'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
             ])),
           ])),
           FilledButton(onPressed: onJoin, child: Text(L.t(controller.localeCode, 'join'))),
