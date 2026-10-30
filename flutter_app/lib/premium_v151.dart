@@ -259,7 +259,7 @@ Future<void> showGroupDetailV151(
         Center(child: Text(icon, style: const TextStyle(fontSize: 72))),
         Text(name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
-        Text('الدوري ${level >= 30 ? 'الماسي' : level >= 20 ? 'البلاتيني' : 'الذهبي'} • المستوى $level', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60)),
+        Text('الدوري ${level >= 30 ? 'الماسي' : level >= 20 ? 'البلاتيني' : 'الذهبي'} • المستوى $level', key: const ValueKey('r141-group-league'), textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         const SizedBox(height: 12),
         Row(children: [
           Expanded(child: _ClubMetric(icon: '👥', value: '$members/50', label: 'الأعضاء')),
@@ -276,9 +276,9 @@ Future<void> showGroupDetailV151(
               title: member.$1,
               subtitle: '@${member.$2} • ${member.$4} نقطة مجموعة',
               action: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: member.$3 ? Colors.greenAccent : Colors.white24)),
+                Container(key: ValueKey('r141-group-status-dot-${member.$2}'), width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: member.$3 ? Colors.greenAccent : Theme.of(context).colorScheme.outline)),
                 const SizedBox(width: 5),
-                Text(member.$3 ? 'متصل' : 'غير متصل', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: member.$3 ? Colors.greenAccent : Colors.white70)),
+                Text(member.$3 ? 'متصل' : 'غير متصل', key: ValueKey('r141-group-status-label-${member.$2}'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: member.$3 ? Colors.greenAccent : Theme.of(context).colorScheme.onSurfaceVariant)),
               ]),
             )),
         const SizedBox(height: 10),
