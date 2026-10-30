@@ -722,8 +722,8 @@ Future<void> showChallengesV170(BuildContext context, AppController controller) 
       Row(children: [
         Container(width: 54, height: 54, alignment: Alignment.center, decoration: BoxDecoration(gradient: const LinearGradient(colors:[Color(0xffffcf67),Color(0xff8b5e11)]), borderRadius: BorderRadius.circular(18)), child: const Text('🎯', style: TextStyle(fontSize: 29))),
         const SizedBox(width: 10),
-        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('مركز التحديات', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('مركز التحديات', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
           Text('مهام يومية وأسبوعية وسلاسل تنافسية بجوائز متدرجة.', key: const ValueKey('r139-legacy-challenge-intro'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.5)),
         ])),
       ]),
