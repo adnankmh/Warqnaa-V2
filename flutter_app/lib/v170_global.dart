@@ -724,7 +724,7 @@ Future<void> showChallengesV170(BuildContext context, AppController controller) 
         const SizedBox(width: 10),
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('مركز التحديات', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
-          Text('مهام يومية وأسبوعية وسلاسل تنافسية بجوائز متدرجة.', style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.5)),
+          Text('مهام يومية وأسبوعية وسلاسل تنافسية بجوائز متدرجة.', key: const ValueKey('r139-legacy-challenge-intro'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.5)),
         ])),
       ]),
       const SizedBox(height: 14),
