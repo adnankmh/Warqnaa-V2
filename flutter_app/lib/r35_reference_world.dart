@@ -671,6 +671,7 @@ class R35StoreTreasureStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
+    final colors = Theme.of(context).colorScheme;
     final samples = products.where((product) =>
       controller.isStoreProductVisible(product) &&
       <String>{'tables', 'cards', 'boost', 'pasha', 'covers'}.contains(product.category)
@@ -679,10 +680,10 @@ class R35StoreTreasureStrip extends StatelessWidget {
       key: const ValueKey('r35-reference-store-specials'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: r48StorePanel,
+        color: colors.surfaceContainer,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: R35ReferenceColors.paleGold.withValues(alpha: .88), width: 1.5),
-        boxShadow: <BoxShadow>[BoxShadow(color: R35ReferenceColors.deep.withValues(alpha: .28),
+        border: Border.all(color: colors.outlineVariant, width: 1.5),
+        boxShadow: <BoxShadow>[BoxShadow(color: colors.shadow.withValues(alpha: .16),
           blurRadius: 18, offset: const Offset(0, 8))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: <Widget>[
@@ -690,10 +691,16 @@ class R35StoreTreasureStrip extends StatelessWidget {
           const Icon(Icons.local_offer_rounded, color: R35ReferenceColors.gold, size: 26),
           const SizedBox(width: 9),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-            Text(ar ? 'مقتنيات وعروض خاصة' : 'Premium items and special offers',
-              style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
-            Text(ar ? 'مقتنيات المتجر الحقيقية بأسعارها الفعلية' : 'Actual catalogue items with verified prices',
-              style: const TextStyle(color: R35ReferenceColors.cyan, fontSize: 11.5, height: 1.35, fontWeight: FontWeight.w700)),
+            Text(
+              ar ? 'مقتنيات وعروض خاصة' : 'Premium items and special offers',
+              key: const ValueKey('r150-reference-store-title'),
+              style: TextStyle(color: colors.onSurface, fontSize: 17, fontWeight: FontWeight.w900),
+            ),
+            Text(
+              ar ? 'مقتنيات المتجر الحقيقية بأسعارها الفعلية' : 'Actual catalogue items with verified prices',
+              key: const ValueKey('r150-reference-store-subtitle'),
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, height: 1.35, fontWeight: FontWeight.w700),
+            ),
           ])),
           IconButton(
             tooltip: ar ? 'المحفظة' : 'Wallet',
@@ -703,8 +710,11 @@ class R35StoreTreasureStrip extends StatelessWidget {
         const SizedBox(height: 12),
         if (samples.isEmpty)
           Padding(padding: const EdgeInsets.all(12),
-            child: Text(ar ? 'لا توجد عروض متاحة حاليًا' : 'No offers available right now',
-              style: const TextStyle(color: Colors.white70)))
+            child: Text(
+              ar ? 'لا توجد عروض متاحة حاليًا' : 'No offers available right now',
+              key: const ValueKey('r150-reference-store-empty'),
+              style: TextStyle(color: colors.onSurfaceVariant),
+            ))
         else LayoutBuilder(builder: (context, constraints) {
           if (constraints.maxWidth < 420) {
             return SizedBox(
