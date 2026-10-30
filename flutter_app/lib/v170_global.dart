@@ -357,23 +357,24 @@ class ProductCardV170 extends StatelessWidget {
     final owned = controller.isOwnedActiveV176(product.id);
     final expiryLabel = controller.expiryForProductV176(product.id) == null ? null : controller.remainingForProductV176(product.id);
     final isPasha = product.category == 'pasha';
+    final scheme = Theme.of(context).colorScheme;
     return PremiumPanel(
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(children: [
           Row(children: [
-            Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.white.withValues(alpha:.07),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.white12)),child:Text(product.tierLabel(controller.localeCode),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))),
+            Container(key:const ValueKey('r138-store-tier-surface'),padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:scheme.surfaceContainerHighest,borderRadius:BorderRadius.circular(20),border:Border.all(color:scheme.outlineVariant)),child:Text(product.tierLabel(controller.localeCode),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))),
             const Spacer(),
             if (owned) const Icon(Icons.verified_rounded,color:Colors.greenAccent,size:20),
           ]),
           const SizedBox(height:7),
-          Expanded(child:Container(width:double.infinity,padding:EdgeInsets.all(isPasha?6:0),decoration:BoxDecoration(color:Colors.black.withValues(alpha:.14),borderRadius:BorderRadius.circular(20)),child:Center(child:isPasha
+          Expanded(child:Container(key:const ValueKey('r138-store-preview-surface'),width:double.infinity,padding:EdgeInsets.all(isPasha?6:0),decoration:BoxDecoration(color:scheme.surfaceContainerLow,borderRadius:BorderRadius.circular(20)),child:Center(child:isPasha
               ? Image.asset('assets/images/pasha.png',fit:BoxFit.contain,width:double.infinity,height:double.infinity,filterQuality:FilterQuality.high,errorBuilder:(_,__,___)=>const Text('👑',style:TextStyle(fontSize:72)))
-              : InkWell(onTap:()=>showProductPreview(context,controller,product),borderRadius:BorderRadius.circular(20),child:Center(child:_CompactProductPreview(controller:controller,product:product)))))),
+              : InkWell(key:const ValueKey('r138-store-preview-action'),onTap:()=>showProductPreview(context,controller,product),borderRadius:BorderRadius.circular(20),child:Center(child:_CompactProductPreview(controller:controller,product:product)))))),
           const SizedBox(height:9),
           Text(controller.nameFor(product),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:16,height:1.25)),
           const SizedBox(height:5),
-          Text(controller.descriptionFor(product),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:const TextStyle(color:Colors.white60,fontSize:12,height:1.45)),
+          Text(controller.descriptionFor(product),key:const ValueKey('r138-store-description'),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:TextStyle(color:scheme.onSurfaceVariant,fontSize:12,height:1.45)),
           const SizedBox(height:8),
           FittedBox(fit:BoxFit.scaleDown,child:Text(controller.priceFor(product) == 0 && owned ? '🎁 هدية الحزمة اليومية' : '🪙 ${formatNumber(controller.priceFor(product))}${owned && controller.quantityForR36(product.id)>1 ? '  ×${controller.quantityForR36(product.id)}' : ''}${controller.storeDiscountR36(product.id)>0 ? '  −${controller.storeDiscountR36(product.id)}%' : ''}',style:TextStyle(color:Theme.of(context).colorScheme.primary,fontWeight:FontWeight.w900,fontSize:15))),
           if (expiryLabel != null) ...[const SizedBox(height:5), Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.orangeAccent.withValues(alpha:.12),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text('⌛ $expiryLabel',textAlign:TextAlign.center,style:const TextStyle(color:Colors.orangeAccent,fontSize:11,fontWeight:FontWeight.w900)))],
