@@ -352,6 +352,28 @@ class GroupCommandCenterV173 extends StatelessWidget {
 }
 class _MiniStatV173 extends StatelessWidget { final String icon,value,label; const _MiniStatV173(this.icon,this.value,this.label); @override Widget build(BuildContext context)=>Container(padding:const EdgeInsets.all(8),decoration:BoxDecoration(color:Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha:.55),borderRadius:BorderRadius.circular(13)),child:Column(children:[Text(icon),Text(value,style:const TextStyle(fontWeight:FontWeight.w900)),Text(label,style:TextStyle(fontSize:8,color:Theme.of(context).colorScheme.onSurfaceVariant))])); }
 
+class DesignerSyncStatusIconV173 extends StatelessWidget {
+  const DesignerSyncStatusIconV173({
+    super.key,
+    required this.connected,
+  });
+
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Icon(
+      connected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+      key: ValueKey(
+        'r159-designer-sync-${connected ? 'connected' : 'offline'}',
+      ),
+      size: 18,
+      color: connected ? colors.tertiary : colors.error,
+    );
+  }
+}
+
 class UniversalDesignerV173 extends StatelessWidget {
   final AppController controller;
   const UniversalDesignerV173({super.key, required this.controller});
@@ -420,7 +442,9 @@ class UniversalDesignerV173 extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Row(children:<Widget>[
-                Icon(controller.serverConnected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded, size:18, color:controller.serverConnected ? Colors.greenAccent : Colors.amber),
+                DesignerSyncStatusIconV173(
+                  connected: controller.serverConnected,
+                ),
                 const SizedBox(width:6),
                 Expanded(child:Text(controller.serverConnected ? 'المزامنة مع الخادم متاحة.' : 'وضع محلي آمن: التعديلات تُحفظ الآن وتُزامن عند عودة الخادم.',style:TextStyle(fontSize:10,color:Theme.of(context).colorScheme.onSurfaceVariant))),
               ]),
