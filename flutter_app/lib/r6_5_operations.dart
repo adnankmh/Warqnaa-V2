@@ -135,9 +135,10 @@ class R65OperationsStatusHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Icon(
+          Icon(
             Icons.monitor_heart_outlined,
-            color: Color(0xffffcf58),
+            key: const ValueKey('r157-operations-status-icon'),
+            color: colors.primary,
             size: 36,
           ),
           const SizedBox(height: 12),
