@@ -235,6 +235,22 @@ class R65PartyCodeValue extends StatelessWidget {
   );
 }
 
+class R65PartyMemberIcon extends StatelessWidget {
+  const R65PartyMemberIcon({super.key, required this.owner});
+
+  final bool owner;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Icon(
+      owner ? Icons.star_outline : Icons.person_outline,
+      key: ValueKey('r158-party-member-icon-${owner ? 'owner' : 'member'}'),
+      color: owner ? colors.primary : colors.onSurfaceVariant,
+    );
+  }
+}
+
 class R65PartyPage extends StatefulWidget {
   const R65PartyPage({super.key, required this.controller});
   final AppController controller;
@@ -296,7 +312,7 @@ class _R65PartyPageState extends State<R65PartyPage> {
           TextButton.icon(onPressed: () async { await Clipboard.setData(ClipboardData(text: '${party['code']}')); if (context.mounted) showToast(context, ar ? 'تم نسخ الرمز' : 'Code copied'); }, icon: const Icon(Icons.copy), label: Text(ar ? 'نسخ' : 'Copy')),
           ...members.where((member) => member['status'] == 'joined' || member['status'] == 'invited').map((member) {
             final user = _r12Map(member['user']);
-            return Card(child: ListTile(leading: Icon(member['role'] == 'owner' ? Icons.star_outline : Icons.person_outline), title: Text('${user['username'] ?? member['user_id']}'), subtitle: Text(member['status'] == 'joined' ? (ar ? 'منضم' : 'Joined') : (ar ? 'مدعو' : 'Invited'))));
+            return Card(child: ListTile(leading: R65PartyMemberIcon(owner: member['role'] == 'owner'), title: Text('${user['username'] ?? member['user_id']}'), subtitle: Text(member['status'] == 'joined' ? (ar ? 'منضم' : 'Joined') : (ar ? 'مدعو' : 'Invited'))));
           }),
           if (owner) ...<Widget>[
             const SizedBox(height: 16),
