@@ -281,13 +281,28 @@ Future<void> showVoiceDiagnosticsDialog(BuildContext context, AppController cont
     };
     return AlertDialog(title:Text(L.t(controller.localeCode,'voiceStatus')),content:Column(mainAxisSize:MainAxisSize.min,children:[
       for(final entry in data.entries) ListTile(dense:true,contentPadding:EdgeInsets.zero,title:Text(entry.key),trailing:Text(entry.value,style:const TextStyle(fontWeight:FontWeight.w900))),
-      if(service?.error!=null) Text(friendlyErrorMessage(service!.error!,controller.localeCode),style:const TextStyle(color:Colors.orangeAccent)),
+      if(service?.error!=null) VoiceDiagnosticsErrorTextR173(message:friendlyErrorMessage(service!.error!,controller.localeCode)),
     ]),actions:[
       TextButton.icon(onPressed:service==null?null:()async{await service.openPermissionSettings();},icon:const Icon(Icons.settings),label:Text(L.t(controller.localeCode,'openSettings'))),
       TextButton.icon(onPressed:service==null?null:()async{await service.setSpeakerEnabled(!service.speakerEnabled);setLocalState((){});},icon:Icon(service?.speakerEnabled==true?Icons.volume_up:Icons.hearing),label:Text(L.t(controller.localeCode,'speaker'))),
       FilledButton.icon(onPressed:service==null?null:()async{await service.retry();setLocalState((){});},icon:const Icon(Icons.refresh),label:Text(L.t(controller.localeCode,'retry'))),
     ]);
   }));
+}
+
+class VoiceDiagnosticsErrorTextR173 extends StatelessWidget {
+  const VoiceDiagnosticsErrorTextR173({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r173-voice-diagnostics-error'),
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    );
+  }
 }
 
 const List<(String, String, List<String>)> v166EmojiCategories = <(String,String,List<String>)>[
