@@ -301,7 +301,7 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
           Row(children:[Expanded(child:FilledButton.icon(onPressed:loading?null:_playRoadStage,icon:const Icon(Icons.play_arrow_rounded),label:Text(bi('ابحث عن منافس وابدأ','Find opponent & play')))),const SizedBox(width:7),OutlinedButton(onPressed:loading?null:(){widget.controller.resetChallengeRoad();setState((){});},child:Text(bi('إعادة','Reset')))]),
         ],
       ]))),
-      if(error!=null) Padding(padding:const EdgeInsets.only(top:8),child:Container(padding:const EdgeInsets.all(10),decoration:BoxDecoration(color:Colors.orange.withValues(alpha:.12),borderRadius:BorderRadius.circular(14),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text(error!,style:const TextStyle(fontSize:11)))),
+      if(error!=null) Padding(padding:const EdgeInsets.only(top:8),child:ChallengeErrorNoticeR172(message:error!)),
       const SizedBox(height:12),
       Wrap(spacing:8,runSpacing:8,children:[
         for(final entry in <(String,String)>[('all',bi('الكل','All')),('daily',bi('اليومية','Daily')),('weekly',bi('الأسبوعية','Weekly')),('seasonal',bi('الموسمية','Seasonal'))])
@@ -334,6 +334,30 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       }),
       if(loading) const Padding(padding:EdgeInsets.only(top:4),child:LinearProgressIndicator()),
     ]);
+  }
+}
+
+class ChallengeErrorNoticeR172 extends StatelessWidget {
+  const ChallengeErrorNoticeR172({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('r172-challenge-error'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.error.withValues(alpha: .35)),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(fontSize: 11, color: scheme.onErrorContainer),
+      ),
+    );
   }
 }
 
