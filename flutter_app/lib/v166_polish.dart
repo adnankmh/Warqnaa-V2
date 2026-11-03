@@ -241,7 +241,7 @@ class _DiagnosticsDialogState extends State<_DiagnosticsDialog> {
                       children: snapshot.data!
                           .map((item) => ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: Icon(item.ok ? Icons.check_circle : Icons.error_outline, color: item.ok ? Colors.greenAccent : Colors.orangeAccent),
+                                leading: ConnectionDiagnosticStatusIconR174(ok: item.ok),
                                 title: Text(item.label, style: const TextStyle(fontWeight: FontWeight.w900)),
                                 subtitle: Text(item.details, style: const TextStyle(fontSize: 11)),
                               ))
@@ -267,6 +267,22 @@ class _DiagnosticsDialogState extends State<_DiagnosticsDialog> {
           ),
         ],
       );
+}
+
+class ConnectionDiagnosticStatusIconR174 extends StatelessWidget {
+  const ConnectionDiagnosticStatusIconR174({super.key, required this.ok});
+
+  final bool ok;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Icon(
+      ok ? Icons.check_circle : Icons.error_outline,
+      key: ValueKey('r174-connection-diagnostic-${ok ? 'ok' : 'error'}'),
+      color: ok ? scheme.primary : scheme.error,
+    );
+  }
 }
 
 Future<void> showVoiceDiagnosticsDialog(BuildContext context, AppController controller, VoiceRoomService? service) async {
