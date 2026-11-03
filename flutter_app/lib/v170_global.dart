@@ -377,13 +377,42 @@ class ProductCardV170 extends StatelessWidget {
           Text(controller.descriptionFor(product),key:const ValueKey('r138-store-description'),textAlign:TextAlign.center,maxLines:2,overflow:TextOverflow.ellipsis,style:TextStyle(color:scheme.onSurfaceVariant,fontSize:12,height:1.45)),
           const SizedBox(height:8),
           FittedBox(fit:BoxFit.scaleDown,child:Text(controller.priceFor(product) == 0 && owned ? '🎁 هدية الحزمة اليومية' : '🪙 ${formatNumber(controller.priceFor(product))}${owned && controller.quantityForR36(product.id)>1 ? '  ×${controller.quantityForR36(product.id)}' : ''}${controller.storeDiscountR36(product.id)>0 ? '  −${controller.storeDiscountR36(product.id)}%' : ''}',style:TextStyle(color:Theme.of(context).colorScheme.primary,fontWeight:FontWeight.w900,fontSize:15))),
-          if (expiryLabel != null) ...[const SizedBox(height:5), Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:Colors.orangeAccent.withValues(alpha:.12),borderRadius:BorderRadius.circular(20),border:Border.all(color:Colors.orangeAccent.withValues(alpha:.35))),child:Text('⌛ $expiryLabel',textAlign:TextAlign.center,style:const TextStyle(color:Colors.orangeAccent,fontSize:11,fontWeight:FontWeight.w900)))],
+          if (expiryLabel != null) ...[const SizedBox(height:5), StoreExpiryBadgeR175(label:expiryLabel)],
           const SizedBox(height:8),
           if (isPasha)
             SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:() async { if(owned && !product.reusable){ final ok=await controller.activateOwnedProductR36(product); if(context.mounted)showToast(context,ok?'تم تفعيل ${controller.nameFor(product)}.':controller.lastStoreError ?? 'تعذر التفعيل.'); return; } final confirmed=await showDialog<bool>(context:context,builder:(dialogContext)=>AlertDialog(icon:Image.asset('assets/images/pasha.png',height:100,fit:BoxFit.contain),title:Text(controller.nameFor(product)),content:Text('${controller.descriptionFor(product)}\n\nالسعر: ${formatNumber(controller.priceFor(product))} توكن'),actions:[TextButton(onPressed:()=>Navigator.pop(dialogContext,false),child:const Text('إلغاء')),FilledButton(onPressed:()=>Navigator.pop(dialogContext,true),child:Text(owned && product.reusable?'تجديد':owned?'تفعيل':'شراء'))])); if(confirmed==true && context.mounted){final ok=await controller.buy(product);if(context.mounted)showToast(context,ok?'تم شراء الباشا وتفعيله.':(controller.lastStoreError ?? 'تعذر الشراء. تحقق من الاتصال والرصيد.'));} },icon:const Icon(Icons.workspace_premium),label:Text(owned && product.reusable?'تجديد الباشا':owned?'تفعيل الباشا':'شراء الباشا'),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(50))))
           else
             Row(children:[Expanded(child:OutlinedButton.icon(onPressed:()=>showProductPreview(context,controller,product),icon:const Icon(Icons.visibility_outlined,size:17),label:Text(L.t(controller.localeCode,'preview'),maxLines:1,overflow:TextOverflow.ellipsis),style:OutlinedButton.styleFrom(minimumSize:const Size.fromHeight(48),padding:const EdgeInsets.symmetric(horizontal:8)))),const SizedBox(width:7),Expanded(child:FilledButton(onPressed:() async { if(owned && !product.reusable){final ok=await controller.activateOwnedProductR36(product);if(context.mounted)showToast(context,ok?'تم تفعيل ${controller.nameFor(product)}.':controller.lastStoreError ?? 'تعذر التفعيل.');return;}await showProductPreview(context,controller,product);},style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(48),padding:const EdgeInsets.symmetric(horizontal:8)),child:FittedBox(child:Text(owned&&!product.reusable?'تفعيل':L.t(controller.localeCode,'buy'),style:const TextStyle(fontWeight:FontWeight.w900)))))]),
         ]),
+      ),
+    );
+  }
+}
+
+class StoreExpiryBadgeR175 extends StatelessWidget {
+  const StoreExpiryBadgeR175({super.key, required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('r175-store-expiry-badge'),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: scheme.tertiary.withValues(alpha: .35)),
+      ),
+      child: Text(
+        '⌛ $label',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: scheme.onTertiaryContainer,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
