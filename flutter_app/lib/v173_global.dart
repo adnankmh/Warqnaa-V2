@@ -230,6 +230,40 @@ extension WarqnaV173Controller on AppController {
   }
 }
 
+class OfflineThemeIconV173 extends StatelessWidget {
+  const OfflineThemeIconV173({super.key, this.size = 76});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Icon(
+        Icons.wifi_off_rounded,
+        key: const ValueKey('r161-offline-theme-icon'),
+        size: size,
+        color: Theme.of(context).colorScheme.tertiary,
+      );
+}
+
+class PashaHelperTextV173 extends StatelessWidget {
+  const PashaHelperTextV173({
+    super.key,
+    required this.text,
+  });
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        text,
+        key: const ValueKey('r161-pasha-helper'),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontSize: 12,
+          height: 1.5,
+        ),
+      );
+}
+
 class OnlineRequiredScreenV173 extends StatefulWidget {
   final AppController controller;
   const OnlineRequiredScreenV173({super.key, required this.controller});
@@ -241,7 +275,7 @@ class _OnlineRequiredScreenV173State extends State<OnlineRequiredScreenV173> {
     body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 520), child: Padding(
       padding: const EdgeInsets.all(24),
       child: PremiumPanel(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.wifi_off_rounded, size: 76, color: Colors.orangeAccent),
+        const OfflineThemeIconV173(),
         const SizedBox(height: 14),
         Text(widget.controller.localeCode == 'ar' ? 'وضع الأوفلاين مفعل' : 'Offline mode is active', key: const ValueKey('r132-online-required-title'), textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.onSurface)),
         const SizedBox(height: 9),
@@ -269,11 +303,10 @@ class PashaStyleSelectorV173 extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
     Text(ar ? 'ألوان طربوش الباشا' : 'Pasha fez colors', key: const ValueKey('r46-pasha-selector-title'), style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
     const SizedBox(height: 5),
-    Text(
-      ar
+    PashaHelperTextV173(
+      text: ar
           ? 'اختيار اللون يطبّق هوية اللون على الطربوش والوهج والاسم والدردشة واللون الرئيسي للتطبيق.'
           : 'Your chosen color updates the fez, glow, name, chat and the app accent.',
-      style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
     ),
     const SizedBox(height: 12),
     GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: pashaStylesV173.length, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 1.18, crossAxisSpacing: 8, mainAxisSpacing: 8), itemBuilder: (_, i) {
