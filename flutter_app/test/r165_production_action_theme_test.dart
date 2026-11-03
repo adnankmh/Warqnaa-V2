@@ -34,9 +34,9 @@ void main() {
           ),
         ),
       ));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      final actions = ProductionActionV153.values;
+      const actions = ProductionActionV153.values;
       final icons = actions.map((action) {
         final finder = find.byKey(
           ValueKey('r165-production-action-${action.name}'),
