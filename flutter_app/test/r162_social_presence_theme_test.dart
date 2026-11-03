@@ -39,11 +39,16 @@ void main() {
       final label = tester.widget<Text>(
         find.byKey(const ValueKey('r162-social-presence-label')),
       );
+      final inheritedScheme = Theme.of(
+        tester.element(find.byKey(
+          const ValueKey('r162-social-presence-dot'),
+        )),
+      ).colorScheme;
       final expectedDot =
-          online ? theme.colorScheme.tertiary : theme.colorScheme.outline;
+          online ? inheritedScheme.tertiary : inheritedScheme.outline;
       final expectedLabel = online
-          ? theme.colorScheme.tertiary
-          : theme.colorScheme.onSurfaceVariant;
+          ? inheritedScheme.tertiary
+          : inheritedScheme.onSurfaceVariant;
 
       expect(decoration.color, expectedDot);
       expect(label.style?.color, expectedLabel);
