@@ -119,6 +119,62 @@ Future<void> confirmLeaveGameV151(BuildContext context, AppController controller
       : (exits >= 5 ? 'You left. The return limit for this room has been reached.' : 'You left. ${5 - exits} returns remain for this room.'));
 }
 
+class SocialPresenceIndicatorV151 extends StatelessWidget {
+  const SocialPresenceIndicatorV151({
+    super.key,
+    required this.online,
+    this.size = 8,
+    this.showLabel = false,
+    this.onlineLabel = 'متصل',
+    this.offlineLabel = 'غير متصل',
+    this.dotKey = const ValueKey('r162-social-presence-dot'),
+    this.labelKey = const ValueKey('r162-social-presence-label'),
+  });
+
+  final bool online;
+  final double size;
+  final bool showLabel;
+  final String onlineLabel;
+  final String offlineLabel;
+  final Key dotKey;
+  final Key labelKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final statusColor = online ? scheme.tertiary : scheme.outline;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          key: dotKey,
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: statusColor,
+            border: size > 8
+                ? Border.all(color: scheme.surface, width: 2)
+                : null,
+          ),
+        ),
+        if (showLabel) ...<Widget>[
+          const SizedBox(width: 5),
+          Text(
+            online ? onlineLabel : offlineLabel,
+            key: labelKey,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: online ? scheme.tertiary : scheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 Future<void> inviteFriendsToRoomV151(BuildContext context, AppController controller, String gameId) async {
   final selected = <int>{};
   await showPremiumSheet(
@@ -175,7 +231,11 @@ Future<void> inviteFriendsToRoomV151(BuildContext context, AppController control
                   PositionedDirectional(
                     end: -2,
                     bottom: -2,
-                    child: Container(key: ValueKey('r140-friend-status-${friend.id}'), width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: friend.online ? Colors.greenAccent : Theme.of(context).colorScheme.outline, border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2))),
+                    child: SocialPresenceIndicatorV151(
+                      online: friend.online,
+                      size: 12,
+                      dotKey: ValueKey('r140-friend-status-${friend.id}'),
+                    ),
                   ),
                 ]),
                 title: Text(friend.name, style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -275,11 +335,12 @@ Future<void> showGroupDetailV151(
               icon: member.$1.substring(0, 1),
               title: member.$1,
               subtitle: '@${member.$2} • ${member.$4} نقطة مجموعة',
-              action: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(key: ValueKey('r141-group-status-dot-${member.$2}'), width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: member.$3 ? Colors.greenAccent : Theme.of(context).colorScheme.outline)),
-                const SizedBox(width: 5),
-                Text(member.$3 ? 'متصل' : 'غير متصل', key: ValueKey('r141-group-status-label-${member.$2}'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: member.$3 ? Colors.greenAccent : Theme.of(context).colorScheme.onSurfaceVariant)),
-              ]),
+              action: SocialPresenceIndicatorV151(
+                online: member.$3,
+                showLabel: true,
+                dotKey: ValueKey('r141-group-status-dot-${member.$2}'),
+                labelKey: ValueKey('r141-group-status-label-${member.$2}'),
+              ),
             )),
         const SizedBox(height: 10),
         const _AdminInfo(text: 'تُحسب نقاط المجموعة من الفوز والنشاط. اللعب مع أعضاء المجموعة يمنح مضاعف فريق، وتوزّع الخزينة وفق الصلاحيات والمساهمة.'),
