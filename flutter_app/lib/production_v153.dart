@@ -79,6 +79,50 @@ class ProductionActionIconV153 extends StatelessWidget {
   }
 }
 
+class ProductionErrorTextV153 extends StatelessWidget {
+  const ProductionErrorTextV153({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Text(
+        message,
+        key: const ValueKey('r166-production-error-text'),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.error,
+          fontSize: 11,
+        ),
+      );
+}
+
+class ProductionDestructiveButtonV153 extends StatelessWidget {
+  const ProductionDestructiveButtonV153({
+    super.key,
+    required this.onPressed,
+    required this.child,
+  });
+
+  final VoidCallback? onPressed;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return FilledButton(
+      key: const ValueKey('r166-production-destructive-button'),
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: scheme.error,
+        foregroundColor: scheme.onError,
+      ),
+      child: child,
+    );
+  }
+}
+
 class ProductionCenterV153 extends StatefulWidget {
   final AppController controller;
   const ProductionCenterV153({super.key, required this.controller});
@@ -136,7 +180,7 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                         ])),
                         Chip(label: Text(warqnaProductionMode ? 'PRODUCTION' : 'PREVIEW', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))),
                       ]),
-                      if (error != null) ...[const SizedBox(height: 10), Text(error!, style: const TextStyle(color: Colors.orangeAccent, fontSize: 11))],
+                      if (error != null) ...[const SizedBox(height: 10), ProductionErrorTextV153(message: error!)],
                       if (config != null) ...[
                         const SizedBox(height: 10),
                         Text('API: ${c.api.baseUrl}', key: const ValueKey('r146-production-api'), textDirection: TextDirection.ltr, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -254,9 +298,8 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
             ]),
             actions: [
               TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('تراجع')),
-              FilledButton(
+              ProductionDestructiveButtonV153(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
                 child: const Text('نعم، إلغاء الحساب'),
               ),
             ],
