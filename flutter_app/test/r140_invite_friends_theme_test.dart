@@ -66,7 +66,7 @@ void main() {
       expect(intro.style!.color, theme.colorScheme.onSurfaceVariant);
       expect(offlineDecoration.color, theme.colorScheme.outline);
       expect(offlineDecoration.border!.top.color, theme.colorScheme.surface);
-      expect(onlineDecoration.color, Colors.greenAccent);
+      expect(onlineDecoration.color, theme.colorScheme.tertiary);
       expect(onlineDecoration.border!.top.color, theme.colorScheme.surface);
 
       await tester.tap(find.text('جميل'));
