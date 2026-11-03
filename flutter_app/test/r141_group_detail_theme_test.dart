@@ -77,8 +77,8 @@ void main() {
       expect(offlineDecoration.color, theme.colorScheme.outline);
       expect(offlineLabel.style!.color, theme.colorScheme.onSurfaceVariant);
       expect(offlineLabel.style!.fontSize, 11);
-      expect(onlineDecoration.color, Colors.greenAccent);
-      expect(onlineLabel.style!.color, Colors.greenAccent);
+      expect(onlineDecoration.color, theme.colorScheme.tertiary);
+      expect(onlineLabel.style!.color, theme.colorScheme.tertiary);
       expect(tester.takeException(), isNull);
 
       Navigator.of(tester.element(leagueFinder)).pop();
