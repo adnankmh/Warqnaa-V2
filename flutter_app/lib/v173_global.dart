@@ -307,6 +307,44 @@ class PashaStyleSelectorV173 extends StatelessWidget {
 
 Future<void> showDailyPackV173(BuildContext context, AppController controller) => showDailyPackV176(context, controller);
 
+enum CompetitionToneV173 { metadata, fee, prize }
+
+class CompetitionToneTextV173 extends StatelessWidget {
+  const CompetitionToneTextV173({
+    super.key,
+    required this.text,
+    required this.tone,
+    this.fontSize = 10,
+    this.fontWeight,
+    this.height,
+  });
+
+  final String text;
+  final CompetitionToneV173 tone;
+  final double fontSize;
+  final FontWeight? fontWeight;
+  final double? height;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final color = switch (tone) {
+      CompetitionToneV173.metadata => colors.onSurfaceVariant,
+      CompetitionToneV173.fee => colors.primary,
+      CompetitionToneV173.prize => colors.tertiary,
+    };
+    return Text(
+      text,
+      style: TextStyle(
+        color: color,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        height: height,
+      ),
+    );
+  }
+}
+
 void showCompetitionsV173(BuildContext context, AppController controller) {
   const competitions = <(String,String,String,int,int,int,String)>[
     ('champions','🏆','بطولة الأبطال',2000,64,4,'طرنيب'),
@@ -318,12 +356,16 @@ void showCompetitionsV173(BuildContext context, AppController controller) {
   ];
   showPremiumSheet(context, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
     Row(children: [const Expanded(child: Text('مركز المنافسات V173', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900))), Chip(label: Text('🎟️ ${controller.totalTicketsV173}'))]),
-    Text('نقاط التصنيف: ${controller.championRankPointsV173} • دخول بالتذكرة أو التوكنز • مقاعد عشوائية • دردشة خاصة • بدء تلقائي', style: const TextStyle(color: Colors.white60, height: 1.5)),
+    CompetitionToneTextV173(
+      text: 'نقاط التصنيف: ${controller.championRankPointsV173} • دخول بالتذكرة أو التوكنز • مقاعد عشوائية • دردشة خاصة • بدء تلقائي',
+      tone: CompetitionToneV173.metadata,
+      height: 1.5,
+    ),
     const SizedBox(height: 10),
     ...competitions.map((entry) => Padding(padding: const EdgeInsets.only(bottom: 9), child: PremiumPanel(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [Text(entry.$2, style: const TextStyle(fontSize: 32)), const SizedBox(width: 9), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(entry.$3, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), Text('${entry.$7} • ${entry.$5} لاعب • ${entry.$6} جولات', style: const TextStyle(color: Colors.white60, fontSize: 10))])), Text('🪙 ${formatNumber(entry.$4)}', style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900))]),
+      Row(children: [Text(entry.$2, style: const TextStyle(fontSize: 32)), const SizedBox(width: 9), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(entry.$3, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), CompetitionToneTextV173(text: '${entry.$7} • ${entry.$5} لاعب • ${entry.$6} جولات', tone: CompetitionToneV173.metadata)])), CompetitionToneTextV173(text: '🪙 ${formatNumber(entry.$4)}', tone: CompetitionToneV173.fee, fontWeight: FontWeight.w900)]),
       const SizedBox(height: 8),
-      Row(children: [Expanded(child: Text('الجائزة حتى ${formatNumber(entry.$4 * entry.$5 ~/ 2)} توكن', style: const TextStyle(color: Colors.lightGreenAccent, fontSize: 10))), FilledButton(onPressed: () async { final active = controller.activeCompetition == entry.$1; final error = active ? await controller.leaveCompetitionV210(entry.$1) : await controller.joinCompetitionV173(entry.$1, entry.$4); if (context.mounted) showToast(context, error ?? (active ? 'تمت مغادرة ${entry.$3}.' : 'تم تسجيلك في ${entry.$3}.')); }, child: Text(controller.activeCompetition == entry.$1 ? 'مغادرة' : 'دخول'))]),
+      Row(children: [Expanded(child: CompetitionToneTextV173(text: 'الجائزة حتى ${formatNumber(entry.$4 * entry.$5 ~/ 2)} توكن', tone: CompetitionToneV173.prize)), FilledButton(onPressed: () async { final active = controller.activeCompetition == entry.$1; final error = active ? await controller.leaveCompetitionV210(entry.$1) : await controller.joinCompetitionV173(entry.$1, entry.$4); if (context.mounted) showToast(context, error ?? (active ? 'تمت مغادرة ${entry.$3}.' : 'تم تسجيلك في ${entry.$3}.')); }, child: Text(controller.activeCompetition == entry.$1 ? 'مغادرة' : 'دخول'))]),
     ]))))),
     const SizedBox(height: 4),
     FilledButton.tonalIcon(onPressed: () { Navigator.pop(context); showChallengesV173(context, controller); }, icon: const Icon(Icons.bolt_rounded), label: const Text('فتح التحديات الفورية')),
