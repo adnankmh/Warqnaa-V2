@@ -30,6 +30,24 @@ Future<void> openProductionCenterV153(BuildContext context, AppController contro
   await Navigator.push(context, MaterialPageRoute(builder: (_) => ProductionCenterV153(controller: controller)));
 }
 
+class ProductionConnectionIconV153 extends StatelessWidget {
+  const ProductionConnectionIconV153({
+    super.key,
+    required this.connected,
+  });
+
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) => Icon(
+        connected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+        key: const ValueKey('r164-production-connection-icon'),
+        color: connected
+            ? Theme.of(context).colorScheme.tertiary
+            : Theme.of(context).colorScheme.outline,
+      );
+}
+
 class ProductionCenterV153 extends StatefulWidget {
   final AppController controller;
   const ProductionCenterV153({super.key, required this.controller});
@@ -77,7 +95,9 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                     padding: const EdgeInsets.all(16),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       Row(children: [
-                        Icon(c.serverConnected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded, color: c.serverConnected ? Colors.greenAccent : Colors.amber),
+                        ProductionConnectionIconV153(
+                          connected: c.serverConnected,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(t('server'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
