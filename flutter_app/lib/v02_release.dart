@@ -523,7 +523,7 @@ class _PrizeBoxesPageV02State extends State<PrizeBoxesPageV02> {
             SectionTitle(title: V02Text.t(lang, 'myBoxes'), action: '${controller.unopenedPrizeBoxesV02.length}'),
             const SizedBox(height: 9),
             if (loading) const Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
-            if (error != null) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text(error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.orangeAccent))),
+            if (error != null) Padding(padding: const EdgeInsets.only(bottom: 10), child: PrizeBoxErrorTextR170(message: error!)),
             if (!loading && boxes.isEmpty)
               PremiumPanel(child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -558,6 +558,25 @@ class _PrizeStatV02 extends StatelessWidget {
         decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .42), borderRadius: BorderRadius.circular(16)),
         child: Row(children: [Icon(icon, color: Colors.amber), const SizedBox(width: 8), Expanded(child: Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10))), Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16))]),
       );
+}
+
+class PrizeBoxErrorTextR170 extends StatelessWidget {
+  const PrizeBoxErrorTextR170({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r170-prize-box-error'),
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    );
+  }
 }
 
 class PrizeBoxCardV02 extends StatelessWidget {
