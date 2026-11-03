@@ -375,7 +375,7 @@ class _R11SpectatorPageState extends State<R11SpectatorPage> {
     final ar = widget.controller.localeCode == 'ar', room = _r11Map(spectator['room']), state = _r11Map(spectator['state']), players = _r11List(room['players']), handCounts = _r11Map(state['hand_counts']), gifts = _r11List(spectator['gifts']);
     return Scaffold(appBar: AppBar(title: Text('🏟️ ${room['name'] ?? widget.roomCode}'), actions: [Container(margin: const EdgeInsets.all(10), padding: const EdgeInsets.symmetric(horizontal: 10), decoration: BoxDecoration(color: _r11Mint.withValues(alpha: .12), borderRadius: BorderRadius.circular(99)), child: const Row(children: [_R11LiveDot(), SizedBox(width: 6), Text('LIVE', style: TextStyle(color: _r11Mint, fontWeight: FontWeight.w900, fontSize: 11, height: 1.2))]))]), body: SafeArea(child: Column(children: [
       Container(width: double.infinity, margin: const EdgeInsets.all(12), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: _r11Mint.withValues(alpha: .08), borderRadius: BorderRadius.circular(15), border: Border.all(color: _r11Mint.withValues(alpha: .20))), child: Text(ar ? '🛡️ درع الخصوصية فعال: لا أوراق، لا صوت، ولا محادثة خاصة.' : '🛡️ Privacy Shield: no hands, voice, or private chat.', style: const TextStyle(fontSize: 12, height: 1.35, color: _r11Mint))),
-      if (error != null) Padding(padding: const EdgeInsets.all(10), child: Text(error!, style: const TextStyle(color: Colors.redAccent))),
+      if (error != null) Padding(padding: const EdgeInsets.all(10), child: R11SpectatorErrorTextR169(message: error!)),
       Expanded(child: Container(margin: const EdgeInsets.fromLTRB(12, 0, 12, 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(32), gradient: const RadialGradient(colors: [Color(0xFF1B6646), Color(0xFF071A12)], radius: .9), border: Border.all(color: _r11Gold.withValues(alpha: .20))), child: Stack(children: [
         Center(child: Container(width: 190, height: 190, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: _r11Gold.withValues(alpha: .28)), boxShadow: [BoxShadow(color: _r11Mint.withValues(alpha: .08), blurRadius: 70)]), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text(state['phase']?.toString().toUpperCase() ?? 'PLAYING', style: const TextStyle(color: _r11Gold, fontWeight: FontWeight.w900)),const SizedBox(height: 8),Text(state['turn']?.toString() ?? '—', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900)),const Text('CURRENT TURN', style: TextStyle(fontSize: 11, height: 1.2, color: Colors.white70))]))),
         Positioned.fill(child: Padding(padding: const EdgeInsets.all(16), child: Wrap(alignment: WrapAlignment.spaceAround, runAlignment: WrapAlignment.spaceBetween, spacing: 24, runSpacing: 150, children: players.map((player) { final key = 'user:${player['id']}'; return SizedBox(width: 120, child: Column(mainAxisSize: MainAxisSize.min, children: [_R11Avatar(url: player['avatar']?.toString(), label: player['name']?.toString() ?? '?', size: 52),const SizedBox(height: 4),Text(player['name']?.toString() ?? 'Player', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),Text('🂠 ${handCounts[key] ?? '—'}', style: const TextStyle(color: _r11Gold, fontSize: 11, height: 1.2))])); }).toList()))),
@@ -383,6 +383,24 @@ class _R11SpectatorPageState extends State<R11SpectatorPage> {
       if (gifts.isNotEmpty) SizedBox(height: 48, child: ListView.separated(padding: const EdgeInsets.symmetric(horizontal: 12), scrollDirection: Axis.horizontal, itemCount: gifts.length, separatorBuilder: (_, __) => const SizedBox(width: 7), itemBuilder: (_, index) { final gift = gifts[index]; return Chip(avatar: Text(gift['icon']?.toString() ?? '✨'), label: Text('${gift['sender'] ?? 'Warqnaa'}', style: const TextStyle(fontSize: 11, height: 1.2))); })),
       Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 12), child: Row(children: [Expanded(child: Text('${room['spectators'] ?? 0} 👁  •  Revision ${spectator['state_revision'] ?? '—'}', style: const TextStyle(color: Colors.white54, fontSize: 11, height: 1.2))),const Text('VOICE OFF • READ ONLY', style: TextStyle(color: _r11Mint, fontSize: 11, height: 1.2, fontWeight: FontWeight.w900))])),
     ])));
+  }
+}
+
+class R11SpectatorErrorTextR169 extends StatelessWidget {
+  const R11SpectatorErrorTextR169({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r169-spectator-error'),
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    );
   }
 }
 
