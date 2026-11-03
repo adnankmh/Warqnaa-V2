@@ -88,11 +88,10 @@ Future<void> confirmLeaveGameV151(BuildContext context, AppController controller
           content: Text(controller.localeCode == 'ar' ? 'استخدمت $current من أصل 5 مغادرات لهذه الغرفة تحديداً. بعد المرة الخامسة لن تتمكن من العودة إلى نفس الغرفة فقط.\n\nهل تريد الخروج الآن؟' : 'You used $current of 5 manual exits for this exact room. After the fifth exit, you cannot return to this room only.\n\nLeave now?'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(controller.localeCode == 'ar' ? 'البقاء' : 'Stay')),
-            FilledButton.icon(
+            PremiumDestructiveButtonV151(
               onPressed: () => Navigator.pop(dialogContext, true),
               icon: const Icon(Icons.logout_rounded),
               label: Text(controller.localeCode == 'ar' ? 'خروج' : 'Leave'),
-              style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             ),
           ],
         ),
@@ -117,6 +116,34 @@ Future<void> confirmLeaveGameV151(BuildContext context, AppController controller
   showToast(context, controller.localeCode == 'ar'
       ? (exits >= 5 ? 'تم الخروج. وصلت إلى حد العودة لهذه الغرفة فقط.' : 'تم الخروج. المتبقي ${5 - exits} مرات للعودة لنفس الغرفة.')
       : (exits >= 5 ? 'You left. The return limit for this room has been reached.' : 'You left. ${5 - exits} returns remain for this room.'));
+}
+
+class PremiumDestructiveButtonV151 extends StatelessWidget {
+  const PremiumDestructiveButtonV151({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+  });
+
+  final VoidCallback? onPressed;
+  final Widget icon;
+  final Widget label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return FilledButton.icon(
+      key: const ValueKey('r167-premium-destructive-button'),
+      onPressed: onPressed,
+      icon: icon,
+      label: label,
+      style: FilledButton.styleFrom(
+        backgroundColor: scheme.error,
+        foregroundColor: scheme.onError,
+      ),
+    );
+  }
 }
 
 class SocialPresenceIndicatorV151 extends StatelessWidget {
