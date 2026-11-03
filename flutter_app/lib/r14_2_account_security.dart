@@ -238,7 +238,7 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
             ),
             if (error != null) ...[
               const SizedBox(height: 12),
-              Text(error!, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w700)),
+              AccountSecurityErrorTextR168(message: error!),
             ],
             const SizedBox(height: 18),
             FilledButton.icon(
@@ -251,6 +251,27 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AccountSecurityErrorTextR168 extends StatelessWidget {
+  const AccountSecurityErrorTextR168({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r168-account-security-error'),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.error,
+        fontWeight: FontWeight.w700,
       ),
     );
   }
