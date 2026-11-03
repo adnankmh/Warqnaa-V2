@@ -439,6 +439,25 @@ class _PashaColorAvatarV170 extends StatelessWidget {
       );
 }
 
+class PublicProfilePresenceIconV170 extends StatelessWidget {
+  const PublicProfilePresenceIconV170({
+    super.key,
+    required this.online,
+  });
+
+  final bool online;
+
+  @override
+  Widget build(BuildContext context) => Icon(
+        online ? Icons.circle : Icons.circle_outlined,
+        key: const ValueKey('r133-public-profile-presence'),
+        size: 13,
+        color: online
+            ? Theme.of(context).colorScheme.tertiary
+            : Theme.of(context).colorScheme.onSurfaceVariant,
+      );
+}
+
 Future<void> showPublicPlayerProfileV170(BuildContext context, AppController controller, LocalFriend friend) async {
   AppSounds.fire('profile_open');
   LocalFriend visible = friend;
@@ -558,7 +577,7 @@ Future<void> showPublicPlayerProfileV170(BuildContext context, AppController con
         child: Padding(
           padding: const EdgeInsets.all(13),
           child: Row(children: [
-            Icon(visible.online ? Icons.circle : Icons.circle_outlined, key: const ValueKey('r133-public-profile-presence'), size: 13, color: visible.online ? Colors.greenAccent : Theme.of(context).colorScheme.onSurfaceVariant),
+            PublicProfilePresenceIconV170(online: visible.online),
             const SizedBox(width: 8),
             Expanded(child: Text(visible.online ? (ar ? 'متصل الآن' : 'Online now') : visible.activity, style: const TextStyle(fontWeight: FontWeight.w800))),
             if (visible.pashaDays > 0) Flexible(child: Text(ar ? '👑 باشا ${visible.pashaDays} يوم' : '👑 Pasha ${visible.pashaDays} days', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.w900))),
