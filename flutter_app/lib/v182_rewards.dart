@@ -304,7 +304,7 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
         )))),
         Positioned(top:58+(size-20)/2-34,child:Container(width:68,height:68,decoration:BoxDecoration(shape:BoxShape.circle,gradient:const LinearGradient(colors:<Color>[Color(0xffffe08a),Color(0xffa16207)]),border:Border.all(color:Colors.white,width:3),boxShadow:const <BoxShadow>[BoxShadow(blurRadius:16,color:Colors.black54)]),child:const Center(child:Text('♛',style:TextStyle(fontWeight:FontWeight.w900,fontSize:30,color:Color(0xff3b2304))))),),
       ]))),
-      if(error!=null)...<Widget>[const SizedBox(height:10),Text(error!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.redAccent,fontWeight:FontWeight.w800))],
+      if(error!=null)...<Widget>[const SizedBox(height:10),LuckyWheelErrorTextR171(message:error!)],
       const SizedBox(height:16),
       FilledButton.icon(onPressed:spinning || !widget.controller.luckyWheelFreeAvailableV182 ? null : ()=>_spin('free'),icon:spinning?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.casino_rounded),label:Text(widget.controller.luckyWheelFreeAvailableV182?(ar?'تدوير مجاني الآن':'Free spin now'):(ar?'التدويرة المجانية غير جاهزة':'Free spin not ready')),style:FilledButton.styleFrom(minimumSize:const Size.fromHeight(55))),
       const SizedBox(height:9),
@@ -315,6 +315,28 @@ class _LuckyWheelPageV182State extends State<LuckyWheelPageV182> with SingleTick
         for(final segment in luckyWheelSegmentsV182) ListTile(dense:true,leading:CircleAvatar(backgroundColor:colorFromHex(segment['color'].toString()),child:Text(segment['icon'].toString())),title:Text((ar?segment['label_ar']:segment['label_en']).toString(),style:const TextStyle(fontWeight:FontWeight.w800)),subtitle:Text((ar?segment['label_en']:segment['label_ar']).toString())),
       ]))),
     ]));
+  }
+}
+
+class LuckyWheelErrorTextR171 extends StatelessWidget {
+  const LuckyWheelErrorTextR171({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r171-lucky-wheel-error'),
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.error,
+        fontWeight: FontWeight.w800,
+      ),
+    );
   }
 }
 
