@@ -48,6 +48,37 @@ class ProductionConnectionIconV153 extends StatelessWidget {
       );
 }
 
+enum ProductionActionV153 { voice, verification, report, deletion }
+
+class ProductionActionIconV153 extends StatelessWidget {
+  const ProductionActionIconV153({
+    super.key,
+    required this.action,
+  });
+
+  final ProductionActionV153 action;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (icon, color) = switch (action) {
+      ProductionActionV153.voice => (Icons.mic_rounded, scheme.primary),
+      ProductionActionV153.verification =>
+        (Icons.mark_email_read_rounded, scheme.tertiary),
+      ProductionActionV153.report =>
+        (Icons.report_gmailerrorred_rounded, scheme.error),
+      ProductionActionV153.deletion =>
+        (Icons.person_off_rounded, scheme.error),
+    };
+
+    return Icon(
+      icon,
+      key: ValueKey('r165-production-action-${action.name}'),
+      color: color,
+    );
+  }
+}
+
 class ProductionCenterV153 extends StatefulWidget {
   final AppController controller;
   const ProductionCenterV153({super.key, required this.controller});
@@ -115,11 +146,11 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                   )),
                   const SizedBox(height: 10),
                   PremiumPanel(child: Column(children: [
-                    ListTile(leading: const Icon(Icons.mic_rounded, color: Colors.lightBlueAccent), title: Text(t('voice')), subtitle: Text(voice.isEmpty ? 'WebRTC • STUN/TURN status requires server' : 'Enabled: ${voice['enabled']} • TURN: ${voice['turn_required']}')),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.voice), title: Text(t('voice')), subtitle: Text(voice.isEmpty ? 'WebRTC • STUN/TURN status requires server' : 'Enabled: ${voice['enabled']} • TURN: ${voice['turn_required']}')),
                     ListTile(leading: const Icon(Icons.download_rounded), title: Text(t('export')), subtitle: const Text('JSON export of account, profile, inventory, wallet and recent messages'), onTap: _exportData),
                     ListTile(leading: const Icon(Icons.devices_rounded), title: Text(t('sessions')), subtitle: const Text('Review and close active API sessions'), onTap: _showSessions),
-                    ListTile(leading: const Icon(Icons.mark_email_read_rounded, color: Colors.lightGreenAccent), title: Text(t('verifyEmail')), subtitle: Text(t('verifyEmailHint')), onTap: _sendVerification),
-                    ListTile(leading: const Icon(Icons.report_gmailerrorred_rounded, color: Colors.orangeAccent), title: Text(t('report')), subtitle: const Text('Report abuse, cheating, spam or inappropriate content'), onTap: _showReportDialog),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.verification), title: Text(t('verifyEmail')), subtitle: Text(t('verifyEmailHint')), onTap: _sendVerification),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.report), title: Text(t('report')), subtitle: const Text('Report abuse, cheating, spam or inappropriate content'), onTap: _showReportDialog),
                   ])),
                   const SizedBox(height: 10),
                   PremiumPanel(child: Column(children: [
@@ -134,7 +165,7 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                   ])),
                   const SizedBox(height: 10),
                   if (!c.isAdmin) PremiumPanel(child: Column(children: [
-                    ListTile(leading: const Icon(Icons.person_off_rounded, color: Colors.redAccent), title: Text(t('deleteRequest')), subtitle: const Text('Password protected • permanent deletion after 30 days without reopening'), onTap: _requestDeletion),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.deletion), title: Text(t('deleteRequest')), subtitle: const Text('Password protected • permanent deletion after 30 days without reopening'), onTap: _requestDeletion),
                     ListTile(leading: const Icon(Icons.restore_from_trash_rounded), title: Text(t('cancelDelete')), subtitle: const Text('سجّل الدخول إلى الحساب خلال 30 يوماً لإعادة تفعيله تلقائياً.')),
                   ])),
                 ],
