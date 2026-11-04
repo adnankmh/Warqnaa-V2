@@ -365,7 +365,7 @@ class ProductCardV170 extends StatelessWidget {
           Row(children: [
             Container(key:const ValueKey('r138-store-tier-surface'),padding:const EdgeInsets.symmetric(horizontal:9,vertical:5),decoration:BoxDecoration(color:scheme.surfaceContainerHighest,borderRadius:BorderRadius.circular(20),border:Border.all(color:scheme.outlineVariant)),child:Text(product.tierLabel(controller.localeCode),style:const TextStyle(fontSize:11,fontWeight:FontWeight.w900))),
             const Spacer(),
-            if (owned) const Icon(Icons.verified_rounded,color:Colors.greenAccent,size:20),
+            if (owned) const StoreOwnedStatusIconR176(),
           ]),
           const SizedBox(height:7),
           Expanded(child:Container(key:const ValueKey('r138-store-preview-surface'),width:double.infinity,padding:EdgeInsets.all(isPasha?6:0),decoration:BoxDecoration(color:scheme.surfaceContainerLow,borderRadius:BorderRadius.circular(20)),child:Center(child:isPasha
@@ -414,6 +414,20 @@ class StoreExpiryBadgeR175 extends StatelessWidget {
           fontWeight: FontWeight.w900,
         ),
       ),
+    );
+  }
+}
+
+class StoreOwnedStatusIconR176 extends StatelessWidget {
+  const StoreOwnedStatusIconR176({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.verified_rounded,
+      key: const ValueKey('r176-store-owned-status'),
+      color: Theme.of(context).colorScheme.primary,
+      size: 20,
     );
   }
 }
