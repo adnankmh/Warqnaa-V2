@@ -6471,7 +6471,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               ),
             if (service?.error != null) ...[
               const SizedBox(height: 3),
-              Align(alignment: AlignmentDirectional.centerStart, child: Text(service!.error!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9.5, color: Colors.orangeAccent))),
+              Align(alignment: AlignmentDirectional.centerStart, child: RoomVoiceServiceErrorTextR188(message: service!.error!)),
             ],
           ],
         ],
