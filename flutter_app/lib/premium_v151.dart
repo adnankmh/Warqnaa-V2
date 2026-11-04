@@ -836,3 +836,16 @@ class ActiveGameLeaveButtonR183 extends StatelessWidget {
     );
   }
 }
+
+class TarneebLeaveTableIconR184 extends StatelessWidget {
+  const TarneebLeaveTableIconR184({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.exit_to_app,
+      key: const ValueKey('r184-tarneeb-leave-table-icon'),
+      color: Theme.of(context).colorScheme.error,
+    );
+  }
+}
