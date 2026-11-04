@@ -487,7 +487,7 @@ class RoomVoiceServiceErrorTextR188 extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontSize: 9.5,
+        fontSize: 11,
         color: Theme.of(context).colorScheme.error,
       ),
     );
