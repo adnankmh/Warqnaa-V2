@@ -7662,7 +7662,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
 
   Widget _engineChat() => Container(
         margin: const EdgeInsets.all(7),
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white.withValues(alpha: .08))),
+        decoration: gameChatPanelDecorationR190(context),
         child: Column(
           children: [
             Padding(
