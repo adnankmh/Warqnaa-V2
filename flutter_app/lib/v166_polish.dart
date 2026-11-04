@@ -469,3 +469,27 @@ class RoomVoiceHearingIconR187 extends StatelessWidget {
     );
   }
 }
+
+
+class RoomVoiceServiceErrorTextR188 extends StatelessWidget {
+  const RoomVoiceServiceErrorTextR188({
+    super.key,
+    required this.message,
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      message,
+      key: const ValueKey('r188-room-voice-service-error'),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 11,
+        color: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
+}
