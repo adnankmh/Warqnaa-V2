@@ -510,3 +510,14 @@ class GameChatEmptyStateR189 extends StatelessWidget {
         ),
       );
 }
+
+BoxDecoration gameChatPanelDecorationR190(BuildContext context) {
+  final colors = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: colors.surface,
+    borderRadius: BorderRadius.circular(20),
+    border: Border.all(
+      color: colors.outlineVariant.withValues(alpha: .55),
+    ),
+  );
+}
