@@ -443,3 +443,29 @@ class RoomVoiceConnectionIconR186 extends StatelessWidget {
     );
   }
 }
+
+
+class RoomVoiceHearingIconR187 extends StatelessWidget {
+  const RoomVoiceHearingIconR187({
+    super.key,
+    required this.deafened,
+  });
+
+  final bool deafened;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      deafened ? Icons.headset_off_rounded : Icons.headphones_rounded,
+      key: ValueKey(
+        deafened
+            ? 'r187-room-voice-hearing-muted'
+            : 'r187-room-voice-hearing-live',
+      ),
+      size: 20,
+      color: deafened
+          ? Theme.of(context).colorScheme.error
+          : Theme.of(context).colorScheme.primary,
+    );
+  }
+}
