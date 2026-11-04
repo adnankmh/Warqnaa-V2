@@ -811,3 +811,28 @@ String authTextV151(String lang, String key) {
   };
   return values[lang]?[key] ?? values['en']?[key] ?? key;
 }
+
+class ActiveGameLeaveButtonR183 extends StatelessWidget {
+  const ActiveGameLeaveButtonR183({
+    super.key,
+    required this.onPressed,
+    required this.label,
+  });
+
+  final VoidCallback onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return FilledButton(
+      key: const ValueKey('r183-active-game-leave-button'),
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: scheme.error,
+        foregroundColor: scheme.onError,
+      ),
+      child: Text(label),
+    );
+  }
+}
