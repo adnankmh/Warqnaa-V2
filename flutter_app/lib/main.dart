@@ -7675,7 +7675,11 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
             if(chatSection==0) ...[
               Expanded(
                 child: serverMessages.isEmpty
-                    ? const Center(child: Text('ابدأ المحادثة مع لاعبي الغرفة.', style: TextStyle(color: Colors.white54)))
+                    ? const Center(
+                        child: GameChatEmptyStateR189(
+                          message: 'ابدأ المحادثة مع لاعبي الغرفة.',
+                        ),
+                      )
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         itemCount: serverMessages.length,

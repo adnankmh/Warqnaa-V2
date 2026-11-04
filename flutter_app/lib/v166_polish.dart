@@ -493,3 +493,20 @@ class RoomVoiceServiceErrorTextR188 extends StatelessWidget {
     );
   }
 }
+
+class GameChatEmptyStateR189 extends StatelessWidget {
+  final String message;
+
+  const GameChatEmptyStateR189({
+    super.key,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) => Text(
+        message,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      );
+}
