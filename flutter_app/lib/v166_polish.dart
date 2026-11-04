@@ -521,3 +521,23 @@ BoxDecoration gameChatPanelDecorationR190(BuildContext context) {
     ),
   );
 }
+
+BoxDecoration gameChatMessageDecorationR191(
+  BuildContext context, {
+  required bool mine,
+}) {
+  final colors = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: mine
+        ? colors.primary.withValues(alpha: .16)
+        : colors.surfaceContainerHighest,
+    borderRadius: BorderRadius.circular(13),
+  );
+}
+
+Color gameChatMessageTextColorR191(
+  BuildContext context, {
+  required bool mine,
+  required Color mineColor,
+}) =>
+    mine ? mineColor : Theme.of(context).colorScheme.onSurface;
