@@ -47,6 +47,7 @@ void main() {
       expect(text.maxLines, 1);
       expect(text.overflow, TextOverflow.ellipsis);
       expect(text.style?.color, theme.colorScheme.error);
+      expect(text.style?.fontSize, 11);
       expect(Directionality.of(tester.element(finder)), direction);
       expect(tester.takeException(), isNull);
 
