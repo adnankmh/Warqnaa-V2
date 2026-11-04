@@ -6400,7 +6400,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                 visualDensity: VisualDensity.compact,
                 tooltip: service?.deafened == true ? 'تشغيل صوت اللاعبين' : 'كتم سماع اللاعبين',
                 onPressed: service == null ? null : () => service.setDeafened(!service.deafened),
-                icon: Icon(service?.deafened == true ? Icons.headset_off_rounded : Icons.headphones_rounded, size: 20, color: service?.deafened == true ? Colors.redAccent : null),
+                icon: RoomVoiceHearingIconR187(deafened: service?.deafened == true),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
