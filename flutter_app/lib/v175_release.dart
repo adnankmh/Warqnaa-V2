@@ -285,7 +285,7 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
       Text(key:const ValueKey('r129-challenge-intro'),bi('اختر لعبة واحدة وطول المسار. كل خسارة تستهلك محاولة، وكل فوز يفتح المرحلة التالية ومكافأتها.','Choose one game and a road length. A loss costs one attempt; every win unlocks the next stage and reward.'),style:TextStyle(color:scheme.onSurfaceVariant,height:1.5)),
       const SizedBox(height:10),
       PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
-        Row(children:[const Text('🛤️',style:TextStyle(fontSize:34)),const SizedBox(width:9),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(bi('مسار المراحل','Stage Road'),style:const TextStyle(fontSize:16,fontWeight:FontWeight.w900)),Text(key:const ValueKey('r129-road-status'),widget.controller.challengeRoadGame==null?bi('ابدأ مساراً جديداً','Start a new road'):'${L.t(widget.controller.localeCode,widget.controller.challengeRoadGame!)} • ${bi('المرحلة','Stage')} ${widget.controller.challengeRoadStage + (widget.controller.challengeRoadCompleted?0:1)} ${bi('من','of')} ${widget.controller.challengeRoadTotal}',style:TextStyle(color:scheme.onSurfaceVariant,fontSize:11,fontWeight:FontWeight.w700,height:1.35))])),Text('❤️ ${widget.controller.challengeRoadAttempts}/5',style:const TextStyle(fontWeight:FontWeight.w900,color:Colors.redAccent))]),
+        Row(children:[const Text('🛤️',style:TextStyle(fontSize:34)),const SizedBox(width:9),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(bi('مسار المراحل','Stage Road'),style:const TextStyle(fontSize:16,fontWeight:FontWeight.w900)),Text(key:const ValueKey('r129-road-status'),widget.controller.challengeRoadGame==null?bi('ابدأ مساراً جديداً','Start a new road'):'${L.t(widget.controller.localeCode,widget.controller.challengeRoadGame!)} • ${bi('المرحلة','Stage')} ${widget.controller.challengeRoadStage + (widget.controller.challengeRoadCompleted?0:1)} ${bi('من','of')} ${widget.controller.challengeRoadTotal}',style:TextStyle(color:scheme.onSurfaceVariant,fontSize:11,fontWeight:FontWeight.w700,height:1.35))])),ChallengeRoadAttemptsR182(attempts:widget.controller.challengeRoadAttempts)]),
         const SizedBox(height:10),
         if(widget.controller.challengeRoadGame==null || widget.controller.challengeRoadCompleted || widget.controller.challengeRoadAttempts==0) ...[
           DropdownButtonFormField<String>(initialValue:selectedRoadGame,isExpanded:true,decoration:InputDecoration(labelText:bi('اللعبة','Game')),items:gamesCatalog.map((game)=>DropdownMenuItem(value:game.id,child:Text('${game.icon} ${L.t(widget.controller.localeCode,game.id)}'))).toList(),onChanged:(value){if(value!=null)setState(()=>selectedRoadGame=value);}),
@@ -363,4 +363,22 @@ class ChallengeErrorNoticeR172 extends StatelessWidget {
 
 void showChallengesV175(BuildContext context, AppController controller) {
   showPremiumSheet(context, child: ChallengeCenterV175(controller: controller));
+}
+
+class ChallengeRoadAttemptsR182 extends StatelessWidget {
+  const ChallengeRoadAttemptsR182({super.key, required this.attempts});
+
+  final int attempts;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '❤️ $attempts/5',
+      key: const ValueKey('r182-challenge-road-attempts'),
+      style: TextStyle(
+        fontWeight: FontWeight.w900,
+        color: Theme.of(context).colorScheme.error,
+      ),
+    );
+  }
 }
