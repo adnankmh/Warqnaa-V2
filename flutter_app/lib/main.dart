@@ -5237,7 +5237,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
             ListTile(leading: const Icon(Icons.screen_rotation_rounded), title: Text(_tr('تدوير الشاشة', 'Rotate screen')), onTap: () { Navigator.pop(sheetContext); widget.controller.toggleOrientationMode(); }),
             ListTile(leading: const Icon(Icons.menu_book), title: Text(_tr('قوانين اللعبة', 'Game rules')), onTap: () { Navigator.pop(sheetContext); showRules(context, widget.controller.localeCode, 'tarneeb'); }),
             ListTile(leading: const Icon(Icons.settings), title: Text(_tr('إعدادات اللعبة', 'Game settings')), onTap: () { Navigator.pop(sheetContext); showSettings(context, widget.controller); }),
-            ListTile(leading: const Icon(Icons.exit_to_app, color: Colors.redAccent), title: Text(_tr('مغادرة الغرفة', 'Leave table')), onTap: () { Navigator.pop(sheetContext); confirmLeaveGameV151(context, widget.controller, 'tarneeb'); }),
+            ListTile(leading: const TarneebLeaveTableIconR184(), title: Text(_tr('مغادرة الغرفة', 'Leave table')), onTap: () { Navigator.pop(sheetContext); confirmLeaveGameV151(context, widget.controller, 'tarneeb'); }),
           ],
         ),
       ),
