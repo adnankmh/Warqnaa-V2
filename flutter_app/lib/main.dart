@@ -6394,7 +6394,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                 visualDensity: VisualDensity.compact,
                 tooltip: service?.micEnabled == false ? 'تشغيل الميكروفون' : 'كتم الميكروفون',
                 onPressed: service == null ? null : () => service.setMicEnabled(!service.micEnabled),
-                icon: Icon(service?.micEnabled == false ? Icons.mic_off_rounded : Icons.mic_rounded, size: 20, color: service?.micEnabled == false ? Colors.redAccent : Colors.greenAccent),
+                icon: RoomVoiceMicIconR185(muted: service?.micEnabled == false),
               ),
               IconButton(
                 visualDensity: VisualDensity.compact,
