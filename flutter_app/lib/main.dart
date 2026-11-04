@@ -7731,7 +7731,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                     final friend = widget.controller.friends[index];
                     return ListTile(
                       dense: true,
-                      leading: Stack(children: [CircleAvatar(child: Text(friend.avatar?.isNotEmpty == true ? friend.avatar! : friend.name.substring(0, 1))), if (friend.online) const Positioned(right: 0, bottom: 0, child: CircleAvatar(radius: 5, backgroundColor: Colors.greenAccent))]),
+                      leading: Stack(children: [CircleAvatar(child: Text(friend.avatar?.isNotEmpty == true ? friend.avatar! : friend.name.substring(0, 1))), if (friend.online) const GameChatFriendOnlineIndicatorR192()]),
                       title: Text(friend.name, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13 * widget.controller.uiChatScale)),
                       subtitle: Text(friend.activity, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10 * widget.controller.uiChatScale)),
                       trailing: IconButton(
