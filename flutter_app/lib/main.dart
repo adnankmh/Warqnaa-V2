@@ -4518,7 +4518,7 @@ class GameRoomPage extends StatelessWidget {
           actions: [
             TextButton(onPressed:()=>Navigator.pop(dialogContext,0),child:Text(L.t(controller.localeCode,'keepPlaying'))),
             TextButton(onPressed:()=>Navigator.pop(dialogContext,1),child:Text(L.t(controller.localeCode,'stayInRoom'))),
-            FilledButton(onPressed:()=>Navigator.pop(dialogContext,2),style:FilledButton.styleFrom(backgroundColor:Colors.redAccent),child:Text(L.t(controller.localeCode,'leaveGameNow'))),
+            ActiveGameLeaveButtonR183(onPressed:()=>Navigator.pop(dialogContext,2),label:L.t(controller.localeCode,'leaveGameNow')),
           ],
         ));
         if (!context.mounted || choice == null || choice == 0) return;
