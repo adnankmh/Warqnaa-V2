@@ -11089,12 +11089,12 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
             itemBuilder: (_, index) {
               final message = messages[index];
               return Align(
-                alignment: message.mine ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: privateChatMessageAlignmentR194(mine: message.mine),
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 310),
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
-                  decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.only(topLeft: const Radius.circular(17), topRight: const Radius.circular(17), bottomLeft: Radius.circular(message.mine ? 17 : 4), bottomRight: Radius.circular(message.mine ? 4 : 17))),
+                  decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: privateChatMessageBorderRadiusR194(mine: message.mine)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 8))]),
                 ),
               );
