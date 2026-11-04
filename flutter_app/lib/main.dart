@@ -10892,8 +10892,8 @@ class _SocialHubPageState extends State<SocialHubPage> with SingleTickerProvider
             title: friend.name,
             subtitle: '@${friend.username} • ${friend.activity}',
             action: Row(mainAxisSize: MainAxisSize.min, children: [
-              IconButton.filledTonal(onPressed: () { widget.controller.acceptFriend(friend); setState(() {}); }, icon: const Icon(Icons.check, color: Colors.greenAccent)),
-              IconButton(onPressed: () { widget.controller.rejectFriend(friend); setState(() {}); }, icon: const Icon(Icons.close, color: Colors.redAccent)),
+              IconButton.filledTonal(onPressed: () { widget.controller.acceptFriend(friend); setState(() {}); }, icon: const FriendRequestAcceptIconR181()),
+              IconButton(onPressed: () { widget.controller.rejectFriend(friend); setState(() {}); }, icon: const FriendRequestRejectIconR181()),
             ]),
           ),
         )),

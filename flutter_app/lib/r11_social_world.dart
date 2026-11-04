@@ -840,6 +840,32 @@ class _R11Avatar extends StatelessWidget {
   }
 }
 
+class FriendRequestAcceptIconR181 extends StatelessWidget {
+  const FriendRequestAcceptIconR181({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.check,
+      key: const ValueKey('r181-friend-request-accept-icon'),
+      color: Theme.of(context).colorScheme.primary,
+    );
+  }
+}
+
+class FriendRequestRejectIconR181 extends StatelessWidget {
+  const FriendRequestRejectIconR181({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.close,
+      key: const ValueKey('r181-friend-request-reject-icon'),
+      color: Theme.of(context).colorScheme.error,
+    );
+  }
+}
+
 class ClubLeaveIconR180 extends StatelessWidget {
   const ClubLeaveIconR180({super.key});
 
