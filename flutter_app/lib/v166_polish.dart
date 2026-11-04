@@ -418,3 +418,28 @@ class RoomVoiceMicIconR185 extends StatelessWidget {
     );
   }
 }
+
+class RoomVoiceConnectionIconR186 extends StatelessWidget {
+  const RoomVoiceConnectionIconR186({
+    super.key,
+    required this.connected,
+  });
+
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.graphic_eq_rounded,
+      key: ValueKey(
+        connected
+            ? 'r186-room-voice-connected'
+            : 'r186-room-voice-connecting',
+      ),
+      size: 20,
+      color: connected
+          ? Theme.of(context).colorScheme.primary
+          : Theme.of(context).colorScheme.tertiary,
+    );
+  }
+}
