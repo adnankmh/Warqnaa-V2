@@ -6387,7 +6387,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         children: [
           Row(
             children: [
-              Icon(Icons.graphic_eq_rounded, color: service?.joined == true ? Colors.greenAccent : Colors.amber, size: 20),
+              RoomVoiceConnectionIconR186(connected: service?.joined == true),
               const SizedBox(width: 6),
               Expanded(child: Text(service?.status ?? 'تهيئة الغرفة الصوتية…', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12))),
               IconButton(
