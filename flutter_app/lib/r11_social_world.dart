@@ -577,7 +577,7 @@ class _R11ClubsWorldPageState extends State<R11ClubsWorldPage> {
         if ((club['description']?.toString() ?? '').isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10), child: Text(club['description'].toString(), style: const TextStyle(color: Colors.white70, height: 1.5))),
         if (membership.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Wrap(spacing: 8, runSpacing: 8, children: [
           if (membership['can_manage'] == true || const {'owner','moderator'}.contains(membership['role'])) FilledButton.tonalIcon(onPressed: () { Navigator.pop(sheetContext); unawaited(_announce(id)); }, icon: const Icon(Icons.campaign_outlined), label: Text(ar ? 'إعلان' : 'Announce')),
-          OutlinedButton.icon(onPressed: () { Navigator.pop(sheetContext); unawaited(_leave(id)); }, icon: const Icon(Icons.logout), label: Text(ar ? 'مغادرة' : 'Leave')),
+          OutlinedButton.icon(onPressed: () { Navigator.pop(sheetContext); unawaited(_leave(id)); }, icon: const ClubLeaveIconR180(), label: Text(ar ? 'مغادرة' : 'Leave')),
         ])),
         if (requests.isNotEmpty) ...[const SizedBox(height: 18),Text(ar ? 'طلبات الانضمام' : 'Join requests', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),const SizedBox(height: 8),...requests.map((request) { final person = _r11Map(request['user']); return ListTile(contentPadding: EdgeInsets.zero, leading: _R11Avatar(url: person['avatar']?.toString(), label: person['name']?.toString() ?? '?'), title: Text(person['name']?.toString() ?? 'Player'), trailing: Wrap(spacing: 4, children: [IconButton(onPressed: () => _respondRequest(int.parse(request['id'].toString()), 'accepted', sheetContext), icon: const ClubJoinAcceptIconR179()),IconButton(onPressed: () => _respondRequest(int.parse(request['id'].toString()), 'rejected', sheetContext), icon: const ClubJoinRejectIconR178())])); })],
         const SizedBox(height: 18),Text(ar ? 'الإعلانات' : 'Announcements', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),const SizedBox(height: 8),
@@ -837,6 +837,19 @@ class _R11Avatar extends StatelessWidget {
     final initial = label.isEmpty ? '?' : label.substring(0, 1);
     final absoluteUrl = url != null && (url!.startsWith('https://') || url!.startsWith('http://'));
     return Container(width: size, height: size, decoration: BoxDecoration(borderRadius: BorderRadius.circular(size * .31), border: Border.all(color: _r11Gold.withValues(alpha: .32)), color: Colors.white.withValues(alpha: .06)), clipBehavior: Clip.antiAlias, child: absoluteUrl ? Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Text(initial))) : Center(child: Text(initial, style: const TextStyle(fontWeight: FontWeight.w900))));
+  }
+}
+
+class ClubLeaveIconR180 extends StatelessWidget {
+  const ClubLeaveIconR180({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.logout,
+      key: const ValueKey('r180-club-leave-icon'),
+      color: Theme.of(context).colorScheme.error,
+    );
   }
 }
 
