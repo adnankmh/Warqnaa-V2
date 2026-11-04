@@ -113,7 +113,7 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
           PopupMenuItem(value: 'connection', child: ListTile(leading: const Icon(Icons.wifi_tethering), title: Text(ar ? 'فحص الاتصال' : 'Connection diagnostics'))),
           PopupMenuItem(value: 'settings', child: ListTile(leading: const Icon(Icons.settings), title: Text(ar ? 'الإعدادات' : 'Settings'))),
           const PopupMenuDivider(),
-          PopupMenuItem(value: 'logout', child: ListTile(leading: const Icon(Icons.logout, color: Colors.redAccent), title: Text(ar ? 'تسجيل الخروج' : 'Log out'))),
+          PopupMenuItem(value: 'logout', child: ListTile(leading: const GlobalLogoutIconR177(), title: Text(ar ? 'تسجيل الخروج' : 'Log out'))),
         ],
       );
 
@@ -216,6 +216,19 @@ Widget buildV170TopBar(BuildContext context, AppController controller) {
       },
     ),
   );
+}
+
+class GlobalLogoutIconR177 extends StatelessWidget {
+  const GlobalLogoutIconR177({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.logout,
+      key: const ValueKey('r177-global-logout-icon'),
+      color: Theme.of(context).colorScheme.error,
+    );
+  }
 }
 
 class ResponsiveAccountStatsV170 extends StatelessWidget {
