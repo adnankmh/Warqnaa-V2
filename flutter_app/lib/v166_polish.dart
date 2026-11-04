@@ -568,3 +568,17 @@ class GameChatFriendOnlineIndicatorR192 extends StatelessWidget {
 
 AlignmentDirectional gameChatMessageAlignmentR193({required bool mine}) =>
     mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart;
+
+
+AlignmentDirectional privateChatMessageAlignmentR194({required bool mine}) =>
+    mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart;
+
+BorderRadiusDirectional privateChatMessageBorderRadiusR194({
+  required bool mine,
+}) =>
+    BorderRadiusDirectional.only(
+      topStart: const Radius.circular(17),
+      topEnd: const Radius.circular(17),
+      bottomStart: Radius.circular(mine ? 17 : 4),
+      bottomEnd: Radius.circular(mine ? 4 : 17),
+    );
