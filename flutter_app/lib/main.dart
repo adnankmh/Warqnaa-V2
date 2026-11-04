@@ -11076,7 +11076,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
           child: Row(children: [
             PremiumAvatar(text: widget.friend.avatar?.isNotEmpty == true ? widget.friend.avatar! : widget.friend.name.substring(0, 1), size: 38),
             const SizedBox(width: 9),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.friend.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)), Text(widget.friend.online ? 'متصل الآن' : widget.friend.activity, style: TextStyle(color: widget.friend.online ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 8))]),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.friend.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)), Text(widget.friend.online ? 'متصل الآن' : widget.friend.activity, style: privateChatMetadataTextStyleR195(context, highlighted: widget.friend.online))]),
           ]),
         ),
         actions: [IconButton(onPressed: () => showToast(context, 'تم إرسال دعوة لعبة.'), icon: const Icon(Icons.sports_esports_outlined))],
@@ -11095,7 +11095,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
                   decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: privateChatMessageBorderRadiusR194(mine: message.mine)),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 8))]),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: privateChatMetadataTextStyleR195(context, highlighted: false))]),
                 ),
               );
             },
