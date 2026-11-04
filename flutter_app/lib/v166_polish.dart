@@ -395,3 +395,26 @@ const Map<String,PrivacyPageData> v166PrivacyContent=<String,PrivacyPageData>{
 class _PrivacySection extends StatelessWidget { final String title,body; const _PrivacySection({required this.title,required this.body}); @override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.only(bottom:18),child:PremiumPanel(child:Padding(padding:const EdgeInsets.all(15),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:17,fontWeight:FontWeight.w900)),const SizedBox(height:7),Text(body,key:const ValueKey('r147-privacy-section-body'),style:TextStyle(color:Theme.of(context).colorScheme.onSurfaceVariant,height:1.7))])))); }
 
 extension FirstOrNullExtension<T> on Iterable<T> { T? get firstOrNull { final iterator=this.iterator; return iterator.moveNext()?iterator.current:null; } }
+
+class RoomVoiceMicIconR185 extends StatelessWidget {
+  const RoomVoiceMicIconR185({
+    super.key,
+    required this.muted,
+  });
+
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      muted ? Icons.mic_off_rounded : Icons.mic_rounded,
+      key: ValueKey(
+        muted ? 'r185-room-voice-mic-muted' : 'r185-room-voice-mic-live',
+      ),
+      size: 20,
+      color: muted
+          ? Theme.of(context).colorScheme.error
+          : Theme.of(context).colorScheme.primary,
+    );
+  }
+}
