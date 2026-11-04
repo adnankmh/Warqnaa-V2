@@ -27,6 +27,7 @@ void main() {
 
       await tester.pumpWidget(MaterialApp(
         theme: theme,
+        themeAnimationDuration: Duration.zero,
         home: Directionality(
           textDirection: direction,
           child: Scaffold(
