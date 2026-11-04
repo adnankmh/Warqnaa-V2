@@ -564,3 +564,7 @@ class GameChatFriendOnlineIndicatorR192 extends StatelessWidget {
     );
   }
 }
+
+
+AlignmentDirectional gameChatMessageAlignmentR193({required bool mine}) =>
+    mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart;
