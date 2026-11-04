@@ -47,6 +47,7 @@ void main() {
 
       final container = tester.widget<Container>(finder);
       final decoration = container.decoration! as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(20));
       final border = decoration.border! as Border;
       return (
         decoration.color,
