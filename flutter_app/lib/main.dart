@@ -7687,7 +7687,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                           final message = serverMessages[index];
                           final emojiOnly=!RegExp(r'[A-Za-z0-9\u0600-\u06FF]').hasMatch(message.body) && message.body.runes.length<=8;
                           return Align(
-                            alignment: message.mine ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: gameChatMessageAlignmentR193(mine: message.mine),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(13),
                               onTap: () => openPlayerProfileV021(
