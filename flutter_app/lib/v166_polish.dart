@@ -541,3 +541,26 @@ Color gameChatMessageTextColorR191(
   required Color mineColor,
 }) =>
     mine ? mineColor : Theme.of(context).colorScheme.onSurface;
+
+
+class GameChatFriendOnlineIndicatorR192 extends StatelessWidget {
+  const GameChatFriendOnlineIndicatorR192({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return PositionedDirectional(
+      end: 0,
+      bottom: 0,
+      child: CircleAvatar(
+        key: const ValueKey('r192-game-chat-friend-online'),
+        radius: 5,
+        backgroundColor: colors.primary,
+        child: CircleAvatar(
+          radius: 3,
+          backgroundColor: colors.surface,
+        ),
+      ),
+    );
+  }
+}
