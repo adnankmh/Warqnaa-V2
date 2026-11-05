@@ -96,6 +96,14 @@ TextStyle gameLobbyConnectionTextStyleR202(BuildContext context) {
   );
 }
 
+TextStyle trickOwnerLabelTextStyleR203(BuildContext context) {
+  return TextStyle(
+    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    fontSize: 11,
+    fontWeight: FontWeight.w800,
+  );
+}
+
 Uint8List? decodeDataImage(String? data) {
   if (data == null || data.isEmpty) return null;
   try { return base64Decode(data.contains(',') ? data.split(',').last : data); } catch (_) { return null; }
