@@ -6650,11 +6650,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
         width: span + 8,
         height: 42,
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 6),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: .07),
-          borderRadius: BorderRadius.circular(11),
-          border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .22)),
-        ),
+        decoration: compactRummyMeldGroupDecorationR197(context),
         child: Stack(
           clipBehavior: Clip.none,
           children: <Widget>[
