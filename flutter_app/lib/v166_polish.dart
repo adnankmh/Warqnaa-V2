@@ -52,6 +52,35 @@ BoxDecoration compactRummyMeldGroupDecorationR197(BuildContext context) {
   );
 }
 
+BoxDecoration compactRummyMeldTableDecorationR198(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: scheme.surface.withValues(alpha: .92),
+    borderRadius: BorderRadius.circular(16),
+    border: Border.all(color: scheme.primary.withValues(alpha: .32)),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: scheme.primary.withValues(alpha: .12), blurRadius: 14),
+    ],
+  );
+}
+
+BoxDecoration compactRummyMeldOverflowDecorationR198(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: scheme.primaryContainer.withValues(alpha: .88),
+    borderRadius: BorderRadius.circular(10),
+    border: Border.all(color: scheme.primary.withValues(alpha: .36)),
+  );
+}
+
+TextStyle compactRummyMeldOverflowTextStyleR198(BuildContext context) {
+  return TextStyle(
+    color: Theme.of(context).colorScheme.onPrimaryContainer,
+    fontSize: 11,
+    fontWeight: FontWeight.w900,
+  );
+}
+
 Uint8List? decodeDataImage(String? data) {
   if (data == null || data.isEmpty) return null;
   try { return base64Decode(data.contains(',') ? data.split(',').last : data); } catch (_) { return null; }
