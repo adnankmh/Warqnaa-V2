@@ -4240,7 +4240,7 @@ class EventsPage extends StatelessWidget {
                   const SizedBox(width: 11),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(entry.$3, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
-                    Text('${entry.$4} • مكافأة الفوز ${formatNumber(entry.$5)} توكن', key: ValueKey('r123-event-meta-${entry.$1}'), style: TextStyle(color: colors.onSurfaceVariant, fontSize: 10)),
+                    Text('${entry.$4} • مكافأة الفوز ${formatNumber(entry.$5)} توكن', key: ValueKey('r123-event-meta-${entry.$1}'), style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11)),
                   ])),
                   FilledButton(onPressed: () { if (active) { controller.leaveCompetition(); showToast(context, 'تمت مغادرة المنافسة.'); } else { final ok = controller.joinCompetition(entry.$1); showToast(context, ok ? 'تم تسجيلك في ${entry.$3}.' : 'غادر المنافسة الحالية قبل الانضمام لأخرى.'); } }, child: Text(active ? 'مغادرة' : L.t(lang, 'join'))),
                 ]),
@@ -4272,7 +4272,7 @@ class LevelCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('🏅 ${L.t(controller.localeCode, 'level')}', key: const ValueKey('r123-level-card-label'), style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+            Text('🏅 ${L.t(controller.localeCode, 'level')}', key: const ValueKey('r123-level-card-label'), style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant)),
             const SizedBox(height: 4),
             Text('${controller.level}  ${formatNumber(controller.xp)}/${formatNumber(controller.xpNext)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
             const SizedBox(height: 7),
@@ -4307,7 +4307,7 @@ class StatCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$icon $label', key: const ValueKey('r123-stat-card-label'), style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+              Text('$icon $label', key: const ValueKey('r123-stat-card-label'), style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant)),
               const SizedBox(height: 6),
               Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
               const SizedBox(height: 6),
