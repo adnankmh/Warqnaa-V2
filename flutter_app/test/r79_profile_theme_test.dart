@@ -105,6 +105,25 @@ void main() {
           scrollable: find.byType(Scrollable).last,
         );
         await tester.pump();
+        final achievementLabels = tester
+            .widgetList<Text>(
+                find.byKey(const ValueKey('r210-achievement-label')))
+            .toList();
+        final recentScores = tester
+            .widgetList<Text>(
+                find.byKey(const ValueKey('r210-recent-match-score')))
+            .toList();
+        final recentResults = tester
+            .widgetList<Text>(
+                find.byKey(const ValueKey('r210-recent-match-result')))
+            .toList();
+        expect(achievementLabels, hasLength(4));
+        expect(recentScores, hasLength(3));
+        expect(recentResults, hasLength(3));
+        for (final metadata
+            in <Text>[...achievementLabels, ...recentScores, ...recentResults]) {
+          expect(metadata.style!.fontSize, greaterThanOrEqualTo(11));
+        }
         expect(find.text(locale == 'ar' ? 'المحفظة' : 'Wallet'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'الإعدادات' : 'Settings'),
             findsOneWidget);
