@@ -7926,26 +7926,63 @@ class PlayerSeat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ar=Directionality.of(context)==TextDirection.rtl;
+    final scheme = Theme.of(context).colorScheme;
     final content = [
       botProfile == null
           ? GlowAvatar(text: avatarEmoji ?? letter, size: 43, color: nameColor ?? Theme.of(context).colorScheme.primary)
           : Bot3DAvatar(profile: botProfile!, size: 46, showLevel: true),
       const SizedBox(width: 5, height: 4),
       Container(
+        key: const ValueKey('r200-player-seat-info'),
+        constraints: const BoxConstraints(maxWidth: 150),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: Colors.black.withValues(alpha: .72), borderRadius: BorderRadius.circular(9), border: Border.all(color: Colors.white.withValues(alpha: .09))),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withValues(alpha: .92),
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${badge ?? ''}${badge == null ? '' : ' '}$name • $bid', textAlign: TextAlign.center, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: nameColor ?? Colors.white)),
+            Text(
+              '${badge ?? ''}${badge == null ? '' : ' '}$name • $bid',
+              key: const ValueKey('r200-player-seat-primary'),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: nameColor ?? scheme.onSurface,
+              ),
+            ),
             if (meta != null && meta!.trim().isNotEmpty) ...[
               const SizedBox(height: 2),
-              Text(meta!, textAlign: TextAlign.center, style: TextStyle(fontSize: 7, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: .78))),
+              Text(
+                meta!,
+                key: const ValueKey('r200-player-seat-meta'),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
             ],
             if (lastCardLabel != null && lastCardLabel!.trim().isNotEmpty) ...[
               const SizedBox(height: 3),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(ar?'آخر ':'Last ',style:TextStyle(fontSize:7,fontWeight:FontWeight.w800,color:Colors.white.withValues(alpha:.70))),
+                Text(
+                  ar ? 'آخر ' : 'Last ',
+                  key: const ValueKey('r200-player-seat-last-label'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
                 PlayingCard(label: lastCardLabel!, width: 20, height: 29),
               ]),
             ],
