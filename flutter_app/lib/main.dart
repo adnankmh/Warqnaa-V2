@@ -5653,7 +5653,7 @@ class R125VoiceRoomNotice extends StatelessWidget {
           message,
           key: const ValueKey('r125-voice-room-notice'),
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
@@ -5712,7 +5712,7 @@ class R126VoiceParticipantTile extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
               ),
             ),
             Icon(
@@ -5757,7 +5757,7 @@ class R127TarneebStatusItem extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: FontWeight.w800,
               color: scheme.onSurfaceVariant,
             ),
