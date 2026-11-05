@@ -36,6 +36,12 @@ void main() {
 
       final summaryFinder =
           find.byKey(const ValueKey('r121-store-summary'));
+      await tester.scrollUntilVisible(
+        summaryFinder,
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pump();
       final summary = tester.widget<Text>(summaryFinder);
       expect(summary.style!.fontSize, greaterThanOrEqualTo(11));
       expect(summary.style!.color, theme.colorScheme.onSurfaceVariant);
