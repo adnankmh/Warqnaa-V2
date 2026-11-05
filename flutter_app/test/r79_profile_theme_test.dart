@@ -85,6 +85,9 @@ void main() {
           const ValueKey('r208-profile-club-description'),
           const ValueKey('r208-profile-wallet-label'),
           const ValueKey('r208-profile-pasha-days'),
+          const ValueKey('r209-profile-identity-status'),
+          const ValueKey('r209-profile-country'),
+          const ValueKey('r209-profile-vip-days'),
         ]) {
           final metadata = tester.widget<Text>(find.byKey(metadataKey));
           expect(metadata.style!.fontSize, greaterThanOrEqualTo(11));
