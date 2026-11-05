@@ -5153,6 +5153,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
   }
 
   Widget _chatPanel(BuildContext context,{bool compactLandscape=false}) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.all(7),
       decoration: BoxDecoration(
@@ -5167,7 +5168,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
             dense: true,
             leading: const Icon(Icons.forum_rounded),
             title:Text(_tr('دردشة الغرفة','Room chat'),style:const TextStyle(fontWeight:FontWeight.w900,fontSize:12)),
-            subtitle:Text(_tr('تدريب محلي مع الكمبيوتر', 'Local practice with computer players'),style:const TextStyle(color:Colors.greenAccent,fontSize:8)),
+            subtitle:Text(_tr('تدريب محلي مع الكمبيوتر', 'Local practice with computer players'),key:const ValueKey('r205-room-chat-subtitle'),style:TextStyle(color:colors.primary,fontSize:11)),
             trailing:IconButton(onPressed:()=>setState((){if(compactLandscape){compactLandscapeChatOpen=false;}else{chatOpen=false;}}),icon:const Icon(Icons.close_rounded,size:18)),
           ),
           Expanded(
@@ -5176,7 +5177,7 @@ class _TarneebRoomPageState extends State<TarneebRoomPage> {
               itemCount: roomMessages.length,
               itemBuilder: (_, index) => Padding(
                 padding: const EdgeInsets.only(bottom: 5),
-                child: Text(roomMessages[index], style: const TextStyle(fontSize: 10, height: 1.35)),
+                child: Text(roomMessages[index], key: ValueKey('r205-room-chat-message-$index'), style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11, height: 1.35)),
               ),
             ),
           ),
