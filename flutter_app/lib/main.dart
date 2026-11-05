@@ -8865,7 +8865,7 @@ void showProfile(BuildContext context, AppController controller) {
               child: Row(children: [
                 Container(width: 48, height: 48, alignment: Alignment.center, decoration: BoxDecoration(color: colors.accent.withValues(alpha: .10), borderRadius: BorderRadius.circular(15), border: Border.all(color: colors.accent.withValues(alpha: .28))), child: Text(controller.clubImageEmojiV182, style: const TextStyle(fontSize: 27))),
                 const SizedBox(width: 10),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي الحالي' : 'Current club', style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 9)), Text(controller.activeClub ?? localClubNameV03(controller.activeClub), style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900, fontSize: 15)), Text(ar ? 'تظهر هوية النادي في البروفايل وسجل المنافسات.' : 'Your club identity appears in your profile and competition history.', style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 9))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'النادي الحالي' : 'Current club', key: const ValueKey('r208-profile-club-label'), style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 11)), Text(controller.activeClub ?? localClubNameV03(controller.activeClub), style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w900, fontSize: 15)), Text(ar ? 'تظهر هوية النادي في البروفايل وسجل المنافسات.' : 'Your club identity appears in your profile and competition history.', key: const ValueKey('r208-profile-club-description'), style: TextStyle(color: colors.onSurface.withValues(alpha: .60), fontSize: 11))])),
                 const Icon(Icons.verified_rounded, color: Colors.greenAccent),
               ]),
             ),
@@ -8886,8 +8886,8 @@ void showProfile(BuildContext context, AppController controller) {
             child: Row(children: [
               const Text('🪙', style: TextStyle(fontSize: 25)),
               const SizedBox(width: 9),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'رصيد التوكنز' : 'Token balance', style: TextStyle(color: colors.onSurface.withValues(alpha: .70), fontSize: 9)), FittedBox(child: Text(formatNumber(controller.coins), style: TextStyle(color: colors.accent, fontWeight: FontWeight.w900, fontSize: 17)))])),
-              Text(ar ? '${controller.vipDays} يوم باشا' : '${controller.vipDays} Pasha days', style: const TextStyle(color: Colors.amber, fontSize: 9, fontWeight: FontWeight.w800)),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(ar ? 'رصيد التوكنز' : 'Token balance', key: const ValueKey('r208-profile-wallet-label'), style: TextStyle(color: colors.onSurface.withValues(alpha: .70), fontSize: 11)), FittedBox(child: Text(formatNumber(controller.coins), style: TextStyle(color: colors.accent, fontWeight: FontWeight.w900, fontSize: 17)))])),
+              Text(ar ? '${controller.vipDays} يوم باشا' : '${controller.vipDays} Pasha days', key: const ValueKey('r208-profile-pasha-days'), style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w800)),
             ]),
           ),
         ),
