@@ -8249,7 +8249,7 @@ class QuickButton extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 8,
+                fontSize: 11,
                 color: colors.onSurfaceVariant,
                 fontWeight: FontWeight.w800,
               ),
@@ -8311,7 +8311,7 @@ class PremiumListTile extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         color: colors.onSurfaceVariant,
-                        fontSize: 9,
+                        fontSize: 11,
                         height: 1.4,
                       ),
                     ),
