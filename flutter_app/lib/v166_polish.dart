@@ -43,6 +43,15 @@ const Map<String, Map<String, String>> v166Translations = <String, Map<String, S
 
 String gameArtAsset(String gameId) => r101GameArtAsset(gameId);
 
+BoxDecoration compactRummyMeldGroupDecorationR197(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  return BoxDecoration(
+    color: scheme.surfaceContainerHighest.withValues(alpha: .72),
+    borderRadius: BorderRadius.circular(11),
+    border: Border.all(color: scheme.outlineVariant),
+  );
+}
+
 Uint8List? decodeDataImage(String? data) {
   if (data == null || data.isEmpty) return null;
   try { return base64Decode(data.contains(',') ? data.split(',').last : data); } catch (_) { return null; }
