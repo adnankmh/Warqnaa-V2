@@ -6973,7 +6973,16 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                         )
                       : PlayingCard(label: _cardLabel(value), width: 45, height: 66),
                   if (name.isNotEmpty)
-                    SizedBox(width: 62, child: Text(name, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white70))),
+                    SizedBox(
+                      width: 62,
+                      child: Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: trickOwnerLabelTextStyleR203(context),
+                      ),
+                    ),
                 ],
               );
             }).toList(),
