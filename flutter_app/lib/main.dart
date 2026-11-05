@@ -6323,7 +6323,9 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           Text(L.t(widget.controller.localeCode, widget.game.id), maxLines: 1, overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
           Text(localSession != null ? _roomText('تدريب مع الكمبيوتر', 'Practice with computer') : _roomText('غرفة $roomCode', 'Room $roomCode'),
-            maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.primary)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: gameRoomSubtitleTextStyleR202(context)),
         ]),
         actions: [
           IconButton(onPressed: () => inviteFriendsToRoomV151(context, widget.controller, widget.game.id),
@@ -9687,7 +9689,7 @@ void showGameLobby(BuildContext context, AppController controller, GameInfo game
                 controller.serverConnected
                     ? (ar ? 'متصل بالخادم • الغرف والبطولات متاحة' : 'Server connected • rooms and competitions available')
                     : (ar ? 'وضع محلي • التدريب متاح بدون خادم' : 'Local mode • practice available without server'),
-                style: TextStyle(color: surfaceColors.onSurface.withValues(alpha: .72), fontSize: 9.5, fontWeight: FontWeight.w800),
+                style: gameLobbyConnectionTextStyleR202(context),
               ),
             ),
           ]),
