@@ -9213,7 +9213,7 @@ void showWallet(BuildContext context, AppController controller) {
           child: Column(children: [
             Icon(Icons.account_balance_wallet_rounded, color: colors.accent, size: 27),
             const SizedBox(height: 5),
-            Text(ar ? 'الرصيد المتاح' : 'Available balance', style: TextStyle(color: colors.onSurface.withValues(alpha: .68), fontSize: 10, fontWeight: FontWeight.w800)),
+            Text(ar ? 'الرصيد المتاح' : 'Available balance', key: const ValueKey('r211-wallet-balance-label'), style: TextStyle(color: colors.onSurface.withValues(alpha: .68), fontSize: 11, fontWeight: FontWeight.w800)),
             const SizedBox(height: 5),
             Text(formatNumber(controller.coins), style: TextStyle(fontSize: 30, color: colors.accent, fontWeight: FontWeight.w900)),
           ]),

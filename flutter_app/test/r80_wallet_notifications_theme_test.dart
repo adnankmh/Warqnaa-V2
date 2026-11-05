@@ -83,6 +83,11 @@ void main() {
             find.byKey(const ValueKey('r80-wallet-transactions')));
         final expected = R69PlaySurfaceColors.of(tester.element(
             find.byKey(const ValueKey('r32-wallet-balance-card'))));
+        final balanceLabel = tester.widget<Text>(
+            find.byKey(const ValueKey('r211-wallet-balance-label')));
+        expect(balanceLabel.style!.fontSize, greaterThanOrEqualTo(11));
+        expect(balanceLabel.style!.color!.toARGB32(),
+            expected.onSurface.withValues(alpha: .68).toARGB32());
         for (final decoration in <BoxDecoration>[
           balance.decoration! as BoxDecoration,
           transactions.decoration! as BoxDecoration,
