@@ -4035,7 +4035,7 @@ class _StorePageState extends State<StorePage> {
                   key: const ValueKey('r121-store-summary'),
                   style: TextStyle(
                     color: colors.onSurfaceVariant,
-                    fontSize: 9,
+                    fontSize: 11,
                     height: 1.4,
                   ),
                 ),
