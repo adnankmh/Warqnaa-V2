@@ -594,3 +594,15 @@ TextStyle privateChatMetadataTextStyleR195(
     fontSize: 11,
   );
 }
+
+
+TextStyle gameChatFriendActivityTextStyleR196(
+  BuildContext context, {
+  required double scale,
+}) {
+  final scaledSize = 11 * scale;
+  return TextStyle(
+    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    fontSize: scaledSize < 11 ? 11 : scaledSize,
+  );
+}
