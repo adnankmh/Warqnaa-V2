@@ -582,3 +582,15 @@ BorderRadiusDirectional privateChatMessageBorderRadiusR194({
       bottomStart: Radius.circular(mine ? 17 : 4),
       bottomEnd: Radius.circular(mine ? 4 : 17),
     );
+
+
+TextStyle privateChatMetadataTextStyleR195(
+  BuildContext context, {
+  required bool highlighted,
+}) {
+  final colors = Theme.of(context).colorScheme;
+  return TextStyle(
+    color: highlighted ? colors.primary : colors.onSurfaceVariant,
+    fontSize: 11,
+  );
+}
