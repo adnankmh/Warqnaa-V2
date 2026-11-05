@@ -7733,7 +7733,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                       dense: true,
                       leading: Stack(children: [CircleAvatar(child: Text(friend.avatar?.isNotEmpty == true ? friend.avatar! : friend.name.substring(0, 1))), if (friend.online) const GameChatFriendOnlineIndicatorR192()]),
                       title: Text(friend.name, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13 * widget.controller.uiChatScale)),
-                      subtitle: Text(friend.activity, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10 * widget.controller.uiChatScale)),
+                      subtitle: Text(friend.activity, maxLines: 1, overflow: TextOverflow.ellipsis, style: gameChatFriendActivityTextStyleR196(context, scale: widget.controller.uiChatScale)),
                       trailing: IconButton(
                         tooltip: 'فتح المحادثة',
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PrivateChatPage(controller: widget.controller, friend: friend))),
