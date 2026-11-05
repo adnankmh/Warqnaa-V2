@@ -6598,14 +6598,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
           key: const ValueKey('r28-compact-meld-table'),
           constraints: const BoxConstraints(maxWidth: 276, maxHeight: 126),
           padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: B307SkyLuxury.navy.withValues(alpha: .42),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: B307SkyLuxury.cyan.withValues(alpha: .32)),
-            boxShadow: <BoxShadow>[
-              BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .12), blurRadius: 14),
-            ],
-          ),
+          decoration: compactRummyMeldTableDecorationR198(context),
           child: Wrap(
             alignment: WrapAlignment.center,
             spacing: 6,
@@ -6619,14 +6612,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                   constraints: const BoxConstraints(minWidth: 42),
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 7),
-                  decoration: BoxDecoration(
-                    color: B307SkyLuxury.surfaceRaised.withValues(alpha: .82),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: B307SkyLuxury.gold.withValues(alpha: .36)),
-                  ),
+                  decoration: compactRummyMeldOverflowDecorationR198(context),
                   child: Text(
                     '+$hidden',
-                    style: const TextStyle(color: B307SkyLuxury.goldSoft, fontSize: 10, fontWeight: FontWeight.w900),
+                    style: compactRummyMeldOverflowTextStyleR198(context),
                   ),
                 ),
             ],
