@@ -8959,7 +8959,7 @@ class _AchievementChip extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(color: unlocked ? Theme.of(context).colorScheme.primary.withValues(alpha: .12) : Colors.white.withValues(alpha: .04), borderRadius: BorderRadius.circular(14), border: Border.all(color: unlocked ? Theme.of(context).colorScheme.primary.withValues(alpha: .4) : Colors.white12)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [Text(icon), const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800))]),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [Text(icon), const SizedBox(width: 5), Text(label, key: const ValueKey('r210-achievement-label'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800))]),
     ),
   );
 }
@@ -8976,8 +8976,8 @@ class _RecentMatchTile extends StatelessWidget {
     dense: true,
     leading: Text(icon, style: const TextStyle(fontSize: 24)),
     title: Text(game, style: const TextStyle(fontWeight: FontWeight.w900)),
-    subtitle: Text(score, style: const TextStyle(fontSize: 9)),
-    trailing: Chip(label: Text(result, style: TextStyle(color: win ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 9))),
+    subtitle: Text(score, key: const ValueKey('r210-recent-match-score'), style: const TextStyle(fontSize: 11)),
+    trailing: Chip(label: Text(result, key: const ValueKey('r210-recent-match-result'), style: TextStyle(color: win ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 11))),
   );
 }
 
