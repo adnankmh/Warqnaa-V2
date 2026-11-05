@@ -50,7 +50,9 @@ void main() {
           ),
         ),
       ));
-      await tester.pump();
+      // Let MaterialApp finish its AnimatedTheme transition before
+      // comparing semantic colors across consecutive light/dark cases.
+      await tester.pump(const Duration(milliseconds: 300));
 
       final quick = tester.widget<Text>(find.text(quickLabel));
       final detail = tester.widget<Text>(find.text(subtitle));
