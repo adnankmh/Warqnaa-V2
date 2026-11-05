@@ -80,6 +80,15 @@ void main() {
             : 'Player progress and points'), findsOneWidget);
         expect(find.text(locale == 'ar' ? 'رصيد التوكنز' : 'Token balance'),
             findsOneWidget);
+        for (final metadataKey in <Key>[
+          const ValueKey('r208-profile-club-label'),
+          const ValueKey('r208-profile-club-description'),
+          const ValueKey('r208-profile-wallet-label'),
+          const ValueKey('r208-profile-pasha-days'),
+        ]) {
+          final metadata = tester.widget<Text>(find.byKey(metadataKey));
+          expect(metadata.style!.fontSize, greaterThanOrEqualTo(11));
+        }
         expect(tester.takeException(), isNull);
 
         if (review.reviewDirectory.isNotEmpty) {
