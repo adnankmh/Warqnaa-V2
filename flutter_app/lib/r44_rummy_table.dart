@@ -206,7 +206,7 @@ class R44RummyTableOverlay extends StatelessWidget {
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
           Text(ownerLabel, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: tint, fontSize: compact ? 10 : 11,
+            style: TextStyle(color: tint, fontSize: 11,
               fontWeight: FontWeight.w900)),
           const SizedBox(height: 3),
           for (final group in groups.take(4))
@@ -231,7 +231,7 @@ class R44RummyTableOverlay extends StatelessWidget {
               ),
             ),
           if (groups.length > 4) Text('+${groups.length - 4}',
-            style: TextStyle(color: tint, fontSize: 10)),
+            style: TextStyle(color: tint, fontSize: 11)),
         ]),
       ),
     );
@@ -272,7 +272,7 @@ class R44RummyTableOverlay extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
           Text('$teamLabel • $names', maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: tint, fontSize: compact ? 10 : 11,
+            style: TextStyle(color: tint, fontSize: 11,
               fontWeight: FontWeight.w900)),
           const SizedBox(height: 3),
           for (var ownerIndex = 0; ownerIndex < owners.length; ownerIndex++) ...[
@@ -287,7 +287,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                     maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: colors.onSurface.withValues(alpha: .72),
-                      fontSize: compact ? 9 : 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700)),
                 ),
                 for (final group in owners[ownerIndex].value.take(4))
@@ -311,7 +311,7 @@ class R44RummyTableOverlay extends StatelessWidget {
                   ),
                 if (owners[ownerIndex].value.length > 4)
                   Text('+${owners[ownerIndex].value.length - 4}',
-                    style: TextStyle(color: tint, fontSize: 10)),
+                    style: TextStyle(color: tint, fontSize: 11)),
               ]),
             ),
           ],
@@ -359,7 +359,7 @@ class R44RummyTableOverlay extends StatelessWidget {
             Text('$label · $number',
               textAlign: TextAlign.center,
               maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: colors.onSurface, fontSize: 10.5,
+              style: TextStyle(color: colors.onSurface, fontSize: 11,
                 fontWeight: FontWeight.w900)),
           ]),
         ),
