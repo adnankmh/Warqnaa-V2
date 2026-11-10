@@ -55,7 +55,11 @@ void main() {
             expect(find.byKey(ValueKey('r44-discard-select-$needed')),
               findsNothing);
           }
-          for (var needed = 1; needed <= 3; needed++) {
+          // The single top card belongs to the regular discard draw,
+          // not to a stack picker whose minimum pickup is two.
+          expect(find.byKey(const ValueKey('r44-discard-select-1')),
+            findsNothing);
+          for (var needed = 2; needed <= 3; needed++) {
             expect(find.byKey(ValueKey('r44-discard-select-$needed')),
               findsOneWidget);
           }
