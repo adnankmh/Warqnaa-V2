@@ -163,9 +163,28 @@ class R44RummyTableOverlay extends StatelessWidget {
                   onPressed: onDrawStack,
                   tooltip: tr('اختر ورقة من النار واسحبها مع التي فوقها',
                     'Take a selected discard with all newer cards'),
-                  icon: Icon(Icons.layers_rounded,
-                    color: colors.accent, size: 23),
-                  constraints: const BoxConstraints(minWidth: 42, minHeight: 44),
+                  // Make the existing server-gated stack picker discoverable
+                  // without increasing its footprint on narrow portrait tables.
+                  style: IconButton.styleFrom(
+                    backgroundColor: colors.surface.withValues(alpha: .94),
+                    foregroundColor: colors.accent,
+                    side: BorderSide(color: colors.accent.withValues(alpha: .7)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(11)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                  icon: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.layers_rounded, color: colors.accent, size: 20),
+                      const SizedBox(height: 1),
+                      Text(tr('اختر', 'Pick'),
+                        maxLines: 1,
+                        style: TextStyle(color: colors.onSurface, fontSize: 11,
+                          fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                  constraints: const BoxConstraints(minWidth: 42, minHeight: 56),
                 ),
               ],
             ],
