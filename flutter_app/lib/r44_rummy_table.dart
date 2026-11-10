@@ -157,15 +157,36 @@ class R44RummyTableOverlay extends StatelessWidget {
                 surfaceKey: const ValueKey('r69-discard-pile-surface'),
               ),
               if (onDrawStack != null) ...<Widget>[
-                const SizedBox(width: 5),
+                // The compact row has only 204px; reclaim the gap so the
+                // labeled 48px tap target never overflows in RTL or LTR.
+                SizedBox(width: compact ? 0 : 5),
                 IconButton(
                   key: const ValueKey('r44-stack-pick'),
                   onPressed: onDrawStack,
                   tooltip: tr('اختر ورقة من النار واسحبها مع التي فوقها',
                     'Take a selected discard with all newer cards'),
-                  icon: Icon(Icons.layers_rounded,
-                    color: colors.accent, size: 23),
-                  constraints: const BoxConstraints(minWidth: 42, minHeight: 44),
+                  // Make the existing server-gated stack picker discoverable
+                  // without increasing its footprint on narrow portrait tables.
+                  style: IconButton.styleFrom(
+                    backgroundColor: colors.surface.withValues(alpha: .94),
+                    foregroundColor: colors.accent,
+                    side: BorderSide(color: colors.accent.withValues(alpha: .7)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(11)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                  icon: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.layers_rounded, color: colors.accent, size: 20),
+                      const SizedBox(height: 1),
+                      Text(tr('اختر', 'Pick'),
+                        maxLines: 1,
+                        style: TextStyle(color: colors.onSurface, fontSize: 11,
+                          fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                  constraints: const BoxConstraints(minWidth: 42, minHeight: 56),
                 ),
               ],
             ],
