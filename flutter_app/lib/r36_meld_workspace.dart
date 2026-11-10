@@ -137,7 +137,10 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
               key: const ValueKey('r44-discard-tap-strip'),
               scrollDirection: Axis.horizontal,
               child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                for (var i = beginning; i < all.length; i++)
+                // A single top discard uses the separate discard-draw
+                // control. This stack picker requires at least two cards;
+                // never offer a top-card tap that silently selects two.
+                for (var i = beginning; i < all.length - 1; i++)
                   discardChoice(i),
               ]),
             ),
