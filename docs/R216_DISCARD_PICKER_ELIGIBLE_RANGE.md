@@ -11,9 +11,12 @@ public pile's accessibility label in a different source file.
 The picker previously displayed the newest 18 discards regardless of
 `maxCount`. When `maxCount < 18`, tapping an older, ineligible card
 silently clamped the selected count to `maxCount`, taking a different
-card as the origin than the user tapped. The picker now renders at most
-`min(18, maxCount)` public discard choices. Every displayed card can
-therefore be selected with its exact intended origin and all newer cards.
+card as the origin than the user tapped. Also, tapping the newest card
+silently selected two because stack pickups have a minimum of two cards.
+The picker now considers at most `min(18, maxCount)` newest public discards
+and offers only origins requiring **two or more** cards. The ordinary
+single-card discard draw remains available via the existing pile button.
+Every displayed choice therefore matches the exact submitted origin.
 This is a presentation-layer eligibility correction; no gameplay rules,
 deck secrecy, server authorization, network protocol, economy, or
 ownership are changed.
@@ -22,9 +25,9 @@ ownership are changed.
 `flutter_app/test/r216_discard_picker_eligible_range_test.dart`:
 8 widget cases covering Arabic RTL / English LTR, Warqnaa-blue seeded
 light / dark themes, and 320 / 390 px portrait viewports. With six
-public discards but `maxCount=3`, older cards are not selectable, the
-three eligible cards remain tappable, the origin updates to the actual
-selected card, the callback receives exactly three, and no layout
+public discards but `maxCount=3`, older cards and the single top card are not selectable through the stack
+picker, the two eligible stack origins remain tappable, the origin updates
+to the actual selected card, the callback receives exactly three, and no layout
 exceptions occur.
 
 ## Merge gate
