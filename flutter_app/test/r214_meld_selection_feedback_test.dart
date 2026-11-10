@@ -36,7 +36,12 @@ void main() {
                   onPressed: () async {
                     submitted = await showDialog<List<List<String>>>(
                       context: context,
-                      builder: (_) => R36MeldWorkspace(ar: ar, cards: cards),
+                      // Dialog routes are built under Navigator, outside the
+                      // home Directionality; explicitly exercise both locales.
+                      builder: (_) => Directionality(
+                        textDirection: direction,
+                        child: R36MeldWorkspace(ar: ar, cards: cards),
+                      ),
                     );
                   },
                   child: const Text('Open workspace'),
