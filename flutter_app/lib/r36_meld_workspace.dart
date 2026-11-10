@@ -153,6 +153,18 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
           const SizedBox(height: 8),
           Text(text('الأوراق التي ستحصل عليها ($count)', 'Cards you will receive ($count)'),
             style: const TextStyle(fontWeight: FontWeight.w900)),
+          // A live, visible origin confirms exactly which public discard is
+          // selected. The engine still owns validation and the actual pickup.
+          if (chosen.isNotEmpty) Semantics(
+            liveRegion: true,
+            child: Text(
+              key: const ValueKey('r213-discard-pickup-origin'),
+              text('بداية السحب: ${label(chosen.first)} • $count أوراق',
+                   'Pickup starts at ${label(chosen.first)} • $count cards'),
+              style: TextStyle(color: colors.onSurface,
+                fontSize: 13, fontWeight: FontWeight.w800),
+            ),
+          ),
           const SizedBox(height: 6),
           if (chosen.isEmpty)
             Text(text('لا توجد أوراق مكشوفة.', 'No exposed cards.'))
