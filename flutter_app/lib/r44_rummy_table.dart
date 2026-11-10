@@ -157,7 +157,9 @@ class R44RummyTableOverlay extends StatelessWidget {
                 surfaceKey: const ValueKey('r69-discard-pile-surface'),
               ),
               if (onDrawStack != null) ...<Widget>[
-                const SizedBox(width: 5),
+                // The compact row has only 204px; reclaim the gap so the
+                // labeled 48px tap target never overflows in RTL or LTR.
+                SizedBox(width: compact ? 0 : 5),
                 IconButton(
                   key: const ValueKey('r44-stack-pick'),
                   onPressed: onDrawStack,
