@@ -67,8 +67,14 @@ void main() {
             contains(ar ? 'بداية السحب' : 'Pickup starts at'));
           expect(find.byKey(const ValueKey('r40-discard-preview-0')),
             findsOneWidget);
-          await tester.tap(
-            find.byKey(const ValueKey('r40-confirm-discard-stack')));
+          // On narrow portrait devices the dialog's content is scrollable.
+          // Reach the real confirmation control before tapping it; a tap on
+          // an off-viewport widget is not a valid user interaction.
+          final confirm = find.byKey(
+            const ValueKey('r40-confirm-discard-stack'));
+          await tester.ensureVisible(confirm);
+          await tester.pumpAndSettle();
+          await tester.tap(confirm);
           await tester.pumpAndSettle();
           expect(pickedCount, 3);
           expect(tester.takeException(), isNull);
