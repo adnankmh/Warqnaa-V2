@@ -23,7 +23,6 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           final semantics = tester.ensureSemantics();
-          addTearDown(semantics.dispose);
 
           await tester.pumpWidget(MaterialApp(
             locale: Locale(locale),
@@ -68,6 +67,7 @@ void main() {
           expect(find.bySemanticsLabel(RegExp(
             locale == 'ar' ? r'^الباشا، ' : r'^Pasha, ',
           )), findsOneWidget);
+          semantics.dispose();
           final ink = tester.widget<Ink>(find.ancestor(
             of: first, matching: find.byType(Ink),
           ).first);
