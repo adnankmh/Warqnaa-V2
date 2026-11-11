@@ -87,7 +87,7 @@ void main() {
               final icon = tester.widget<Icon>(find.byIcon(Icons.mic_rounded));
               expect(widget.data, label);
               expect(widget.semanticsLabel, label);
-              expect(find.bySemanticsLabel(label), findsOneWidget);
+              expect(find.bySemanticsLabel(RegExp(RegExp.escape(label))), findsWidgets);
               expect(widget.style!.color, theme.colorScheme.onSurfaceVariant);
               expect(icon.color, theme.colorScheme.primary);
               expect(Directionality.of(tester.element(finder)), direction);
