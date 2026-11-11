@@ -236,7 +236,7 @@ String _packRewardStatusEnglishV238(
   if (expiry == null) return 'Added to balance';
   final productId = reward['product_id']?.toString();
   if (productId == null || productId.isEmpty) {
-    return 'Valid until ' + expiry.toLocal().toString().substring(0, 16);
+    return 'Valid until ${expiry.toLocal().toString().substring(0, 16)}';
   }
   final productExpiry = controller.expiryForProductV176(productId);
   if (productExpiry == null) return 'Permanent';
