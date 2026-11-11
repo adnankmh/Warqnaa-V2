@@ -3911,7 +3911,7 @@ class _GamesPageState extends State<GamesPage> {
             onLeaderboard: () => showLeaderboard(context, widget.controller),
             onRules: () => showRules(context, lang, 'tarneeb'),
             onCompetitions: () => showCompetitions(context, widget.controller),
-            onFriends: () => showFriends(context, widget.controller),
+            onTap: () => showFriends(context, widget.controller),
           ),
         ),
       ],
@@ -3928,14 +3928,14 @@ class R229GameHallQuickLinks extends StatelessWidget {
     required this.onLeaderboard,
     required this.onRules,
     required this.onCompetitions,
-    required this.onFriends,
+    required this.onTap,
   });
 
   final String locale;
   final VoidCallback onLeaderboard;
   final VoidCallback onRules;
   final VoidCallback onCompetitions;
-  final VoidCallback onFriends;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -3948,7 +3948,7 @@ class R229GameHallQuickLinks extends StatelessWidget {
       ('competitions', Icons.emoji_events_rounded,
           ar ? 'المنافسات' : 'Competitions', onCompetitions),
       ('friends', Icons.people_alt_rounded,
-          ar ? 'الأصدقاء' : 'Friends', onFriends),
+          ar ? 'الأصدقاء' : 'Friends', onTap),
     ];
     final dark = Theme.of(context).brightness == Brightness.dark;
     final blue = dark ? const Color(0xFF064C8C) : const Color(0xFF0877C7);

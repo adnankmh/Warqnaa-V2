@@ -4,6 +4,6 @@
 - Existing behavior: GamesPage displayed four 58px-wide QuickButton actions in one fixed Row. Arabic/English labels were forced into one line with ellipsis, especially problematic on portrait devices and with larger text.
 - Changed: only the GamesPage quick-action panel now uses a responsive two-column portrait / four-column wide Wrap, readable two-line labels, explicit screen-reader button labels and actions, 84px touch surfaces, and original blue light/dark tones. Existing destination callbacks are unchanged.
 - No third-party artwork, code, sound, or branded layout copied.
-- Scope: `flutter_app/lib/main.dart`, `flutter_app/test/r229_game_hall_quick_links_test.dart`, `tools/test_v171_controller_references.py`, this document. The pre-existing controller-reference test was made callback-name tolerant (`onTap` or `onFriends`) while retaining the strict `widget.controller` binding check; initial CI caught its obsolete literal-only assertion.
+- Scope: `flutter_app/lib/main.dart`, `flutter_app/test/r229_game_hall_quick_links_test.dart`, this document. The friends shortcut uses the legacy-compatible `onTap: () => showFriends(context, widget.controller)` binding required by v171/v172 source contracts; no contract checks are changed.
 - 9 widget cases: RTL/LTR × light/dark × 320/390 portrait; 800px landscape. Assert wrapping, active blue colors, semantics, real tap callback, and no framework exceptions.
 - No engine, network, economy, wallet, store, permission, or server changes. CI on final HEAD and visual review are mandatory before merge.
