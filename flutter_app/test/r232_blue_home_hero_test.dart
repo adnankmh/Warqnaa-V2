@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:warqna_mobile/main.dart';
+import 'package:warqna_mobile/r9_design_system.dart';
 
 void main() {
   for (final locale in <String>['ar', 'en']) {
