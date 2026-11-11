@@ -264,7 +264,7 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
               children: <Widget>[
                 if (error != null) _R64StateCard(icon: Icons.cloud_off_outlined, text: error!),
                 if (!loading && error == null && rooms.isEmpty) _R64StateCard(icon: Icons.meeting_room_outlined, text: ar ? 'لا توجد غرف عامة الآن. كن أول من ينشئ مجلسًا.' : 'No public rooms yet. Create the first table.'),
-                ...rooms.map((room) => _R64RoomCard(room: room, ar: ar, onJoin: () => _join(room))),
+                ...rooms.map((room) => R64RoomCard(room: room, ar: ar, onJoin: () => _join(room))),
               ],
             ),
           ),
@@ -274,27 +274,88 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
   );
 }
 
-class _R64RoomCard extends StatelessWidget {
-  const _R64RoomCard({required this.room, required this.ar, required this.onJoin});
+/// A room listing with a single spoken summary and a separate Join action.
+/// Public for isolated portrait/RTL widget tests; admission stays server-owned.
+class R64RoomCard extends StatelessWidget {
+  const R64RoomCard({super.key, required this.room, required this.ar, required this.onJoin});
+
   final Map<String, dynamic> room;
   final bool ar;
   final VoidCallback onJoin;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final players = room['players_count'] ?? room['players'] ?? 0;
     final capacity = room['max_players'] ?? room['player_count'] ?? room['capacity'] ?? 4;
+    final turnSeconds = room['turn_seconds'] ?? 10;
+    final code = room['code']?.toString() ?? '';
+    final suppliedName = room['name']?.toString().trim() ?? '';
+    final name = suppliedName.isNotEmpty
+        ? suppliedName
+        : '${ar ? 'غرفة' : 'Room'} ${code}'.trim();
+    final voice = room['voice_enabled'] == true;
+    final spokenDetails = ar
+        ? 'غرفة $name، $players من $capacity لاعبين، مدة الدور $turnSeconds ثانية'
+            '${code.isEmpty ? '' : '، الرمز $code'}'
+            '${voice ? '، الصوت متاح' : ''}'
+        : 'Room $name, $players of $capacity players, $turnSeconds seconds per turn'
+            '${code.isEmpty ? '' : ', code $code'}'
+            '${voice ? ', voice enabled' : ''}';
+
     return Card(
+      key: const ValueKey('r225-room-card'),
       margin: const EdgeInsets.only(bottom: 9),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xffffcf58).withValues(alpha: .12),
-          child: Icon(room['voice_enabled'] == true ? Icons.mic_rounded : Icons.style_rounded, color: const Color(0xffffcf58)),
-        ),
-        title: Text(room['name']?.toString() ?? '${ar ? 'غرفة' : 'Room'} ${room['code'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w900)),
-        subtitle: Text('$players/$capacity • ${room['turn_seconds'] ?? 10}s • ${room['code'] ?? ''}'),
-        trailing: FilledButton(onPressed: onJoin, child: Text(ar ? 'دخول' : 'Join')),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(children: <Widget>[
+          CircleAvatar(
+            key: const ValueKey('r225-room-avatar'),
+            backgroundColor: scheme.primaryContainer,
+            child: Icon(
+              voice ? Icons.mic_rounded : Icons.style_rounded,
+              key: const ValueKey('r225-room-icon'),
+              color: scheme.primary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Semantics(
+              key: const ValueKey('r225-room-details'),
+              container: true,
+              label: spokenDetails,
+              child: ExcludeSemantics(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      name,
+                      key: const ValueKey('r225-room-title'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '$players/$capacity • ${turnSeconds}s${code.isEmpty ? '' : ' • $code'}',
+                      key: const ValueKey('r225-room-subtitle'),
+                      textDirection: TextDirection.ltr,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: onJoin,
+            child: Text(ar ? 'دخول' : 'Join'),
+          ),
+        ]),
       ),
     );
   }
