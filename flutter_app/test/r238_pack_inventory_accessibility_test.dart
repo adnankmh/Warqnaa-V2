@@ -12,7 +12,6 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     AppSounds.enabled = false;
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     tester.view.devicePixelRatio = 1;
@@ -92,6 +91,7 @@ void main() {
       }
     }
     expect(opened, 8);
+    semantics.dispose();
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }
