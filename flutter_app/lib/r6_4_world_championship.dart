@@ -298,7 +298,7 @@ class _R64RoomCard extends StatelessWidget {
     final suppliedName = room['name']?.toString().trim() ?? '';
     final name = suppliedName.isNotEmpty
         ? suppliedName
-        : '${ar ? 'غرفة' : 'Room'} ${code}'.trim();
+        : '${ar ? 'غرفة' : 'Room'} $code'.trim();
     final voice = room['voice_enabled'] == true;
     final spokenDetails = ar
         ? 'غرفة $name، $players من $capacity لاعبين، مدة الدور $turnSeconds ثانية'
