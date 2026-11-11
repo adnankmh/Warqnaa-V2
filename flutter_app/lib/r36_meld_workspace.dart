@@ -281,6 +281,20 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
                     ),
                 ]),
                 const SizedBox(height: 8),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    text('الأوراق المحددة: ${selected.length}',
+                         'Selected cards: ${selected.length}'),
+                    key: const ValueKey('r243-meld-selection-count'),
+                    style: TextStyle(
+                      color: colors.onSurface,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 FilledButton.tonalIcon(
                   key: const ValueKey('r36-add-meld-group'),
                   onPressed: selected.length < 3 || selected.length > 13 || groups.length >= 8
