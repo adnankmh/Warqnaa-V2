@@ -46,8 +46,14 @@ def main() -> None:
         fail("Expected controller-based friend actions in profile/lobby contexts")
 
     compact = re.sub(r"\s+", " ", source)
-    direct_widget = "onTap: () => showFriends(context, widget.controller)"
-    if direct_widget not in compact:
+    # The game-hall friends callback may be passed through an accessible
+    # shortcut widget; accept either its named onFriends callback or onTap.
+    direct_widget = re.search(
+        r"(?:onTap|onFriends)\s*:\s*\(\)\s*=>\s*"
+        r"showFriends\s*\(\s*context\s*,\s*widget\.controller\s*\)",
+        source,
+    )
+    if direct_widget is None:
         fail("Games-page friends action is not bound to widget.controller")
 
     profile_pattern = re.compile(
