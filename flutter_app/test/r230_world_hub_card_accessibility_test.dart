@@ -37,7 +37,7 @@ void main() {
               child: Scaffold(
                 body: Center(
                   child: SizedBox(
-                    width: width - 40,
+                    width: (width - 42) / 2,
                     height: width == 320 ? 169 : 184,
                     child: R230WorldHubActionCard(
                       key: const ValueKey('r230-world-card'),
