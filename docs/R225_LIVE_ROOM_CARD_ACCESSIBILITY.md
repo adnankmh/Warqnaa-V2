@@ -10,7 +10,7 @@
 - Room cards show a two-line, ellipsized room name and one-line LTR numeric/code metadata, preserving correct reading order in RTL Arabic.
 - A single localized accessibility summary announces name, occupancy, turn duration, public code and whether voice is enabled. The native Join button remains a distinct action.
 - Voice/card avatar uses the active theme's blue primary and primary-container tokens rather than a fixed gold accent.
-- The room card is publicly testable without creating a network-backed AppController; the browser's join callback is unchanged.
+- The existing private `_R64RoomCard` contract is preserved for legacy source validation; a public `R64RoomCard` subclass makes the same card testable without a network-backed AppController. The browser's join callback is unchanged.
 
 ## Files
 - `flutter_app/lib/r6_4_world_championship.dart` — presentation only.

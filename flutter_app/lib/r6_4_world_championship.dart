@@ -264,7 +264,7 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
               children: <Widget>[
                 if (error != null) _R64StateCard(icon: Icons.cloud_off_outlined, text: error!),
                 if (!loading && error == null && rooms.isEmpty) _R64StateCard(icon: Icons.meeting_room_outlined, text: ar ? 'لا توجد غرف عامة الآن. كن أول من ينشئ مجلسًا.' : 'No public rooms yet. Create the first table.'),
-                ...rooms.map((room) => R64RoomCard(room: room, ar: ar, onJoin: () => _join(room))),
+                ...rooms.map((room) => _R64RoomCard(room: room, ar: ar, onJoin: () => _join(room))),
               ],
             ),
           ),
@@ -276,8 +276,13 @@ class _R64RoomBrowserPageState extends State<R64RoomBrowserPage> {
 
 /// A room listing with a single spoken summary and a separate Join action.
 /// Public for isolated portrait/RTL widget tests; admission stays server-owned.
-class R64RoomCard extends StatelessWidget {
-  const R64RoomCard({super.key, required this.room, required this.ar, required this.onJoin});
+// Preserve the legacy R6.4 private class contract while exposing a testable card.
+class R64RoomCard extends _R64RoomCard {
+  const R64RoomCard({super.key, required super.room, required super.ar, required super.onJoin});
+}
+
+class _R64RoomCard extends StatelessWidget {
+  const _R64RoomCard({super.key, required this.room, required this.ar, required this.onJoin});
 
   final Map<String, dynamic> room;
   final bool ar;
