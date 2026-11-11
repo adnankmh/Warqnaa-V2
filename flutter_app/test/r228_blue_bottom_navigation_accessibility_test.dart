@@ -75,8 +75,9 @@ void main() {
       const Color(0xff23c7ff),
       B307SkyLuxury.azure,
     ]);
+    final selectedBorder = decoration.border! as Border;
     expect(
-      decoration.border!.top.color,
+      selectedBorder.top.color,
       B307SkyLuxury.goldSoft.withValues(alpha: .72),
     );
 
