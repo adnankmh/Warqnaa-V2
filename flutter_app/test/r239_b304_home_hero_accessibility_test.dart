@@ -65,7 +65,7 @@ void main() {
                 button.style?.foregroundColor?.resolve(<WidgetState>{}),
                 theme.colorScheme.onPrimaryContainer,
               );
-              expect(tester.getSemantics(action).label, contains(label));
+              expect(find.bySemanticsLabel(label), findsOneWidget);
               expect(find.text('Warqnaa • VERTICAL LEGEND'), findsOneWidget);
               expect(tester.takeException(), isNull);
 
