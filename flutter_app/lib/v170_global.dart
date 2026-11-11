@@ -959,7 +959,7 @@ class TarneebBidButtonV170 extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Text(
                       label,
@@ -981,7 +981,7 @@ class TarneebBidButtonV170 extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize:11,
                           color: selected
                               ? scheme.onPrimary.withValues(alpha: .78)
                               : scheme.onSurfaceVariant,

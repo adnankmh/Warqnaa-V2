@@ -14,3 +14,6 @@ Base: `main@1ff82f8dae7a16f3713363d10da4e95c1a9b1ce9`. New branch: `automation/r
 
 ## Verification required
 Run all five CI gates on one final HEAD: Backend CI, Flutter Web, Android APK/AAB, R7 Visual Runtime, Production Release. Confirm mergeability and visual acceptance before any merge. R7 workflow artifacts are not a claim of feature-specific screenshots. No protected third-party assets, layout tracing, or borrowed copy.
+
+## CI regression correction
+First candidate `74eb1d4ccc266f36a5c29f471597fed3fe94008c`: the 10 new R237 widget cases passed, but full Web/Android suites failed: R37 source contract expects the exact 11px subtitle token `fontSize:11`, and stretching a Column in a horizontally unbounded bid row caused infinite-width layout exceptions across older gameplay tests. Follow-up retains the 11px floor and centers (rather than stretches) children to support both constrained portrait and unconstrained game rows. All five CI gates must be revalidated on the new HEAD.
