@@ -2,6 +2,56 @@ part of 'main.dart';
 
 const String warqnaaR9Release = '0.4.9+209';
 
+/// Original Warqnaa-blue hero backdrop. Directional lighting mirrors in RTL
+/// without mirroring any game assets or changing theme/economy state.
+class R232BlueHomeHeroSurface extends StatelessWidget {
+  const R232BlueHomeHeroSurface({
+    super.key,
+    required this.wide,
+    required this.child,
+  });
+
+  final bool wide;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final light = Theme.of(context).brightness == Brightness.light;
+    return Container(
+      key: const ValueKey('r232-blue-home-hero'),
+      constraints: BoxConstraints(minHeight: wide ? 320 : 270),
+      padding: EdgeInsets.all(wide ? 30 : 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: light
+              ? const [Color(0xFF123A73), Color(0xFF0B2B58), Color(0xFF081D40)]
+              : const [Color(0xFF0B2550), Color(0xFF071A39), Color(0xFF050F28)],
+        ),
+        border: Border.all(color: R9Design.sky.withValues(alpha: .28)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x4A000000),
+            blurRadius: 42,
+            offset: Offset(0, 20),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Visible status remains meaningful in either app language.
+String r232HomeConnectionLabel(String locale, bool connected) {
+  if (locale == 'ar') {
+    return connected ? 'متصل • API' : 'محلي • جاهز';
+  }
+  return connected ? 'ONLINE • API' : 'LOCAL • READY';
+}
+
 class R9HomeDashboard extends StatelessWidget {
   const R9HomeDashboard({super.key, required this.controller, required this.onTab});
   final AppController controller;
@@ -108,19 +158,8 @@ class R9HomeDashboard extends StatelessWidget {
       ],
     );
 
-    return Container(
-      constraints: BoxConstraints(minHeight: wide ? 320 : 270),
-      padding: EdgeInsets.all(wide ? 30 : 20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0A2531), Color(0xFF081824), Color(0xFF07120F)],
-        ),
-        border: Border.all(color: R9Design.gold.withValues(alpha: .16)),
-        boxShadow: const [BoxShadow(color: Color(0x4A000000), blurRadius: 42, offset: Offset(0, 20))],
-      ),
+    return R232BlueHomeHeroSurface(
+      wide: wide,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(27),
         child: Stack(
@@ -205,7 +244,7 @@ class R9HomeDashboard extends StatelessWidget {
                   children: [
                     Text(L.t(controller.localeCode, 'liveNetwork'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
                     Text(
-                      connected ? 'ONLINE • API' : 'LOCAL • READY',
+                      r232HomeConnectionLabel(controller.localeCode, connected),
                       style: TextStyle(fontSize: 11, color: connected ? const Color(0xFF70E6BF) : Colors.white70, fontWeight: FontWeight.w800),
                     ),
                   ],
