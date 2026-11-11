@@ -97,15 +97,23 @@ class B304HomeHero extends StatelessWidget {
         ),
       ],
     );
-    final notifications = IconButton(
-      key: const ValueKey('r239-home-notifications'),
-      tooltip: isArabic ? 'الإشعارات' : 'Notifications',
-      style: IconButton.styleFrom(
-        backgroundColor: colors.primaryContainer,
-        foregroundColor: colors.onPrimaryContainer,
+    final notificationLabel = isArabic ? 'الإشعارات' : 'Notifications';
+    final notifications = Semantics(
+      label: notificationLabel,
+      button: true,
+      enabled: true,
+      onTap: onNotifications,
+      excludeSemantics: true,
+      child: IconButton(
+        key: const ValueKey('r239-home-notifications'),
+        tooltip: notificationLabel,
+        style: IconButton.styleFrom(
+          backgroundColor: colors.primaryContainer,
+          foregroundColor: colors.onPrimaryContainer,
+        ),
+        onPressed: onNotifications,
+        icon: const Icon(Icons.notifications_none_rounded),
       ),
-      onPressed: onNotifications,
-      icon: const Icon(Icons.notifications_none_rounded),
     );
 
     return LayoutBuilder(builder: (context, constraints) {
