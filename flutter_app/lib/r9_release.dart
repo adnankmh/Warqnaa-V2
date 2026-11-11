@@ -39,7 +39,12 @@ class R232BlueHomeHeroSurface extends StatelessWidget {
           ),
         ],
       ),
-      child: child,
+      // The hero is navy in both modes; inherit white text even when the
+      // surrounding light theme uses dark on-surface typography.
+      child: DefaultTextStyle.merge(
+        style: const TextStyle(color: Colors.white),
+        child: child,
+      ),
     );
   }
 }
