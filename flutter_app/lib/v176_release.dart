@@ -227,61 +227,179 @@ extension WarqnaV176Controller on AppController {
   }
 }
 
+
+String _packRewardStatusEnglishV238(
+  AppController controller,
+  Map<String, dynamic> reward,
+) {
+  final expiry = DateTime.tryParse(reward['expires_at']?.toString() ?? '');
+  if (expiry == null) return 'Added to balance';
+  final productId = reward['product_id']?.toString();
+  if (productId == null || productId.isEmpty) {
+    return 'Valid until ' + expiry.toLocal().toString().substring(0, 16);
+  }
+  final productExpiry = controller.expiryForProductV176(productId);
+  if (productExpiry == null) return 'Permanent';
+  final remaining = productExpiry.difference(DateTime.now());
+  if (remaining.inSeconds <= 0) return 'Expired';
+  if (remaining.inDays > 0) {
+    return '${remaining.inDays}d ${remaining.inHours.remainder(24)}h left';
+  }
+  if (remaining.inHours > 0) {
+    return '${remaining.inHours}h ${remaining.inMinutes.remainder(60)}m left';
+  }
+  return '${math.max(1, remaining.inMinutes)}m left';
+}
+
+/// Localized, portrait-safe inventory preview. Rewards and expiry rules remain
+/// owned by AppController; this widget only formats their presentation.
 class PackInventoryStripV176 extends StatelessWidget {
   final AppController controller;
   final VoidCallback onOpenInventory;
-  const PackInventoryStripV176({super.key, required this.controller, required this.onOpenInventory});
+  const PackInventoryStripV176({
+    super.key,
+    required this.controller,
+    required this.onOpenInventory,
+  });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final ar = controller.localeCode == 'ar';
     final rewards = controller.dailyPackHistoryV176.take(4).toList(growable: false);
+    final heading = Row(children: [
+      const Text('🎒', style: TextStyle(fontSize: 28)),
+      const SizedBox(width: 8),
+      Expanded(child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            ar ? 'مقتنيات الحزم' : 'Pack inventory',
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+          ),
+          Text(
+            ar
+                ? 'الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.'
+                : 'Temporary rewards appear here and in the store with expiry times.',
+            key: const ValueKey('r130-pack-inventory-helper'),
+            style: TextStyle(
+              color: scheme.onSurfaceVariant,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+        ],
+      )),
+    ]);
+    final openAll = TextButton.icon(
+      key: const ValueKey('r238-pack-open-all'),
+      onPressed: onOpenInventory,
+      icon: const Icon(Icons.inventory_2_outlined, size: 18),
+      label: Text(ar ? 'عرض الكل' : 'View all'),
+    );
+
     return PremiumPanel(
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            const Text('🎒', style: TextStyle(fontSize: 28)),
-            const SizedBox(width: 8),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('مقتنيات الحزم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-              Text(key: const ValueKey('r130-pack-inventory-helper'), 'الجوائز المؤقتة تظهر هنا وفي المتجر مع وقت الانتهاء.', style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.w700, height: 1.35)),
-            ])),
-            TextButton.icon(onPressed: onOpenInventory, icon: const Icon(Icons.inventory_2_outlined, size: 18), label: const Text('عرض الكل')),
-          ]),
-          const SizedBox(height: 9),
-          SizedBox(
-            height: 92,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: rewards.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, index) {
-                final reward = rewards[index];
-                final active = controller.historyRewardActiveV176(reward);
-                return Container(
-                  key: ValueKey('r130-pack-reward-$index'),
-                  width: 175,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(17),
-                    color: scheme.surfaceContainerHighest.withValues(alpha: .58),
-                    border: Border.all(color: active ? scheme.tertiary.withValues(alpha: .45) : scheme.outlineVariant),
-                  ),
-                  child: Row(children: [
-                    Text(reward['icon']?.toString() ?? '🎁', style: const TextStyle(fontSize: 29)),
-                    const SizedBox(width: 8),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text(reward['label_ar']?.toString() ?? 'هدية', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
-                      const SizedBox(height: 4),
-                      Text(key: ValueKey('r130-pack-status-$index'), active ? controller.historyRewardStatusV176(reward) : 'انتهت الصلاحية', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: active ? scheme.tertiary : scheme.error, fontSize: 11, fontWeight: FontWeight.w800)),
-                    ])),
-                  ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LayoutBuilder(builder: (context, constraints) {
+              if (constraints.maxWidth < 400) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    heading,
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: openAll,
+                    ),
+                  ],
                 );
-              },
+              }
+              return Row(children: [
+                Expanded(child: heading),
+                openAll,
+              ]);
+            }),
+            const SizedBox(height: 9),
+            SizedBox(
+              height: 92,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: rewards.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, index) {
+                  final reward = rewards[index];
+                  final active = controller.historyRewardActiveV176(reward);
+                  final label = (ar
+                      ? reward['label_ar'] ?? reward['label_en']
+                      : reward['label_en'] ?? reward['label_ar'])
+                      ?.toString() ?? (ar ? 'هدية' : 'Gift');
+                  final status = !active
+                      ? (ar ? 'انتهت الصلاحية' : 'Expired')
+                      : ar
+                          ? controller.historyRewardStatusV176(reward)
+                          : _packRewardStatusEnglishV238(controller, reward);
+                  return Semantics(
+                    label: '$label, $status',
+                    child: ExcludeSemantics(
+                      child: Container(
+                        key: ValueKey('r130-pack-reward-$index'),
+                        width: 175,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(17),
+                          color: scheme.surfaceContainerHighest.withValues(alpha: .58),
+                          border: Border.all(
+                            color: active
+                                ? scheme.tertiary.withValues(alpha: .45)
+                                : scheme.outlineVariant,
+                          ),
+                        ),
+                        child: Row(children: [
+                          Text(
+                            reward['icon']?.toString() ?? '🎁',
+                            style: const TextStyle(fontSize: 29),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                label,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                status,
+                                key: ValueKey('r130-pack-status-$index'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: active ? scheme.tertiary : scheme.error,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          )),
+                        ]),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
