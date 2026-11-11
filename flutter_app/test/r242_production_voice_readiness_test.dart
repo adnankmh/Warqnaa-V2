@@ -42,7 +42,6 @@ void main() {
             addTearDown(tester.view.resetPhysicalSize);
             addTearDown(tester.view.resetDevicePixelRatio);
             final handle = tester.ensureSemantics();
-            addTearDown(handle.dispose);
 
             final direction =
                 locale == 'ar' ? TextDirection.rtl : TextDirection.ltr;
@@ -109,6 +108,7 @@ void main() {
                   : 'Enabled • TURN: Not required'),
             );
             await tester.pumpWidget(const SizedBox.shrink());
+            handle.dispose();
           },
         );
       }
