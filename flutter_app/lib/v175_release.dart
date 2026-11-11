@@ -327,13 +327,77 @@ class _ChallengeCenterV175State extends State<ChallengeCenterV175> {
         return Padding(padding:const EdgeInsets.only(bottom:10),child:PremiumPanel(child:Padding(padding:const EdgeInsets.all(13),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
           Row(children:[Text(icon,style:const TextStyle(fontSize:34)),const SizedBox(width:10),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(name,style:const TextStyle(fontSize:15,fontWeight:FontWeight.w900)),Text(key:ValueKey('r129-challenge-description-${item['key']}'),description,style:TextStyle(color:scheme.onSurfaceVariant,fontSize:11,fontWeight:FontWeight.w700,height:1.4))])),Chip(label:Text(cadenceLabel))]),
           const SizedBox(height:9),
-          Row(children:[Expanded(child:ClipRRect(borderRadius:BorderRadius.circular(99),child:LinearProgressIndicator(value:(progress/target).clamp(0.0,1.0).toDouble(),minHeight:9))),const SizedBox(width:8),Text('$progress / $target',style:const TextStyle(fontWeight:FontWeight.w900))]),
+          R235ChallengeProgress(name: name, progress: progress, target: target, ar: ar),
           const SizedBox(height:8),
           Row(children:[Expanded(child:Text('🪙 ${formatNumber(tokens)}  •  ⭐ ${formatNumber(rewardXp)} XP',style:const TextStyle(color:Colors.amberAccent,fontWeight:FontWeight.w800,fontSize:11))),FilledButton.tonal(onPressed:claimed||loading?null:() => _action(item,completed),child:Text(actionLabel))]),
         ]))));
       }),
       if(loading) const Padding(padding:EdgeInsets.only(top:4),child:LinearProgressIndicator()),
     ]);
+  }
+}
+
+/// Read-only challenge progress: visible count stays LTR even in Arabic,
+/// while assistive technology receives a localized, bounded progress value.
+/// This widget does not activate, claim, or mutate any challenge rewards.
+class R235ChallengeProgress extends StatelessWidget {
+  const R235ChallengeProgress({
+    super.key,
+    required this.name,
+    required this.progress,
+    required this.target,
+    required this.ar,
+  });
+
+  final String name;
+  final int progress;
+  final int target;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeProgress = math.max(0, progress);
+    final safeTarget = math.max(1, target);
+    final fraction = (safeProgress / safeTarget).clamp(0.0, 1.0).toDouble();
+    final percent = (fraction * 100).round();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+    final spoken = ar
+        ? 'تقدم $name: $safeProgress من $safeTarget'
+        : '$name progress: $safeProgress of $safeTarget';
+
+    return Semantics(
+      key: const ValueKey('r235-challenge-progress-semantics'),
+      label: spoken,
+      value: '$percent%',
+      child: ExcludeSemantics(
+        child: Row(
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  key: const ValueKey('r235-challenge-progress-bar'),
+                  value: fraction,
+                  minHeight: 9,
+                  color: dark ? R9Design.sky : R9Design.azure,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(
+                '$safeProgress / $safeTarget',
+                key: const ValueKey('r235-challenge-progress-count'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
