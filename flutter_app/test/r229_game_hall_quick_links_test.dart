@@ -18,7 +18,6 @@ void main() {
               ? TextDirection.rtl
               : TextDirection.ltr;
           final semantics = tester.ensureSemantics();
-          addTearDown(semantics.dispose);
           await tester.pumpWidget(MaterialApp(
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
@@ -69,6 +68,8 @@ void main() {
           await tester.tap(find.byKey(const ValueKey('r229-games-quick-rules')));
           expect(tapped, ['rules']);
           expect(tester.takeException(), isNull);
+          // Widget-test semantics handles must be disposed before test teardown.
+          semantics.dispose();
         });
       }
     }

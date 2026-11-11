@@ -7,3 +7,5 @@
 - Scope: `flutter_app/lib/main.dart`, `flutter_app/test/r229_game_hall_quick_links_test.dart`, this document. The friends shortcut uses the legacy-compatible `onTap: () => showFriends(context, widget.controller)` binding required by v171/v172 source contracts; no contract checks are changed.
 - 9 widget cases: RTL/LTR × light/dark × 320/390 portrait; 800px landscape. Assert wrapping, active blue colors, semantics, real tap callback, and no framework exceptions.
 - No engine, network, economy, wallet, store, permission, or server changes. CI on final HEAD and visual review are mandatory before merge.
+
+- CI correction: initial Flutter Web/Android widget suites found 8 test-only `SemanticsHandle` leaks because `addTearDown` runs after Flutter's end-of-test verification. The handles are now disposed synchronously before each test completes. This does not change app behavior.
