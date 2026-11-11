@@ -67,6 +67,10 @@ void main() {
           );
           expect(find.text(status), findsOneWidget);
           expect(
+            DefaultTextStyle.of(tester.element(find.text(status))).style.color,
+            Colors.white,
+          );
+          expect(
             r232HomeConnectionLabel(locale, true),
             locale == 'ar' ? 'متصل • API' : 'ONLINE • API',
           );
