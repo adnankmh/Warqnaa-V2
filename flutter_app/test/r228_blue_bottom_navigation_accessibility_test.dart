@@ -94,12 +94,7 @@ void main() {
     ]) {
       for (final width in <double>[320, 390]) {
         testWidgets(
-          'R228 bottom navigation ' +
-              locale +
-              ' ' +
-              brightness.name +
-              ' portrait ' +
-              width.toString(),
+          'R228 bottom navigation $locale ${brightness.name} portrait $width',
           (tester) => inspectNavigation(
             tester,
             locale: locale,
