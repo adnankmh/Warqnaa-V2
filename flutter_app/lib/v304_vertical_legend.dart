@@ -55,6 +55,90 @@ List<Color> b304ProfileGradient(AppController controller) {
   ];
 }
 
+/// Portrait-safe, accessible dashboard entry. No gameplay or wallet state.
+class B304HomeHero extends StatelessWidget {
+  const B304HomeHero({
+    super.key,
+    required this.isArabic,
+    required this.onNotifications,
+  });
+
+  final bool isArabic;
+  final VoidCallback onNotifications;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final logo = Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(colors: <Color>[colors.primary, colors.secondary]),
+      ),
+      child: Icon(Icons.style_rounded, color: colors.onPrimary, size: 28),
+    );
+    final heading = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Text('Warqnaa • VERTICAL LEGEND',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+        const SizedBox(height: 4),
+        Text(
+          isArabic
+              ? 'اختر لعبتك وابدأ مباشرة. واجهة واضحة، منافسات، جوائز وتجربة لعب خادمية عادلة.'
+              : 'Choose a game and play. Clear UI, competitions, rewards and fair server-authoritative gameplay.',
+          style: TextStyle(
+            fontSize: 11,
+            height: 1.45,
+            color: colors.onSurface.withValues(alpha: .68),
+          ),
+        ),
+      ],
+    );
+    final notifications = IconButton(
+      key: const ValueKey('r239-home-notifications'),
+      tooltip: isArabic ? 'الإشعارات' : 'Notifications',
+      style: IconButton.styleFrom(
+        backgroundColor: colors.primaryContainer,
+        foregroundColor: colors.onPrimaryContainer,
+      ),
+      onPressed: onNotifications,
+      icon: const Icon(Icons.notifications_none_rounded),
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final narrow = constraints.maxWidth < 340;
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: LinearGradient(
+            colors: <Color>[colors.surfaceContainerHighest, colors.surface],
+          ),
+          border: Border.all(color: colors.primary.withValues(alpha: .22)),
+        ),
+        child: narrow
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(children: <Widget>[logo, const Spacer(), notifications]),
+                  const SizedBox(height: 12),
+                  heading,
+                ],
+              )
+            : Row(children: <Widget>[
+                logo,
+                const SizedBox(width: 13),
+                Expanded(child: heading),
+                notifications,
+              ]),
+      );
+    });
+  }
+}
+
 class B304HomeDashboard extends StatelessWidget {
   const B304HomeDashboard({super.key, required this.controller, required this.onTab});
   final AppController controller;
@@ -69,23 +153,9 @@ class B304HomeDashboard extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
           sliver: SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                gradient: LinearGradient(colors: <Color>[Theme.of(context).colorScheme.surfaceContainerHighest, Theme.of(context).colorScheme.surface]),
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .22)),
-              ),
-              child: Row(children: <Widget>[
-                Container(width: 54,height:54,decoration:BoxDecoration(shape:BoxShape.circle,gradient:LinearGradient(colors:<Color>[Theme.of(context).colorScheme.primary,Theme.of(context).colorScheme.secondary])),child:const Icon(Icons.style_rounded,color:Colors.black,size:28)),
-                const SizedBox(width: 13),
-                Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:<Widget>[
-                  Text(ar ? 'Warqnaa • VERTICAL LEGEND' : 'Warqnaa • VERTICAL LEGEND',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:18)),
-                  const SizedBox(height:4),
-                  Text(ar ? 'اختر لعبتك وابدأ مباشرة. واجهة واضحة، منافسات، جوائز وتجربة لعب خادمية عادلة.' : 'Choose a game and play. Clear UI, competitions, rewards and fair server-authoritative gameplay.',style:TextStyle(fontSize:11,height:1.45,color:Theme.of(context).colorScheme.onSurface.withValues(alpha:.68))),
-                ])),
-                IconButton(onPressed:()=>showNotifications(context,controller),icon:const Icon(Icons.notifications_none_rounded)),
-              ]),
+            child: B304HomeHero(
+              isArabic: ar,
+              onNotifications: () => showNotifications(context, controller),
             ),
           ),
         ),
