@@ -84,13 +84,28 @@ extension R36ServerStore on AppController {
     return value==null?null:Color(value);
   }
   int storeDiscountR36(String key) => int.tryParse(storeRowR36(key)?['discount_percent']?.toString() ?? '') ?? 0;
+  // Read-only presentation fallback: never change server prices or entitlements.
   String? storeTextR36(StoreProduct product,String field,String language) {
     final row=storeRowR36(product.id);
     if (row==null) return null;
     final payload=row['payload'] is Map?Map<String,dynamic>.from(row['payload'] as Map):<String,dynamic>{};
-    final value=field=='name'?row['name']:payload['description'];
-    if (value is Map) return (value[language] ?? value['en'] ?? value['ar'])?.toString();
-    if (field=='description') return payload['description_$language']?.toString();
+    final languages=<String>{language,'en','ar'};
+    String? fromMap(dynamic source) {
+      if (source is! Map) return null;
+      for (final lang in languages) {
+        final text=source[lang]?.toString().trim();
+        if (text!=null && text.isNotEmpty) return text;
+      }
+      return null;
+    }
+    if (field=='name') return fromMap(row['name']);
+    if (field!='description') return null;
+    final nested=fromMap(payload['description']);
+    if (nested!=null) return nested;
+    for (final lang in languages) {
+      final text=payload['description_$lang']?.toString().trim();
+      if (text!=null && text.isNotEmpty) return text;
+    }
     return null;
   }
 
