@@ -76,7 +76,8 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
     final all = widget.cards;
     // The newest card is at the end; tapping any exposed older card means
     // taking that card AND every newer discard above it. No hidden cards shown.
-    final beginning = math.max(0, all.length - 18);
+    final visibleCount = math.min(18, math.max(0, widget.maxCount));
+    final beginning = math.max(0, all.length - visibleCount);
     final chosen = all.skip(math.max(0, all.length - count)).toList();
     // Lightweight tappable card faces keep the original PlayingCard preview
     // semantically separate, and Row avoids AlertDialog viewport intrinsics.
@@ -133,7 +134,7 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
               key: const ValueKey('r44-discard-tap-strip'),
               scrollDirection: Axis.horizontal,
               child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                for (var i = beginning; i < all.length; i++)
+                for (var i = beginning; i < all.length - 1; i++)
                   discardChoice(i),
               ]),
             ),
