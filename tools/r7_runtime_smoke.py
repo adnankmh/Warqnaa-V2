@@ -261,6 +261,8 @@ def main():
                     report['checks'].append('r83_room_members_bilingual_theme_visual_review')
                     subprocess.run(['flutter', 'test', 'test/r84_shared_partnership_melds_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
                     report['checks'].append('r84_shared_partnership_melds_bilingual_theme_visual_review')
+                    subprocess.run(['flutter', 'test', 'test/r247_meld_visual_evidence_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
+                    report['checks'].append('r247_meld_discard_blue_portrait_visual_review')
                     report['checks'].append('r51_actual_home_games_and_tournaments_bilingual_five_sizes')
                     report['checks'].append('flutter_live_identity_and_rendered_layouts')
                     subprocess.run(['flutter', 'test', 'test/r10_local_tables_test.dart', '--dart-define-from-file=' + str(config), '--dart-define=R10_REVIEW_DIR=' + str(report_dir / 'local-tables')], cwd=ROOT / 'flutter_app', check=True, timeout=600)
