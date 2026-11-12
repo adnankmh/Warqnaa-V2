@@ -58,6 +58,11 @@ void main() {
           String statusText() => tester.widget<Text>(status).data!;
           expect(Directionality.of(tester.element(status)), ar ? TextDirection.rtl : TextDirection.ltr);
           expect(Theme.of(tester.element(status)).colorScheme.primary, scheme.primary);
+          final submit = find.byKey(const ValueKey('r36-submit-meld-groups'));
+          void expectSubmit(String label) {
+            expect(find.descendant(of: submit, matching: find.text(label)), findsOneWidget);
+          }
+          expectSubmit(ar ? 'نزّل المجموعات' : 'Meld groups');
           for (final i in [0, 1, 2]) {
             await tapKey('r36-meld-card-$i');
           }
@@ -66,6 +71,7 @@ void main() {
           await tester.pumpAndSettle();
           await shot('meld-ready');
           await tapKey('r36-add-meld-group');
+          expectSubmit(ar ? 'نزّل مجموعة واحدة' : 'Meld 1 group');
           await tapKey('r36-meld-card-3');
           await tapKey('r214-clear-meld-selection');
           expect(statusText(), contains(ar ? 'المحدد: 0' : 'Selected: 0'));
@@ -74,6 +80,12 @@ void main() {
           await tester.ensureVisible(group);
           await tester.pumpAndSettle();
           await shot('meld-cleared-group-retained');
+          for (final i in [3, 4, 5]) {
+            await tapKey('r36-meld-card-$i');
+          }
+          await tapKey('r36-add-meld-group');
+          expectSubmit(ar ? 'نزّل مجموعتين' : 'Meld 2 groups');
+          expect(tester.takeException(), isNull);
           await tester.pumpWidget(app(Center(child: AlertDialog(
             insetPadding: const EdgeInsets.symmetric(horizontal: 10),
             content: R40DiscardStackPicker(maxCount: 3, ar: ar,
