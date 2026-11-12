@@ -76,7 +76,8 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
     final all = widget.cards;
     // The newest card is at the end; tapping any exposed older card means
     // taking that card AND every newer discard above it. No hidden cards shown.
-    final beginning = math.max(0, all.length - 18);
+    final visibleCount = math.min(18, math.max(0, widget.maxCount));
+    final beginning = math.max(0, all.length - visibleCount);
     final chosen = all.skip(math.max(0, all.length - count)).toList();
     // Lightweight tappable card faces keep the original PlayingCard preview
     // semantically separate, and Row avoids AlertDialog viewport intrinsics.
@@ -133,7 +134,7 @@ class _R40DiscardStackPickerState extends State<R40DiscardStackPicker> {
               key: const ValueKey('r44-discard-tap-strip'),
               scrollDirection: Axis.horizontal,
               child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                for (var i = beginning; i < all.length; i++)
+                for (var i = beginning; i < all.length - 1; i++)
                   discardChoice(i),
               ]),
             ),
@@ -210,6 +211,15 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
   String text(String ar, String en) => widget.ar ? ar : en;
   String label(String card) => r52CardLabel(card);
 
+  // Feedback is presentation-only: hand indices, prepared groups and server
+  // validation remain the sole authority for which cards can be melded.
+  String selectionStatus() {
+    if (groups.length >= 8) return text('وصلت إلى 8 مجموعات', '8-group limit reached');
+    if (selected.length < 3) return text('اختر 3 أوراق على الأقل', 'Choose at least 3 cards');
+    if (selected.length > 13) return text('الحد الأقصى 13 ورقة', 'Maximum 13 cards');
+    return text('جاهزة للحفظ', 'Ready to save');
+  }
+
   void moveGroup(int from, int by) {
     final to = from + by;
     if (to < 0 || to >= groups.length) return;
@@ -280,6 +290,30 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
                       ),
                     ),
                 ]),
+                const SizedBox(height: 5),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 0,
+                  children: <Widget>[
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        key: const ValueKey('r214-meld-selection-status'),
+                        '${text('المحدد', 'Selected')}: ${selected.length} • ${selectionStatus()}',
+                        style: TextStyle(color: colors.onSurface,
+                          fontSize: 13, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    TextButton.icon(
+                      key: const ValueKey('r214-clear-meld-selection'),
+                      onPressed: selected.isEmpty ? null
+                          : () => setState(() => selected.clear()),
+                      icon: const Icon(Icons.clear_rounded, size: 18),
+                      label: Text(text('مسح التحديد', 'Clear selection')),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
                 FilledButton.tonalIcon(
                   key: const ValueKey('r36-add-meld-group'),
