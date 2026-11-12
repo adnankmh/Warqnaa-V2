@@ -52,7 +52,7 @@ void main() {
             theme: theme, home: Scaffold(body: child),
           ));
           await tester.pumpWidget(app(R36MeldWorkspace(ar: ar,
-            cards: const ['3_H', '4_H', '5_H', '9_D', '9_C', '9_S', 'K_H'])));
+            cards: const ['3_H', '4_H', '5_H', '9_D', '9_C', '9_S', 'K_H', 'K_D', 'K_C'])));
           await tester.pumpAndSettle();
           final status = find.byKey(const ValueKey('r214-meld-selection-status'));
           String statusText() => tester.widget<Text>(status).data!;
@@ -85,6 +85,11 @@ void main() {
           }
           await tapKey('r36-add-meld-group');
           expectSubmit(ar ? 'نزّل مجموعتين' : 'Meld 2 groups');
+          for (final i in [6, 7, 8]) {
+            await tapKey('r36-meld-card-$i');
+          }
+          await tapKey('r36-add-meld-group');
+          expectSubmit(ar ? 'نزّل 3 مجموعات' : 'Meld 3 groups');
           expect(tester.takeException(), isNull);
           await tester.pumpWidget(app(Center(child: AlertDialog(
             insetPadding: const EdgeInsets.symmetric(horizontal: 10),
