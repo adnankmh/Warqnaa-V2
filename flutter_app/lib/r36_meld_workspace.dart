@@ -220,6 +220,14 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
     return text('جاهزة للحفظ', 'Ready to save');
   }
 
+  String meldSubmitLabel() {
+    final count = groups.length;
+    if (count == 0) return text('نزّل المجموعات', 'Meld groups');
+    if (count == 1) return text('نزّل مجموعة واحدة', 'Meld 1 group');
+    if (count == 2) return text('نزّل مجموعتين', 'Meld 2 groups');
+    return text('نزّل $count مجموعات', 'Meld $count groups');
+  }
+
   void moveGroup(int from, int by) {
     final to = from + by;
     if (to < 0 || to >= groups.length) return;
@@ -390,7 +398,7 @@ class _R36MeldWorkspaceState extends State<R36MeldWorkspace> {
             ],
           ]),
           icon: const Icon(Icons.check_circle_rounded),
-          label: Text(text('نزّل ${groups.length} مجموعات','Meld ${groups.length} groups')),
+          label: Text(meldSubmitLabel()),
         ),
       ],
     );
