@@ -80,8 +80,20 @@ void main() {
             await tester.pump();
           }
 
+          // R249: tapping the same card reverses selection without clearing others.
+          await select(0);
+          expect(statusText(), contains(ar ? 'المحدد: 1' : 'Selected: 1'));
+          await select(0);
+          expect(statusText(), contains(ar ? 'المحدد: 0' : 'Selected: 0'));
+          expect(tester.widget<TextButton>(clear).onPressed, isNull);
           await select(0);
           await select(1);
+          await select(0);
+          expect(statusText(), contains(ar ? 'المحدد: 1' : 'Selected: 1'));
+          expect(tester.widget<FilledButton>(add).onPressed, isNull);
+          expect(tester.widget<Text>(status).style!.color,
+            R69PlaySurfaceColors.of(tester.element(status)).onSurface);
+          await select(0);
           expect(statusText(), contains(ar ? 'المحدد: 2' : 'Selected: 2'));
           expect(tester.widget<FilledButton>(add).onPressed, isNull);
           await select(2);
