@@ -3906,18 +3906,112 @@ class _GamesPageState extends State<GamesPage> {
         }),
         const SizedBox(height: 13),
         PremiumPanel(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              QuickButton(icon: '📊', label: L.t(lang, 'leaderboard'), onTap: () => showLeaderboard(context, widget.controller)),
-              QuickButton(icon: '📖', label: L.t(lang, 'rules'), onTap: () => showRules(context, lang, 'tarneeb')),
-              QuickButton(icon: '🏆', label: L.t(lang, 'competitions'), onTap: () => showCompetitions(context, widget.controller)),
-              QuickButton(icon: '👥', label: L.t(lang, 'friends'), onTap: () => showFriends(context, widget.controller)),
-            ],
+          child: R229GameHallQuickLinks(
+            locale: lang,
+            onLeaderboard: () => showLeaderboard(context, widget.controller),
+            onRules: () => showRules(context, lang, 'tarneeb'),
+            onCompetitions: () => showCompetitions(context, widget.controller),
+            onTap: () => showFriends(context, widget.controller),
           ),
         ),
       ],
     );
+  }
+}
+
+/// Portrait-safe, accessible shortcuts to existing game-hall destinations.
+/// No gameplay, currency, networking or permissions are changed.
+class R229GameHallQuickLinks extends StatelessWidget {
+  const R229GameHallQuickLinks({
+    super.key,
+    required this.locale,
+    required this.onLeaderboard,
+    required this.onRules,
+    required this.onCompetitions,
+    required this.onTap,
+  });
+
+  final String locale;
+  final VoidCallback onLeaderboard;
+  final VoidCallback onRules;
+  final VoidCallback onCompetitions;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = locale == 'ar';
+    final actions = <(String, IconData, String, VoidCallback)>[
+      ('leaderboard', Icons.leaderboard_rounded,
+          ar ? 'لوحة المتصدرين' : 'Leaderboard', onLeaderboard),
+      ('rules', Icons.menu_book_rounded,
+          ar ? 'قواعد اللعب' : 'Game rules', onRules),
+      ('competitions', Icons.emoji_events_rounded,
+          ar ? 'المنافسات' : 'Competitions', onCompetitions),
+      ('friends', Icons.people_alt_rounded,
+          ar ? 'الأصدقاء' : 'Friends', onTap),
+    ];
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final blue = dark ? const Color(0xFF064C8C) : const Color(0xFF0877C7);
+    return LayoutBuilder(builder: (context, constraints) {
+      final columns = constraints.maxWidth < 560 ? 2 : 4;
+      final itemWidth = (constraints.maxWidth - (columns - 1) * 8) / columns;
+      return Wrap(
+        key: const ValueKey('r229-games-quick-links'),
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final action in actions)
+            SizedBox(
+              width: itemWidth,
+              child: Semantics(
+                label: action.$3,
+                button: true,
+                onTap: action.$4,
+                child: ExcludeSemantics(
+                  child: Material(
+                    color: blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(
+                        color: R35ReferenceColors.cyan.withValues(alpha: .6),
+                      ),
+                    ),
+                    child: InkWell(
+                      key: ValueKey('r229-games-quick-${action.$1}'),
+                      onTap: action.$4,
+                      borderRadius: BorderRadius.circular(14),
+                      child: SizedBox(
+                        height: 84,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(action.$2, size: 24, color: Colors.white),
+                              const SizedBox(height: 5),
+                              Text(
+                                action.$3,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 }
 
