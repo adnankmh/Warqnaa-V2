@@ -163,6 +163,75 @@ class _RewardRow extends StatelessWidget {
   @override Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children:[Text(icon,style:const TextStyle(fontSize:20)),const SizedBox(width:8),Expanded(child:Text(label,style:const TextStyle(fontWeight:FontWeight.w700))),Text(value,style:TextStyle(color:Theme.of(context).colorScheme.primary,fontWeight:FontWeight.w900))]));
 }
 
+
+/// Read-only game identity: preserve the room code's LTR order in Arabic UI.
+/// The server still owns room membership, routing and leave permissions.
+class ActiveGameRoomLabelR236 extends StatelessWidget {
+  final String gameName;
+  final String? roomCode;
+  final String localeCode;
+
+  const ActiveGameRoomLabelR236({
+    super.key,
+    required this.gameName,
+    required this.roomCode,
+    required this.localeCode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final code = roomCode?.trim() ?? '';
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Flexible(
+          child: Text(
+            gameName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+          ),
+        ),
+        if (code.isNotEmpty) ...<Widget>[
+          const SizedBox(width: 6),
+          Flexible(
+            child: Semantics(
+              label: localeCode == 'ar' ? 'رمز الغرفة $code' : 'Room code $code',
+              textDirection: TextDirection.ltr,
+              excludeSemantics: true,
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Container(
+                  key: const ValueKey('r236-active-room-code'),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: .35),
+                    ),
+                  ),
+                  child: Text(
+                    code,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class ActiveGameBanner extends StatelessWidget {
   final AppController controller;
   final VoidCallback onResume;
@@ -175,7 +244,7 @@ class ActiveGameBanner extends StatelessWidget {
       const SizedBox(width:10),
       Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
         Text(L.t(controller.localeCode,'activeGame'),style:const TextStyle(fontWeight:FontWeight.w900)),
-        Text('${L.t(controller.localeCode,game.id)}${controller.activeRoomCode==null?'':' • ${controller.activeRoomCode}'}',style:TextStyle(fontSize:11,color:Theme.of(context).colorScheme.onSurfaceVariant)),
+        ActiveGameRoomLabelR236(gameName: L.t(controller.localeCode,game.id), roomCode: controller.activeRoomCode, localeCode: controller.localeCode),
       ])),
     ]);
     final exitButton = IconButton.filledTonal(
@@ -202,7 +271,7 @@ class ActiveGameBanner extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(onTap:onResume, child: Container(
         margin: const EdgeInsets.fromLTRB(10, 5, 10, 3), padding: const EdgeInsets.symmetric(horizontal:12,vertical:9),
-        decoration: BoxDecoration(gradient: LinearGradient(colors:[Theme.of(context).colorScheme.primary.withValues(alpha:.28),Colors.greenAccent.withValues(alpha:.08)]),borderRadius:BorderRadius.circular(16),border:Border.all(color:Theme.of(context).colorScheme.primary.withValues(alpha:.45))),
+        decoration: BoxDecoration(gradient: LinearGradient(begin: AlignmentDirectional.centerStart, end: AlignmentDirectional.centerEnd, colors:[Theme.of(context).colorScheme.primary.withValues(alpha:.28),Theme.of(context).colorScheme.primaryContainer.withValues(alpha:.16)]),borderRadius:BorderRadius.circular(16),border:Border.all(color:Theme.of(context).colorScheme.primary.withValues(alpha:.45))),
         child: LayoutBuilder(builder:(context,constraints) {
           if(constraints.maxWidth<420) {
             return Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
