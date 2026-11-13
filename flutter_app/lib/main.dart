@@ -10212,6 +10212,27 @@ class R252RoomPrivacyHint extends StatelessWidget {
   }
 }
 
+class R253RoomSeatSummary extends StatelessWidget {
+  const R253RoomSeatSummary({super.key, required this.locale, required this.playerCount, required this.invited, required this.bots});
+  final String locale;
+  final int playerCount;
+  final int invited;
+  final int bots;
+
+  @override
+  Widget build(BuildContext context) {
+    final open = (playerCount - 1 - invited - bots).clamp(0, 7);
+    final label = locale == 'ar'
+        ? 'المحدد: $invited لاعب حقيقي • $bots بوت • $open مقاعد مفتوحة'
+        : '$invited invited • $bots computer • $open open seats';
+    return Semantics(
+      key: const ValueKey('r253-room-seat-summary'),
+      liveRegion: true,
+      child: Text(label, softWrap: true, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    );
+  }
+}
+
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   final ar = controller.localeCode == 'ar';
@@ -10359,7 +10380,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 onChanged: (value) => setLocalState(() => botCount = value ?? 0),
               ),
               const SizedBox(height: 6),
-              Text(ar ? 'المحدد: ${selectedInviteeIds.length} لاعب حقيقي • $botCount بوت • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} مقاعد مفتوحة' : '${selectedInviteeIds.length} invited • $botCount computer • ${(playerCount - 1 - selectedInviteeIds.length - botCount).clamp(0, 7)} open seats', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .64))),
+              R253RoomSeatSummary(locale: controller.localeCode, playerCount: playerCount, invited: selectedInviteeIds.length, bots: botCount),
             ]),
           ),
           const SizedBox(height: 10),
