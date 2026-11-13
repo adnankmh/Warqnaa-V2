@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/main.dart';
+import 'package:warqna_mobile/main.dart';
 
 void main() {
   for (final locale in ['ar', 'en']) {
