@@ -22,12 +22,29 @@ class R48ApprovedTableArt extends StatelessWidget {
     final vertical = portrait ?? constraints.maxHeight > constraints.maxWidth;
     return ClipRRect(
       borderRadius: BorderRadius.circular(design == 'eagle' && !vertical ? constraints.maxHeight * .43 : 18),
-      child: Image.asset(
-        r48TableAsset(design, portrait: vertical),
-        key: ValueKey('r48-table-$design-${vertical ? 'portrait' : 'landscape'}'),
-        fit: BoxFit.fill,
-        filterQuality: FilterQuality.high,
-        excludeFromSemantics: true,
+      child: DecoratedBox(
+        key: const ValueKey('r221-table-art-blue-backdrop'),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[R9Design.skyPanel, R9Design.midnight],
+          ),
+        ),
+        child: Image.asset(
+          r48TableAsset(design, portrait: vertical),
+          key: ValueKey('r48-table-$design-${vertical ? 'portrait' : 'landscape'}'),
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+          filterQuality: FilterQuality.high,
+          excludeFromSemantics: true,
+          errorBuilder: (context, error, stackTrace) => const SizedBox.expand(
+            key: ValueKey('r221-table-art-fallback'),
+            child: Center(
+              child: Icon(Icons.style_rounded, color: Color(0xFFBDEBFF), size: 32),
+            ),
+          ),
+        ),
       ),
     );
   });
