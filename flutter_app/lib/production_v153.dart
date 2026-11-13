@@ -123,6 +123,66 @@ class ProductionDestructiveButtonV153 extends StatelessWidget {
   }
 }
 
+/// R242: Display server-reported voice readiness without implying that
+/// an absent configuration means that voice or TURN is disabled.
+String productionVoiceStatusV242(String locale, Map<String, dynamic> voice) {
+  final ar = locale == 'ar';
+  if (voice.isEmpty) {
+    return ar
+        ? 'حالة WebRTC وSTUN/TURN غير متاحة دون بيانات الخادم'
+        : 'WebRTC and STUN/TURN status requires server data';
+  }
+
+  String state(dynamic value, String yes, String no, String unknown) {
+    if (value == true) return yes;
+    if (value == false) return no;
+    return unknown;
+  }
+
+  final enabled = state(
+    voice['enabled'],
+    ar ? 'مفعّلة' : 'Enabled',
+    ar ? 'غير مفعّلة' : 'Disabled',
+    ar ? 'غير معروفة' : 'Unknown',
+  );
+  final turn = state(
+    voice['turn_required'],
+    ar ? 'مطلوب' : 'Required',
+    ar ? 'غير مطلوب' : 'Not required',
+    ar ? 'غير معروف' : 'Unknown',
+  );
+  return ar
+      ? 'الغرف الصوتية: $enabled • TURN: $turn'
+      : 'Voice rooms: $enabled • TURN: $turn';
+}
+
+class ProductionVoiceReadinessV242 extends StatelessWidget {
+  const ProductionVoiceReadinessV242({
+    super.key,
+    required this.locale,
+    required this.voice,
+  });
+
+  final String locale;
+  final Map<String, dynamic> voice;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = productionVoiceStatusV242(locale, voice);
+    return Text(
+      status,
+      key: const ValueKey('r242-production-voice-readiness'),
+      semanticsLabel: status,
+      softWrap: true,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        fontSize: 12,
+        height: 1.4,
+      ),
+    );
+  }
+}
+
 class ProductionCenterV153 extends StatefulWidget {
   final AppController controller;
   const ProductionCenterV153({super.key, required this.controller});
@@ -190,7 +250,7 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                   )),
                   const SizedBox(height: 10),
                   PremiumPanel(child: Column(children: [
-                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.voice), title: Text(t('voice')), subtitle: Text(voice.isEmpty ? 'WebRTC • STUN/TURN status requires server' : 'Enabled: ${voice['enabled']} • TURN: ${voice['turn_required']}')),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.voice), title: Text(t('voice')), subtitle: ProductionVoiceReadinessV242(locale: c.localeCode, voice: voice)),
                     ListTile(leading: const Icon(Icons.download_rounded), title: Text(t('export')), subtitle: const Text('JSON export of account, profile, inventory, wallet and recent messages'), onTap: _exportData),
                     ListTile(leading: const Icon(Icons.devices_rounded), title: Text(t('sessions')), subtitle: const Text('Review and close active API sessions'), onTap: _showSessions),
                     ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.verification), title: Text(t('verifyEmail')), subtitle: Text(t('verifyEmailHint')), onTap: _sendVerification),
