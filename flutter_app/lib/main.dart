@@ -10233,6 +10233,35 @@ class R253RoomSeatSummary extends StatelessWidget {
   }
 }
 
+class R254RoomVoicePrivacyNotice extends StatelessWidget {
+  const R254RoomVoicePrivacyNotice({super.key, required this.locale});
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = L.t(locale, 'voicePrivacyHint');
+    return Semantics(
+      key: const ValueKey('r254-room-voice-privacy-announcement'),
+      liveRegion: true,
+      label: hint,
+      excludeSemantics: true,
+      child: Container(
+        key: const ValueKey('r77-voice-privacy-notice'),
+        padding: const EdgeInsets.all(10),
+        decoration: r77VoicePrivacyDecoration(context),
+        child: Row(children: [
+          Icon(Icons.verified_user_outlined, color: r77RoomEntryAccent(context, positive: true)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(hint, softWrap: true, style: TextStyle(
+            color: R69PlaySurfaceColors.of(context).onSurface,
+            fontSize: 11, height: 1.45,
+          ))),
+        ]),
+      ),
+    );
+  }
+}
+
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   final ar = controller.localeCode == 'ar';
@@ -10279,12 +10308,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ),
           if (voiceEnabled) ...[
             const SizedBox(height: 8),
-            Container(
-              key: const ValueKey('r77-voice-privacy-notice'),
-              padding: const EdgeInsets.all(10),
-              decoration: r77VoicePrivacyDecoration(context),
-              child: Row(children: [Icon(Icons.verified_user_outlined, color: r77RoomEntryAccent(context, positive: true)), const SizedBox(width: 8), Expanded(child: Text(L.t(controller.localeCode, 'voicePrivacyHint'), style: TextStyle(color: R69PlaySurfaceColors.of(context).onSurface, fontSize: 11, height: 1.45)))]),
-            ),
+            R254RoomVoicePrivacyNotice(locale: controller.localeCode),
           ],
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
