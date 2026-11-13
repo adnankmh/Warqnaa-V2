@@ -174,7 +174,14 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
             ),
             const SizedBox(height: 18),
             TextField(
+              key: const ValueKey('r227-account-username-field'),
               controller: usernameController,
+              // Account identifiers are ASCII, even in an Arabic RTL form.
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.start,
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
               autofillHints: const [AutofillHints.username],
               decoration: InputDecoration(
                 labelText: ar ? 'اسم المستخدم' : 'Username',
@@ -183,7 +190,13 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
             ),
             const SizedBox(height: 12),
             TextField(
+              key: const ValueKey('r227-account-email-field'),
               controller: emailController,
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.start,
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
               decoration: InputDecoration(
@@ -201,6 +214,9 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
                 prefixIcon: const Icon(Icons.lock_outline_rounded),
                 suffixIcon: IconButton(
                   onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
+                  tooltip: ar
+                      ? (obscureCurrent ? 'إظهار كلمة المرور الحالية' : 'إخفاء كلمة المرور الحالية')
+                      : (obscureCurrent ? 'Show current password' : 'Hide current password'),
                   icon: Icon(obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                 ),
               ),
@@ -215,6 +231,9 @@ class _R143AccountSecurityPageState extends State<R143AccountSecurityPage> {
                 prefixIcon: const Icon(Icons.key_rounded),
                 suffixIcon: IconButton(
                   onPressed: () => setState(() => obscureNew = !obscureNew),
+                  tooltip: ar
+                      ? (obscureNew ? 'إظهار كلمة المرور الجديدة' : 'إخفاء كلمة المرور الجديدة')
+                      : (obscureNew ? 'Show new password' : 'Hide new password'),
                   icon: Icon(obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                 ),
               ),
