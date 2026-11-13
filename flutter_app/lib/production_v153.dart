@@ -3,6 +3,9 @@ part of 'main.dart';
 String v153Text(String locale, String key) {
   const values = <String, Map<String, String>>{
     'ar': {
+      'exportHint': 'تصدير بيانات الحساب والملف الشخصي والمقتنيات والمحفظة والرسائل الأخيرة بصيغة JSON',
+      'sessionsHint': 'مراجعة جلسات الاتصال النشطة وإغلاقها',
+      'reportHint': 'الإبلاغ عن الإساءة أو الغش أو الرسائل المزعجة أو المحتوى غير المناسب',
       'productionCenter': 'مركز الأمان والإطلاق',
       'productionCenterHint': 'حالة الخادم، الخصوصية، الجلسات، تصدير البيانات والبلاغات',
       'server': 'الخادم والإصدار', 'privacy': 'الخصوصية والبيانات', 'sessions': 'الجلسات والأجهزة',
@@ -11,6 +14,9 @@ String v153Text(String locale, String key) {
       'deleteRequest': 'إلغاء الحساب', 'cancelDelete': 'التراجع عن إلغاء الحساب', 'verifyEmail':'تأكيد البريد الإلكتروني', 'verifyEmailHint':'إرسال رابط تأكيد إلى بريد الحساب',
     },
     'en': {
+      'exportHint': 'JSON export of account, profile, inventory, wallet and recent messages',
+      'sessionsHint': 'Review and close active API sessions',
+      'reportHint': 'Report abuse, cheating, spam or inappropriate content',
       'productionCenter': 'Safety & Launch Center',
       'productionCenterHint': 'Server status, privacy, sessions, export and reports',
       'server': 'Server & release', 'privacy': 'Privacy & data', 'sessions': 'Sessions & devices',
@@ -183,6 +189,20 @@ class ProductionVoiceReadinessV242 extends StatelessWidget {
   }
 }
 
+class ProductionActionHintV251 extends StatelessWidget {
+  const ProductionActionHintV251({super.key, required this.locale, required this.hintKey});
+  final String locale;
+  final String hintKey;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    v153Text(locale, hintKey),
+    key: ValueKey('r251-$hintKey'),
+    softWrap: true,
+    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+  );
+}
+
 class ProductionCenterV153 extends StatefulWidget {
   final AppController controller;
   const ProductionCenterV153({super.key, required this.controller});
@@ -251,10 +271,10 @@ class _ProductionCenterV153State extends State<ProductionCenterV153> {
                   const SizedBox(height: 10),
                   PremiumPanel(child: Column(children: [
                     ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.voice), title: Text(t('voice')), subtitle: ProductionVoiceReadinessV242(locale: c.localeCode, voice: voice)),
-                    ListTile(leading: const Icon(Icons.download_rounded), title: Text(t('export')), subtitle: const Text('JSON export of account, profile, inventory, wallet and recent messages'), onTap: _exportData),
-                    ListTile(leading: const Icon(Icons.devices_rounded), title: Text(t('sessions')), subtitle: const Text('Review and close active API sessions'), onTap: _showSessions),
+                    ListTile(leading: const Icon(Icons.download_rounded), title: Text(t('export')), subtitle: ProductionActionHintV251(locale: c.localeCode, hintKey: 'exportHint'), onTap: _exportData),
+                    ListTile(leading: const Icon(Icons.devices_rounded), title: Text(t('sessions')), subtitle: ProductionActionHintV251(locale: c.localeCode, hintKey: 'sessionsHint'), onTap: _showSessions),
                     ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.verification), title: Text(t('verifyEmail')), subtitle: Text(t('verifyEmailHint')), onTap: _sendVerification),
-                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.report), title: Text(t('report')), subtitle: const Text('Report abuse, cheating, spam or inappropriate content'), onTap: _showReportDialog),
+                    ListTile(leading: const ProductionActionIconV153(action: ProductionActionV153.report), title: Text(t('report')), subtitle: ProductionActionHintV251(locale: c.localeCode, hintKey: 'reportHint'), onTap: _showReportDialog),
                   ])),
                   const SizedBox(height: 10),
                   PremiumPanel(child: Column(children: [
