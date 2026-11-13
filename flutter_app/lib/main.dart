@@ -10193,6 +10193,25 @@ BoxDecoration r75FriendlyParticipantDecoration(BuildContext context) {
   );
 }
 
+class R252RoomPrivacyHint extends StatelessWidget {
+  const R252RoomPrivacyHint({super.key, required this.locale, required this.isPrivate});
+  final String locale;
+  final bool isPrivate;
+
+  @override
+  Widget build(BuildContext context) {
+    final ar = locale == 'ar';
+    return Text(
+      isPrivate
+          ? (ar ? 'يمكنك تعيين كلمة مرور للغرفة الخاصة.' : 'You can set a password for the private room.')
+          : (ar ? 'لا تحتاج الغرفة العامة إلى كلمة مرور.' : 'A public room does not require a password.'),
+      key: const ValueKey('r252-room-privacy-hint'),
+      softWrap: true,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    );
+  }
+}
+
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   final ar = controller.localeCode == 'ar';
@@ -10257,6 +10276,8 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             ],
             onChanged: (value) => setLocalState(() => visibility = value ?? 'public'),
           ),
+          const SizedBox(height: 6),
+          R252RoomPrivacyHint(locale: controller.localeCode, isPrivate: visibility == 'private'),
           if (visibility == 'private') ...[
             const SizedBox(height: 9),
             TextField(controller: passwordController, obscureText: true, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'password'), prefixIcon: const Icon(Icons.lock_outline_rounded))),
