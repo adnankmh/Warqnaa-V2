@@ -10241,11 +10241,12 @@ class R254RoomVoicePrivacyNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final hint = L.t(locale, 'voicePrivacyHint');
     return Semantics(
-      key: const ValueKey('r77-voice-privacy-notice'),
+      key: const ValueKey('r254-room-voice-privacy-announcement'),
       liveRegion: true,
       label: hint,
       excludeSemantics: true,
       child: Container(
+        key: const ValueKey('r77-voice-privacy-notice'),
         padding: const EdgeInsets.all(10),
         decoration: r77VoicePrivacyDecoration(context),
         child: Row(children: [
