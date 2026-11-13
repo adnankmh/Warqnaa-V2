@@ -22,6 +22,103 @@ String r21ClubCountLabel(String locale, int count) {
   return '$count ناديًا';
 }
 
+/// Localized, portrait-safe selectors for the existing social composer.
+/// Values are unchanged API identifiers; only presentation is localized.
+class R222SocialComposerOptions extends StatelessWidget {
+  const R222SocialComposerOptions({
+    super.key,
+    required this.isArabic,
+    required this.type,
+    required this.audience,
+    required this.onTypeChanged,
+    required this.onAudienceChanged,
+  });
+
+  final bool isArabic;
+  final String type;
+  final String audience;
+  final ValueChanged<String> onTypeChanged;
+  final ValueChanged<String> onAudienceChanged;
+
+  Widget _selector({
+    required BuildContext context,
+    required Key key,
+    required String value,
+    required String label,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String> onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      key: key,
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: label),
+      icon: Icon(Icons.expand_more_rounded,
+          color: Theme.of(context).colorScheme.primary),
+      items: items,
+      onChanged: (selected) {
+        if (selected != null) onChanged(selected);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final typeField = _selector(
+      context: context,
+      key: const ValueKey('r222-composer-type'),
+      value: type,
+      label: isArabic ? 'نوع المنشور' : 'Post type',
+      items: [
+        DropdownMenuItem(value: 'status',
+            child: Text(isArabic ? 'حالة' : 'Status')),
+        DropdownMenuItem(value: 'looking_for_game',
+            child: Text(isArabic ? 'أبحث عن لعبة' : 'Looking for game')),
+        DropdownMenuItem(value: 'achievement',
+            child: Text(isArabic ? 'إنجاز' : 'Achievement')),
+      ],
+      onChanged: onTypeChanged,
+    );
+    final audienceField = _selector(
+      context: context,
+      key: const ValueKey('r222-composer-audience'),
+      value: audience,
+      label: isArabic ? 'الجمهور' : 'Audience',
+      items: [
+        DropdownMenuItem(value: 'public',
+            child: Text(isArabic ? 'عام' : 'Public')),
+        DropdownMenuItem(value: 'friends',
+            child: Text(isArabic ? 'الأصدقاء' : 'Friends')),
+        DropdownMenuItem(value: 'followers',
+            child: Text(isArabic ? 'المتابعون' : 'Followers')),
+        DropdownMenuItem(value: 'private',
+            child: Text(isArabic ? 'خاص' : 'Private')),
+      ],
+      onChanged: onAudienceChanged,
+    );
+
+    return LayoutBuilder(builder: (context, constraints) {
+      // Avoid two narrow, overflowing dropdowns in portrait dialogs.
+      if (constraints.maxWidth < 440) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            typeField,
+            const SizedBox(height: 12),
+            audienceField,
+          ],
+        );
+      }
+      return Row(children: [
+        Expanded(child: typeField),
+        const SizedBox(width: 12),
+        Expanded(child: audienceField),
+      ]);
+    });
+  }
+}
+
 class R11SocialWorldPage extends StatefulWidget {
   const R11SocialWorldPage({super.key, required this.controller});
   final AppController controller;
@@ -84,11 +181,14 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
       content: SizedBox(width: 520, child: Column(mainAxisSize: MainAxisSize.min, children: [
         TextField(controller: text, minLines: 3, maxLines: 7, maxLength: 500, decoration: InputDecoration(hintText: ar ? 'ماذا يحدث في مجلسك؟' : 'What’s happening in your majlis?')),
         const SizedBox(height: 8),
-        Row(children: [
-          Expanded(child: DropdownButtonFormField<String>(initialValue: type, items: const [DropdownMenuItem(value:'status',child:Text('Status')),DropdownMenuItem(value:'looking_for_game',child:Text('Looking for game')),DropdownMenuItem(value:'achievement',child:Text('Achievement'))], onChanged: (value) => setDialogState(() => type = value ?? type))),
-          const SizedBox(width: 8),
-          Expanded(child: DropdownButtonFormField<String>(initialValue: audience, items: const [DropdownMenuItem(value:'public',child:Text('Public')),DropdownMenuItem(value:'friends',child:Text('Friends')),DropdownMenuItem(value:'followers',child:Text('Followers')),DropdownMenuItem(value:'private',child:Text('Private'))], onChanged: (value) => setDialogState(() => audience = value ?? audience))),
-        ]),
+        R222SocialComposerOptions(
+          isArabic: ar,
+          type: type,
+          audience: audience,
+          onTypeChanged: (value) => setDialogState(() => type = value),
+          onAudienceChanged: (value) =>
+              setDialogState(() => audience = value),
+        ),
       ])),
       actions: [TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(ar ? 'إلغاء' : 'Cancel')), FilledButton(onPressed: () => Navigator.pop(dialogContext, text.text.trim().isNotEmpty), child: Text(ar ? 'نشر' : 'Publish'))],
     )));
