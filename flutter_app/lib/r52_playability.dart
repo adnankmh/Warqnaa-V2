@@ -94,6 +94,21 @@ Future<void> watchVerifiedRewardedAdR52(BuildContext context,AppController contr
   }
 }
 
+/// Announces score movement without implying that positive points mean a win.
+/// Hand and other games may use different scoring conventions.
+String r219RoundDeltaSemantics(String player, Object? delta, bool ar) {
+  if (delta is! num) return '$player: $delta';
+  if (delta > 0) {
+    return ar ? '$player: زائد $delta نقطة' : '$player: plus $delta points';
+  }
+  if (delta < 0) {
+    return ar
+        ? '$player: ناقص ${delta.abs()} نقطة'
+        : '$player: minus ${delta.abs()} points';
+  }
+  return ar ? '$player: دون تغيير في النقاط' : '$player: no points change';
+}
+
 class R52RoundScoreCard extends StatelessWidget {
   const R52RoundScoreCard({super.key,required this.state,required this.players,required this.ar});
   final Map<String,dynamic> state;
@@ -115,7 +130,9 @@ class R52RoundScoreCard extends StatelessWidget {
         Text(ar?'نقاط الجولة السابقة':'Previous round points',style:TextStyle(color:colors.accent,fontSize:14,fontWeight:FontWeight.w900)),
         Wrap(spacing:12,runSpacing:6,children:[for(final entry in raw.entries)
           Text('${names[entry.key.toString()] ?? entry.key}: ${entry.value is num && (entry.value as num)>0 ? '+' : ''}${entry.value}',
-            key:ValueKey('r52-round-points-${entry.key}'),style:TextStyle(color:colors.onSurface,fontSize:14,fontWeight:FontWeight.w800))]),
+            key:ValueKey('r52-round-points-${entry.key}'),
+            semanticsLabel:r219RoundDeltaSemantics(names[entry.key.toString()] ?? entry.key.toString(),entry.value,ar),
+            style:TextStyle(color:colors.onSurface,fontSize:14,fontWeight:FontWeight.w800))]),
       ]));
   }
 }
