@@ -205,26 +205,36 @@ class B307BottomNavigation extends StatelessWidget {
           children: List<Widget>.generate(icons.length, (i) {
             final selected = i == selectedIndex;
             return Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(13),
+              child: Semantics(
+                key: ValueKey('r228-bottom-destination-$i'),
+                label: labels[i],
+                button: true,
+                selected: selected,
                 onTap: () => onSelected(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(13),
-                    gradient: selected
-                        ? const LinearGradient(colors: <Color>[Color(0xff23c7ff), Color(0xff0b8cff)])
-                        : null,
-                    color: selected ? null : Colors.transparent,
-                    border: selected ? Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .72)) : null,
-                    boxShadow: selected ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 12)] : null,
+                child: InkWell(
+                  excludeFromSemantics: true,
+                  borderRadius: BorderRadius.circular(13),
+                  onTap: () => onSelected(i),
+                  child: ExcludeSemantics(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(13),
+                        gradient: selected
+                            ? const LinearGradient(colors: <Color>[Color(0xff23c7ff), Color(0xff0b8cff)])
+                            : null,
+                        color: selected ? null : Colors.transparent,
+                        border: selected ? Border.all(color: B307SkyLuxury.goldSoft.withValues(alpha: .72)) : null,
+                        boxShadow: selected ? <BoxShadow>[BoxShadow(color: B307SkyLuxury.sky.withValues(alpha: .28), blurRadius: 12)] : null,
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                        Icon(icons[i], size: 21, color: selected ? Colors.black : B307SkyLuxury.textMuted),
+                        const SizedBox(height: 2),
+                        Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.15, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
+                      ]),
+                    ),
                   ),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                    Icon(icons[i], size: 21, color: selected ? Colors.black : B307SkyLuxury.textMuted),
-                    const SizedBox(height: 2),
-                    Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, height: 1.15, fontWeight: selected ? FontWeight.w900 : FontWeight.w700, color: selected ? Colors.black : B307SkyLuxury.textMuted)),
-                  ]),
                 ),
               ),
             );
