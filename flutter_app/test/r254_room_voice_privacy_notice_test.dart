@@ -112,9 +112,20 @@ void main() {
           expect(notice, findsNothing);
           final mode = find.descendant(of: sheet, matching: find.byType(SegmentedButton<bool>));
           expect(mode, findsOneWidget);
+          final modeButton = tester.widget<SegmentedButton<bool>>(mode);
+          final selectedStates = {WidgetState.selected};
+          final modeBackground = modeButton.style!.backgroundColor!.resolve(selectedStates)!;
+          final modeForeground = modeButton.style!.foregroundColor!.resolve(selectedStates)!;
+          expect(modeBackground, const Color(0xFF1565C0));
+          expect(modeForeground, Colors.white);
+          expect((modeForeground.computeLuminance() + .05) /
+              (modeBackground.computeLuminance() + .05), greaterThanOrEqualTo(4.5));
+          expect(modeButton.style!.backgroundColor!.resolve({}), isNull);
+          expect(modeButton.selected, {false});
           await tester.tap(find.descendant(of: mode, matching: find.text(L.t(locale, 'voiceGame'))));
           await tester.pumpAndSettle();
           expect(notice, findsOneWidget);
+          expect(tester.widget<SegmentedButton<bool>>(mode).selected, {true});
           await tester.ensureVisible(notice);
           await tester.pumpAndSettle();
           expect(Directionality.of(tester.element(notice)), locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
