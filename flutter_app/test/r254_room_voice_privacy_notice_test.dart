@@ -124,6 +124,22 @@ void main() {
           if (review.reviewDirectory.isNotEmpty) {
             await review.capture(tester, key, 'r254-full-create-room-$locale-$themeCode-${width.toInt()}x844');
           }
+          // Reach the actual submit control without invoking its network action.
+          final submit = find.byKey(const ValueKey('r48-create-room-submit'));
+          expect(submit, findsOneWidget);
+          await tester.ensureVisible(submit);
+          await tester.pumpAndSettle();
+          expect(submit.hitTestable(), findsOneWidget);
+          final submitRect = tester.getRect(submit);
+          expect(submitRect.left, greaterThanOrEqualTo(0));
+          expect(submitRect.right, lessThanOrEqualTo(width));
+          expect(submitRect.top, greaterThanOrEqualTo(0));
+          expect(submitRect.bottom, lessThanOrEqualTo(844));
+          expect(tester.takeException(), isNull);
+          if (review.reviewDirectory.isNotEmpty) {
+            await review.capture(tester, key,
+              'r254-create-room-submit-$locale-$themeCode-${width.toInt()}x844');
+          }
           await tester.ensureVisible(mode);
           await tester.pumpAndSettle();
           await tester.tap(find.descendant(of: mode, matching: find.text(L.t(locale, 'normalGame'))));
