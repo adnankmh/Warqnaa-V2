@@ -10298,6 +10298,14 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           TextField(key: const ValueKey('r48-room-name'), controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
           const SizedBox(height: 10),
           SegmentedButton<bool>(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? const Color(0xFF1565C0)
+                      : null),
+              foregroundColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected) ? Colors.white : null),
+            ),
             segments: [
               ButtonSegment(value: false, icon: const Icon(Icons.style_rounded), label: Text(L.t(controller.localeCode, 'normalGame'))),
               ButtonSegment(value: true, icon: const Icon(Icons.mic_rounded), label: Text(L.t(controller.localeCode, 'voiceGame'))),
