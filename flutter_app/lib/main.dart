@@ -10471,7 +10471,11 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             },
             icon: Icon(voiceEnabled ? Icons.mic_rounded : Icons.play_arrow_rounded),
             label: Text(voiceEnabled ? L.t(controller.localeCode, 'createVoiceRoom') : L.t(controller.localeCode, 'createNormalRoom')),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(54),
+              backgroundColor: const Color(0xFF1565C0),
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
