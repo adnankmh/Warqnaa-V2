@@ -82,4 +82,60 @@ void main() {
       }
     }
   }
+
+  // Exercise the production modal, not a surrogate switch or isolated notice.
+  for (final locale in ['ar', 'en']) {
+    for (final width in [320.0, 390.0]) {
+      for (final themeCode in ['light', 'dark']) {
+        testWidgets('R254 full create room $locale $width $themeCode', (tester) async {
+          tester.view.physicalSize = Size(width, 844);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final controller = AppController()
+            ..localeCode = locale
+            ..themeCode = themeCode
+            ..uiAccentHex = '#1565C0';
+          addTearDown(controller.dispose);
+          final game = gamesCatalog.firstWhere((entry) => entry.id == 'hand');
+          final key = GlobalKey();
+          await tester.pumpWidget(review.reviewApp(
+            Scaffold(body: Builder(builder: (context) => FilledButton(
+              onPressed: () => showCreateRoom(context, controller, game),
+              child: const Text('Open room'),
+            ))), controller, key));
+          await tester.tap(find.text('Open room'));
+          await tester.pumpAndSettle();
+          final sheet = find.byKey(const ValueKey('r48-create-room-settings'));
+          final notice = find.byKey(const ValueKey('r77-voice-privacy-notice'));
+          expect(sheet, findsOneWidget);
+          expect(notice, findsNothing);
+          final mode = find.descendant(of: sheet, matching: find.byType(SegmentedButton<bool>));
+          expect(mode, findsOneWidget);
+          await tester.tap(find.descendant(of: mode, matching: find.text(L.t(locale, 'voiceGame'))));
+          await tester.pumpAndSettle();
+          expect(notice, findsOneWidget);
+          await tester.ensureVisible(notice);
+          await tester.pumpAndSettle();
+          expect(Directionality.of(tester.element(notice)), locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+          expect(Theme.of(tester.element(notice)).brightness, themeCode == 'dark' ? Brightness.dark : Brightness.light);
+          expect(tester.getSize(notice).width, lessThanOrEqualTo(width));
+          expect(tester.takeException(), isNull);
+          if (review.reviewDirectory.isNotEmpty) {
+            await review.capture(tester, key, 'r254-full-create-room-$locale-$themeCode-${width.toInt()}x844');
+          }
+          await tester.ensureVisible(mode);
+          await tester.pumpAndSettle();
+          await tester.tap(find.descendant(of: mode, matching: find.text(L.t(locale, 'normalGame'))));
+          await tester.pumpAndSettle();
+          expect(notice, findsNothing);
+          Navigator.of(tester.element(sheet)).pop();
+          await tester.pumpAndSettle();
+          expect(sheet, findsNothing);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        });
+      }
+    }
+  }
 }
