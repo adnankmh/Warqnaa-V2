@@ -130,6 +130,14 @@ void main() {
           await tester.ensureVisible(submit);
           await tester.pumpAndSettle();
           expect(submit.hitTestable(), findsOneWidget);
+          final submitButton = tester.widget<FilledButton>(submit);
+          final background = submitButton.style!.backgroundColor!.resolve({})!;
+          final foreground = submitButton.style!.foregroundColor!.resolve({})!;
+          expect(background, const Color(0xFF1565C0));
+          expect(foreground, Colors.white);
+          final contrast = (foreground.computeLuminance() + .05) /
+              (background.computeLuminance() + .05);
+          expect(contrast, greaterThanOrEqualTo(4.5));
           final submitRect = tester.getRect(submit);
           expect(submitRect.left, greaterThanOrEqualTo(0));
           expect(submitRect.right, lessThanOrEqualTo(width));
