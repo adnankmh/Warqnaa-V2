@@ -259,6 +259,8 @@ def main():
                     report['checks'].append('r82_profile_dialogs_bilingual_theme_visual_review')
                     subprocess.run(['flutter', 'test', 'test/r83_room_members_theme_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
                     report['checks'].append('r83_room_members_bilingual_theme_visual_review')
+                    subprocess.run(['flutter', 'test', 'test/r254_room_voice_privacy_notice_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
+                    report['checks'].append('r254_room_voice_privacy_blue_portrait_visual_review')
                     subprocess.run(['flutter', 'test', 'test/r84_shared_partnership_melds_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
                     report['checks'].append('r84_shared_partnership_melds_bilingual_theme_visual_review')
                     subprocess.run(['flutter', 'test', 'test/r247_meld_visual_evidence_test.dart', '--dart-define-from-file=' + str(config)], cwd=ROOT / 'flutter_app', check=True, timeout=300)
