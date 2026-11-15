@@ -15,7 +15,7 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           final semantics = tester.ensureSemantics();
-          addTearDown(semantics.dispose);
+          try {
 
           final direction =
               locale == 'ar' ? TextDirection.rtl : TextDirection.ltr;
@@ -69,6 +69,9 @@ void main() {
             theme.colorScheme.primary.withValues(alpha: .12),
           );
           expect(tester.takeException(), isNull);
+          } finally {
+            semantics.dispose();
+          }
         });
       }
     }
@@ -111,7 +114,12 @@ void main() {
         ),
       ),
     ));
-    expect(find.byKey(const ValueKey('r236-active-room-code')), findsOneWidget);
+    final code = find.byKey(const ValueKey('r236-active-room-code'));
+    expect(code, findsOneWidget);
+    final bounds = tester.getRect(code);
+    expect(bounds.left, greaterThanOrEqualTo(12));
+    expect(bounds.right, lessThanOrEqualTo(308));
+    expect(Directionality.of(tester.element(code)), TextDirection.ltr);
     expect(tester.takeException(), isNull);
   });
 }
