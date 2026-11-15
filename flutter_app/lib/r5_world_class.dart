@@ -99,19 +99,43 @@ class R5HomeDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return R234BlueHomeBackdrop(
+      child: B307HomeDashboard(controller: controller, onTab: onTab),
+    );
+  }
+}
+
+/// Theme-aware Warqnaa blue home canvas. Decorative only: no navigation,
+/// gameplay, account, inventory or server state is modified.
+class R234BlueHomeBackdrop extends StatelessWidget {
+  const R234BlueHomeBackdrop({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dark = scheme.brightness == Brightness.dark;
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      key: const ValueKey('r234-blue-home-backdrop'),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: <Color>[
-            Color(0xff121212),
-            Color(0xff171512),
-            Color(0xff101010),
+            Color.alphaBlend(
+              R9Design.azure.withValues(alpha: dark ? .22 : .14),
+              scheme.surface,
+            ),
+            Color.alphaBlend(
+              R9Design.sky.withValues(alpha: dark ? .12 : .07),
+              scheme.surface,
+            ),
+            scheme.surface,
           ],
         ),
       ),
-      child: B307HomeDashboard(controller: controller, onTab: onTab),
+      child: child,
     );
   }
 }
