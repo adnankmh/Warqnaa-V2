@@ -10233,6 +10233,59 @@ class R253RoomSeatSummary extends StatelessWidget {
   }
 }
 
+class R254RoomVoicePrivacyNotice extends StatelessWidget {
+  const R254RoomVoicePrivacyNotice({super.key, required this.locale});
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final hint = L.t(locale, 'voicePrivacyHint');
+    return Semantics(
+      key: const ValueKey('r254-room-voice-privacy-announcement'),
+      liveRegion: true,
+      label: hint,
+      excludeSemantics: true,
+      child: Container(
+        key: const ValueKey('r77-voice-privacy-notice'),
+        padding: const EdgeInsets.all(10),
+        decoration: r77VoicePrivacyDecoration(context),
+        child: Row(children: [
+          Icon(Icons.verified_user_outlined, color: r77RoomEntryAccent(context, positive: true)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(hint, softWrap: true, style: TextStyle(
+            color: R69PlaySurfaceColors.of(context).onSurface,
+            fontSize: 11, height: 1.45,
+          ))),
+        ]),
+      ),
+    );
+  }
+}
+
+// Room creation uses the original blue palette independently of cosmetic accents.
+ThemeData r255RoomCreationTheme(BuildContext context) {
+  final inherited = Theme.of(context);
+  final dark = inherited.brightness == Brightness.dark;
+  final scheme = ColorScheme.fromSeed(
+    seedColor: const Color(0xFF1565C0),
+    brightness: inherited.brightness,
+  ).copyWith(
+    primary: dark ? const Color(0xFF90CAF9) : const Color(0xFF1565C0),
+    onPrimary: dark ? const Color(0xFF0C2947) : Colors.white,
+    surface: dark ? const Color(0xFF101D32) : const Color(0xFFF4F8FF),
+    onSurface: dark ? const Color(0xFFEAF2FF) : const Color(0xFF142B48),
+    onSurfaceVariant: dark ? const Color(0xFFBCD0EA) : const Color(0xFF445D7C),
+  );
+  return ThemeData.from(
+    colorScheme: scheme,
+    useMaterial3: true,
+    textTheme: inherited.textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    ),
+  );
+}
+
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   final ar = controller.localeCode == 'ar';
@@ -10250,6 +10303,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
   final selectedInviteeIds = <int>{};
   showPremiumSheet(
     context,
+    theme: r255RoomCreationTheme(context),
     child: StatefulBuilder(key: const ValueKey('r48-create-room-settings'),
       builder: (context, setLocalState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -10269,6 +10323,14 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           TextField(key: const ValueKey('r48-room-name'), controller: nameController, decoration: InputDecoration(labelText: L.t(controller.localeCode, 'roomName'), prefixIcon: const Icon(Icons.meeting_room_outlined))),
           const SizedBox(height: 10),
           SegmentedButton<bool>(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected)
+                      ? const Color(0xFF1565C0)
+                      : null),
+              foregroundColor: WidgetStateProperty.resolveWith((states) =>
+                  states.contains(WidgetState.selected) ? Colors.white : null),
+            ),
             segments: [
               ButtonSegment(value: false, icon: const Icon(Icons.style_rounded), label: Text(L.t(controller.localeCode, 'normalGame'))),
               ButtonSegment(value: true, icon: const Icon(Icons.mic_rounded), label: Text(L.t(controller.localeCode, 'voiceGame'))),
@@ -10279,12 +10341,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
           ),
           if (voiceEnabled) ...[
             const SizedBox(height: 8),
-            Container(
-              key: const ValueKey('r77-voice-privacy-notice'),
-              padding: const EdgeInsets.all(10),
-              decoration: r77VoicePrivacyDecoration(context),
-              child: Row(children: [Icon(Icons.verified_user_outlined, color: r77RoomEntryAccent(context, positive: true)), const SizedBox(width: 8), Expanded(child: Text(L.t(controller.localeCode, 'voicePrivacyHint'), style: TextStyle(color: R69PlaySurfaceColors.of(context).onSurface, fontSize: 11, height: 1.45)))]),
-            ),
+            R254RoomVoicePrivacyNotice(locale: controller.localeCode),
           ],
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
@@ -10342,7 +10399,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 Expanded(child: Text(ar ? 'اختيار المشاركين قبل إنشاء الغرفة' : 'Choose players before creating the room', style: const TextStyle(fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 7),
-              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .68))),
+              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               if (controller.friends.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Wrap(
@@ -10447,7 +10504,11 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
             },
             icon: Icon(voiceEnabled ? Icons.mic_rounded : Icons.play_arrow_rounded),
             label: Text(voiceEnabled ? L.t(controller.localeCode, 'createVoiceRoom') : L.t(controller.localeCode, 'createNormalRoom')),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(54),
+              backgroundColor: const Color(0xFF1565C0),
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -11532,19 +11593,22 @@ void showChat(BuildContext context) {
   );
 }
 
-Future<void> showPremiumSheet(BuildContext context, {required Widget child}) async {
+Future<void> showPremiumSheet(BuildContext context, {required Widget child, ThemeData? theme}) async {
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: Theme.of(context).colorScheme.surface,
+    backgroundColor: (theme ?? Theme.of(context)).colorScheme.surface,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(27))),
-    builder: (context) => SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
-        child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 18), child: child),
-      ),
-    ),
+    builder: (context) {
+      final sheet = SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
+          child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 18), child: child),
+        ),
+      );
+      return theme == null ? sheet : Theme(data: theme, child: sheet);
+    },
   );
 }
 
