@@ -894,28 +894,105 @@ class TarneebBidButtonV170 extends StatelessWidget {
   final String? subtitle;
   final bool selected;
   final VoidCallback? onPressed;
-  const TarneebBidButtonV170({super.key,required this.label,this.subtitle,this.selected=false,this.onPressed});
+  const TarneebBidButtonV170({
+    super.key,
+    required this.label,
+    this.subtitle,
+    this.selected = false,
+    this.onPressed,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final scheme=Theme.of(context).colorScheme;
-    return AnimatedContainer(
-      key:const ValueKey('r137-tarneeb-bid-surface'),
-      duration:const Duration(milliseconds:180),
-      decoration:BoxDecoration(
-        borderRadius:BorderRadius.circular(16),
-        gradient:LinearGradient(colors:selected?[scheme.primary,const Color(0xff7c4a08)]:[scheme.surfaceContainerHighest,scheme.surfaceContainer]),
-        border:Border.all(color:selected?scheme.primary:scheme.outlineVariant,width:selected?2:1),
-        boxShadow:selected?[BoxShadow(color:scheme.primary.withValues(alpha:.32),blurRadius:16)]:const[],
-      ),
-      child:InkWell(
-        onTap:onPressed,
-        borderRadius:BorderRadius.circular(16),
-        child:Padding(
-          padding:const EdgeInsets.symmetric(horizontal:14,vertical:10),
-          child:Column(mainAxisSize:MainAxisSize.min,children:[
-            Text(label,key:const ValueKey('r137-tarneeb-bid-label'),style:TextStyle(color:selected?scheme.onPrimary:scheme.onSurface,fontWeight:FontWeight.w900,fontSize:15)),
-            if(subtitle!=null) Text(subtitle!,key:const ValueKey('r137-tarneeb-bid-subtitle'),style:TextStyle(fontSize:11,color:selected?scheme.onPrimary.withValues(alpha:.78):scheme.onSurfaceVariant,fontWeight:FontWeight.w600)),
-          ]),
+    final scheme = Theme.of(context).colorScheme;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final detail = subtitle?.trim() ?? '';
+    final identity = detail.isEmpty
+        ? label
+        : label + (rtl ? '، ' : ', ') + detail;
+    final spokenLabel = (rtl ? 'المزايدة: ' : 'Bid: ') + identity;
+    return Semantics(
+      key: const ValueKey('r237-tarneeb-bid-semantics'),
+      button: true,
+      selected: selected,
+      enabled: onPressed != null,
+      label: spokenLabel,
+      onTap: onPressed,
+      child: ExcludeSemantics(
+        child: AnimatedContainer(
+          key: const ValueKey('r137-tarneeb-bid-surface'),
+          duration: const Duration(milliseconds: 180),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
+              colors: selected
+                  ? <Color>[
+                      scheme.primary,
+                      Color.lerp(scheme.primary, scheme.primaryContainer, .16)!,
+                    ]
+                  : <Color>[
+                      scheme.surfaceContainerHighest,
+                      scheme.surfaceContainer,
+                    ],
+            ),
+            border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant,
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? <BoxShadow>[
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: .32),
+                      blurRadius: 16,
+                    ),
+                  ]
+                : const <BoxShadow>[],
+          ),
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      label,
+                      key: const ValueKey('r137-tarneeb-bid-label'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: selected ? scheme.onPrimary : scheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        key: const ValueKey('r137-tarneeb-bid-subtitle'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize:11,
+                          color: selected
+                              ? scheme.onPrimary.withValues(alpha: .78)
+                              : scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
