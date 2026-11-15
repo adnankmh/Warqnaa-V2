@@ -227,12 +227,45 @@ class R65PartyCodeValue extends StatelessWidget {
   Widget build(BuildContext context) => SelectableText(
     code,
     key: const ValueKey('r156-party-code-value'),
+    // Invite codes are identifiers, not natural-language text. Keep their
+    // character order stable even inside the Arabic RTL party screen.
+    textDirection: TextDirection.ltr,
+    textAlign: TextAlign.center,
     style: TextStyle(
       color: Theme.of(context).colorScheme.primary,
       fontSize: 32,
       fontWeight: FontWeight.w900,
     ),
   );
+}
+
+/// A locale-aware label with an LTR code field, preserving the original
+/// server-side seven-character invitation validation and submission.
+class R224PartyInviteCodeField extends StatelessWidget {
+  const R224PartyInviteCodeField({
+    super.key,
+    required this.controller,
+    required this.ar,
+  });
+
+  final TextEditingController controller;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+        key: const ValueKey('r224-party-invite-code-input'),
+        controller: controller,
+        textDirection: TextDirection.ltr,
+        textCapitalization: TextCapitalization.characters,
+        autocorrect: false,
+        enableSuggestions: false,
+        maxLength: 7,
+        decoration: InputDecoration(
+          labelText: ar
+              ? 'رمز مجموعة تمت دعوتك إليها'
+              : 'Code of a party you were invited to',
+        ),
+      );
 }
 
 class R65PartyMemberIcon extends StatelessWidget {
@@ -300,10 +333,38 @@ class _R65PartyPageState extends State<R65PartyPage> {
           const SizedBox(height: 16),
           FilledButton.icon(onPressed: busy ? null : () => _run(() => widget.controller.api.createPartyV300()), icon: const Icon(Icons.add), label: Text(ar ? 'إنشاء مجموعة' : 'Create party')),
           const SizedBox(height: 20),
-          TextField(controller: code, textCapitalization: TextCapitalization.characters, maxLength: 7, decoration: InputDecoration(labelText: ar ? 'رمز مجموعة تمت دعوتك إليها' : 'Code of a party you were invited to')),
+          R224PartyInviteCodeField(controller: code, ar: ar),
           OutlinedButton(onPressed: busy ? null : () {
             final value = code.text.trim().toUpperCase();
-            if (!RegExp(r'^[A-Z0-9]{7}$').hasMatch(value)) { setState(() => error = ar ? 'أدخل رمزًا من 7 أحرف أو أرقام.' : 'Enter a seven-character code.'); return; }
+            if (!RegExp(r'^[A-Z0-9]{7}
+            unawaited(_run(() => widget.controller.api.joinPartyV300(value)));
+          }, child: Text(ar ? 'قبول الدعوة والانضمام' : 'Accept invitation')),
+        ] else ...<Widget>[
+          R65PartyCodeLabel(ar: ar),
+          R65PartyCodeValue(code: '${party['code']}'),
+          TextButton.icon(onPressed: () async { await Clipboard.setData(ClipboardData(text: '${party['code']}')); if (context.mounted) showToast(context, ar ? 'تم نسخ الرمز' : 'Code copied'); }, icon: const Icon(Icons.copy), label: Text(ar ? 'نسخ' : 'Copy')),
+          ...members.where((member) => member['status'] == 'joined' || member['status'] == 'invited').map((member) {
+            final user = _r12Map(member['user']);
+            return Card(child: ListTile(leading: R65PartyMemberIcon(owner: member['role'] == 'owner'), title: Text('${user['username'] ?? member['user_id']}'), subtitle: Text(member['status'] == 'joined' ? (ar ? 'منضم' : 'Joined') : (ar ? 'مدعو' : 'Invited'))));
+          }),
+          if (owner) ...<Widget>[
+            const SizedBox(height: 16),
+            TextField(controller: friendId, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: ar ? 'رقم اللاعب الصديق' : 'Friend player ID', helperText: ar ? 'يلزم أن تكون الصداقة مقبولة.' : 'An accepted friendship is required.')),
+            FilledButton.icon(onPressed: busy ? null : () async {
+              final id = int.tryParse(friendId.text.trim());
+              if (id == null || id < 1) { setState(() => error = ar ? 'أدخل رقم لاعب صحيحًا.' : 'Enter a valid player ID.'); return; }
+              await _run(() => widget.controller.api.invitePartyV300(_r12Int(party['id']), id), refresh: true);
+              if (context.mounted && error == null) showToast(context, ar ? 'تم إرسال الدعوة' : 'Invitation sent');
+            }, icon: const Icon(Icons.person_add_alt), label: Text(ar ? 'دعوة صديق' : 'Invite friend')),
+          ],
+          const SizedBox(height: 20),
+          OutlinedButton(onPressed: busy ? null : () => _run(() => widget.controller.api.leavePartyV300(_r12Int(party['id'])), refresh: true), child: Text(ar ? 'مغادرة المجموعة' : 'Leave party')),
+        ],
+      ]),
+    );
+  }
+}
+).hasMatch(value)) { setState(() => error = ar ? 'أدخل رمزًا من 7 أحرف أو أرقام.' : 'Enter a seven-character code.'); return; }
             unawaited(_run(() => widget.controller.api.joinPartyV300(value)));
           }, child: Text(ar ? 'قبول الدعوة والانضمام' : 'Accept invitation')),
         ] else ...<Widget>[
