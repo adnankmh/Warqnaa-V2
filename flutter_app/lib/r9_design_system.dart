@@ -208,8 +208,8 @@ class R9Section extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: dark
             ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: <Color>[
                   R9Design.azure.withValues(alpha: .20),
                   theme.colorScheme.surface.withValues(alpha: .90),
@@ -217,8 +217,8 @@ class R9Section extends StatelessWidget {
                 ],
               )
             : LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: AlignmentDirectional.topStart,
+                end: AlignmentDirectional.bottomEnd,
                 colors: <Color>[Colors.white.withValues(alpha: .96), const Color(0xFFE8F7FF)],
               ),
         borderRadius: BorderRadius.circular(R9Design.rLarge),
