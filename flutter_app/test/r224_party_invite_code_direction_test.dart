@@ -4,6 +4,14 @@ import 'package:warqna_mobile/main.dart';
 import 'package:warqna_mobile/r9_design_system.dart';
 
 void main() {
+  test('R258 invite validation preserves the exact seven ASCII characters', () {
+    expect(r258ValidPartyInviteCode(' ab12c34 '), 'AB12C34');
+    expect(r258ValidPartyInviteCode('1234567'), '1234567');
+    for (final invalid in ['', 'AB12C3', 'AB12C345', 'AB12-34', 'AB12 C3', 'أب12345', 'AB12C34\nX']) {
+      expect(r258ValidPartyInviteCode(invalid), isNull, reason: invalid);
+    }
+  });
+
   for (final locale in const <String>['ar', 'en']) {
     for (final light in const <bool>[true, false]) {
       for (final width in const <double>[320, 390]) {
