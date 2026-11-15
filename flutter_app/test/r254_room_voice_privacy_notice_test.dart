@@ -8,6 +8,12 @@ import 'package:warqna_mobile/main.dart';
 
 import 'r7_runtime_review_test.dart' as review;
 
+double roomSurfaceContrast(Color first, Color second) {
+  final a = first.computeLuminance();
+  final b = second.computeLuminance();
+  return a >= b ? (a + .05) / (b + .05) : (b + .05) / (a + .05);
+}
+
 void main() {
   setUpAll(() async {
     if (review.reviewDirectory.isEmpty) return;
@@ -110,6 +116,19 @@ void main() {
           final notice = find.byKey(const ValueKey('r77-voice-privacy-notice'));
           expect(sheet, findsOneWidget);
           expect(notice, findsNothing);
+          final roomTheme = Theme.of(tester.element(sheet));
+          final scheme = roomTheme.colorScheme;
+          final dark = themeCode == 'dark';
+          expect(scheme.surface, dark ? const Color(0xFF101D32) : const Color(0xFFF4F8FF));
+          expect(scheme.primary, dark ? const Color(0xFF90CAF9) : const Color(0xFF1565C0));
+          expect(tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor, scheme.surface);
+          expect(roomSurfaceContrast(scheme.onSurface, scheme.surface), greaterThanOrEqualTo(4.5));
+          expect(roomSurfaceContrast(scheme.onSurfaceVariant, scheme.surface), greaterThanOrEqualTo(4.5));
+          expect(roomSurfaceContrast(scheme.onPrimary, scheme.primary), greaterThanOrEqualTo(4.5));
+          final participantHelp = find.text(locale == 'ar'
+            ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.'
+            : 'Invite friends and choose computer players. Unreserved seats stay open.');
+          expect(tester.widget<Text>(participantHelp).style?.color, scheme.onSurfaceVariant);
           final mode = find.descendant(of: sheet, matching: find.byType(SegmentedButton<bool>));
           expect(mode, findsOneWidget);
           final modeButton = tester.widget<SegmentedButton<bool>>(mode);

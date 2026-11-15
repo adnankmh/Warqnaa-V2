@@ -10262,6 +10262,30 @@ class R254RoomVoicePrivacyNotice extends StatelessWidget {
   }
 }
 
+// Room creation uses the original blue palette independently of cosmetic accents.
+ThemeData r255RoomCreationTheme(BuildContext context) {
+  final inherited = Theme.of(context);
+  final dark = inherited.brightness == Brightness.dark;
+  final scheme = ColorScheme.fromSeed(
+    seedColor: const Color(0xFF1565C0),
+    brightness: inherited.brightness,
+  ).copyWith(
+    primary: dark ? const Color(0xFF90CAF9) : const Color(0xFF1565C0),
+    onPrimary: dark ? const Color(0xFF0C2947) : Colors.white,
+    surface: dark ? const Color(0xFF101D32) : const Color(0xFFF4F8FF),
+    onSurface: dark ? const Color(0xFFEAF2FF) : const Color(0xFF142B48),
+    onSurfaceVariant: dark ? const Color(0xFFBCD0EA) : const Color(0xFF445D7C),
+  );
+  return ThemeData.from(
+    colorScheme: scheme,
+    useMaterial3: true,
+    textTheme: inherited.textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    ),
+  );
+}
+
 void showCreateRoom(BuildContext context, AppController controller, GameInfo game, {bool initialVoice = false}) {
   final navigator = Navigator.of(context, rootNavigator: true);
   final ar = controller.localeCode == 'ar';
@@ -10279,6 +10303,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
   final selectedInviteeIds = <int>{};
   showPremiumSheet(
     context,
+    theme: r255RoomCreationTheme(context),
     child: StatefulBuilder(key: const ValueKey('r48-create-room-settings'),
       builder: (context, setLocalState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -10374,7 +10399,7 @@ void showCreateRoom(BuildContext context, AppController controller, GameInfo gam
                 Expanded(child: Text(ar ? 'اختيار المشاركين قبل إنشاء الغرفة' : 'Choose players before creating the room', style: const TextStyle(fontWeight: FontWeight.w900))),
               ]),
               const SizedBox(height: 7),
-              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .68))),
+              Text(ar ? 'اختر لاعبين حقيقيين لإرسال الدعوة إليهم، وحدد عدد لاعبي البوت. تبقى المقاعد غير المحجوزة مفتوحة للاعبين الآخرين.' : 'Invite friends and choose computer players. Unreserved seats stay open.', style: TextStyle(fontSize: 10.5, height: 1.45, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               if (controller.friends.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Wrap(
@@ -11568,19 +11593,22 @@ void showChat(BuildContext context) {
   );
 }
 
-Future<void> showPremiumSheet(BuildContext context, {required Widget child}) async {
+Future<void> showPremiumSheet(BuildContext context, {required Widget child, ThemeData? theme}) async {
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: Theme.of(context).colorScheme.surface,
+    backgroundColor: (theme ?? Theme.of(context)).colorScheme.surface,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(27))),
-    builder: (context) => SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
-        child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 18), child: child),
-      ),
-    ),
+    builder: (context) {
+      final sheet = SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .9),
+          child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 18), child: child),
+        ),
+      );
+      return theme == null ? sheet : Theme(data: theme, child: sheet);
+    },
   );
 }
 
