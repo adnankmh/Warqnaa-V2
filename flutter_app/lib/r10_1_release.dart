@@ -726,10 +726,10 @@ class R20StoreCollections extends StatelessWidget {
           height: 38,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            color: B307SkyLuxury.gold,
+            color: B307SkyLuxury.azure,
             boxShadow: <BoxShadow>[BoxShadow(color: scheme.primary.withValues(alpha: .20), blurRadius: 16, offset: const Offset(0, 6))],
           ),
-          child: Icon(Icons.auto_awesome_rounded, size: 20, color: scheme.onPrimary),
+          child: const Icon(Icons.auto_awesome_rounded, size: 20, color: Colors.white),
         ),
         const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -745,7 +745,7 @@ class R20StoreCollections extends StatelessWidget {
       ]),
       const SizedBox(height: 12),
       LayoutBuilder(builder: (context, box) {
-        final columns = box.maxWidth >= 1000 ? 6 : box.maxWidth >= 600 ? 3 : 2;
+        final columns = box.maxWidth < 360 ? 1 : box.maxWidth >= 1000 ? 6 : box.maxWidth >= 600 ? 3 : 2;
         final width = (box.maxWidth - (columns - 1) * 8) / columns;
         return Wrap(spacing: 8, runSpacing: 8, children: [
           for (final group in groups)
@@ -755,6 +755,8 @@ class R20StoreCollections extends StatelessWidget {
               return SizedBox(width: width, child: Semantics(
                 button: true,
                 label: ar ? '${group.$2}، ${catalog.length} عنصر، $owned مملوك' : '${group.$2}, ${catalog.length} items, $owned owned',
+                onTap: () => browse(context, group.$1, group.$2),
+                excludeSemantics: true,
                 child: Material(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
@@ -762,7 +764,7 @@ class R20StoreCollections extends StatelessWidget {
                     height: 126,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: scheme.primary.withValues(alpha: .28)),
+                      border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .42)),
                       color: r48StorePanel,
                       boxShadow: <BoxShadow>[BoxShadow(color: scheme.shadow.withValues(alpha: .10), blurRadius: 14, offset: const Offset(0, 7))],
                     ),
@@ -775,11 +777,11 @@ class R20StoreCollections extends StatelessWidget {
                           Container(
                             width: 34,
                             height: 34,
-                            decoration: BoxDecoration(color: scheme.primary.withValues(alpha: .14), borderRadius: BorderRadius.circular(11), border: Border.all(color: scheme.primary.withValues(alpha: .26))),
-                            child: Icon(group.$3, size: 19, color: scheme.primary),
+                            decoration: BoxDecoration(color: B307SkyLuxury.azure.withValues(alpha: .22), borderRadius: BorderRadius.circular(11), border: Border.all(color: B307SkyLuxury.sky.withValues(alpha: .35))),
+                            child: Icon(group.$3, size: 19, color: B307SkyLuxury.text),
                           ),
                           const Spacer(),
-                          Icon(Icons.arrow_forward_rounded, size: 18, color: scheme.primary),
+                          Icon(Icons.arrow_forward_rounded, size: 18, color: B307SkyLuxury.sky),
                         ]),
                         const Spacer(),
                         Text(group.$2, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: B307SkyLuxury.text, fontWeight: FontWeight.w900, height: 1.15)),
