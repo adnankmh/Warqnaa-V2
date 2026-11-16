@@ -39,7 +39,7 @@ class R8HomeLobby extends StatelessWidget {
           ],
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: _R8Portal(icon: Icons.meeting_room_outlined, label: ar ? 'الغرف' : 'Rooms', accent: const Color(0xff27d7e9), onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R64RoomBrowserPage(controller: controller))))),
+            Expanded(child: _R8Portal(icon: Icons.meeting_room_outlined, label: ar ? 'الغرف' : 'Rooms', accent: Theme.of(context).colorScheme.primary, onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R64RoomBrowserPage(controller: controller))))),
             const SizedBox(width: 8),
             Expanded(child: _R8Portal(icon: Icons.group_add_outlined, label: ar ? 'مع الأصدقاء' : 'With friends', accent: const Color(0xffffbd48), onTap: () => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => R65PartyPage(controller: controller))))),
             const SizedBox(width: 8),
@@ -163,11 +163,53 @@ class _R8WelcomeTable extends StatelessWidget {
   }
 }
 
+/// Testable home navigation portal; the callback still owns navigation.
+class R8HomePortal extends _R8Portal {
+  const R8HomePortal({super.key, required super.icon, required super.label,
+    required super.onTap, super.accent});
+}
+
 class _R8Portal extends StatelessWidget {
-  const _R8Portal({required this.icon, required this.label, required this.onTap, this.accent = const Color(0xff27d7e9)});
+  const _R8Portal({super.key, required this.icon, required this.label, required this.onTap, this.accent = const Color(0xff27d7e9)});
   final IconData icon; final String label; final VoidCallback onTap; final Color accent;
   @override
-  Widget build(BuildContext context) => Material(color: const Color(0xff0b1c2a), borderRadius: BorderRadius.circular(16), child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: Container(constraints: const BoxConstraints(minHeight: 76), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), border: Border.all(color: accent.withValues(alpha: .24)), gradient: LinearGradient(colors: [accent.withValues(alpha: .08), Colors.transparent])), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .10), boxShadow: [BoxShadow(color: accent.withValues(alpha: .18), blurRadius: 16)]), child: Icon(icon, size: 20, color: accent)), const SizedBox(height: 6), Text(label, maxLines: 2, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900))]))));
+  Widget build(BuildContext context) => Semantics(
+    key: const ValueKey('r226-home-portal-semantics'),
+    button: true,
+    label: label,
+    onTap: onTap,
+    child: ExcludeSemantics(
+      child: Material(
+        key: const ValueKey('r226-home-portal-surface'),
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 76),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: accent.withValues(alpha: .24)),
+              gradient: LinearGradient(colors: [accent.withValues(alpha: .08), Colors.transparent]),
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(width: 34, height: 34, alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle,
+                  color: accent.withValues(alpha: .10),
+                  boxShadow: [BoxShadow(color: accent.withValues(alpha: .18), blurRadius: 16)]),
+                child: Icon(icon, size: 20, color: accent)),
+              const SizedBox(height: 6),
+              Text(label, maxLines: 2, textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+            ]),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// R34 original Warqnaa illustrated game emblems, vector-built for crisp Web/Android.
