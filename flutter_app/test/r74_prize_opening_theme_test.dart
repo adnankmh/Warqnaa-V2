@@ -74,7 +74,7 @@ void main() {
 
         final context = tester.element(
           find.byKey(const ValueKey('r53-prize-summary')));
-        final theme = Theme.of(context);
+        // Verify that the actual scene inherits the requested reading direction.\n        expect(Directionality.of(context),\n            locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);\n        final theme = Theme.of(context);
         final dark = theme.brightness == Brightness.dark;
         final surface = dark ? const Color(0xFF123B60) : const Color(0xFFE8F5FF);
         final onSurface = dark ? const Color(0xFFF1F8FF) : const Color(0xFF123B60);
