@@ -75,6 +75,16 @@ void main() {
           expect((summaryBox.decoration! as BoxDecoration).border!.top.color,
               colors.accent);
 
+          final heading = tester.widget<Text>(find.text(
+            ar ? 'لحظة حظ ملكية' : 'A royal moment'));
+          expect(heading.style!.color, colors.onSurface);
+          final stage = tester.widget<DecoratedBox>(find.byKey(
+            const ValueKey('r266-prize-blue-stage')));
+          final gradient = (stage.decoration as BoxDecoration).gradient!
+              as RadialGradient;
+          expect(gradient.colors.last,
+              light ? const Color(0xFFE8F5FF) : const Color(0xFF123B60));
+
           final skip = find.byKey(const ValueKey('r53-prize-skip'));
           await tester.ensureVisible(skip);
           await tester.tap(skip);
