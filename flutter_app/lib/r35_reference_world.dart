@@ -458,7 +458,13 @@ class R35TournamentRow extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
+  Widget build(BuildContext context) {
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    return Semantics(
+      button: true,
+      label: '$title. $detail',
+      onTap: onTap,
+      child: ExcludeSemantics(child: InkWell(
     onTap: onTap,
     borderRadius: BorderRadius.circular(13),
     child: Container(
@@ -482,10 +488,13 @@ class R35TournamentRow extends StatelessWidget {
           Text(detail, maxLines: 2, overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: R35ReferenceColors.cyan, fontWeight: FontWeight.w700, fontSize: 11.5, height: 1.3)),
         ])),
-        const Icon(Icons.chevron_right_rounded, color: R35ReferenceColors.paleGold),
+        Icon(rtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+          color: R35ReferenceColors.paleGold),
       ]),
     ),
-  );
+    )),
+    );
+  }
 }
 
 class R35FeatureLine extends StatelessWidget {
