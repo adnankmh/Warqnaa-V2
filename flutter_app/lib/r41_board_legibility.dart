@@ -10,6 +10,7 @@ class R41BackgammonBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = Theme.of(context).colorScheme;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 430),
       child: Column(
@@ -29,14 +30,20 @@ class R41BackgammonBoard extends StatelessWidget {
                   final count =
                       int.tryParse(point['count']?.toString() ?? '') ?? 0;
                   final owner = point['owner']?.toString() ?? '';
+                  final even = number.isEven;
+                  final pointInk = even
+                      ? palette.onPrimaryContainer
+                      : palette.onSecondaryContainer;
                   return Expanded(
                     child: Container(
+                      key: ValueKey('r217-backgammon-point-$number'),
                       margin: const EdgeInsets.all(1),
                       decoration: BoxDecoration(
-                        color: number.isEven
-                            ? const Color(0xff7d5635)
-                            : const Color(0xffd5b47a),
+                        color: even
+                            ? palette.primaryContainer
+                            : palette.secondaryContainer,
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: palette.outlineVariant),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -45,28 +52,36 @@ class R41BackgammonBoard extends StatelessWidget {
                             label: text('النقطة $number', 'Point $number'),
                             child: Text(
                               '$number',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xff2d2118),
+                                color: pointInk,
                               ),
                             ),
                           ),
                           if (count > 0) ...[
-                            Text(
-                              owner.startsWith('user:') ? '●' : '○',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.white,
+                            Semantics(
+                              label: owner.startsWith('user:')
+                                  ? text('أحجار لاعب', 'Player checkers')
+                                  : owner.startsWith('bot:')
+                                      ? text('أحجار روبوت', 'Bot checkers')
+                                      : text('أحجار', 'Checkers'),
+                              child: Text(
+                                owner.startsWith('user:') ? '●' : '○',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: pointInk,
+                                ),
                               ),
                             ),
                             Semantics(
                               label: text('$count أحجار', '$count checkers'),
                               child: Text(
                                 '$count',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
+                                  color: pointInk,
                                 ),
                               ),
                             ),
