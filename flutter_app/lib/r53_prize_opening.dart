@@ -24,7 +24,6 @@ class R53PrizeOpeningScene extends StatelessWidget {
     final theme = materialTheme.textTheme;
     final scheme = materialTheme.colorScheme;
     final colors = R69PlaySurfaceColors.of(context);
-    final warmAccent = Color.lerp(R35ReferenceColors.paleGold, colors.accent, .30)!;
     final disabledSurface = Color.lerp(colors.surface, colors.onSurface, .12)!;
     return ColoredBox(key: const ValueKey('r74-prize-scene'),
       color: materialTheme.scaffoldBackgroundColor, child: LayoutBuilder(
@@ -45,7 +44,7 @@ class R53PrizeOpeningScene extends StatelessWidget {
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(revealed ? V02Text.t(locale, 'reward') : (ar ? 'لحظة حظ ملكية' : 'A royal moment'),
                 textAlign: TextAlign.center,
-                style: theme.labelLarge?.copyWith(color: warmAccent, fontSize: 14, fontWeight: FontWeight.w800)),
+                style: theme.labelLarge?.copyWith(color: colors.onSurface, fontSize: 14, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               Semantics(liveRegion: revealed, child: Text(
                 revealed ? prizeRewardLabelV02(locale, reward) : (ar ? 'جارٍ فتح الصندوق…' : 'Opening your chest…'),
@@ -104,7 +103,9 @@ class _R53ChestStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = R69PlaySurfaceColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final stageSurface = dark ? const Color(0xFF123B60) : const Color(0xFFE8F5FF);
+    final stageGlow = dark ? const Color(0xFF245A85) : const Color(0xFFCCE8FA);
     return ClipRect(
     key: const ValueKey('r53-prize-stage'),
     child: LayoutBuilder(builder: (context, area) {
@@ -121,9 +122,15 @@ class _R53ChestStage extends StatelessWidget {
         key: ValueKey('r53-prize-sprite-$suffix'), fit: BoxFit.contain,
         filterQuality: FilterQuality.high, excludeFromSemantics: true);
       return Stack(children: [
-        Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
-          gradient: RadialGradient(radius: .85, colors: [
-            colors.accent.withValues(alpha: .10 + .08 * reveal), colors.surface])))),
+        Positioned.fill(child: DecoratedBox(
+          key: const ValueKey('r266-prize-blue-stage'),
+          decoration: BoxDecoration(
+            gradient: RadialGradient(radius: .85, colors: [
+              Color.lerp(stageSurface, stageGlow, .55 + .35 * reveal)!,
+              stageSurface,
+            ]),
+          ),
+        )),
         Positioned(left: left + shake, top: top, width: width, height: height,
           child: Stack(fit: StackFit.expand, children: [
             sprite('body'),
