@@ -75,9 +75,11 @@ void main() {
             reason:'Closed sprites use the same original 720x540 registration canvas.');
           expect(tester.widget<FilledButton>(find.byKey(const ValueKey('r53-prize-continue'))).onPressed,isNull);
           final disabledStyle=tester.widget<FilledButton>(find.byKey(const ValueKey('r53-prize-continue'))).style!;
-          final colors=R69PlaySurfaceColors.of(tester.element(find.byKey(const ValueKey('r53-prize-continue'))));
-          expect(disabledStyle.foregroundColor!.resolve({WidgetState.disabled}),colors.onSurface.withValues(alpha:.58));
-          expect(disabledStyle.backgroundColor!.resolve({WidgetState.disabled}),Color.lerp(colors.surface,colors.onSurface,.12));
+          final dark=Theme.of(tester.element(find.byKey(const ValueKey('r53-prize-continue')))).brightness==Brightness.dark;
+          final surface=dark?const Color(0xFF123B60):const Color(0xFFE8F5FF);
+          final onSurface=dark?const Color(0xFFF1F8FF):const Color(0xFF123B60);
+          expect(disabledStyle.foregroundColor!.resolve({WidgetState.disabled}),onSurface.withValues(alpha:.58));
+          expect(disabledStyle.backgroundColor!.resolve({WidgetState.disabled}),Color.lerp(surface,onSurface,.12));
           await tester.pump(const Duration(seconds:3));expectSeparated(tester);
           final capture=box=='emerald_eagle' && review.reviewDirectory.isNotEmpty;
           final name='$locale-r53-${size.width.toInt()}x${size.height.toInt()}';

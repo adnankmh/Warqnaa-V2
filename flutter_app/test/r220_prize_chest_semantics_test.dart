@@ -71,13 +71,18 @@ void main() {
 
           final summaryBox = tester.widget<Container>(
               find.byKey(const ValueKey('r53-prize-summary')));
-          final colors = R69PlaySurfaceColors.of(tester.element(status));
-          expect((summaryBox.decoration! as BoxDecoration).border!.top.color,
-              colors.accent);
+          final decoration = summaryBox.decoration! as BoxDecoration;
+          final surface = light ? const Color(0xFFE8F5FF) : const Color(0xFF123B60);
+          final onSurface = light ? const Color(0xFF123B60) : const Color(0xFFF1F8FF);
+          final accent = light ? const Color(0xFF075A9C) : const Color(0xFF70C5FF);
+          expect(decoration.color, surface);
+          expect(decoration.border!.top.color, accent);
+          final shell = tester.widget<ColoredBox>(find.byKey(const ValueKey('r74-prize-scene')));
+          expect(shell.color, light ? const Color(0xFFD8EDFC) : const Color(0xFF0D2945));
 
           final heading = tester.widget<Text>(find.text(
             ar ? 'لحظة حظ ملكية' : 'A royal moment'));
-          expect(heading.style!.color, colors.onSurface);
+          expect(heading.style!.color, onSurface);
           final stage = tester.widget<DecoratedBox>(find.byKey(
             const ValueKey('r266-prize-blue-stage')));
           final gradient = (stage.decoration as BoxDecoration).gradient!
@@ -100,6 +105,10 @@ void main() {
               const ValueKey('r53-prize-continue'));
           expect(tester.widget<FilledButton>(continueButton).onPressed,
               isNotNull);
+          final style = tester.widget<FilledButton>(continueButton).style!;
+          expect(style.backgroundColor!.resolve(<WidgetState>{}), accent);
+          expect(style.foregroundColor!.resolve(<WidgetState>{}),
+              light ? Colors.white : const Color(0xFF102E49));
           await tester.ensureVisible(continueButton);
           await tester.pump();
           await tester.tap(continueButton);

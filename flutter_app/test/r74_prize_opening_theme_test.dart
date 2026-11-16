@@ -32,7 +32,7 @@ void main() {
 
   for (final locale in <String>['ar', 'en']) {
     for (final themeCode in <String>['royal_crimson', 'emerald_light']) {
-      testWidgets('R74 prize opening inherits $themeCode in $locale',
+      testWidgets('R74 prize opening uses blue palette with $themeCode in $locale',
           (tester) async {
         tester.view.physicalSize = const Size(390, 844);
         tester.view.devicePixelRatio = 1;
@@ -66,26 +66,30 @@ void main() {
         final context = tester.element(
           find.byKey(const ValueKey('r53-prize-summary')));
         final theme = Theme.of(context);
-        final colors = R69PlaySurfaceColors.of(context);
+        final dark = theme.brightness == Brightness.dark;
+        final surface = dark ? const Color(0xFF123B60) : const Color(0xFFE8F5FF);
+        final onSurface = dark ? const Color(0xFFF1F8FF) : const Color(0xFF123B60);
+        final accent = dark ? const Color(0xFF70C5FF) : const Color(0xFF075A9C);
+        final onAccent = dark ? const Color(0xFF102E49) : Colors.white;
         final scene = tester.widget<ColoredBox>(
           find.byKey(const ValueKey('r74-prize-scene')));
         final summary = tester.widget<Container>(
           find.byKey(const ValueKey('r53-prize-summary')));
         final decoration = summary.decoration! as BoxDecoration;
-        expect(scene.color, theme.scaffoldBackgroundColor);
-        expect(decoration.color, colors.surface);
-        expect(decoration.border!.top.color, colors.accent);
+        expect(scene.color, dark ? const Color(0xFF0D2945) : const Color(0xFFD8EDFC));
+        expect(decoration.color, surface);
+        expect(decoration.border!.top.color, accent);
         expect(
           tester.widget<Text>(
             find.byKey(const ValueKey('r53-prize-description'))).style!.color,
-          colors.onSurface,
+          onSurface,
         );
         final close = find.byKey(const ValueKey('r53-prize-continue'));
         final closeStyle = tester.widget<FilledButton>(close).style!;
         expect(closeStyle.backgroundColor!.resolve(<WidgetState>{}),
-            colors.accent);
+            accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
-            theme.colorScheme.onPrimary);
+            onAccent);
         await tester.tap(close);
         expect(continued, 1);
         expect(tester.takeException(), isNull);
