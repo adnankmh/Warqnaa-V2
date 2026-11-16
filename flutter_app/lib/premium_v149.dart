@@ -298,30 +298,83 @@ class _BotIdentityPill extends StatelessWidget {
       );
 }
 
-class BotRosterShowcase extends StatelessWidget {
+/// R240: keep the portrait roster compact without hiding the other players.
+class BotRosterShowcase extends StatefulWidget {
   final String locale;
   final List<BotProfile> profiles;
   const BotRosterShowcase({super.key, required this.locale, this.profiles = botProfiles});
 
   @override
+  State<BotRosterShowcase> createState() => _BotRosterShowcaseState();
+}
+
+class _BotRosterShowcaseState extends State<BotRosterShowcase> {
+  bool _showAll = false;
+
+  @override
   Widget build(BuildContext context) {
-    final rtl = locale == 'ar';
+    final rtl = widget.locale == 'ar';
     return Directionality(
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
       child: LayoutBuilder(builder: (context, area) {
         final columns = area.maxWidth >= 1050 ? 6 : area.maxWidth >= 700 ? 4 : 2;
+        final previewCount = math.min(widget.profiles.length, columns * 2);
+        final hasMore = widget.profiles.length > previewCount;
+        final visibleCount = _showAll ? widget.profiles.length : previewCount;
+        final toggleLabel = _showAll
+            ? (rtl ? 'عرض أقل' : 'Show fewer')
+            : (rtl
+                ? 'عرض جميع اللاعبين (${widget.profiles.length})'
+                : 'Show all players (${widget.profiles.length})');
+        // Cyan remains readable on dark blue; deep blue contrasts with light UI.
+        final accent = Theme.of(context).brightness == Brightness.dark
+            ? _R30SkyLuxury.sky
+            : _R30SkyLuxury.deep;
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(rtl ? 'خصوم ورقنا الآليون' : 'Warqnaa computer players', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+          Text(rtl ? 'خصوم ورقنا الآليون' : 'Warqnaa computer players',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
           const SizedBox(height: 3),
-          Text(rtl ? 'شخصيات عربية أصلية وواضحة الهوية؛ لكل شخصية أسلوب ومستوى مستقل.' : 'Original Arabic personas with clear identity, individual play style and level.', style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.4)),
+          Text(
+            rtl
+                ? 'شخصيات عربية أصلية وواضحة الهوية؛ لكل شخصية أسلوب ومستوى مستقل.'
+                : 'Original Arabic personas with clear identity, individual play style and level.',
+            style: const TextStyle(fontSize: 11, color: Colors.white70, height: 1.4),
+          ),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: math.min(profiles.length, columns * 2),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns, childAspectRatio: columns == 2 ? .70 : .74, crossAxisSpacing: 8, mainAxisSpacing: 8),
-            itemBuilder: (context, index) => BotIdentityShowcase(profile: profiles[index], locale: locale, compact: true),
+            itemCount: visibleCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              childAspectRatio: columns == 2 ? .70 : .74,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemBuilder: (context, index) => BotIdentityShowcase(
+              profile: widget.profiles[index],
+              locale: widget.locale,
+              compact: true,
+            ),
           ),
+          if (hasMore) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton.icon(
+                key: const ValueKey<String>('r240-bot-roster-toggle'),
+                onPressed: () => setState(() => _showAll = !_showAll),
+                style: TextButton.styleFrom(
+                  foregroundColor: accent,
+                  minimumSize: const Size(48, 48),
+                ),
+                icon: Icon(_showAll
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded),
+                label: Text(toggleLabel),
+              ),
+            ),
+          ],
         ]);
       }),
     );
