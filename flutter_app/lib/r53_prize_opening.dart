@@ -72,9 +72,20 @@ class R53PrizeOpeningScene extends StatelessWidget {
             ]),
           )),
         );
-        final stage = Expanded(child: _R53ChestStage(boxKey: boxKey, reward: reward,
-          progress: progress, open: Curves.easeInOutCubic.transform(_interval(.28, .72)),
-          reveal: Curves.easeOutCubic.transform(_interval(.56, .90))));
+        // The chest artwork and sparkles are decorative. Give assistive
+        // technology one concise status instead of ten unrelated icon nodes.
+        // The reward description below remains the only live announcement.
+        final stage = Expanded(child: Semantics(
+          key: const ValueKey('r220-prize-chest-status'),
+          container: true,
+          excludeSemantics: true,
+          label: revealed
+              ? (ar ? 'صندوق المكافأة مفتوح' : 'Reward chest open')
+              : (ar ? 'جارٍ فتح صندوق المكافأة' : 'Opening reward chest'),
+          child: _R53ChestStage(boxKey: boxKey, reward: reward,
+            progress: progress, open: Curves.easeInOutCubic.transform(_interval(.28, .72)),
+            reveal: Curves.easeOutCubic.transform(_interval(.56, .90))),
+        ));
         return Padding(padding: EdgeInsets.all(inset), child: horizontal
           ? Row(key: const ValueKey('r53-prize-landscape'), children: [stage, const SizedBox(width: 20), Flexible(child: summary)])
           : Column(key: const ValueKey('r53-prize-portrait'), children: [stage, const SizedBox(height: 12), summary]));
