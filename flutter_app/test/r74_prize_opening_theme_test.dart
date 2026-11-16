@@ -104,18 +104,20 @@ void main() {
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
         final closeRect = tester.getRect(close);
+        expect(closeRect.top, greaterThanOrEqualTo(0));
+        expect(closeRect.bottom, lessThanOrEqualTo(844));
         expect(closeRect.left, greaterThanOrEqualTo(0));
         expect(closeRect.right, lessThanOrEqualTo(width));
         expect(closeRect.width, greaterThanOrEqualTo(48));
         expect(closeRect.height, greaterThanOrEqualTo(48));
-        await tester.tap(close);
-        expect(continued, 1);
-        expect(tester.takeException(), isNull);
-
+        // Capture the pre-action state so visual review includes the actual CTA.
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(
             tester, key, '$locale-r268-prize-opening-$themeCode-${width.toInt()}x844');
         }
+        await tester.tap(close);
+        expect(continued, 1);
+        expect(tester.takeException(), isNull);
       });
       }
     }
