@@ -22,11 +22,14 @@ class R53PrizeOpeningScene extends StatelessWidget {
     final revealed = progress >= .78;
     final materialTheme = Theme.of(context);
     final theme = materialTheme.textTheme;
-    final scheme = materialTheme.colorScheme;
-    final colors = R69PlaySurfaceColors.of(context);
-    final disabledSurface = Color.lerp(colors.surface, colors.onSurface, .12)!;
+    final dark = materialTheme.brightness == Brightness.dark;
+    final surface = dark ? const Color(0xFF123B60) : const Color(0xFFE8F5FF);
+    final onSurface = dark ? const Color(0xFFF1F8FF) : const Color(0xFF123B60);
+    final accent = dark ? const Color(0xFF70C5FF) : const Color(0xFF075A9C);
+    final onAccent = dark ? const Color(0xFF102E49) : Colors.white;
+    final disabledSurface = Color.lerp(surface, onSurface, .12)!;
     return ColoredBox(key: const ValueKey('r74-prize-scene'),
-      color: materialTheme.scaffoldBackgroundColor, child: LayoutBuilder(
+      color: dark ? const Color(0xFF0D2945) : const Color(0xFFD8EDFC), child: LayoutBuilder(
       builder: (context, area) {
         final horizontal = area.maxWidth >= 700 && area.maxWidth > area.maxHeight;
         final inset = area.maxHeight < 450 ? 12.0 : 20.0;
@@ -38,33 +41,33 @@ class R53PrizeOpeningScene extends StatelessWidget {
           child: SingleChildScrollView(child: Container(
             key: const ValueKey('r53-prize-summary'),
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: colors.surface,
+            decoration: BoxDecoration(color: surface,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: colors.accent, width: 1.5)),
+              border: Border.all(color: accent, width: 1.5)),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text(revealed ? V02Text.t(locale, 'reward') : (ar ? 'لحظة حظ ملكية' : 'A royal moment'),
                 textAlign: TextAlign.center,
-                style: theme.labelLarge?.copyWith(color: colors.onSurface, fontSize: 14, fontWeight: FontWeight.w800)),
+                style: theme.labelLarge?.copyWith(color: onSurface, fontSize: 14, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               Semantics(liveRegion: revealed, child: Text(
                 revealed ? prizeRewardLabelV02(locale, reward) : (ar ? 'جارٍ فتح الصندوق…' : 'Opening your chest…'),
                 key: const ValueKey('r53-prize-description'), textAlign: TextAlign.center,
-                style: theme.titleLarge?.copyWith(color: colors.onSurface, fontSize: 22, height: 1.25, fontWeight: FontWeight.w900))),
+                style: theme.titleLarge?.copyWith(color: onSurface, fontSize: 22, height: 1.25, fontWeight: FontWeight.w900))),
               const SizedBox(height: 14),
               FilledButton.icon(key: const ValueKey('r53-prize-continue'),
                 onPressed: completed ? onContinue : null,
                 icon: const Icon(Icons.check_circle_outline_rounded),
                 label: Text(V02Text.t(locale, 'close')),
-                style: FilledButton.styleFrom(backgroundColor: colors.accent,
-                  foregroundColor: scheme.onPrimary, minimumSize: const Size.fromHeight(52),
+                style: FilledButton.styleFrom(backgroundColor: accent,
+                  foregroundColor: onAccent, minimumSize: const Size.fromHeight(52),
                   disabledBackgroundColor: disabledSurface,
-                  disabledForegroundColor: colors.onSurface.withValues(alpha: .58),
+                  disabledForegroundColor: onSurface.withValues(alpha: .58),
                   textStyle: theme.labelLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w800))),
               if (!completed) ...[
                 const SizedBox(height: 6),
                 TextButton.icon(key: const ValueKey('r53-prize-skip'), onPressed: onSkip,
                   icon: const Icon(Icons.skip_next_rounded), label: Text(ar ? 'تخطي الحركة' : 'Skip animation'),
-                  style: TextButton.styleFrom(foregroundColor: colors.secondary,
+                  style: TextButton.styleFrom(foregroundColor: accent,
                     minimumSize: const Size.fromHeight(48),
                     textStyle: theme.labelLarge?.copyWith(fontSize: 14))),
               ],
