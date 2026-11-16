@@ -103,17 +103,105 @@ class _V300WorldHubPageState extends State<V300WorldHubPage> {
         _V300HubCard(icon:Icons.groups_2_rounded,title:party==null?L.t(c.localeCode,'createParty'):L.t(c.localeCode,'myParty'),subtitle:party?['code']?.toString()??L.t(c.localeCode,'partyHint'),onTap:busy?null:_createParty),
         _V300HubCard(icon:Icons.visibility_rounded,title:L.t(c.localeCode,'spectate'),subtitle:L.t(c.localeCode,'spectateHint'),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>R11SocialWorldPage(controller:c)))),
         _V300HubCard(icon:Icons.wifi_protected_setup_rounded,title:L.t(c.localeCode,'reconnect'),subtitle:L.t(c.localeCode,'reconnectHint'),onTap:c.activeRoomCode==null?null:() async {try{await c.api.reconnectRoomV300(c.activeRoomCode!);if(context.mounted)showToast(context,L.t(c.localeCode,'reconnect'));}catch(e){if(context.mounted)showToast(context,friendlyErrorMessage(e,c.localeCode));}}),
-      ]; return GridView.count(crossAxisCount:wide?4:2,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),mainAxisSpacing:10,crossAxisSpacing:10,childAspectRatio:wide?1.25:.95,children:cards);}),
+      ]; return GridView.count(crossAxisCount:wide?4:2,shrinkWrap:true,physics:const NeverScrollableScrollPhysics(),mainAxisSpacing:10,crossAxisSpacing:10,childAspectRatio: wide ? 1.25 : (box.maxWidth < 350 ? 0.82 : 0.95),children:cards);}),
       const SizedBox(height:16),
       R9Section(child:Wrap(spacing:12,runSpacing:10,children:[Chip(avatar:const Icon(Icons.security_rounded,size:16),label:Text(L.t(c.localeCode,'afkProtection'))),Chip(avatar:const Icon(Icons.smart_toy_outlined,size:16),label:Text(L.t(c.localeCode,'serverControl'))),Chip(avatar:const Icon(Icons.emoji_events_outlined,size:16),label:Text(L.t(c.localeCode,'seasonal'))),Chip(avatar:const Icon(Icons.speed_rounded,size:16),label:Text(L.t(c.localeCode,'matchmaking')))])),
     ]));
   }
 }
 
-class _V300HubCard extends StatelessWidget{
-  const _V300HubCard({required this.icon,required this.title,required this.subtitle,this.onTap});
-  final IconData icon; final String title,subtitle; final VoidCallback? onTap;
-  @override Widget build(BuildContext context)=>InkWell(onTap:onTap,borderRadius:BorderRadius.circular(24),child:Ink(padding:const EdgeInsets.all(16),decoration:BoxDecoration(borderRadius:BorderRadius.circular(24),gradient:LinearGradient(colors:[Theme.of(context).colorScheme.primary.withValues(alpha:.14),Theme.of(context).colorScheme.surface]),border:Border.all(color:Theme.of(context).colorScheme.primary.withValues(alpha:.18))),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(icon,color:Theme.of(context).colorScheme.primary,size:30),const Spacer(),Text(title,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:15)),const SizedBox(height:5),Text(subtitle,maxLines:3,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:11,height:1.35,color:Theme.of(context).colorScheme.onSurface.withValues(alpha:.74)))])));
+/// A single accessible, original-blue World Hub action.
+//// Portrait tiles announce their complete labels even when the visual
+/// subtitle is shortened on compact screens.
+class R230WorldHubActionCard extends StatelessWidget {
+  const R230WorldHubActionCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final enabled = onTap != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: '$title. $subtitle',
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: InkWell(
+          excludeFromSemantics: true,
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Ink(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(colors: [
+                scheme.primary.withValues(alpha: .14),
+                scheme.surface,
+              ]),
+              border: Border.all(
+                color: scheme.primary.withValues(alpha: .30),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  color: enabled ? scheme.primary : scheme.onSurfaceVariant,
+                  size: 26,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 1.35,
+                      color: scheme.onSurface.withValues(alpha:.74),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Keep the established hub widget name for legacy source contracts while
+/// sharing the tested R230 accessible blue implementation.
+class _V300HubCard extends R230WorldHubActionCard {
+  const _V300HubCard({
+    required super.icon,
+    required super.title,
+    required super.subtitle,
+    super.onTap,
+  });
 }
 
 class V300AdminWorldOpsPanel extends StatefulWidget{
