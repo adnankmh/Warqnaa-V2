@@ -111,10 +111,8 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
       isScrollControlled: true,
       showDragHandle: true,
       builder: (sheet) => StatefulBuilder(
-        builder: (context, setSheet) => SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(18, 8, 18, 18 + MediaQuery.viewInsetsOf(context).bottom),
-            child: Column(
+        builder: (context, setSheet) => R223RankedQueueSheetViewport(
+          child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -164,7 +162,6 @@ class _R12CompetitiveArenaPageState extends State<R12CompetitiveArenaPage> with 
                   label: Text(ar ? 'ابدأ البحث العادل' : 'Start fair matchmaking'),
                 ),
               ],
-            ),
           ),
         ),
       ),
@@ -910,4 +907,24 @@ class _R12BracketRound extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// Scrollable Ranked setup on short portrait screens and with enlarged text.
+/// Only changes layout: the existing selections and server checks are retained.
+class R223RankedQueueSheetViewport extends StatelessWidget {
+  const R223RankedQueueSheetViewport({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        child: SingleChildScrollView(
+          key: const ValueKey('r223-ranked-queue-scroll'),
+          padding: EdgeInsets.fromLTRB(
+            18, 8, 18, 18 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: child,
+        ),
+      );
 }
