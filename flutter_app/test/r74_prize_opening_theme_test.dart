@@ -41,7 +41,7 @@ void main() {
   for (final locale in <String>['ar', 'en']) {
     for (final themeCode in <String>['royal_crimson', 'emerald_light']) {
       for (final width in <double>[320, 390]) {
-      testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width',
+        testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width',
           (tester) async {
         tester.view.physicalSize = Size(width, 844);
         tester.view.devicePixelRatio = 1;
@@ -108,7 +108,10 @@ void main() {
             accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
-        // Catch layout/paint failures before taking visual evidence.\n        expect(tester.takeException(), isNull);\n        expect(tester.widget<FilledButton>(close).onPressed, isNotNull);\n        final closeRect = tester.getRect(close);
+        // Catch layout/paint failures before taking visual evidence.
+        expect(tester.takeException(), isNull);
+        expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
+        final closeRect = tester.getRect(close);
         expect(closeRect.top, greaterThanOrEqualTo(0));
         expect(closeRect.bottom, lessThanOrEqualTo(844));
         expect(closeRect.left, greaterThanOrEqualTo(0));
