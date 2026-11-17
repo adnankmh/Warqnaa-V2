@@ -13,6 +13,14 @@ const r74Reward = <String, dynamic>{
   'label_en': 'Competition ticket 500',
 };
 
+double r268Contrast(Color foreground, Color background) {
+  final a = foreground.computeLuminance();
+  final b = background.computeLuminance();
+  final lighter = a > b ? a : b;
+  final darker = a > b ? b : a;
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 void main() {
   setUpAll(() async {
     if (review.reviewDirectory.isEmpty) return;
@@ -32,9 +40,10 @@ void main() {
 
   for (final locale in <String>['ar', 'en']) {
     for (final themeCode in <String>['royal_crimson', 'emerald_light']) {
-      testWidgets('R74 prize opening uses blue palette with $themeCode in $locale',
+      for (final width in <double>[320, 390]) {
+        testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width',
           (tester) async {
-        tester.view.physicalSize = const Size(390, 844);
+        tester.view.physicalSize = Size(width, 844);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -65,6 +74,11 @@ void main() {
 
         final context = tester.element(
           find.byKey(const ValueKey('r53-prize-summary')));
+        // Verify that the actual scene inherits the requested reading direction.
+        expect(
+          Directionality.of(context),
+          locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+        );
         final theme = Theme.of(context);
         final dark = theme.brightness == Brightness.dark;
         final surface = dark ? const Color(0xFF123B60) : const Color(0xFFE8F5FF);
@@ -79,6 +93,10 @@ void main() {
         expect(scene.color, dark ? const Color(0xFF0D2945) : const Color(0xFFD8EDFC));
         expect(decoration.color, surface);
         expect(decoration.border!.top.color, accent);
+        // WCAG AA normal text contrast for the actual foreground/background pairs.
+        expect(r268Contrast(onSurface, surface), greaterThanOrEqualTo(4.5));
+        expect(r268Contrast(onAccent, accent), greaterThanOrEqualTo(4.5));
+        expect(r268Contrast(onSurface, scene.color), greaterThanOrEqualTo(4.5));
         expect(
           tester.widget<Text>(
             find.byKey(const ValueKey('r53-prize-description'))).style!.color,
@@ -90,15 +108,28 @@ void main() {
             accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
-        await tester.tap(close);
-        expect(continued, 1);
+        // Catch layout/paint failures before taking visual evidence.
         expect(tester.takeException(), isNull);
-
+        expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
+        final closeRect = tester.getRect(close);
+        expect(closeRect.top, greaterThanOrEqualTo(0));
+        expect(closeRect.bottom, lessThanOrEqualTo(844));
+        expect(closeRect.left, greaterThanOrEqualTo(0));
+        expect(closeRect.right, lessThanOrEqualTo(width));
+        expect(closeRect.width, greaterThanOrEqualTo(48));
+        expect(closeRect.height, greaterThanOrEqualTo(48));
+        // Capture the pre-action state so visual review includes the actual CTA.
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(
-            tester, key, '$locale-r74-prize-opening-$themeCode-390x844');
+            tester, key, '$locale-r268-prize-opening-$themeCode-${width.toInt()}x844');
         }
+        await tester.tap(close);
+        await tester.pump();
+        await tester.pump(); // Callback must remain single-shot across frames.
+        expect(continued, 1);
+        expect(tester.takeException(), isNull);
       });
+      }
     }
   }
 }
