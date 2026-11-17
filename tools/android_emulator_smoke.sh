@@ -128,9 +128,18 @@ for FRAME_ATTEMPT in $(seq 1 30); do
     echo "[FAIL] App exited or restarted while waiting for its first frame." >&2
     exit 1
   fi
-  if app_has_foreground && app_window_was_drawn && \
-      adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null && \
-      valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
+  # Persist which gate is blocking a real emulator, rather than returning
+  # an ambiguous timeout after a successful APK install.
+  if ! app_has_foreground; then
+    printf 'attempt=%s stage=foreground_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+  elif ! app_window_was_drawn; then
+    printf 'attempt=%s stage=display_event_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+  elif ! adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null; then
+    printf 'attempt=%s stage=screencap_failed\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+  elif ! valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
+    printf 'attempt=%s stage=invalid_png\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+  else
+    printf 'attempt=%s stage=accepted\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
     mv "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/first-frame.png"
     FRAME_READY=true
     break
