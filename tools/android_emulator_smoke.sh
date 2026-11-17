@@ -88,8 +88,8 @@ app_has_foreground() {
 
 app_window_was_drawn() {
   # Window focus can already point to the activity while Android is still
-  # showing its launch splash. This event is logged after the activity draws.
-  adb logcat -d -b system -s ActivityTaskManager:I \
+  # showing its launch splash. The Displayed event may be in the main\n  # logcat buffer (confirmed by emulator evidence 14377277006), not system.
+  adb logcat -d -b all -s ActivityTaskManager:I \
     | grep -F "Displayed $PACKAGE/" > /dev/null
 }
 
