@@ -41,7 +41,8 @@ void main() {
   for (final locale in <String>['ar', 'en']) {
     for (final themeCode in <String>['royal_crimson', 'emerald_light']) {
       for (final width in <double>[320, 390]) {
-        testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width',
+        for (final customAccent in <String>['#25e4df', '#ff7a00']) {
+        testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width with $customAccent override',
           (tester) async {
         tester.view.physicalSize = Size(width, 844);
         tester.view.devicePixelRatio = 1;
@@ -50,7 +51,7 @@ void main() {
         final controller = AppController()
           ..localeCode = locale
           ..themeCode = themeCode
-          ..uiAccentHex = '#25e4df';
+          ..uiAccentHex = customAccent;
         addTearDown(controller.dispose);
         final key = GlobalKey();
         var continued = 0;
@@ -108,6 +109,9 @@ void main() {
             accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
+        // Custom user accents must not replace the original-blue prize CTA.
+        expect(closeStyle.backgroundColor!.resolve(<WidgetState>{}),
+            isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
         // Catch layout/paint failures before taking visual evidence.
         expect(tester.takeException(), isNull);
         expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
@@ -121,14 +125,17 @@ void main() {
         // Capture the pre-action state so visual review includes the actual CTA.
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(
-            tester, key, '$locale-r268-prize-opening-$themeCode-${width.toInt()}x844');
+            tester, key, '$locale-r269-prize-opening-$themeCode-${width.toInt()}x844-${customAccent.substring(1)}');
         }
         await tester.tap(close);
         await tester.pump();
         await tester.pump(); // Callback must remain single-shot across frames.
         expect(continued, 1);
+        expect(Directionality.of(context),
+            locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
         expect(tester.takeException(), isNull);
       });
+        }
       }
     }
   }
