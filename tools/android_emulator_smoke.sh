@@ -79,12 +79,18 @@ app_has_foreground() {
     return 1
   fi
   windows=$(adb shell dumpsys window windows 2>/dev/null) || return 1
-  # The real activity window is named package/component. Android's splash
-  # window starts with “Splash Screen” and cannot satisfy the same check.
+  # The real activity window is named package/component.
   printf '%s\n' "$activities" "$windows" | awk -v component="$PACKAGE/" '
     $1 ~ /^mCurrentFocus=Window\{/ && $2 ~ /^u[0-9]+$/ && index($3, component) == 1 { focused = 1 }
     END { exit !focused }
   '
+}
+
+app_window_was_drawn() {
+  # Window focus can already point to the activity while Android is still
+  # showing its launch splash. This event is logged after the activity draws.
+  adb logcat -d -b system -s ActivityTaskManager:I \
+    | grep -F "Displayed $PACKAGE/" > /dev/null
 }
 
 PID=''
@@ -122,7 +128,7 @@ for FRAME_ATTEMPT in $(seq 1 30); do
     echo "[FAIL] App exited or restarted while waiting for its first frame." >&2
     exit 1
   fi
-  if app_has_foreground && \
+  if app_has_foreground && app_window_was_drawn && \
       adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null && \
       valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
     mv "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/first-frame.png"

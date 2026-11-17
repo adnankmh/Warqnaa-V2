@@ -63,6 +63,12 @@ elif args[:2] == ['shell', 'dumpsys']:
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
         print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
+    if 'ActivityTaskManager:I' in args:
+        draw_checks = root / 'draw-checks'
+        draw_check = (int(draw_checks.read_text()) if draw_checks.exists() else 0) + 1
+        draw_checks.write_text(str(draw_check))
+        if mode != 'focus_before_draw' or draw_check > 2:
+            print('I ActivityTaskManager: Displayed com.warqna.warqna_mobile/.MainActivity for user 0: +8s84ms')
     if mode == 'crash' and '--pid=4242' in args:
         print('FATAL EXCEPTION: main')
     if mode == 'anr' and '--pid=4242' not in args and '-c' not in args:
@@ -169,6 +175,12 @@ class AndroidSmokeTest(unittest.TestCase):
         report = json.loads((evidence / 'result.json').read_text())
         self.assertEqual(report['frame_capture_attempts'], 3)
         self.assertEqual(int((root / 'captures').read_text()), 2)  # app frame and exit evidence
+
+    def test_focus_alone_is_insufficient_while_android_splash_is_drawn(self):
+        result, root, evidence = self.run_smoke('focus_before_draw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 3)
+        self.assertEqual(int((root / 'captures').read_text()), 2)
 
     def test_transient_focus_gap_after_first_frame_is_retried(self):
         result, root, evidence = self.run_smoke('transient_focus')
