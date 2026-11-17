@@ -139,6 +139,12 @@ void main() {
         final description = tester.widget<Text>(
             find.byKey(const ValueKey('r53-prize-description')));
         expect(description.data?.trim().isNotEmpty, isTrue);
+        // Both translations must remain associated with the displayed reward.
+        expect(description.data, contains(
+            locale == 'ar' ? r74Reward['label_ar'] : r74Reward['label_en']));
+        expect(Directionality.of(tester.element(
+            find.byKey(const ValueKey('r53-prize-description')))),
+            locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
         // Catch layout/paint failures before taking visual evidence.
         expect(tester.takeException(), isNull);
         expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
@@ -164,6 +170,9 @@ void main() {
           await review.capture(
             tester, key, '$locale-r269-prize-opening-$themeCode-${width.toInt()}x844-${customAccent.substring(1)}');
         }
+        // The visual button must also be reachable by Flutter hit testing.
+        final hit = tester.hitTestOnBinding(closeRect.center);
+        expect(hit.path.any((entry) => entry.target is RenderBox), isTrue);
         await tester.tap(close);
         await tester.pump();
         await tester.pump(); // Callback must remain single-shot across frames.
