@@ -40,7 +40,8 @@ void main() {
 
   for (final locale in <String>['ar', 'en']) {
     for (final themeCode in <String>['royal_crimson', 'emerald_light']) {
-      for (final width in <double>[320, 390]) {
+      // Cover compact and common portrait phone widths without changing production UI.
+      for (final width in <double>[320, 360, 390, 430]) {
         for (final customAccent in <String>['#25e4df', '#ff7a00']) {
         testWidgets('R74 prize opening uses accessible blue palette with $themeCode in $locale at $width with $customAccent override',
           (tester) async {
@@ -116,6 +117,13 @@ void main() {
             accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
+        // Check the rendered CTA's resolved colors, not only the expected tokens.
+        final actualButtonBackground = closeStyle.backgroundColor!
+            .resolve(<WidgetState>{})!;
+        final actualButtonForeground = closeStyle.foregroundColor!
+            .resolve(<WidgetState>{})!;
+        expect(r268Contrast(actualButtonForeground, actualButtonBackground),
+            greaterThanOrEqualTo(4.5));
         // Custom user accents must not replace the original-blue prize CTA.
         expect(closeStyle.backgroundColor!.resolve(<WidgetState>{}),
             isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
