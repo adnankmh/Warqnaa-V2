@@ -127,6 +127,18 @@ void main() {
         // Custom user accents must not replace the original-blue prize CTA.
         expect(closeStyle.backgroundColor!.resolve(<WidgetState>{}),
             isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
+        // Keep the summary card completely visible on compact portrait screens.
+        final summaryRect = tester.getRect(
+            find.byKey(const ValueKey('r53-prize-summary')));
+        expect(summaryRect.isFinite, isTrue);
+        expect(summaryRect.left, greaterThanOrEqualTo(0));
+        expect(summaryRect.right, lessThanOrEqualTo(width));
+        expect(summaryRect.top, greaterThanOrEqualTo(0));
+        expect(summaryRect.bottom, lessThanOrEqualTo(844));
+        // The localized reward description must not silently disappear.
+        final description = tester.widget<Text>(
+            find.byKey(const ValueKey('r53-prize-description')));
+        expect(description.data?.trim().isNotEmpty, isTrue);
         // Catch layout/paint failures before taking visual evidence.
         expect(tester.takeException(), isNull);
         expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
