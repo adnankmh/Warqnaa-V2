@@ -108,7 +108,7 @@ void main() {
             accent);
         expect(closeStyle.foregroundColor!.resolve(<WidgetState>{}),
             onAccent);
-        final closeRect = tester.getRect(close);
+        // Catch layout/paint failures before taking visual evidence.\n        expect(tester.takeException(), isNull);\n        expect(tester.widget<FilledButton>(close).onPressed, isNotNull);\n        final closeRect = tester.getRect(close);
         expect(closeRect.top, greaterThanOrEqualTo(0));
         expect(closeRect.bottom, lessThanOrEqualTo(844));
         expect(closeRect.left, greaterThanOrEqualTo(0));
@@ -122,6 +122,7 @@ void main() {
         }
         await tester.tap(close);
         await tester.pump();
+        await tester.pump(); // Callback must remain single-shot across frames.
         expect(continued, 1);
         expect(tester.takeException(), isNull);
       });
