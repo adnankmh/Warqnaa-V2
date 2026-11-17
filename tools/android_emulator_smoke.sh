@@ -71,16 +71,26 @@ read_app_pid() {
   return 1
 }
 
+app_has_foreground() {
+  local activities windows
+  activities=$(adb shell dumpsys activity activities 2>/dev/null) || return 1
+  if ! grep -E '^[[:space:]]*(mResumedActivity|topResumedActivity|ResumedActivity)[:=]' <<< "$activities" \
+      | grep -F " $PACKAGE/" > /dev/null; then
+    return 1
+  fi
+  windows=$(adb shell dumpsys window windows 2>/dev/null) || return 1
+  # The real activity window is named package/component. Android's splash
+  # window starts with “Splash Screen” and cannot satisfy the same check.
+  printf '%s\n' "$activities" "$windows" | awk -v component="$PACKAGE/" '
+    $1 ~ /^mCurrentFocus=Window\{/ && $2 ~ /^u[0-9]+$/ && index($3, component) == 1 { focused = 1 }
+    END { exit !focused }
+  '
+}
+
 PID=''
-FOREGROUND=''
 for _ in $(seq 1 30); do
   PID=$(read_app_pid || true)
-  FOREGROUND=$({
-    adb shell dumpsys activity activities 2>/dev/null
-    adb shell dumpsys activity top 2>/dev/null
-    adb shell dumpsys window windows 2>/dev/null
-  } | grep -E 'mResumedActivity|topResumedActivity|ResumedActivity|mCurrentFocus|mFocusedApp|^[[:space:]]*ACTIVITY ' | grep -F "$PACKAGE" | head -n 1 || true)
-  if [[ -n "$PID" && -n "$FOREGROUND" ]]; then
+  if [[ -n "$PID" ]]; then
     break
   fi
   sleep 1
@@ -90,11 +100,6 @@ if [[ -z "$PID" ]]; then
   echo "[FAIL] $PACKAGE did not remain running after launch." >&2
   exit 1
 fi
-if [[ -z "$FOREGROUND" ]]; then
-  echo "[FAIL] $PACKAGE did not reach a resumed foreground activity." >&2
-  exit 1
-fi
-
 valid_frame() {
 python3 - "$1" <<'PY'
 from pathlib import Path
@@ -117,7 +122,8 @@ for FRAME_ATTEMPT in $(seq 1 30); do
     echo "[FAIL] App exited or restarted while waiting for its first frame." >&2
     exit 1
   fi
-  if adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null && \
+  if app_has_foreground && \
+      adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null && \
       valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
     mv "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/first-frame.png"
     FRAME_READY=true
@@ -126,24 +132,34 @@ for FRAME_ATTEMPT in $(seq 1 30); do
   sleep 1
 done
 if [[ "$FRAME_READY" != true ]]; then
-  echo "[FAIL] Emulator screenshot is missing or invalid after 30 capture attempts." >&2
+  echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
   exit 1
 fi
 
-# Refresh crash evidence after the rendering wait, not just after launch.
-adb logcat --pid="$PID" -d > "$EVIDENCE_DIR/app-logcat.txt"
-adb shell dumpsys meminfo "$PACKAGE" > "$EVIDENCE_DIR/meminfo.txt"
-collect_evidence
-CURRENT_PID=$(read_app_pid || true)
-if [[ "$CURRENT_PID" != "$PID" ]]; then
-  echo "[FAIL] App exited or restarted after its first frame." >&2
-  exit 1
-fi
-if ! grep -hE 'mResumedActivity|topResumedActivity|ResumedActivity|mCurrentFocus|mFocusedApp|^[[:space:]]*ACTIVITY ' \
-    "$EVIDENCE_DIR/activity.txt" "$EVIDENCE_DIR/activity-top.txt" "$EVIDENCE_DIR/windows.txt" | grep -F "$PACKAGE" > /dev/null; then
+# A focus query can run during an Android window transition. Require the same
+# process to regain a real, resumed foreground window before passing.
+FOREGROUND_READY=false
+for _ in $(seq 1 10); do
+  CURRENT_PID=$(read_app_pid || true)
+  if [[ "$CURRENT_PID" != "$PID" ]]; then
+    echo "[FAIL] App exited or restarted after its first frame." >&2
+    exit 1
+  fi
+  if app_has_foreground; then
+    FOREGROUND_READY=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$FOREGROUND_READY" != true ]]; then
   echo "[FAIL] App lost its foreground activity while rendering." >&2
   exit 1
 fi
+
+# Refresh crash evidence after the final focus check.
+adb logcat --pid="$PID" -d > "$EVIDENCE_DIR/app-logcat.txt"
+adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt"
+adb shell dumpsys meminfo "$PACKAGE" > "$EVIDENCE_DIR/meminfo.txt"
 if grep -E 'FATAL EXCEPTION|Fatal signal [0-9]+|ANR in ' "$EVIDENCE_DIR/app-logcat.txt"; then
   echo "[FAIL] Android reported a fatal exception, native crash or ANR." >&2
   exit 1

@@ -50,8 +50,18 @@ elif args[:3] == ['shell', 'pm', 'grant']:
     if mode == 'permission_error':
         sys.exit(1)
 elif args[:2] == ['shell', 'dumpsys']:
-    package = 'com.android.launcher' if mode == 'background' and count > 0 else 'com.warqna.warqna_mobile'
-    print(f'mResumedActivity: {package}/.MainActivity')
+    if args[2:] == ['activity', 'activities']:
+        focus_checks = root / 'focus-checks'
+        focus_check = (int(focus_checks.read_text()) if focus_checks.exists() else 0) + 1
+        focus_checks.write_text(str(focus_check))
+        app = 'com.warqna.warqna_mobile/.MainActivity'
+        focus = app
+        if mode == 'splash_then_app' and focus_check <= 2:
+            focus = 'Splash Screen com.warqna.warqna_mobile'
+        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+            focus = 'com.android.launcher/.MainActivity'
+        print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
+        print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
     if mode == 'crash' and '--pid=4242' in args:
         print('FATAL EXCEPTION: main')
@@ -152,6 +162,19 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('lost its foreground activity', result.stderr)
         self.assertFalse((evidence / 'result.json').exists())
+
+    def test_splash_window_is_not_captured_as_the_app_frame(self):
+        result, root, evidence = self.run_smoke('splash_then_app')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        report = json.loads((evidence / 'result.json').read_text())
+        self.assertEqual(report['frame_capture_attempts'], 3)
+        self.assertEqual(int((root / 'captures').read_text()), 2)  # app frame and exit evidence
+
+    def test_transient_focus_gap_after_first_frame_is_retried(self):
+        result, root, evidence = self.run_smoke('transient_focus')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(int((root / 'focus-checks').read_text()), 4)  # includes exit evidence
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['pid'], 4242)
 
     def test_transient_adb_query_is_retried_with_evidence(self):
         result, _, evidence = self.run_smoke('transient_query')
