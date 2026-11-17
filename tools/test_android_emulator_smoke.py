@@ -67,7 +67,7 @@ elif args and args[0] == 'logcat':
         draw_checks = root / 'draw-checks'
         draw_check = (int(draw_checks.read_text()) if draw_checks.exists() else 0) + 1
         draw_checks.write_text(str(draw_check))
-        if mode != 'focus_before_draw' or draw_check > 2:
+        if (mode != 'focus_before_draw' or draw_check > 2) and (mode != 'main_buffer_draw' or '-b' in args and args[args.index('-b') + 1] == 'all'):
             print('I ActivityTaskManager: Displayed com.warqna.warqna_mobile/.MainActivity for user 0: +8s84ms')
     if mode == 'crash' and '--pid=4242' in args:
         print('FATAL EXCEPTION: main')
@@ -181,6 +181,11 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 3)
         self.assertEqual(int((root / 'captures').read_text()), 2)
+
+    def test_draw_event_in_main_logcat_buffer_is_accepted(self):
+        result, _, evidence = self.run_smoke('main_buffer_draw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 1)
 
     def test_transient_focus_gap_after_first_frame_is_retried(self):
         result, root, evidence = self.run_smoke('transient_focus')
