@@ -111,7 +111,7 @@ void main() {
             onAccent);
         // Custom user accents must not replace the original-blue prize CTA.
         expect(closeStyle.backgroundColor!.resolve(<WidgetState>{}),
-            isNot(const Color(0xFFFF7A00)));
+            isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
         // Catch layout/paint failures before taking visual evidence.
         expect(tester.takeException(), isNull);
         expect(tester.widget<FilledButton>(close).onPressed, isNotNull);
@@ -125,7 +125,7 @@ void main() {
         // Capture the pre-action state so visual review includes the actual CTA.
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(
-            tester, key, '$locale-r268-prize-opening-$themeCode-${width.toInt()}x844');
+            tester, key, '$locale-r269-prize-opening-$themeCode-${width.toInt()}x844-${customAccent.substring(1)}');
         }
         await tester.tap(close);
         await tester.pump();
