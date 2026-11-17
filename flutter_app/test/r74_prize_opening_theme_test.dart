@@ -94,6 +94,9 @@ void main() {
         expect(scene.color, dark ? const Color(0xFF0D2945) : const Color(0xFFD8EDFC));
         expect(decoration.color, surface);
         expect(decoration.border!.top.color, accent);
+        // Both surface and outline must stay on the original blue palette.
+        expect(scene.color, isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
+        expect(decoration.border!.top.color, isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
         // WCAG AA normal text contrast for the actual foreground/background pairs.
         expect(r268Contrast(onSurface, surface), greaterThanOrEqualTo(4.5));
         expect(r268Contrast(onAccent, accent), greaterThanOrEqualTo(4.5));
@@ -122,6 +125,9 @@ void main() {
         expect(closeRect.right, lessThanOrEqualTo(width));
         expect(closeRect.width, greaterThanOrEqualTo(48));
         expect(closeRect.height, greaterThanOrEqualTo(48));
+        // Maintain an eight-pixel safe inset for narrow portrait layouts.
+        expect(closeRect.left, greaterThanOrEqualTo(8));
+        expect(closeRect.right, lessThanOrEqualTo(width - 8));
         // Capture the pre-action state so visual review includes the actual CTA.
         if (review.reviewDirectory.isNotEmpty) {
           await review.capture(
