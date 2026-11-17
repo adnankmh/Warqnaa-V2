@@ -121,9 +121,13 @@ void main() {
         final closeRect = tester.getRect(close);
         expect(closeRect.top, greaterThanOrEqualTo(0));
         expect(closeRect.bottom, lessThanOrEqualTo(844));
+        // Keep the action clear of the bottom system gesture area.
+        expect(closeRect.bottom, lessThanOrEqualTo(844 - 8));
         expect(closeRect.left, greaterThanOrEqualTo(0));
         expect(closeRect.right, lessThanOrEqualTo(width));
         expect(closeRect.width, greaterThanOrEqualTo(48));
+        // Ensure the CTA never grows wider than the usable portrait area.
+        expect(closeRect.width, lessThanOrEqualTo(width - 16));
         expect(closeRect.height, greaterThanOrEqualTo(48));
         // Maintain an eight-pixel safe inset for narrow portrait layouts.
         expect(closeRect.left, greaterThanOrEqualTo(8));
