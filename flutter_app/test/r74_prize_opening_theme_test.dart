@@ -94,6 +94,10 @@ void main() {
         expect(scene.color, dark ? const Color(0xFF0D2945) : const Color(0xFFD8EDFC));
         expect(decoration.color, surface);
         expect(decoration.border!.top.color, accent);
+        // The blue card must remain visually distinguishable from its stage.
+        expect(r268Contrast(surface, scene.color), greaterThanOrEqualTo(1.05));
+        // Outline must remain perceptible against the card in both themes.
+        expect(r268Contrast(accent, surface), greaterThanOrEqualTo(1.3));
         // Both surface and outline must stay on the original blue palette.
         expect(scene.color, isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
         expect(decoration.border!.top.color, isNot(Color(int.parse(customAccent.substring(1), radix: 16) | 0xFF000000)));
@@ -129,6 +133,9 @@ void main() {
         // Ensure the CTA never grows wider than the usable portrait area.
         expect(closeRect.width, lessThanOrEqualTo(width - 16));
         expect(closeRect.height, greaterThanOrEqualTo(48));
+        // The touch target must remain inside the visible, padded screen.
+        expect(closeRect.isFinite, isTrue);
+        expect(closeRect.center.dx, inInclusiveRange(8, width - 8));
         // Maintain an eight-pixel safe inset for narrow portrait layouts.
         expect(closeRect.left, greaterThanOrEqualTo(8));
         expect(closeRect.right, lessThanOrEqualTo(width - 8));
@@ -140,6 +147,9 @@ void main() {
         await tester.tap(close);
         await tester.pump();
         await tester.pump(); // Callback must remain single-shot across frames.
+        expect(continued, 1);
+        // No delayed duplicate callback or post-tap paint exception.
+        await tester.pump(const Duration(milliseconds: 100));
         expect(continued, 1);
         expect(Directionality.of(context),
             locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
