@@ -130,8 +130,31 @@ if not (1 <= width <= 16384 and 1 <= height <= 16384):
     raise SystemExit(1)
 if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33])[0]:
     raise SystemExit(1)
-# A truncated capture can retain its PNG header; require the terminal chunk.
-if payload[-12:] != b"\x00\x00\x00\x00IEND\xaeB\x60\x82":
+# Validate every chunk boundary and CRC, not only IHDR. A corrupted IDAT
+# can otherwise masquerade as a successfully captured emulator frame.
+offset = 8
+saw_idat = False
+saw_iend = False
+while offset < len(payload):
+    if offset + 12 > len(payload):
+        raise SystemExit(1)
+    size = struct.unpack(">I", payload[offset:offset + 4])[0]
+    end = offset + 12 + size
+    if end > len(payload):
+        raise SystemExit(1)
+    kind = payload[offset + 4:offset + 8]
+    body = payload[offset + 4:offset + 8 + size]
+    expected = struct.unpack(">I", payload[offset + 8 + size:end])[0]
+    if zlib.crc32(body) & 0xffffffff != expected:
+        raise SystemExit(1)
+    if kind == b"IDAT":
+        saw_idat = True
+    if kind == b"IEND":
+        if size != 0 or end != len(payload):
+            raise SystemExit(1)
+        saw_iend = True
+    offset = end
+if not (saw_idat and saw_iend):
     raise SystemExit(1)
 print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
