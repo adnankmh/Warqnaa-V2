@@ -58,7 +58,15 @@ def main():
     # IEND before pixel data is forbidden, even with a valid CRC.
     premature_end = good[:33] + chunk(b"IEND", b"") + good[33:-12]
     assert not accepted(premature_end), "premature IEND accepted"
-    print("PASS: valid PNG and nine corruption/boundary fixtures")
+    # IDAT chunks may be split, but must remain adjacent.
+    idat_body = good[41:41 + idat_size]
+    split = good[:33] + chunk(b"IDAT", idat_body[:100]) + chunk(b"IDAT", idat_body[100:]) + good[-12:]
+    assert accepted(split), "consecutive IDAT chunks rejected"
+    interrupted = good[:33] + chunk(b"IDAT", idat_body[:100]) + chunk(b"tEXt", b"k\\x00v") + chunk(b"IDAT", idat_body[100:]) + good[-12:]
+    assert not accepted(interrupted), "noncontiguous IDAT accepted"
+    unknown_critical = good[:33] + chunk(b"ABCD", b"unsupported") + good[33:]
+    assert not accepted(unknown_critical), "unknown critical PNG chunk accepted"
+    print("PASS: valid PNG, split IDAT and eleven corruption/boundary fixtures")
 
 
 if __name__ == "__main__":
