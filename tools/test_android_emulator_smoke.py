@@ -83,9 +83,9 @@ def fixture_png():
         return (struct.pack('>I', len(payload)) + kind + payload
                 + struct.pack('>I', zlib.crc32(kind + payload)))
     rng = random.Random(81)
-    pixels = b''.join(b'\0' + rng.randbytes(300) for _ in range(100))
+    pixels = b''.join(b'\0' + rng.randbytes(300) for _ in range(120))
     return (b'\x89PNG\r\n\x1a\n'
-            + chunk(b'IHDR', struct.pack('>IIBBBBB', 100, 100, 8, 2, 0, 0, 0))
+            + chunk(b'IHDR', struct.pack('>IIBBBBB', 100, 120, 8, 2, 0, 0, 0))
             + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
 
 
