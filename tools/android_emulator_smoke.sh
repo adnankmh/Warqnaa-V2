@@ -135,6 +135,7 @@ if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33]
 offset = 8
 saw_idat = False
 saw_iend = False
+idat_closed = False
 chunk_index = 0
 while offset < len(payload):
     if offset + 12 > len(payload):
@@ -151,8 +152,16 @@ while offset < len(payload):
     # IHDR must occur exactly once and first; IDAT must precede IEND.
     if kind == b"IHDR" and chunk_index != 0:
         raise SystemExit(1)
+    # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
     if kind == b"IDAT":
+        if idat_closed or size == 0:
+            raise SystemExit(1)
         saw_idat = True
+    elif saw_idat:
+        idat_closed = True
+    # Unknown critical chunks cannot be interpreted safely.
+    if kind[0] & 0x20 == 0 and kind not in (b"IHDR", b"PLTE", b"IDAT", b"IEND"):
+        raise SystemExit(1)
     if kind == b"IEND":
         if not saw_idat:
             raise SystemExit(1)
