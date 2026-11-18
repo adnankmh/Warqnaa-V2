@@ -50,9 +50,25 @@ elif args[:3] == ['shell', 'pm', 'grant']:
     if mode == 'permission_error':
         sys.exit(1)
 elif args[:2] == ['shell', 'dumpsys']:
-    package = 'com.android.launcher' if mode == 'background' and count > 0 else 'com.warqna.warqna_mobile'
-    print(f'mResumedActivity: {package}/.MainActivity')
+    if args[2:] == ['activity', 'activities']:
+        focus_checks = root / 'focus-checks'
+        focus_check = (int(focus_checks.read_text()) if focus_checks.exists() else 0) + 1
+        focus_checks.write_text(str(focus_check))
+        app = 'com.warqna.warqna_mobile/.MainActivity'
+        focus = app
+        if mode == 'splash_then_app' and focus_check <= 2:
+            focus = 'Splash Screen com.warqna.warqna_mobile'
+        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+            focus = 'com.android.launcher/.MainActivity'
+        print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
+        print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
+    if 'ActivityTaskManager:I' in args:
+        draw_checks = root / 'draw-checks'
+        draw_check = (int(draw_checks.read_text()) if draw_checks.exists() else 0) + 1
+        draw_checks.write_text(str(draw_check))
+        if (mode != 'focus_before_draw' or draw_check > 2) and (mode != 'main_buffer_draw' or '-b' in args and args[args.index('-b') + 1] == 'all'):
+            print('I ActivityTaskManager: Displayed com.warqna.warqna_mobile/.MainActivity for user 0: +8s84ms')
     if mode == 'crash' and '--pid=4242' in args:
         print('FATAL EXCEPTION: main')
     if mode == 'anr' and '--pid=4242' not in args and '-c' not in args:
@@ -74,7 +90,7 @@ def fixture_png():
 
 
 class AndroidSmokeTest(unittest.TestCase):
-    def run_smoke(self, mode):
+    def run_smoke(self, mode, stale_evidence=False):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         root = Path(temp.name)
@@ -92,6 +108,10 @@ class AndroidSmokeTest(unittest.TestCase):
         apk = root / 'test.apk'
         apk.write_bytes(b'fixture APK for checksum association')
         evidence = root / 'evidence'
+        if stale_evidence:
+            evidence.mkdir()
+            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt'):
+                (evidence / name).write_text('stale previous run')
         env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                    FAKE_ADB_ROOT=str(root), FAKE_ADB_MODE=mode)
         result = subprocess.run(
@@ -111,6 +131,14 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(report['notification_permission'], 'pregranted_on_test_device')
         self.assertEqual((root / 'permission-grant').read_text(),
                          'com.warqna.warqna_mobile android.permission.POST_NOTIFICATIONS')
+
+    def test_previous_frame_evidence_is_cleared_before_new_run(self):
+        result, _, evidence = self.run_smoke('api32', stale_evidence=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse((evidence / 'frame-candidate.png').exists())
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=accepted\n')
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
 
     def test_old_android_does_not_receive_unsupported_permission(self):
         result, root, evidence = self.run_smoke('api32')
@@ -152,6 +180,30 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('lost its foreground activity', result.stderr)
         self.assertFalse((evidence / 'result.json').exists())
+
+    def test_splash_window_is_not_captured_as_the_app_frame(self):
+        result, root, evidence = self.run_smoke('splash_then_app')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        report = json.loads((evidence / 'result.json').read_text())
+        self.assertEqual(report['frame_capture_attempts'], 3)
+        self.assertEqual(int((root / 'captures').read_text()), 2)  # app frame and exit evidence
+
+    def test_focus_alone_is_insufficient_while_android_splash_is_drawn(self):
+        result, root, evidence = self.run_smoke('focus_before_draw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 3)
+        self.assertEqual(int((root / 'captures').read_text()), 2)
+
+    def test_draw_event_in_main_logcat_buffer_is_accepted(self):
+        result, _, evidence = self.run_smoke('main_buffer_draw')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 1)
+
+    def test_transient_focus_gap_after_first_frame_is_retried(self):
+        result, root, evidence = self.run_smoke('transient_focus')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(int((root / 'focus-checks').read_text()), 4)  # includes exit evidence
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['pid'], 4242)
 
     def test_transient_adb_query_is_retried_with_evidence(self):
         result, _, evidence = self.run_smoke('transient_query')
