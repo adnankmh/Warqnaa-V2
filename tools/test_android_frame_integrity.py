@@ -52,7 +52,13 @@ def main():
     assert not accepted(header_only), "PNG without IDAT accepted"
     # Reject appended data after the terminal PNG chunk.
     assert not accepted(good + b"TRAILER"), "trailing bytes accepted"
-    print("PASS: valid PNG and seven corruption/boundary fixtures")
+    # A second IHDR after IDAT is forbidden even when all CRCs are valid.
+    duplicated_header = good[:-12] + chunk(b"IHDR", good[16:29]) + good[-12:]
+    assert not accepted(duplicated_header), "duplicate IHDR accepted"
+    # IEND before pixel data is forbidden, even with a valid CRC.
+    premature_end = good[:33] + chunk(b"IEND", b"") + good[33:-12]
+    assert not accepted(premature_end), "premature IEND accepted"
+    print("PASS: valid PNG and nine corruption/boundary fixtures")
 
 
 if __name__ == "__main__":
