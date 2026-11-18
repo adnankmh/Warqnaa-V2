@@ -36,6 +36,10 @@ def accepted(data):
 def main():
     good = png()
     assert accepted(good), "valid PNG rejected"
+    # A valid landscape image is not acceptable evidence for the portrait Android smoke run.
+    landscape_header = struct.pack(">IIBBBBB", 390, 320, 8, 2, 0, 0, 0)
+    landscape = good[:8] + chunk(b"IHDR", landscape_header) + good[33:]
+    assert not accepted(landscape), "landscape frame accepted as portrait evidence"
     assert not accepted(good[:-12]), "truncated PNG accepted"
     assert not accepted(good[:29] + b"\x00\x00\x00\x00" + good[33:]), "bad IHDR CRC accepted"
     assert not accepted(b"\x89PNG\r\n\x1a\n" + b"X" * 20000), "fake PNG accepted"
