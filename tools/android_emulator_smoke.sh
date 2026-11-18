@@ -5,7 +5,9 @@ APK=${1:?Usage: android_emulator_smoke.sh APK [EVIDENCE_DIR]}
 EVIDENCE_DIR=${2:-build/emulator-evidence}
 mkdir -p "$EVIDENCE_DIR"
 rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
-  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt"
+  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt" \
+  "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
+  "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt"
 
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
@@ -111,13 +113,27 @@ fi
 valid_frame() {
 python3 - "$1" <<'PY'
 from pathlib import Path
+import struct
 import sys
+import zlib
 
 image = Path(sys.argv[1])
 payload = image.read_bytes()
-if not payload.startswith(b"\x89PNG\r\n\x1a\n") or len(payload) < 10_000:
+signature = b"\x89PNG\r\n\x1a\n"
+if not payload.startswith(signature) or len(payload) < 10_000:
     raise SystemExit(1)
-print(f"[PASS] Captured first Android frame: {len(payload)} bytes")
+# PNG IHDR is the first chunk, with exactly 13 bytes of metadata.
+if len(payload) < 33 or payload[12:16] != b"IHDR" or struct.unpack(">I", payload[8:12])[0] != 13:
+    raise SystemExit(1)
+width, height = struct.unpack(">II", payload[16:24])
+if not (1 <= width <= 16384 and 1 <= height <= 16384):
+    raise SystemExit(1)
+if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33])[0]:
+    raise SystemExit(1)
+# A truncated capture can retain its PNG header; require the terminal chunk.
+if payload[-12:] != b"\x00\x00\x00\x00IEND\xaeB\x60\x82":
+    raise SystemExit(1)
+print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
 }
 
