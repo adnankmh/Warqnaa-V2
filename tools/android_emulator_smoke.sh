@@ -135,6 +135,7 @@ if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33]
 offset = 8
 saw_idat = False
 saw_iend = False
+chunk_index = 0
 while offset < len(payload):
     if offset + 12 > len(payload):
         raise SystemExit(1)
@@ -147,13 +148,19 @@ while offset < len(payload):
     expected = struct.unpack(">I", payload[offset + 8 + size:end])[0]
     if zlib.crc32(body) & 0xffffffff != expected:
         raise SystemExit(1)
+    # IHDR must occur exactly once and first; IDAT must precede IEND.
+    if kind == b"IHDR" and chunk_index != 0:
+        raise SystemExit(1)
     if kind == b"IDAT":
         saw_idat = True
     if kind == b"IEND":
+        if not saw_idat:
+            raise SystemExit(1)
         if size != 0 or end != len(payload):
             raise SystemExit(1)
         saw_iend = True
     offset = end
+    chunk_index += 1
 if not (saw_idat and saw_iend):
     raise SystemExit(1)
 print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
