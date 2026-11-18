@@ -128,7 +128,8 @@ if len(payload) < 33 or payload[12:16] != b"IHDR" or struct.unpack(">I", payload
 width, height = struct.unpack(">II", payload[16:24])
 bit_depth, color_type, compression, filter_method, interlace = payload[24:29]
 valid_depths = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (8, 16)}
-if not (1 <= width <= 16384 and 1 <= height <= 16384):
+# The Android smoke evidence must be a portrait frame, not a rotated or cropped landscape capture.
+if not (1 <= width < height <= 16384):
     raise SystemExit(1)
 if bit_depth not in valid_depths.get(color_type, ()) or compression != 0 or filter_method != 0 or interlace not in (0, 1):
     raise SystemExit(1)
