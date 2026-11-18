@@ -4,7 +4,8 @@ set -euo pipefail
 APK=${1:?Usage: android_emulator_smoke.sh APK [EVIDENCE_DIR]}
 EVIDENCE_DIR=${2:-build/emulator-evidence}
 mkdir -p "$EVIDENCE_DIR"
-rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png"
+rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
+  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt"
 
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
@@ -88,7 +89,8 @@ app_has_foreground() {
 
 app_window_was_drawn() {
   # Window focus can already point to the activity while Android is still
-  # showing its launch splash. The Displayed event may be in the main\n  # logcat buffer (confirmed by emulator evidence 14377277006), not system.
+  # showing its launch splash. The Displayed event may be in the main
+  # logcat buffer (confirmed by emulator evidence 14377277006), not system.
   adb logcat -d -b all -s ActivityTaskManager:I \
     | grep -F "Displayed $PACKAGE/" > /dev/null
 }
