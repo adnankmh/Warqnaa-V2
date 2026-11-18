@@ -186,6 +186,10 @@ while offset < len(payload):
     chunk_index += 1
 if not (saw_idat and saw_iend):
     raise SystemExit(1)
+# Indexed PNGs require a palette. Their bit depth also limits the number
+# of palette entries; accepting an impossible palette yields false evidence.
+if color_type == 3 and not saw_plte:
+    raise SystemExit(1)
 print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
 }
