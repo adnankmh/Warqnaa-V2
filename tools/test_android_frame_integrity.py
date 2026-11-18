@@ -90,6 +90,12 @@ def main():
     indexed_header = header[:9] + bytes((3,)) + header[10:]
     indexed = good[:8] + chunk(b"IHDR", indexed_header) + good[33:]
     assert not accepted(indexed), "indexed PNG without required palette accepted"
+    # A valid indexed palette is accepted; a palette larger than 2**bit_depth is not.
+    assert accepted(indexed[:33] + palette + indexed[33:]), "indexed PNG with palette rejected"
+    indexed_one_bit = header[:8] + bytes((1, 3)) + header[10:]
+    indexed_one_bit_png = good[:8] + chunk(b"IHDR", indexed_one_bit) + good[33:]
+    oversized_palette = chunk(b"PLTE", bytes((0, 0, 255, 255, 255, 255, 0, 0, 0)))
+    assert not accepted(indexed_one_bit_png[:33] + oversized_palette + indexed_one_bit_png[33:]), "indexed palette exceeds bit depth"
     grayscale_header = header[:9] + bytes((0,)) + header[10:]
     grayscale = good[:8] + chunk(b"IHDR", grayscale_header) + good[33:]
     assert not accepted(grayscale[:33] + palette + grayscale[33:]), "grayscale PNG with forbidden palette accepted"
