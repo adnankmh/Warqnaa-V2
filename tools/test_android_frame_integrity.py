@@ -40,7 +40,19 @@ def main():
     assert not accepted(good[:29] + b"\x00\x00\x00\x00" + good[33:]), "bad IHDR CRC accepted"
     assert not accepted(b"\x89PNG\r\n\x1a\n" + b"X" * 20000), "fake PNG accepted"
     assert not accepted(good[:16] + b"\x00" * 8 + good[24:]), "zero dimensions accepted"
-    print("PASS: valid, truncated, CRC, signature-only and dimension fixtures")
+    # Alter compressed pixel bytes without changing IHDR or the IEND trailer.
+    idat_start = 33
+    idat_size = struct.unpack(">I", good[idat_start:idat_start + 4])[0]
+    assert idat_size > 10
+    corrupted = bytearray(good)
+    corrupted[idat_start + 8 + 10] ^= 0x01
+    assert not accepted(bytes(corrupted)), "corrupted IDAT CRC accepted"
+    # A well-formed IHDR and IEND alone must not pass without pixel data.
+    header_only = good[:33] + chunk(b"IEND", b"")
+    assert not accepted(header_only), "PNG without IDAT accepted"
+    # Reject appended data after the terminal PNG chunk.
+    assert not accepted(good + b"TRAILER"), "trailing bytes accepted"
+    print("PASS: valid PNG and seven corruption/boundary fixtures")
 
 
 if __name__ == "__main__":
