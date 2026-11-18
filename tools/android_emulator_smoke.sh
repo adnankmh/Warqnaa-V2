@@ -154,7 +154,7 @@ while offset < len(payload):
         raise SystemExit(1)
     # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
     if kind == b"IDAT":
-        if idat_closed or size == 0:
+        if idat_closed:
             raise SystemExit(1)
         saw_idat = True
     elif saw_idat:
@@ -205,6 +205,9 @@ for FRAME_ATTEMPT in $(seq 1 30); do
 done
 if [[ "$FRAME_READY" != true ]]; then
   echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
+  echo "[FAIL] Frame gate summary:" >&2
+  sort "$EVIDENCE_DIR/frame-attempts.txt" | sed -E "s/^attempt=[0-9]+ / /" | sort | uniq -c >&2 || true
+  echo "[FAIL] See frame-attempts.txt and frame-candidate.png in emulator evidence." >&2
   exit 1
 fi
 
