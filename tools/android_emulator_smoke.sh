@@ -160,7 +160,7 @@ while offset < len(payload):
     # Palette metadata is optional for RGB captures, but must be unique and
     # precede pixel data. Reject impossible palette ordering.
     if kind == b"PLTE":
-        if saw_plte or saw_idat or size == 0 or size % 3 or size > 768:
+        if saw_plte or saw_idat or size == 0 or size % 3 or size > 768 or (color_type == 3 and size // 3 > (1 << bit_depth)):
             raise SystemExit(1)
         saw_plte = True
     # Grayscale PNG forbids palettes, even when the palette CRC is valid.
