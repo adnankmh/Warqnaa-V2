@@ -163,7 +163,10 @@ while offset < len(payload):
         if saw_plte or saw_idat or size == 0 or size % 3 or size > 768:
             raise SystemExit(1)
         saw_plte = True
-    # Grayscale PNG forbids palettes, even when the palette CRC is valid.\n    if kind == b"PLTE" and color_type in (0, 4):\n        raise SystemExit(1)\n    # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
+    # Grayscale PNG forbids palettes, even when the palette CRC is valid.
+    if kind == b"PLTE" and color_type in (0, 4):
+        raise SystemExit(1)
+    # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
     if kind == b"IDAT":
         if idat_closed:
             raise SystemExit(1)
