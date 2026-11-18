@@ -65,16 +65,16 @@ def main():
     # PNG permits zero-length IDAT chunks; valid Android captures must not fail on them.
     with_empty_idat = good[:33] + chunk(b"IDAT", b"") + good[33:]
     assert accepted(with_empty_idat), "legal zero-length IDAT chunk rejected"
-    interrupted = good[:33] + chunk(b"IDAT", idat_body[:100]) + chunk(b"tEXt", b"k\\x00v") + chunk(b"IDAT", idat_body[100:]) + good[-12:]
+    interrupted = good[:33] + chunk(b"IDAT", idat_body[:100]) + chunk(b"tEXt", bytes((107, 0, 118))) + chunk(b"IDAT", idat_body[100:]) + good[-12:]
     assert not accepted(interrupted), "noncontiguous IDAT accepted"
     unknown_critical = good[:33] + chunk(b"ABCD", b"unsupported") + good[33:]
     assert not accepted(unknown_critical), "unknown critical PNG chunk accepted"
     # RGB screenshots may carry an optional palette before the pixel stream.
-    palette = chunk(b"PLTE", b"\\x00\\x00\\xff")
+    palette = chunk(b"PLTE", bytes((0, 0, 255)))
     assert accepted(good[:33] + palette + good[33:]), "valid optional palette rejected"
     assert not accepted(good[:33] + palette + palette + good[33:]), "duplicate palette accepted"
     assert not accepted(good[:-12] + palette + good[-12:]), "late palette accepted"
-    assert not accepted(good[:33] + chunk(b"PLTE", b"\\x00\\x01") + good[33:]), "malformed palette accepted"
+    assert not accepted(good[:33] + chunk(b"PLTE", bytes((0, 1))) + good[33:]), "malformed palette accepted"
     print("PASS: PNG integrity, palette ordering and corruption/boundary fixtures")
 
 
