@@ -75,7 +75,18 @@ def main():
     assert not accepted(good[:33] + palette + palette + good[33:]), "duplicate palette accepted"
     assert not accepted(good[:-12] + palette + good[-12:]), "late palette accepted"
     assert not accepted(good[:33] + chunk(b"PLTE", bytes((0, 1))) + good[33:]), "malformed palette accepted"
-    print("PASS: PNG integrity, palette ordering and corruption/boundary fixtures")
+    # IHDR fields must describe a legal PNG pixel format, not merely have valid CRCs.
+    header = good[16:29]
+    for label, replacement in (
+        ("unsupported color type", header[:9] + bytes((1,)) + header[10:]),
+        ("invalid RGB bit depth", header[:8] + bytes((4,)) + header[9:]),
+        ("unsupported compression", header[:10] + bytes((1,)) + header[11:]),
+        ("unsupported filter", header[:11] + bytes((1,)) + header[12:]),
+        ("unsupported interlace", header[:12] + bytes((2,))),
+    ):
+        invalid = good[:8] + chunk(b"IHDR", replacement) + good[33:]
+        assert not accepted(invalid), f"{label} accepted"
+    print("PASS: PNG integrity, palette ordering, IHDR format and corruption/boundary fixtures")
 
 
 if __name__ == "__main__":
