@@ -90,7 +90,7 @@ def fixture_png():
 
 
 class AndroidSmokeTest(unittest.TestCase):
-    def run_smoke(self, mode):
+    def run_smoke(self, mode, stale_evidence=False):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         root = Path(temp.name)
@@ -108,6 +108,10 @@ class AndroidSmokeTest(unittest.TestCase):
         apk = root / 'test.apk'
         apk.write_bytes(b'fixture APK for checksum association')
         evidence = root / 'evidence'
+        if stale_evidence:
+            evidence.mkdir()
+            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt'):
+                (evidence / name).write_text('stale previous run')
         env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                    FAKE_ADB_ROOT=str(root), FAKE_ADB_MODE=mode)
         result = subprocess.run(
@@ -127,6 +131,14 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(report['notification_permission'], 'pregranted_on_test_device')
         self.assertEqual((root / 'permission-grant').read_text(),
                          'com.warqna.warqna_mobile android.permission.POST_NOTIFICATIONS')
+
+    def test_previous_frame_evidence_is_cleared_before_new_run(self):
+        result, _, evidence = self.run_smoke('api32', stale_evidence=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse((evidence / 'frame-candidate.png').exists())
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=accepted\n')
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
 
     def test_old_android_does_not_receive_unsupported_permission(self):
         result, root, evidence = self.run_smoke('api32')
