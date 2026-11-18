@@ -69,7 +69,13 @@ def main():
     assert not accepted(interrupted), "noncontiguous IDAT accepted"
     unknown_critical = good[:33] + chunk(b"ABCD", b"unsupported") + good[33:]
     assert not accepted(unknown_critical), "unknown critical PNG chunk accepted"
-    print("PASS: valid PNG, split/empty IDAT and eleven corruption/boundary fixtures")
+    # RGB screenshots may carry an optional palette before the pixel stream.
+    palette = chunk(b"PLTE", b"\\x00\\x00\\xff")
+    assert accepted(good[:33] + palette + good[33:]), "valid optional palette rejected"
+    assert not accepted(good[:33] + palette + palette + good[33:]), "duplicate palette accepted"
+    assert not accepted(good[:-12] + palette + good[-12:]), "late palette accepted"
+    assert not accepted(good[:33] + chunk(b"PLTE", b"\\x00\\x01") + good[33:]), "malformed palette accepted"
+    print("PASS: PNG integrity, palette ordering and corruption/boundary fixtures")
 
 
 if __name__ == "__main__":
