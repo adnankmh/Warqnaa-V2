@@ -86,7 +86,7 @@ def main():
     ):
         invalid = good[:8] + chunk(b"IHDR", replacement) + good[33:]
         assert not accepted(invalid), f"{label} accepted"
-    print("PASS: PNG integrity, palette ordering, IHDR format and corruption/boundary fixtures")
+    # Indexed-color PNG requires PLTE; grayscale PNG must not contain it.\n    indexed_header = header[:9] + bytes((3,)) + header[10:]\n    indexed = good[:8] + chunk(b"IHDR", indexed_header) + good[33:]\n    assert not accepted(indexed), "indexed PNG without required palette accepted"\n    grayscale_header = header[:9] + bytes((0,)) + header[10:]\n    grayscale = good[:8] + chunk(b"IHDR", grayscale_header) + good[33:]\n    assert not accepted(grayscale[:33] + palette + grayscale[33:]), "grayscale PNG with forbidden palette accepted"\n    print("PASS: PNG integrity, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
 if __name__ == "__main__":
