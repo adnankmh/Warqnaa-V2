@@ -136,6 +136,7 @@ offset = 8
 saw_idat = False
 saw_iend = False
 idat_closed = False
+saw_plte = False
 chunk_index = 0
 while offset < len(payload):
     if offset + 12 > len(payload):
@@ -152,6 +153,12 @@ while offset < len(payload):
     # IHDR must occur exactly once and first; IDAT must precede IEND.
     if kind == b"IHDR" and chunk_index != 0:
         raise SystemExit(1)
+    # Palette metadata is optional for RGB captures, but must be unique and
+    # precede pixel data. Reject impossible palette ordering.
+    if kind == b"PLTE":
+        if saw_plte or saw_idat or size == 0 or size % 3 or size > 768:
+            raise SystemExit(1)
+        saw_plte = True
     # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
     if kind == b"IDAT":
         if idat_closed:
