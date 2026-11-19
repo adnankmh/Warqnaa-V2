@@ -32,9 +32,11 @@ void main() {
           await tester.pump();
           expect(find.byType(Bot3DAvatar), findsOneWidget);
           expect(
-            find.bySemanticsLabel(language == 'ar'
+            find.byWidgetPredicate((widget) =>
+              widget is Semantics && widget.properties.image == true &&
+              widget.properties.label == (language == 'ar'
                 ? 'الصورة الرمزية للاعب الآلي ${profile.nameAr}'
-                : '${profile.nameEn} computer-player avatar'),
+                : '${profile.nameEn} computer-player avatar')),
             findsOneWidget,
           );
           expect(Directionality.of(tester.element(find.byType(Bot3DAvatar))),
@@ -54,7 +56,10 @@ void main() {
         profile: botProfiles[0], locale: 'ar',
       )),
     ));
-    expect(find.bySemanticsLabel('الصورة الرمزية للاعب الآلي عاصم'),
+    expect(find.byWidgetPredicate((widget) =>
+          widget is Semantics && widget.properties.image == true &&
+          widget.properties.label ==
+              'الصورة الرمزية للاعب الآلي ${botProfiles[0].nameAr}'),
         findsOneWidget);
     expect(tester.takeException(), isNull);
   });
