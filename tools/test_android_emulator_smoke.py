@@ -185,13 +185,19 @@ class AndroidSmokeTest(unittest.TestCase):
         result, root, evidence = self.run_smoke('splash_then_app')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads((evidence / 'result.json').read_text())
-        self.assertEqual(report['frame_capture_attempts'], 3)
+        self.assertEqual(report['frame_capture_attempts'], 2)
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=foreground_missing\nattempt=2 stage=accepted\n')
+        self.assertTrue((evidence / 'first-foreground-failure.txt').exists())
         self.assertEqual(int((root / 'captures').read_text()), 2)  # app frame and exit evidence
 
     def test_focus_alone_is_insufficient_while_android_splash_is_drawn(self):
         result, root, evidence = self.run_smoke('focus_before_draw')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 3)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 2)
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=display_event_missing\nattempt=2 stage=accepted\n')
+        self.assertTrue((evidence / 'first-display-failure.txt').exists())
         self.assertEqual(int((root / 'captures').read_text()), 2)
 
     def test_draw_event_in_main_logcat_buffer_is_accepted(self):
