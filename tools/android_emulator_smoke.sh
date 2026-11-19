@@ -139,6 +139,7 @@ if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33]
 # can otherwise masquerade as a successfully captured emulator frame.
 offset = 8
 saw_idat = False
+idat_bytes = 0
 saw_iend = False
 idat_closed = False
 saw_plte = False
@@ -154,6 +155,9 @@ while offset < len(payload):
     body = payload[offset + 4:offset + 8 + size]
     expected = struct.unpack(">I", payload[offset + 8 + size:end])[0]
     if zlib.crc32(body) & 0xffffffff != expected:
+        raise SystemExit(1)
+    # PNG chunk types are ASCII letters; the third (reserved) letter must be uppercase.
+    if len(kind) != 4 or any(not (65 <= c <= 90 or 97 <= c <= 122) for c in kind) or kind[2] & 0x20:
         raise SystemExit(1)
     # IHDR must occur exactly once and first; IDAT must precede IEND.
     if kind == b"IHDR" and chunk_index != 0:
@@ -172,6 +176,7 @@ while offset < len(payload):
         if idat_closed:
             raise SystemExit(1)
         saw_idat = True
+        idat_bytes += size
     elif saw_idat:
         idat_closed = True
     # Unknown critical chunks cannot be interpreted safely.
@@ -185,7 +190,7 @@ while offset < len(payload):
         saw_iend = True
     offset = end
     chunk_index += 1
-if not (saw_idat and saw_iend):
+if not (saw_idat and saw_iend and idat_bytes):
     raise SystemExit(1)
 # Indexed PNGs require a palette. Their bit depth also limits the number
 # of palette entries; accepting an impossible palette yields false evidence.
