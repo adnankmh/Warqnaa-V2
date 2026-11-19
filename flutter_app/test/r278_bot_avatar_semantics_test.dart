@@ -66,6 +66,23 @@ void main() {
     });
   }
 
+
+  testWidgets('R278 English explicit locale overrides Arabic ambient locale',
+      (tester) async {
+    final semantics = tester.ensureSemantics();
+    final profile = botProfiles.last;
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ar'),
+      home: Scaffold(body: Bot3DAvatar(profile: profile, locale: 'en')),
+    ));
+    expect(find.byWidgetPredicate((widget) =>
+        widget is Semantics && widget.properties.image == true &&
+        widget.properties.label ==
+            '${profile.nameEn} computer-player avatar'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
+  });
+
   testWidgets('R278 avatar label uses explicit locale over ambient locale',
       (tester) async {
     final semantics = tester.ensureSemantics();
