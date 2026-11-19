@@ -9,7 +9,9 @@ Scope: one new Flutter widget regression file; no gameplay, networking, economy,
 - 8 portrait configurations: Arabic RTL / English LTR × blue-seeded light/dark × 320/390 logical pixels, 844-pixel height.
 - Screen-reader avatar identity is localized and names the selected original bot profile.
 - Directionality is inherited correctly and the widget renders without exceptions.
-- Additional case verifies explicit Arabic locale takes precedence over an English ambient locale.
+- Two alternate-profile cases verify Arabic and English screen-reader labels are taken from the selected bot, not hard-coded to the first profile.
+- Two explicit-locale cases verify Arabic overrides an English ambient locale and English overrides an Arabic ambient locale.
+- Total: 12 widget tests (8 portrait matrix + 2 alternate-profile + 2 locale-override).
 
 ## Run
 
