@@ -13,6 +13,7 @@ void main() {
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           final semantics = tester.ensureSemantics();
+          addTearDown(semantics.dispose);
           final direction = language == 'ar'
               ? TextDirection.rtl : TextDirection.ltr;
           final profile = botProfiles.first;
@@ -41,7 +42,6 @@ void main() {
           expect(Directionality.of(tester.element(find.byType(Bot3DAvatar))),
               direction);
           expect(tester.takeException(), isNull);
-          semantics.dispose();
         });
       }
     }
@@ -50,7 +50,9 @@ void main() {
   testWidgets('R278 avatar label uses explicit locale over ambient locale',
       (tester) async {
     final semantics = tester.ensureSemantics();
+          addTearDown(semantics.dispose);
     await tester.pumpWidget(MaterialApp(
+      locale: const Locale('en'),
       home: Scaffold(body: Bot3DAvatar(
         profile: botProfiles[0], locale: 'ar',
       )),
@@ -61,6 +63,5 @@ void main() {
               'الصورة الرمزية للاعب الآلي ${botProfiles[0].nameAr}'),
         findsOneWidget);
     expect(tester.takeException(), isNull);
-    semantics.dispose();
   });
 }
