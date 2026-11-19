@@ -41,7 +41,6 @@ void main() {
           expect(Directionality.of(tester.element(find.byType(Bot3DAvatar))),
               direction);
           expect(tester.takeException(), isNull);
-    semantics.dispose();
           semantics.dispose();
         });
       }
@@ -63,5 +62,6 @@ void main() {
               'الصورة الرمزية للاعب الآلي ${botProfiles[0].nameAr}'),
         findsOneWidget);
     expect(tester.takeException(), isNull);
+    semantics.dispose();
   });
 }
