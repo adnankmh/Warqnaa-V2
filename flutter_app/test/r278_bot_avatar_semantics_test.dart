@@ -5,7 +5,7 @@ import 'package:warqna_mobile/premium_v149.dart';
 void main() {
   for (final language in <String>['ar', 'en']) {
     for (final brightness in <Brightness>[Brightness.light, Brightness.dark]) {
-      for (final width in <double>[320, 390]) {
+      for (final width in <double>[320, 390, 430]) {
         testWidgets('R278 bot avatar semantic identity $language $brightness $width',
             (tester) async {
           tester.view.physicalSize = Size(width, 844);
@@ -29,6 +29,7 @@ void main() {
             ),
           ));
           await tester.pump();
+          expect(tester.getSize(find.byType(Bot3DAvatar)).width, lessThanOrEqualTo(width));
           expect(find.byType(Bot3DAvatar), findsOneWidget);
           expect(
             find.byWidgetPredicate((widget) =>
