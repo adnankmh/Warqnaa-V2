@@ -8,7 +8,8 @@ rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
   "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt" \
   "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
   "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
-  "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt"
+  "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt" \\
+  "$EVIDENCE_DIR/final-frame-timeout-state.txt"
 
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
@@ -241,8 +242,15 @@ done
 if [[ "$FRAME_READY" != true ]]; then
   echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
   echo "[FAIL] Frame gate summary:" >&2
-  sort "$EVIDENCE_DIR/frame-attempts.txt" | sed -E "s/^attempt=[0-9]+ / /" | sort | uniq -c >&2 || true
-  echo "[FAIL] See frame-attempts.txt and frame-candidate.png in emulator evidence." >&2
+  sed -E 's/^attempt=[0-9]+ stage=//' "$EVIDENCE_DIR/frame-attempts.txt" | sort | uniq -c >&2 || true
+  # Preserve final focus/resume and ActivityTaskManager state for timeouts,
+  # even if the initial failing stage changed during the retry window.
+  { printf 'package=%s pid=%s attempts=%s\\n' "$PACKAGE" "$PID" "$FRAME_ATTEMPT";
+    adb shell dumpsys activity activities;
+    adb shell dumpsys window windows;
+    adb logcat -d -b all -s ActivityTaskManager:I;
+  } > "$EVIDENCE_DIR/final-frame-timeout-state.txt" 2>&1 || true
+  echo "[FAIL] See frame-attempts.txt, final-frame-timeout-state.txt and frame-candidate.png in emulator evidence." >&2
   exit 1
 fi
 
