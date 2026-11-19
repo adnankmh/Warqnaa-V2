@@ -7,7 +7,8 @@ mkdir -p "$EVIDENCE_DIR"
 rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
   "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt" \
   "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
-  "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt"
+  "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
+  "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt"
 
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
@@ -213,8 +214,18 @@ for FRAME_ATTEMPT in $(seq 1 30); do
   # an ambiguous timeout after a successful APK install.
   if ! app_has_foreground; then
     printf 'attempt=%s stage=foreground_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-foreground-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        adb shell dumpsys activity activities; adb shell dumpsys window windows;
+      } > "$EVIDENCE_DIR/first-foreground-failure.txt" 2>&1 || true
+    fi
   elif ! app_window_was_drawn; then
     printf 'attempt=%s stage=display_event_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-display-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        adb logcat -d -b all -s ActivityTaskManager:I;
+      } > "$EVIDENCE_DIR/first-display-failure.txt" 2>&1 || true
+    fi
   elif ! adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null; then
     printf 'attempt=%s stage=screencap_failed\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
   elif ! valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
