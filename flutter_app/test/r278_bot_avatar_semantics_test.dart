@@ -47,6 +47,25 @@ void main() {
     }
   }
 
+  // Guard against accidentally hard-coding the first bot's localized name.
+  for (final language in <String>['ar', 'en']) {
+    testWidgets('R278 alternate bot retains its own $language identity',
+        (tester) async {
+      final semantics = tester.ensureSemantics();
+      final profile = botProfiles.last;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: Bot3DAvatar(profile: profile, locale: language)),
+      ));
+      expect(find.byWidgetPredicate((widget) =>
+          widget is Semantics && widget.properties.image == true &&
+          widget.properties.label == (language == 'ar'
+              ? 'الصورة الرمزية للاعب الآلي ${profile.nameAr}'
+              : '${profile.nameEn} computer-player avatar')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      semantics.dispose();
+    });
+  }
+
   testWidgets('R278 avatar label uses explicit locale over ambient locale',
       (tester) async {
     final semantics = tester.ensureSemantics();
