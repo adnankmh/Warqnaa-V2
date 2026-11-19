@@ -49,7 +49,7 @@ void main() {
       (tester) async {
     final semantics = tester.ensureSemantics();
     addTearDown(semantics.dispose);
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: Bot3DAvatar(
         profile: botProfiles[0], locale: 'ar',
       )),
