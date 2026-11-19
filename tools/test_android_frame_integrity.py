@@ -74,7 +74,7 @@ def main():
     unknown_critical = good[:33] + chunk(b"ABCD", b"unsupported") + good[33:]
     assert not accepted(unknown_critical), "unknown critical PNG chunk accepted"
     # CRC-correct chunks still need legal four-letter PNG type names and a clear reserved bit.
-    for kind in (b"ab1d", b"abcD", b"abCd"):
+    for kind in (b"ab1d", b"abcD", b"aBcd"):
         malformed = good[:33] + chunk(kind, b"payload") + good[33:]
         assert not accepted(malformed), f"invalid PNG chunk name {kind!r} accepted"
     # Empty IDAT chunks are legal only when some image data exists.
