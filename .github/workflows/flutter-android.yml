@@ -271,7 +271,7 @@ jobs:
           script: bash ../tools/android_emulator_smoke.sh "build/app/outputs/flutter-apk/warqna-v${{ steps.release.outputs.build }}-safe.apk" "build/emulator-evidence"
 
       - name: Upload Android emulator evidence
-        if: steps.safe_apk.outcome == 'success'
+        if: always() && steps.safe_apk.outcome == 'success'
         uses: actions/upload-artifact@v6
         with:
           name: warqna-v${{ steps.release.outputs.build }}-android-emulator-evidence
