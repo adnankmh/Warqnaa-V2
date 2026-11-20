@@ -116,6 +116,18 @@ def main():
     grayscale_header = header[:9] + bytes((0,)) + header[10:]
     grayscale = good[:8] + chunk(b"IHDR", grayscale_header) + good[33:]
     assert not accepted(grayscale[:33] + palette + grayscale[33:]), "grayscale PNG with forbidden palette accepted"
+    # CRC-correct and zlib-valid data can still be invalid PNG scanlines.
+    rgb_stride = 320 * 3 + 1
+    raw_rgb = zlib.decompress(idat_body)
+    assert len(raw_rgb) == rgb_stride * 390
+    missing_row = good[:33] + chunk(b"IDAT", zlib.compress(raw_rgb[:-rgb_stride])) + good[-12:]
+    assert not accepted(missing_row), "RGB screenshot with missing row accepted"
+    extra_row = good[:33] + chunk(b"IDAT", zlib.compress(raw_rgb + raw_rgb[:rgb_stride])) + good[-12:]
+    assert not accepted(extra_row), "RGB screenshot with extra row accepted"
+    bad_filter = bytearray(raw_rgb)
+    bad_filter[0] = 5  # PNG permits only filters 0 through 4.
+    illegal_filter = good[:33] + chunk(b"IDAT", zlib.compress(bad_filter)) + good[-12:]
+    assert not accepted(illegal_filter), "CRC-valid screenshot with invalid row filter accepted"
     print("PASS: PNG integrity, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
