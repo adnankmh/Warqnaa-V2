@@ -12,6 +12,11 @@ rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
   "$EVIDENCE_DIR/final-frame-timeout-state.txt"
 
 collect_evidence() {
+  local smoke_status=$?
+  printf 'smoke_exit_status=%s\npackage=%s\npid=%s\n' "$smoke_status" "${PACKAGE:-unknown}" "${PID:-unknown}" > "$EVIDENCE_DIR/smoke-exit-status.txt"
+  if (( smoke_status != 0 )); then
+    echo "[FAIL] Android emulator smoke exited with status $smoke_status; inspect smoke-exit-status.txt and captured diagnostics." >&2
+  fi
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
   adb shell dumpsys activity activities > "$EVIDENCE_DIR/activity.txt" 2>&1 || true
   adb shell dumpsys activity top > "$EVIDENCE_DIR/activity-top.txt" 2>&1 || true
