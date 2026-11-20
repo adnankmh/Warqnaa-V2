@@ -25,5 +25,7 @@ require("if-no-files-found: error" in workflow, "missing emulator evidence remai
 require("if: failure() && steps.safe_apk.outcome == 'failure'" in workflow and "android-gradle-diagnostics" in workflow, "failed APK builds preserve separate Gradle diagnostics")
 for token in ("adb install --no-streaming -r", "mResumedActivity", "topResumedActivity", "mCurrentFocus", "FATAL EXCEPTION", "screencap -p", '"status": "PASSED"'):
     require(token in smoke, f"emulator smoke includes {token}")
+require('trap collect_evidence EXIT' in smoke and 'smoke_exit_status=%s' in smoke, "smoke failure captures exit status before cleanup")
+require('exit-frame.png' in smoke and 'first-frame.png' in smoke and 'mv "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/first-frame.png"' in smoke, "validated first frame is preserved independently of exit frame")
 require("WARQNAA_ADNAN_ADMIN" not in smoke, "emulator smoke uses no private account credentials")
 print("R7 ANDROID EMULATOR CONTRACT: PASS")
