@@ -16,7 +16,12 @@ smoke = (root / "tools/android_emulator_smoke.sh").read_text(encoding="utf-8")
 require("reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d" in workflow, "emulator action is immutable and pinned")
 require("Install and launch APK on an isolated Android emulator" in workflow, "Android workflow installs the built APK")
 require(workflow.index("Build launch-safe test APK") < workflow.index("Install and launch APK on an isolated Android emulator"), "the tested APK is built before emulator launch")
-require("if: always()" in workflow and "android-emulator-evidence" in workflow, "emulator evidence is retained even on failure")
+# Evidence must be uploaded when APK build succeeded, even if emulator smoke fails.
+# A failed APK build has no emulator frames, so requiring an unconditional upload
+# creates a misleading second failure instead of preserving useful diagnostics.
+require("if: steps.safe_apk.outcome == 'success'" in workflow and "android-emulator-evidence" in workflow, "emulator evidence is retained after emulator failure when APK exists")
+require("if-no-files-found: error" in workflow, "missing emulator evidence remains a hard failure after APK success")
+require("if: failure() && steps.safe_apk.outcome == 'failure'" in workflow and "android-gradle-diagnostics" in workflow, "failed APK builds preserve separate Gradle diagnostics")
 for token in ("adb install --no-streaming -r", "mResumedActivity", "topResumedActivity", "mCurrentFocus", "FATAL EXCEPTION", "screencap -p", '"status": "PASSED"'):
     require(token in smoke, f"emulator smoke includes {token}")
 require("WARQNAA_ADNAN_ADMIN" not in smoke, "emulator smoke uses no private account credentials")
