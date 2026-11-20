@@ -101,4 +101,44 @@ void main() {
     expect(tester.takeException(), isNull);
     semantics.dispose();
   });
+
+  // Accessibility regression: large system text must not hide the avatar
+  // or replace the localized screen-reader identity on narrow phones.
+  for (final language in <String>['ar', 'en']) {
+    for (final scale in <double>[2.0, 3.0]) {
+      testWidgets('R278 large text avatar semantics $language $scale',
+          (tester) async {
+        tester.view.physicalSize = const Size(320, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final semantics = tester.ensureSemantics();
+        final profile = botProfiles.last;
+        await tester.pumpWidget(MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: Directionality(
+              textDirection: language == 'ar'
+                  ? TextDirection.rtl : TextDirection.ltr,
+              child: Scaffold(body: Center(
+                child: Bot3DAvatar(profile: profile, locale: language),
+              )),
+            ),
+          ),
+        ));
+        await tester.pump();
+        expect(find.byType(Bot3DAvatar), findsOneWidget);
+        expect(tester.getSize(find.byType(Bot3DAvatar)).width,
+            lessThanOrEqualTo(320));
+        expect(find.byWidgetPredicate((widget) =>
+            widget is Semantics && widget.properties.image == true &&
+            widget.properties.label == (language == 'ar'
+                ? 'الصورة الرمزية للاعب الآلي ${profile.nameAr}'
+                : '${profile.nameEn} computer-player avatar')),
+            findsOneWidget);
+        expect(tester.takeException(), isNull);
+        semantics.dispose();
+      });
+    }
+  }
 }
