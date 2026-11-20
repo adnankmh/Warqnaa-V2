@@ -208,6 +208,12 @@ try:
     decoded = decoder.decompress(bytes(compressed_idat), limit + 1)
     if len(decoded) > limit or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
         raise SystemExit(1)
+    # RGB8 non-interlaced Android frames require one filter byte per scanline.
+    # A CRC-correct zlib stream can still omit rows or contain invalid filters.
+    if color_type == 2 and bit_depth == 8 and interlace == 0:
+        stride = width * 3 + 1
+        if len(decoded) != stride * height or any(decoded[row * stride] > 4 for row in range(height)):
+            raise SystemExit(1)
 except zlib.error:
     raise SystemExit(1)
 print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
