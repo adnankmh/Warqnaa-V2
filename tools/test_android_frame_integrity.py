@@ -139,6 +139,21 @@ def main():
     invalid_rgba_filter = bytearray(rgba_raw)
     invalid_rgba_filter[rgba_stride] = 5
     assert not accepted(rgba_prefix + chunk(b"IDAT", zlib.compress(invalid_rgba_filter)) + good[-12:]), "RGBA screenshot with invalid filter accepted"
+    # RGBA captures with an extra complete row must be rejected even when CRC and zlib are valid.
+    extra_rgba_row = rgba_prefix + chunk(b"IDAT", zlib.compress(rgba_raw + rgba_raw[:rgba_stride])) + good[-12:]
+    assert not accepted(extra_rgba_row), "RGBA screenshot with extra row accepted"
+    # All five legal PNG row filters must remain accepted in both RGB8 and RGBA8 captures.
+    # Pixel bytes are zero, so these streams are structurally valid regardless of filter choice.
+    for filter_type in range(5):
+        for label, prefix, raw, stride in (
+            ("RGB", good[:33], raw_rgb, rgb_stride),
+            ("RGBA", rgba_prefix, rgba_raw, rgba_stride),
+        ):
+            filtered = bytearray(raw)
+            for offset in range(0, len(filtered), stride):
+                filtered[offset] = filter_type
+            candidate = prefix + chunk(b"IDAT", zlib.compress(filtered)) + good[-12:]
+            assert accepted(candidate), f"legal PNG filter {filter_type} rejected for {label}"
     print("PASS: PNG integrity, RGB/RGBA scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
