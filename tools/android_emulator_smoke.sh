@@ -142,6 +142,7 @@ if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33]
 offset = 8
 saw_idat = False
 idat_bytes = 0
+compressed_idat = bytearray()
 saw_iend = False
 idat_closed = False
 saw_plte = False
@@ -179,6 +180,7 @@ while offset < len(payload):
             raise SystemExit(1)
         saw_idat = True
         idat_bytes += size
+        compressed_idat.extend(payload[offset + 8:offset + 8 + size])
     elif saw_idat:
         idat_closed = True
     # Unknown critical chunks cannot be interpreted safely.
@@ -197,6 +199,16 @@ if not (saw_idat and saw_iend and idat_bytes):
 # Indexed PNGs require a palette. Their bit depth also limits the number
 # of palette entries; accepting an impossible palette yields false evidence.
 if color_type == 3 and not saw_plte:
+    raise SystemExit(1)
+# Chunk CRCs do not prove that IDAT contains a decodable zlib stream.
+# Bound decompression to avoid trusting attacker-controlled image dimensions.
+try:
+    decoder = zlib.decompressobj()
+    limit = min(128 * 1024 * 1024, width * height * 8 + height * 2)
+    decoded = decoder.decompress(bytes(compressed_idat), limit + 1)
+    if len(decoded) > limit or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+        raise SystemExit(1)
+except zlib.error:
     raise SystemExit(1)
 print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
