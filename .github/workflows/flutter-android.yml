@@ -185,6 +185,7 @@ jobs:
           python3 ../tools/test_v305_single_table_contract.py
           python3 ../tools/test_r7_android_emulator_contract.py
           python3 ../tools/test_android_emulator_smoke.py
+          python3 ../tools/test_android_frame_integrity.py
           python3 ../tools/check_git_privacy_v304.py
           python3 ../tools/global_release_preflight.py
           python3 ../tools/test_v184_flutter_quality_contract.py

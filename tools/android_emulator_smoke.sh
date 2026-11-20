@@ -9,7 +9,8 @@ rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
   "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
   "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
   "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt" \
-  "$EVIDENCE_DIR/final-frame-timeout-state.txt"
+  "$EVIDENCE_DIR/final-frame-timeout-state.txt" "$EVIDENCE_DIR/full-logcat.txt" \
+  "$EVIDENCE_DIR/app-logcat.txt" "$EVIDENCE_DIR/meminfo.txt" "$EVIDENCE_DIR/adb-diagnostics.txt"
 
 collect_evidence() {
   local smoke_status=$?
@@ -17,7 +18,9 @@ collect_evidence() {
   if (( smoke_status != 0 )); then
     echo "[FAIL] Android emulator smoke exited with status $smoke_status; inspect smoke-exit-status.txt and captured diagnostics." >&2
   fi
-  adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
+  if [[ ! -f "$EVIDENCE_DIR/full-logcat.txt" ]]; then
+    adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
+  fi
   adb shell dumpsys activity activities > "$EVIDENCE_DIR/activity.txt" 2>&1 || true
   adb shell dumpsys activity top > "$EVIDENCE_DIR/activity-top.txt" 2>&1 || true
   adb shell dumpsys window windows > "$EVIDENCE_DIR/windows.txt" 2>&1 || true
@@ -297,10 +300,33 @@ if [[ "$FOREGROUND_READY" != true ]]; then
   exit 1
 fi
 
-# Refresh crash evidence after the final focus check.
-adb logcat --pid="$PID" -d > "$EVIDENCE_DIR/app-logcat.txt"
-adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt"
-adb shell dumpsys meminfo "$PACKAGE" > "$EVIDENCE_DIR/meminfo.txt"
+# Keep only completed reads. Some devices briefly reject dumpsys or logcat
+# after drawing their first frame. Required crash evidence must still exist.
+read_diagnostic() {
+  local name=$1 attempt status
+  shift
+  for attempt in 1 2 3; do
+    if adb "$@" > "$EVIDENCE_DIR/$name.partial" 2>> "$EVIDENCE_DIR/adb-diagnostics.txt"; then
+      mv "$EVIDENCE_DIR/$name.partial" "$EVIDENCE_DIR/$name"
+      return 0
+    else
+      status=$?
+    fi
+    printf '%s attempt=%s adb_status=%s\n' "$name" "$attempt" "$status" >> "$EVIDENCE_DIR/adb-diagnostics.txt"
+    if [[ $attempt != 3 ]]; then sleep 1; fi
+  done
+  rm -f "$EVIDENCE_DIR/$name.partial"
+  return 1
+}
+
+if ! read_diagnostic app-logcat.txt logcat --pid="$PID" -d ||
+   ! read_diagnostic full-logcat.txt logcat -d; then
+  echo "[FAIL] Required Android crash logs unavailable. See adb-diagnostics.txt." >&2
+  exit 1
+fi
+if ! read_diagnostic meminfo.txt shell dumpsys meminfo "$PACKAGE"; then
+  echo "[WARN] Optional memory snapshot unavailable. See adb-diagnostics.txt." >&2
+fi
 if grep -E 'FATAL EXCEPTION|Fatal signal [0-9]+|ANR in ' "$EVIDENCE_DIR/app-logcat.txt"; then
   echo "[FAIL] Android reported a fatal exception, native crash or ANR." >&2
   exit 1

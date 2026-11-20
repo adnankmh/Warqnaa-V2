@@ -50,6 +50,8 @@ elif args[:3] == ['shell', 'pm', 'grant']:
     if mode == 'permission_error':
         sys.exit(1)
 elif args[:2] == ['shell', 'dumpsys']:
+    if args[2] == 'meminfo' and mode == 'meminfo_error':
+        sys.exit(255)
     if args[2:] == ['activity', 'activities']:
         focus_checks = root / 'focus-checks'
         focus_check = (int(focus_checks.read_text()) if focus_checks.exists() else 0) + 1
@@ -63,6 +65,13 @@ elif args[:2] == ['shell', 'dumpsys']:
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
         print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
+    if '--pid=4242' in args and mode in ('log_retry', 'log_unavailable'):
+        probe = root / 'log-attempt'
+        n = (int(probe.read_text()) if probe.exists() else 0) + 1
+        probe.write_text(str(n))
+        if n == 1 or mode == 'log_unavailable':
+            print('incomplete diagnostic')
+            sys.exit(255)
     if 'ActivityTaskManager:I' in args:
         draw_checks = root / 'draw-checks'
         draw_check = (int(draw_checks.read_text()) if draw_checks.exists() else 0) + 1
@@ -138,6 +147,28 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertFalse((evidence / 'frame-candidate.png').exists())
         self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
                          'attempt=1 stage=accepted\n')
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
+
+    def test_transient_log_failure_is_retried_without_partial_output(self):
+        result, root, evidence = self.run_smoke('log_retry')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((root / 'log-attempt').read_text(), '2')
+        self.assertNotIn('incomplete diagnostic', (evidence / 'app-logcat.txt').read_text())
+        self.assertIn('adb_status=255', (evidence / 'adb-diagnostics.txt').read_text())
+
+    def test_required_crash_log_failure_prevents_passing(self):
+        result, root, evidence = self.run_smoke('log_unavailable')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((root / 'log-attempt').read_text(), '3')
+        self.assertIn('crash logs unavailable', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_optional_meminfo_failure_keeps_valid_crash_and_frame_checks(self):
+        result, _, evidence = self.run_smoke('meminfo_error')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Optional memory snapshot unavailable', result.stderr)
+        self.assertTrue((evidence / 'app-logcat.txt').is_file())
+        self.assertTrue((evidence / 'full-logcat.txt').is_file())
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
 
     def test_old_android_does_not_receive_unsupported_permission(self):
