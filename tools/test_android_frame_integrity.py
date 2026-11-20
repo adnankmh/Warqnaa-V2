@@ -128,7 +128,18 @@ def main():
     bad_filter[0] = 5  # PNG permits only filters 0 through 4.
     illegal_filter = good[:33] + chunk(b"IDAT", zlib.compress(bad_filter)) + good[-12:]
     assert not accepted(illegal_filter), "CRC-valid screenshot with invalid row filter accepted"
-    print("PASS: PNG integrity, palette ordering, indexed/grayscale format and corruption fixtures")
+    # Android encoders may emit RGBA8 rather than RGB8; enforce the same scanline contract.
+    rgba_header = header[:9] + bytes((6,)) + header[10:]
+    rgba_raw = b"".join(b"\x00" + b"\x00" * (320 * 4) for _ in range(390))
+    rgba_prefix = good[:8] + chunk(b"IHDR", rgba_header)
+    rgba = rgba_prefix + chunk(b"IDAT", zlib.compress(rgba_raw, level=0)) + good[-12:]
+    assert accepted(rgba), "valid RGBA screenshot rejected"
+    rgba_stride = 320 * 4 + 1
+    assert not accepted(rgba_prefix + chunk(b"IDAT", zlib.compress(rgba_raw[:-rgba_stride])) + good[-12:]), "RGBA screenshot with missing row accepted"
+    invalid_rgba_filter = bytearray(rgba_raw)
+    invalid_rgba_filter[rgba_stride] = 5
+    assert not accepted(rgba_prefix + chunk(b"IDAT", zlib.compress(invalid_rgba_filter)) + good[-12:]), "RGBA screenshot with invalid filter accepted"
+    print("PASS: PNG integrity, RGB/RGBA scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
 if __name__ == "__main__":
