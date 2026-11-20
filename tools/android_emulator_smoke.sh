@@ -5,7 +5,11 @@ APK=${1:?Usage: android_emulator_smoke.sh APK [EVIDENCE_DIR]}
 EVIDENCE_DIR=${2:-build/emulator-evidence}
 mkdir -p "$EVIDENCE_DIR"
 rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
-  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt"
+  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt" \
+  "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
+  "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
+  "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt" \
+  "$EVIDENCE_DIR/final-frame-timeout-state.txt"
 
 collect_evidence() {
   adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
@@ -111,13 +115,108 @@ fi
 valid_frame() {
 python3 - "$1" <<'PY'
 from pathlib import Path
+import struct
 import sys
+import zlib
 
 image = Path(sys.argv[1])
 payload = image.read_bytes()
-if not payload.startswith(b"\x89PNG\r\n\x1a\n") or len(payload) < 10_000:
+signature = b"\x89PNG\r\n\x1a\n"
+if not payload.startswith(signature) or len(payload) < 10_000:
     raise SystemExit(1)
-print(f"[PASS] Captured first Android frame: {len(payload)} bytes")
+# PNG IHDR is the first chunk, with exactly 13 bytes of metadata.
+if len(payload) < 33 or payload[12:16] != b"IHDR" or struct.unpack(">I", payload[8:12])[0] != 13:
+    raise SystemExit(1)
+width, height = struct.unpack(">II", payload[16:24])
+bit_depth, color_type, compression, filter_method, interlace = payload[24:29]
+valid_depths = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (8, 16)}
+# The Android smoke evidence must be a portrait frame, not a rotated or cropped landscape capture.
+if not (1 <= width < height <= 16384):
+    raise SystemExit(1)
+if bit_depth not in valid_depths.get(color_type, ()) or compression != 0 or filter_method != 0 or interlace not in (0, 1):
+    raise SystemExit(1)
+if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33])[0]:
+    raise SystemExit(1)
+# Validate every chunk boundary and CRC, not only IHDR. A corrupted IDAT
+# can otherwise masquerade as a successfully captured emulator frame.
+offset = 8
+saw_idat = False
+idat_bytes = 0
+compressed_idat = bytearray()
+saw_iend = False
+idat_closed = False
+saw_plte = False
+chunk_index = 0
+while offset < len(payload):
+    if offset + 12 > len(payload):
+        raise SystemExit(1)
+    size = struct.unpack(">I", payload[offset:offset + 4])[0]
+    end = offset + 12 + size
+    if end > len(payload):
+        raise SystemExit(1)
+    kind = payload[offset + 4:offset + 8]
+    body = payload[offset + 4:offset + 8 + size]
+    expected = struct.unpack(">I", payload[offset + 8 + size:end])[0]
+    if zlib.crc32(body) & 0xffffffff != expected:
+        raise SystemExit(1)
+    # PNG chunk types are ASCII letters; the third (reserved) letter must be uppercase.
+    if len(kind) != 4 or any(not (65 <= c <= 90 or 97 <= c <= 122) for c in kind) or kind[2] & 0x20:
+        raise SystemExit(1)
+    # IHDR must occur exactly once and first; IDAT must precede IEND.
+    if kind == b"IHDR" and chunk_index != 0:
+        raise SystemExit(1)
+    # Palette metadata is optional for RGB captures, but must be unique and
+    # precede pixel data. Reject impossible palette ordering.
+    if kind == b"PLTE":
+        if saw_plte or saw_idat or size == 0 or size % 3 or size > 768 or (color_type == 3 and size // 3 > (1 << bit_depth)):
+            raise SystemExit(1)
+        saw_plte = True
+    # Grayscale PNG forbids palettes, even when the palette CRC is valid.
+    if kind == b"PLTE" and color_type in (0, 4):
+        raise SystemExit(1)
+    # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
+    if kind == b"IDAT":
+        if idat_closed:
+            raise SystemExit(1)
+        saw_idat = True
+        idat_bytes += size
+        compressed_idat.extend(payload[offset + 8:offset + 8 + size])
+    elif saw_idat:
+        idat_closed = True
+    # Unknown critical chunks cannot be interpreted safely.
+    if kind[0] & 0x20 == 0 and kind not in (b"IHDR", b"PLTE", b"IDAT", b"IEND"):
+        raise SystemExit(1)
+    if kind == b"IEND":
+        if not saw_idat:
+            raise SystemExit(1)
+        if size != 0 or end != len(payload):
+            raise SystemExit(1)
+        saw_iend = True
+    offset = end
+    chunk_index += 1
+if not (saw_idat and saw_iend and idat_bytes):
+    raise SystemExit(1)
+# Indexed PNGs require a palette. Their bit depth also limits the number
+# of palette entries; accepting an impossible palette yields false evidence.
+if color_type == 3 and not saw_plte:
+    raise SystemExit(1)
+# Chunk CRCs do not prove that IDAT contains a decodable zlib stream.
+# Bound decompression to avoid trusting attacker-controlled image dimensions.
+try:
+    decoder = zlib.decompressobj()
+    limit = min(128 * 1024 * 1024, width * height * 8 + height * 2)
+    decoded = decoder.decompress(bytes(compressed_idat), limit + 1)
+    if len(decoded) > limit or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+        raise SystemExit(1)
+    # RGB8 non-interlaced Android frames require one filter byte per scanline.
+    # A CRC-correct zlib stream can still omit rows or contain invalid filters.
+    if color_type == 2 and bit_depth == 8 and interlace == 0:
+        stride = width * 3 + 1
+        if len(decoded) != stride * height or any(decoded[row * stride] > 4 for row in range(height)):
+            raise SystemExit(1)
+except zlib.error:
+    raise SystemExit(1)
+print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
 }
 
@@ -134,8 +233,18 @@ for FRAME_ATTEMPT in $(seq 1 30); do
   # an ambiguous timeout after a successful APK install.
   if ! app_has_foreground; then
     printf 'attempt=%s stage=foreground_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-foreground-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        adb shell dumpsys activity activities; adb shell dumpsys window windows;
+      } > "$EVIDENCE_DIR/first-foreground-failure.txt" 2>&1 || true
+    fi
   elif ! app_window_was_drawn; then
     printf 'attempt=%s stage=display_event_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-display-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        adb logcat -d -b all -s ActivityTaskManager:I;
+      } > "$EVIDENCE_DIR/first-display-failure.txt" 2>&1 || true
+    fi
   elif ! adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null; then
     printf 'attempt=%s stage=screencap_failed\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
   elif ! valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
@@ -150,6 +259,16 @@ for FRAME_ATTEMPT in $(seq 1 30); do
 done
 if [[ "$FRAME_READY" != true ]]; then
   echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
+  echo "[FAIL] Frame gate summary:" >&2
+  sed -E 's/^attempt=[0-9]+ stage=//' "$EVIDENCE_DIR/frame-attempts.txt" | sort | uniq -c >&2 || true
+  # Preserve final focus/resume and ActivityTaskManager state for timeouts,
+  # even if the initial failing stage changed during the retry window.
+  { printf 'package=%s pid=%s attempts=%s\n' "$PACKAGE" "$PID" "$FRAME_ATTEMPT";
+    adb shell dumpsys activity activities;
+    adb shell dumpsys window windows;
+    adb logcat -d -b all -s ActivityTaskManager:I;
+  } > "$EVIDENCE_DIR/final-frame-timeout-state.txt" 2>&1 || true
+  echo "[FAIL] See frame-attempts.txt, final-frame-timeout-state.txt and frame-candidate.png in emulator evidence." >&2
   exit 1
 fi
 

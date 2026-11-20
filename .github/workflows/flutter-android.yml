@@ -199,6 +199,7 @@ jobs:
           flutter test
 
       - name: Build launch-safe test APK
+        id: safe_apk
         working-directory: flutter_app
         env:
           API_URL: ${{ vars.WARQNA_API_URL }}
@@ -223,6 +224,33 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/flutter-apk/warqna-v${WARQNA_APP_BUILD}-safe.apk
 
+      # Preserve the generated Gradle repository configuration when dependency
+      # resolution fails, without uploading project secrets or build outputs.
+      - name: Capture Android Gradle dependency diagnostics
+        if: failure() && steps.safe_apk.outcome == 'failure'
+        working-directory: flutter_app
+        run: |
+          mkdir -p build/android-gradle-diagnostics
+          for file in android/settings.gradle.kts android/settings.gradle android/build.gradle.kts android/build.gradle; do
+            if [ -f "$file" ]; then
+              # Keep repository declarations only; never upload arbitrary Gradle files.
+              grep -nE 'pluginManagement|dependencyResolutionManagement|repositories|google\(\)|mavenCentral\(\)|gradlePluginPortal\(\)' "$file" \
+                > "build/android-gradle-diagnostics/$(basename "$file").repositories.txt" || true
+            fi
+          done
+          printf 'head_sha=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' \
+            > build/android-gradle-diagnostics/provenance.txt
+          printf 'stage=launch-safe-apk\n' >> build/android-gradle-diagnostics/provenance.txt
+
+      - name: Upload Android Gradle dependency diagnostics
+        if: failure() && steps.safe_apk.outcome == 'failure'
+        uses: actions/upload-artifact@v6
+        with:
+          name: warqna-v${{ steps.release.outputs.build }}-android-gradle-diagnostics
+          path: flutter_app/build/android-gradle-diagnostics/**
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Enable KVM for the Android emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -243,7 +271,7 @@ jobs:
           script: bash ../tools/android_emulator_smoke.sh "build/app/outputs/flutter-apk/warqna-v${{ steps.release.outputs.build }}-safe.apk" "build/emulator-evidence"
 
       - name: Upload Android emulator evidence
-        if: always()
+        if: always() && steps.safe_apk.outcome == 'success'
         uses: actions/upload-artifact@v6
         with:
           name: warqna-v${{ steps.release.outputs.build }}-android-emulator-evidence
