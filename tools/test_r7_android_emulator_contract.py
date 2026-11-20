@@ -19,7 +19,8 @@ require(workflow.index("Build launch-safe test APK") < workflow.index("Install a
 # Evidence must be uploaded when APK build succeeded, even if emulator smoke fails.
 # A failed APK build has no emulator frames, so requiring an unconditional upload
 # creates a misleading second failure instead of preserving useful diagnostics.
-require("if: steps.safe_apk.outcome == 'success'" in workflow and "android-emulator-evidence" in workflow, "emulator evidence is retained after emulator failure when APK exists")
+evidence_step = workflow.split("- name: Upload Android emulator evidence", 1)[1].split("\n      - name:", 1)[0]
+require("if: always() && steps.safe_apk.outcome == 'success'" in evidence_step and "android-emulator-evidence" in evidence_step, "emulator evidence is retained after emulator failure when APK exists")
 require("if-no-files-found: error" in workflow, "missing emulator evidence remains a hard failure after APK success")
 require("if: failure() && steps.safe_apk.outcome == 'failure'" in workflow and "android-gradle-diagnostics" in workflow, "failed APK builds preserve separate Gradle diagnostics")
 for token in ("adb install --no-streaming -r", "mResumedActivity", "topResumedActivity", "mCurrentFocus", "FATAL EXCEPTION", "screencap -p", '"status": "PASSED"'):
