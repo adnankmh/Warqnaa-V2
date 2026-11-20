@@ -80,6 +80,12 @@ def main():
     # Empty IDAT chunks are legal only when some image data exists.
     no_pixels = good[:33] + chunk(b"IDAT", b"") + good[-12:]
     assert not accepted(no_pixels), "empty-only IDAT stream accepted as screenshot"
+    # A valid CRC around corrupt compressed bytes must not pass as screenshot evidence.
+    invalid_stream = good[:33] + chunk(b"IDAT", b"not-a-zlib-stream" * 1000) + good[-12:]
+    assert not accepted(invalid_stream), "CRC-valid but invalid zlib stream accepted"
+    # A legitimate compressed stream followed by junk is not a single valid IDAT stream.
+    trailing_stream = good[:33] + chunk(b"IDAT", idat_body + b"junk") + good[-12:]
+    assert not accepted(trailing_stream), "trailing compressed stream bytes accepted"
     # RGB screenshots may carry an optional palette before the pixel stream.
     palette = chunk(b"PLTE", bytes((0, 0, 255)))
     assert accepted(good[:33] + palette + good[33:]), "valid optional palette rejected"
