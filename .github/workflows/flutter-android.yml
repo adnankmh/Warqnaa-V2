@@ -234,13 +234,13 @@ jobs:
           for file in android/settings.gradle.kts android/settings.gradle android/build.gradle.kts android/build.gradle; do
             if [ -f "$file" ]; then
               # Keep repository declarations only; never upload arbitrary Gradle files.
-              grep -nE 'pluginManagement|dependencyResolutionManagement|repositories|google\\(\\)|mavenCentral\\(\\)|gradlePluginPortal\\(\\)' "$file" \\
+              grep -nE 'pluginManagement|dependencyResolutionManagement|repositories|google\(\)|mavenCentral\(\)|gradlePluginPortal\(\)' "$file" \
                 > "build/android-gradle-diagnostics/$(basename "$file").repositories.txt" || true
             fi
           done
-          printf 'head_sha=%s\\n' '${{ github.event.pull_request.head.sha || github.sha }}' \\
+          printf 'head_sha=%s\n' '${{ github.event.pull_request.head.sha || github.sha }}' \
             > build/android-gradle-diagnostics/provenance.txt
-          printf 'stage=launch-safe-apk\\n' >> build/android-gradle-diagnostics/provenance.txt
+          printf 'stage=launch-safe-apk\n' >> build/android-gradle-diagnostics/provenance.txt
 
       - name: Upload Android Gradle dependency diagnostics
         if: failure() && steps.safe_apk.outcome == 'failure'
