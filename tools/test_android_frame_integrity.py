@@ -143,6 +143,14 @@ def main():
     # RGBA captures with an extra complete row must be rejected even when CRC and zlib are valid.
     extra_rgba_row = rgba_prefix + chunk(b"IDAT", zlib.compress(rgba_raw + rgba_raw[:rgba_stride], level=0)) + good[-12:]
     assert not accepted(extra_rgba_row), "RGBA screenshot with extra row accepted"
+    # Reject a partial final RGBA row even when the zlib stream and CRC are correct.
+    partial_rgba = rgba_prefix + chunk(b"IDAT", zlib.compress(rgba_raw[:-1], level=0)) + good[-12:]
+    assert not accepted(partial_rgba), "RGBA screenshot with partial final row accepted"
+    # Validate filter bytes on the final row, not only the first or second row.
+    last_rgba_filter = bytearray(rgba_raw)
+    last_rgba_filter[-rgba_stride] = 5
+    bad_last_row = rgba_prefix + chunk(b"IDAT", zlib.compress(last_rgba_filter, level=0)) + good[-12:]
+    assert not accepted(bad_last_row), "RGBA screenshot with invalid final-row filter accepted"
     # All five legal PNG row filters must remain accepted in both RGB8 and RGBA8 captures.
     # Pixel bytes are zero, so these streams are structurally valid regardless of filter choice.
     for filter_type in range(5):
