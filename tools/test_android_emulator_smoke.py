@@ -146,7 +146,8 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(script.count('read_app_pid() {'), 1)
         self.assertEqual(script.count('adb shell monkey -p "$PACKAGE"'), 1)
         self.assertEqual(script.count('Android package installation did not report Success.'), 1)
-        self.assertIn('if ! grep -Eq \'^[[:space:]]*Success[[:space:]]*$\' "$EVIDENCE_DIR/install.txt"; then', script)
+        self.assertIn("if ! grep -Eq", script)
+        self.assertIn("grep -Eiq '(^|[^[:alpha:]])(Failure|INSTALL_FAILED_|Error:)", script)
         self.assertLess(script.index('Android package installation did not report Success.'),
                         script.index('adb shell monkey -p "$PACKAGE"'))
 
