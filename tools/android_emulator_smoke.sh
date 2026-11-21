@@ -119,6 +119,13 @@ app_has_foreground() {
     return 1
   fi
   windows=$(adb shell dumpsys window windows 2>/dev/null) || return 1
+  # Android API 35 can expose mCurrentFocus in activity activities while
+  # dumpsys window windows omits it entirely (real emulator evidence
+  # 14717223348). Prefer the window dump when it has a focus record; only
+  # fall back when that record is absent, never when it points elsewhere.
+  if ! printf '%s\n' "$windows" | grep -Eq '^[[:space:]]*mCurrentFocus[[:space:]]*='; then
+    windows="$activities"
+  fi
   # Focus may include an ActivityRecord token or extra window attributes.
   # Anchor to mCurrentFocus and an exact package/component boundary.
   printf '%s\n' "$windows" | awk -v component="$PACKAGE/" '
