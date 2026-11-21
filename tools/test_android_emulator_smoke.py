@@ -135,6 +135,15 @@ class AndroidSmokeTest(unittest.TestCase):
         )
         return result, root, evidence
 
+    def test_smoke_script_has_one_complete_install_gate_and_one_launch_flow(self):
+        script = (ROOT / 'tools/android_emulator_smoke.sh').read_text()
+        self.assertEqual(script.count('read_app_pid() {'), 1)
+        self.assertEqual(script.count('adb shell monkey -p "$PACKAGE"'), 1)
+        self.assertEqual(script.count('Android package installation did not report Success.'), 1)
+        self.assertIn('if ! grep -Eq \'^[[:space:]]*Success[[:space:]]*$\' "$EVIDENCE_DIR/install.txt"; then', script)
+        self.assertLess(script.index('Android package installation did not report Success.'),
+                        script.index('adb shell monkey -p "$PACKAGE"'))
+
     def test_delayed_frame_is_retried_and_tied_to_apk(self):
         result, root, evidence = self.run_smoke('delayed')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
