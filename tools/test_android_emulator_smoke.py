@@ -119,7 +119,8 @@ class AndroidSmokeTest(unittest.TestCase):
         evidence = root / 'evidence'
         if stale_evidence:
             evidence.mkdir()
-            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt'):
+            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt',
+                         'smoke-exit-status.txt', 'activity.txt', 'android-api.txt', 'install.txt'):
                 (evidence / name).write_text('stale previous run')
         env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                    FAKE_ADB_ROOT=str(root), FAKE_ADB_MODE=mode)
@@ -148,6 +149,26 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
                          'attempt=1 stage=accepted\n')
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
+
+    def test_success_exit_diagnostics_are_from_current_run(self):
+        result, _, evidence = self.run_smoke('api32', stale_evidence=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        status = (evidence / 'smoke-exit-status.txt').read_text()
+        self.assertIn('smoke_exit_status=0', status)
+        self.assertIn('package=com.warqna.warqna_mobile', status)
+        self.assertIn('pid=4242', status)
+        self.assertNotIn('stale previous run', status)
+        self.assertNotIn('stale previous run', (evidence / 'activity.txt').read_text())
+
+    def test_failed_run_does_not_preserve_old_pass_or_diagnostics(self):
+        result, _, evidence = self.run_smoke('blank', stale_evidence=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((evidence / 'result.json').exists())
+        self.assertFalse((evidence / 'first-frame.png').exists())
+        status = (evidence / 'smoke-exit-status.txt').read_text()
+        self.assertIn('smoke_exit_status=', status)
+        self.assertNotIn('smoke_exit_status=0\\n', status)
+        self.assertNotIn('stale previous run', status)
 
     def test_transient_log_failure_is_retried_without_partial_output(self):
         result, root, evidence = self.run_smoke('log_retry')
