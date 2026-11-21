@@ -104,14 +104,31 @@ read_app_pid() {
 app_has_foreground() {
   local activities windows
   activities=$(adb shell dumpsys activity activities 2>/dev/null) || return 1
-  if ! grep -E '^[[:space:]]*(mResumedActivity|topResumedActivity|ResumedActivity)[:=]' <<< "$activities" \
-      | grep -F " $PACKAGE/" > /dev/null; then
+  # Android releases vary between mResumedActivity, topResumedActivity and
+  # ResumedActivity, with optional whitespace around the separator. Require
+  # the exact package/component token, not a substring of another package.
+  if ! printf '%s\n' "$activities" | awk -v component="$PACKAGE/" '
+    /^[[:space:]]*(mResumedActivity|topResumedActivity|ResumedActivity)[[:space:]]*[:=]/ {
+      if (index($0, component) > 0) {
+        prefix = substr($0, 1, index($0, component) - 1)
+        if (prefix ~ /[[:space:]}]$/) found = 1
+      }
+    }
+    END { exit !found }
+  '; then
     return 1
   fi
   windows=$(adb shell dumpsys window windows 2>/dev/null) || return 1
-  # The real activity window is named package/component.
-  printf '%s\n' "$activities" "$windows" | awk -v component="$PACKAGE/" '
-    $1 ~ /^mCurrentFocus=Window\{/ && $2 ~ /^u[0-9]+$/ && index($3, component) == 1 { focused = 1 }
+  # Focus may include an ActivityRecord token or extra window attributes.
+  # Anchor to mCurrentFocus and an exact package/component boundary.
+  printf '%s\n' "$windows" | awk -v component="$PACKAGE/" '
+    /^[[:space:]]*mCurrentFocus[[:space:]]*=/ {
+      pos = index($0, component)
+      if (pos > 0) {
+        prefix = substr($0, 1, pos - 1)
+        if (prefix ~ /[[:space:]}]$/) focused = 1
+      }
+    }
     END { exit !focused }
   '
 }
