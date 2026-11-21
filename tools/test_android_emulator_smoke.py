@@ -63,6 +63,14 @@ elif args[:2] == ['shell', 'dumpsys']:
         if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
             focus = 'com.android.launcher/.MainActivity'
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
+    if args[2:] == ['window', 'windows']:
+        focus_checks = root / 'focus-checks'
+        focus_check = int(focus_checks.read_text()) if focus_checks.exists() else 0
+        focus = 'com.warqna.warqna_mobile/.MainActivity'
+        if mode == 'splash_then_app' and focus_check <= 2:
+            focus = 'Splash Screen com.warqna.warqna_mobile'
+        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+            focus = 'com.android.launcher/.MainActivity'
         print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
     if '--pid=4242' in args and mode in ('log_retry', 'log_unavailable'):
