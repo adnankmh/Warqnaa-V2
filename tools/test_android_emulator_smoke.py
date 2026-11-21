@@ -87,6 +87,12 @@ elif args and args[0] == 'install':
         print('Failure [INSTALL_FAILED_INVALID_APK]')
     elif mode == 'install_empty_zero':
         pass
+    elif mode == 'install_contradictory':
+        print('Success')
+        print('Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE]')
+    elif mode == 'install_error_after_success':
+        print('Success')
+        print('Error: package manager rejected install')
     else:
         print('Success')
 '''
@@ -224,6 +230,20 @@ class AndroidSmokeTest(unittest.TestCase):
         result, _, evidence = self.run_smoke('install_empty_zero')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('installation did not report Success', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_contradictory_install_success_and_failure_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_contradictory')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertIn('INSTALL_FAILED_UPDATE_INCOMPATIBLE', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_error_after_install_success_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_error_after_success')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertFalse((evidence / 'first-frame.png').exists())
         self.assertFalse((evidence / 'result.json').exists())
 
     def test_permission_setup_failure_stops_the_check(self):
