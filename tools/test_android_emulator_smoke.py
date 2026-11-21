@@ -60,7 +60,7 @@ elif args[:2] == ['shell', 'dumpsys']:
         focus = app
         if mode == 'splash_then_app' and focus_check <= 2:
             focus = 'Splash Screen com.warqna.warqna_mobile'
-        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+        if (mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)))):
             focus = 'com.android.launcher/.MainActivity'
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
     if args[2:] == ['window', 'windows']:
@@ -184,7 +184,7 @@ class AndroidSmokeTest(unittest.TestCase):
                 self.assertFalse((evidence / 'result.json').exists())
 
     def test_foreground_timeout_preserves_separate_activity_and_window_diagnostics(self):
-        result, _, evidence = self.run_smoke('background')
+        result, _, evidence = self.run_smoke('foreground_missing')
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((evidence / 'result.json').exists())
         first = (evidence / 'first-foreground-failure.txt').read_text()
