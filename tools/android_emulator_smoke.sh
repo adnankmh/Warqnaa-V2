@@ -55,7 +55,7 @@ fi
 adb install --no-streaming -r "$APK" | tee "$EVIDENCE_DIR/install.txt"
 # Some adb wrappers return zero while printing "Failure [...]"; require the
 # explicit install acknowledgement before launching or accepting evidence.
-if ! grep -Eq '^[[:space:]]*Success[[:space:]]*
+if ! grep -Fxq 'Success' "$EVIDENCE_DIR/install.txt" || grep -Eiq 'Failure|INSTALL_FAILED_|Error:' "$EVIDENCE_DIR/install.txt"; then
   echo "[FAIL] Android package installation did not report Success." >&2
   exit 1
 fi
