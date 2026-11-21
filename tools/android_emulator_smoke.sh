@@ -10,7 +10,10 @@ rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
   "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
   "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt" \
   "$EVIDENCE_DIR/final-frame-timeout-state.txt" "$EVIDENCE_DIR/full-logcat.txt" \
-  "$EVIDENCE_DIR/app-logcat.txt" "$EVIDENCE_DIR/meminfo.txt" "$EVIDENCE_DIR/adb-diagnostics.txt"
+  "$EVIDENCE_DIR/app-logcat.txt" "$EVIDENCE_DIR/meminfo.txt" "$EVIDENCE_DIR/adb-diagnostics.txt" \
+  "$EVIDENCE_DIR/smoke-exit-status.txt" "$EVIDENCE_DIR/activity.txt" \
+  "$EVIDENCE_DIR/activity-top.txt" "$EVIDENCE_DIR/windows.txt" \
+  "$EVIDENCE_DIR/android-api.txt" "$EVIDENCE_DIR/install.txt" "$EVIDENCE_DIR/launch.txt"
 
 collect_evidence() {
   local smoke_status=$?
