@@ -63,6 +63,10 @@ elif args[:2] == ['shell', 'dumpsys']:
         if (mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)))):
             focus = 'com.android.launcher/.MainActivity'
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
+        if mode in ('activity_focus_only', 'activity_focus_other'):
+            focus_in_activity = (app if mode == 'activity_focus_only'
+                                 else 'com.android.launcher/.MainActivity')
+            print(f'mCurrentFocus=Window{{680ffdf u0 {focus_in_activity}}}')
     if args[2:] == ['window', 'windows']:
         focus_checks = root / 'focus-checks'
         focus_check = int(focus_checks.read_text()) if focus_checks.exists() else 0
@@ -71,7 +75,8 @@ elif args[:2] == ['shell', 'dumpsys']:
             focus = 'Splash Screen com.warqna.warqna_mobile'
         if mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2))):
             focus = 'com.android.launcher/.MainActivity'
-        print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
+        if mode not in ('activity_focus_only', 'activity_focus_other'):
+            print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
     if '--pid=4242' in args and mode in ('log_retry', 'log_unavailable'):
         probe = root / 'log-attempt'
@@ -202,6 +207,17 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         first = (evidence / 'first-foreground-failure.txt').read_text()
         self.assertIn('mCurrentFocus=Window{680ffdf u0 com.android.launcher/.MainActivity}', first)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_api35_activity_focus_fallback_when_window_dump_omits_focus(self):
+        result, _, evidence = self.run_smoke('activity_focus_only')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
+
+    def test_activity_focus_fallback_rejects_other_package(self):
+        result, _, evidence = self.run_smoke('activity_focus_other')
+        self.assertNotEqual(result.returncode, 0)
         self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
         self.assertFalse((evidence / 'result.json').exists())
 
