@@ -183,6 +183,20 @@ class AndroidSmokeTest(unittest.TestCase):
                 self.assertIn('did not acknowledge exactly one injected event', result.stderr)
                 self.assertFalse((evidence / 'result.json').exists())
 
+    def test_foreground_timeout_preserves_separate_activity_and_window_diagnostics(self):
+        result, _, evidence = self.run_smoke('background')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((evidence / 'result.json').exists())
+        first = (evidence / 'first-foreground-failure.txt').read_text()
+        final = (evidence / 'final-frame-timeout-state.txt').read_text()
+        for label in ('=== activity activities ===', '=== activity top ===',
+                      '=== window windows ===', '=== window policy ==='):
+            with self.subTest(label=label):
+                self.assertIn(label, first)
+                self.assertIn(label, final)
+        self.assertIn('=== ActivityTaskManager events ===', final)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+
     def test_delayed_frame_is_retried_and_tied_to_apk(self):
         result, root, evidence = self.run_smoke('delayed')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
