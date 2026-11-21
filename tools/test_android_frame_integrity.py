@@ -170,7 +170,21 @@ def main():
                 filtered[offset] = filter_type
             candidate = prefix + chunk(b"IDAT", zlib.compress(filtered, level=0)) + good[-12:]
             assert accepted(candidate), f"legal PNG filter {filter_type} rejected for {label}"
-    print("PASS: PNG integrity, RGB/RGBA scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
+    # 16-bit Android PNG captures must meet the same complete-row and filter contracts.
+    for label, color_type, channels in (("RGB16", 2, 3), ("RGBA16", 6, 4)):
+        header16 = header[:8] + bytes((16, color_type)) + header[10:]
+        prefix16 = good[:8] + chunk(b"IHDR", header16)
+        stride16 = 320 * channels * 2 + 1
+        raw16 = (b"\x00" * stride16) * 390
+        def frame16(raw):
+            return prefix16 + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
+        assert accepted(frame16(raw16)), f"valid {label} screenshot rejected"
+        assert not accepted(frame16(raw16[:-stride16])), f"{label} missing row accepted"
+        assert not accepted(frame16(raw16 + raw16[:stride16])), f"{label} extra row accepted"
+        bad16 = bytearray(raw16)
+        bad16[-stride16] = 5
+        assert not accepted(frame16(bad16)), f"{label} invalid final filter accepted"
+    print("PASS: PNG integrity, RGB/RGBA 8/16-bit scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
 if __name__ == "__main__":
