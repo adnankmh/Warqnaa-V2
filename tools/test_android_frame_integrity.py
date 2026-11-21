@@ -129,6 +129,13 @@ def main():
     bad_filter[0] = 5  # PNG permits only filters 0 through 4.
     illegal_filter = good[:33] + chunk(b"IDAT", zlib.compress(bad_filter, level=0)) + good[-12:]
     assert not accepted(illegal_filter), "CRC-valid screenshot with invalid row filter accepted"
+    # Detect partial RGB final scanlines and illegal filters at the bottom edge.
+    partial_rgb = good[:33] + chunk(b"IDAT", zlib.compress(raw_rgb[:-1], level=0)) + good[-12:]
+    assert not accepted(partial_rgb), "RGB screenshot with partial final row accepted"
+    last_rgb_filter = bytearray(raw_rgb)
+    last_rgb_filter[-rgb_stride] = 5
+    invalid_last_rgb = good[:33] + chunk(b"IDAT", zlib.compress(last_rgb_filter, level=0)) + good[-12:]
+    assert not accepted(invalid_last_rgb), "RGB screenshot with invalid final-row filter accepted"
     # Android encoders may emit RGBA8 rather than RGB8; enforce the same scanline contract.
     rgba_header = header[:9] + bytes((6,)) + header[10:]
     rgba_raw = b"".join(b"\x00" + b"\x00" * (320 * 4) for _ in range(390))
