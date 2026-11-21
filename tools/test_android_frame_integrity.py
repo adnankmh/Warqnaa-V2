@@ -184,6 +184,14 @@ def main():
         bad16 = bytearray(raw16)
         bad16[-stride16] = 5
         assert not accepted(frame16(bad16)), f"{label} invalid final filter accepted"
+        # A CRC-correct, zlib-valid 16-bit capture with a partial final row is invalid.
+        assert not accepted(frame16(raw16[:-1])), f"{label} partial final row accepted"
+        # Exercise every legal filter at 16-bit depth, including the final scanline.
+        for filter_type in range(5):
+            filtered16 = bytearray(raw16)
+            for offset in range(0, len(filtered16), stride16):
+                filtered16[offset] = filter_type
+            assert accepted(frame16(filtered16)), f"{label} legal filter {filter_type} rejected"
     print("PASS: PNG integrity, RGB/RGBA 8/16-bit scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
