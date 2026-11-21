@@ -82,6 +82,16 @@ elif args and args[0] == 'logcat':
         print('FATAL EXCEPTION: main')
     if mode == 'anr' and '--pid=4242' not in args and '-c' not in args:
         print('ANR in com.warqna.warqna_mobile')
+elif args and args[0] == 'shell' and 'monkey' in args:
+    if mode == 'launch_empty_zero':
+        pass
+    elif mode == 'launch_abort_zero':
+        print('** No activities found to run, monkey aborted.')
+    elif mode == 'launch_contradictory':
+        print('Events injected: 1')
+        print('Error: launch failed')
+    else:
+        print('Events injected: 1')
 elif args and args[0] == 'install':
     if mode == 'install_failure_zero':
         print('Failure [INSTALL_FAILED_INVALID_APK]')
@@ -150,6 +160,14 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertIn("grep -Eiq 'Failure|INSTALL_FAILED_|Error:'", script)
         self.assertLess(script.index('Android package installation did not report Success.'),
                         script.index('adb shell monkey -p "$PACKAGE"'))
+
+    def test_launch_requires_explicit_event_acknowledgement(self):
+        for mode in ('launch_empty_zero', 'launch_abort_zero', 'launch_contradictory'):
+            with self.subTest(mode=mode):
+                result, root, evidence = self.run_smoke(mode)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('did not acknowledge exactly one injected event', result.stderr)
+                self.assertFalse((evidence / 'result.json').exists())
 
     def test_delayed_frame_is_retried_and_tied_to_apk(self):
         result, root, evidence = self.run_smoke('delayed')
