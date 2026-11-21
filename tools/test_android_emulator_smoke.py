@@ -69,7 +69,7 @@ elif args[:2] == ['shell', 'dumpsys']:
         focus = 'com.warqna.warqna_mobile/.MainActivity'
         if mode == 'splash_then_app' and focus_check <= 2:
             focus = 'Splash Screen com.warqna.warqna_mobile'
-        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+        if mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2))):
             focus = 'com.android.launcher/.MainActivity'
         print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
@@ -196,6 +196,14 @@ class AndroidSmokeTest(unittest.TestCase):
                 self.assertIn(label, final)
         self.assertIn('=== ActivityTaskManager events ===', final)
         self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+
+    def test_foreground_missing_fixture_reports_launcher_in_both_sources(self):
+        result, _, evidence = self.run_smoke('foreground_missing')
+        self.assertNotEqual(result.returncode, 0)
+        first = (evidence / 'first-foreground-failure.txt').read_text()
+        self.assertIn('mCurrentFocus=Window{680ffdf u0 com.android.launcher/.MainActivity}', first)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
 
     def test_delayed_frame_is_retried_and_tied_to_apk(self):
         result, root, evidence = self.run_smoke('delayed')
