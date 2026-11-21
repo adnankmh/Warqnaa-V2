@@ -52,7 +52,7 @@ if [[ ! "$PACKAGE" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
   exit 1
 fi
 
-adb install --no-streaming -r "$APK" | tee "$EVIDENCE_DIR/install.txt"
+adb install --no-streaming -r "$APK" 2>&1 | tee "$EVIDENCE_DIR/install.txt"
 # Some adb wrappers return zero while printing "Failure [...]"; require the
 # explicit install acknowledgement before launching or accepting evidence.
 if ! grep -Fxq 'Success' "$EVIDENCE_DIR/install.txt" || grep -Eiq 'Failure|INSTALL_FAILED_|Error:' "$EVIDENCE_DIR/install.txt"; then
@@ -69,7 +69,7 @@ if (( $(cat "$EVIDENCE_DIR/android-api.txt") >= 33 )); then
   NOTIFICATION_PERMISSION=pregranted_on_test_device
 fi
 adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
-  | tee "$EVIDENCE_DIR/launch.txt"
+  2>&1 | tee "$EVIDENCE_DIR/launch.txt"
 # ADB monkey can exit zero without launching an activity. Require its explicit
 # event acknowledgement and reject abort/error output before trusting frames.
 if ! grep -Eq "^Events injected: 1[[:space:]]*$" "$EVIDENCE_DIR/launch.txt" || \
