@@ -83,7 +83,12 @@ elif args and args[0] == 'logcat':
     if mode == 'anr' and '--pid=4242' not in args and '-c' not in args:
         print('ANR in com.warqna.warqna_mobile')
 elif args and args[0] == 'install':
-    print('Success')
+    if mode == 'install_failure_zero':
+        print('Failure [INSTALL_FAILED_INVALID_APK]')
+    elif mode == 'install_empty_zero':
+        pass
+    else:
+        print('Success')
 '''
 
 
@@ -197,6 +202,20 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse((root / 'permission-grant').exists())
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['notification_permission'], 'not_required')
+
+    def test_install_failure_text_with_zero_exit_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_failure_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertIn('INSTALL_FAILED_INVALID_APK', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+        self.assertFalse((evidence / 'first-frame.png').exists())
+
+    def test_empty_install_output_with_zero_exit_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_empty_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
 
     def test_permission_setup_failure_stops_the_check(self):
         result, _, evidence = self.run_smoke('permission_error')
