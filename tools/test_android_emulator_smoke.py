@@ -90,6 +90,9 @@ elif args and args[0] == 'shell' and 'monkey' in args:
     elif mode == 'launch_contradictory':
         print('Events injected: 1')
         print('Error: launch failed')
+    elif mode == 'launch_stderr_zero':
+        print('Events injected: 1')
+        print('SecurityException: launch denied', file=sys.stderr)
     else:
         print('Events injected: 1')
 elif args and args[0] == 'install':
@@ -103,6 +106,9 @@ elif args and args[0] == 'install':
     elif mode == 'install_error_after_success':
         print('Success')
         print('Error: package manager rejected install')
+    elif mode == 'install_stderr_zero':
+        print('Success')
+        print('Failure [INSTALL_FAILED_INTERNAL_ERROR]', file=sys.stderr)
     else:
         print('Success')
 '''
@@ -162,7 +168,7 @@ class AndroidSmokeTest(unittest.TestCase):
                         script.index('adb shell monkey -p "$PACKAGE"'))
 
     def test_launch_requires_explicit_event_acknowledgement(self):
-        for mode in ('launch_empty_zero', 'launch_abort_zero', 'launch_contradictory'):
+        for mode in ('launch_empty_zero', 'launch_abort_zero', 'launch_contradictory', 'launch_stderr_zero'):
             with self.subTest(mode=mode):
                 result, root, evidence = self.run_smoke(mode)
                 self.assertNotEqual(result.returncode, 0)
@@ -263,6 +269,18 @@ class AndroidSmokeTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('installation did not report Success', result.stderr)
         self.assertFalse((evidence / 'first-frame.png').exists())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_install_stderr_failure_cannot_hide_behind_stdout_success(self):
+        result, _, evidence = self.run_smoke('install_stderr_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('INSTALL_FAILED_INTERNAL_ERROR', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_launch_stderr_failure_is_preserved_and_rejected(self):
+        result, _, evidence = self.run_smoke('launch_stderr_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('SecurityException', (evidence / 'launch.txt').read_text())
         self.assertFalse((evidence / 'result.json').exists())
 
     def test_permission_setup_failure_stops_the_check(self):
