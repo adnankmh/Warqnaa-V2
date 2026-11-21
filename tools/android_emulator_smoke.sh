@@ -277,7 +277,14 @@ for FRAME_ATTEMPT in $(seq 1 30); do
     printf 'attempt=%s stage=foreground_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
     if [[ ! -f "$EVIDENCE_DIR/first-foreground-failure.txt" ]]; then
       { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
-        adb shell dumpsys activity activities; adb shell dumpsys window windows;
+        printf '%s\n' '=== activity activities ===';
+        adb shell dumpsys activity activities;
+        printf '%s\n' '=== activity top ===';
+        adb shell dumpsys activity top;
+        printf '%s\n' '=== window windows ===';
+        adb shell dumpsys window windows;
+        printf '%s\n' '=== window policy ===';
+        adb shell dumpsys window policy;
       } > "$EVIDENCE_DIR/first-foreground-failure.txt" 2>&1 || true
     fi
   elif ! app_window_was_drawn; then
@@ -306,8 +313,15 @@ if [[ "$FRAME_READY" != true ]]; then
   # Preserve final focus/resume and ActivityTaskManager state for timeouts,
   # even if the initial failing stage changed during the retry window.
   { printf 'package=%s pid=%s attempts=%s\n' "$PACKAGE" "$PID" "$FRAME_ATTEMPT";
+    printf '%s\n' '=== activity activities ===';
     adb shell dumpsys activity activities;
+    printf '%s\n' '=== activity top ===';
+    adb shell dumpsys activity top;
+    printf '%s\n' '=== window windows ===';
     adb shell dumpsys window windows;
+    printf '%s\n' '=== window policy ===';
+    adb shell dumpsys window policy;
+    printf '%s\n' '=== ActivityTaskManager events ===';
     adb logcat -d -b all -s ActivityTaskManager:I;
   } > "$EVIDENCE_DIR/final-frame-timeout-state.txt" 2>&1 || true
   echo "[FAIL] See frame-attempts.txt, final-frame-timeout-state.txt and frame-candidate.png in emulator evidence." >&2
