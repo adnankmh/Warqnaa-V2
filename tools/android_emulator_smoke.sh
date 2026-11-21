@@ -70,6 +70,13 @@ if (( $(cat "$EVIDENCE_DIR/android-api.txt") >= 33 )); then
 fi
 adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
   | tee "$EVIDENCE_DIR/launch.txt"
+# ADB monkey can exit zero without launching an activity. Require its explicit
+# event acknowledgement and reject abort/error output before trusting frames.
+if ! grep -Eq "^Events injected: 1[[:space:]]*$" "$EVIDENCE_DIR/launch.txt" || \
+   grep -Eiq "aborted|failure|error|exception|no activities found" "$EVIDENCE_DIR/launch.txt"; then
+  echo "[FAIL] Android launcher did not acknowledge exactly one injected event." >&2
+  exit 1
+fi
 
 # Match the main process exactly; pidof may include auxiliary processes or
 # return an empty result during a transient adb failure. Keep raw evidence.
