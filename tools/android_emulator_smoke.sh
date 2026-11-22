@@ -259,8 +259,9 @@ try:
         raise SystemExit(1)
     # Validate both 8-bit and 16-bit RGB/RGBA scanline boundaries.
     # A CRC-correct zlib stream can still omit rows or contain invalid filters.
-    if color_type in (2, 6) and bit_depth in (8, 16) and interlace == 0:
-        stride = width * (3 if color_type == 2 else 4) * (bit_depth // 8) + 1
+    if color_type in (0, 2, 4, 6) and bit_depth in (8, 16) and interlace == 0:
+        channels = {0: 1, 2: 3, 4: 2, 6: 4}[color_type]
+        stride = width * channels * (bit_depth // 8) + 1
         if len(decoded) != stride * height or any(decoded[row * stride] > 4 for row in range(height)):
             raise SystemExit(1)
 except zlib.error:
