@@ -147,7 +147,7 @@ def main():
     grayscale = good[:8] + chunk(b"IHDR", grayscale_header) + good[33:]
     assert not accepted(grayscale[:33] + palette + grayscale[33:]), "grayscale PNG with forbidden palette accepted"
     # Grayscale Android captures need complete scanlines and legal row filters too.
-    gray_raw = (b"\\x00" + b"\\x00" * 320) * 390
+    gray_raw = (bytes((0,)) + bytes((0,)) * 320) * 390
     gray_prefix = good[:8] + chunk(b"IHDR", grayscale_header)
     def gray_frame(raw):
         return gray_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
