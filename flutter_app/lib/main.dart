@@ -53,6 +53,7 @@ part 'v305_single_table.dart';
 part 'r48_approved_art.dart';
 part 'b307_visual_revolution.dart';
 part 'r35_reference_world.dart';
+part 'r56_blue_quickplay_hub.dart';
 part 'r52_playability.dart';
 part 'r53_prize_opening.dart';
 part 'r36_meld_workspace.dart';
