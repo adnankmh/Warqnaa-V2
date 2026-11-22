@@ -94,6 +94,13 @@ def main():
     metadata[-1] ^= 1
     invalid_metadata = good[:33] + bytes(metadata) + good[33:]
     assert not accepted(invalid_metadata), "corrupt ancillary CRC accepted"
+    # Valid ancillary text is allowed both before and after IDAT, without weakening CRC validation.
+    valid_text = chunk(b"tEXt", b"capture\x00android")
+    assert accepted(good[:33] + valid_text + good[33:]), "valid pre-IDAT text rejected"
+    assert accepted(good[:-12] + valid_text + good[-12:]), "valid post-IDAT text rejected"
+    damaged_post_text = bytearray(valid_text)
+    damaged_post_text[-1] ^= 1
+    assert not accepted(good[:-12] + bytes(damaged_post_text) + good[-12:]), "corrupt post-IDAT text CRC accepted"
     # RGB screenshots may carry an optional palette before the pixel stream.
     palette = chunk(b"PLTE", bytes((0, 0, 255)))
     assert accepted(good[:33] + palette + good[33:]), "valid optional palette rejected"
