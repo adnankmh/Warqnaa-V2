@@ -141,7 +141,7 @@ def main():
     # The RGB IDAT payload cannot be reused for indexed color: an indexed8 row
     # contains one byte per pixel, not three. Construct a real indexed stream.
     indexed_stride = 1 + 320
-    indexed_raw = (b"\\x00" + b"\\x00" * 320) * 390
+    indexed_raw = bytes(indexed_stride * 390)
     indexed_valid = (
         indexed[:33] + palette
         + chunk(b"IDAT", zlib.compress(indexed_raw, level=0))
