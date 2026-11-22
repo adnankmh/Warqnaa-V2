@@ -161,11 +161,12 @@ def main():
     for label, depth, color_type, channels in (
         ("Grayscale16", 16, 0, 1),
         ("GrayscaleAlpha8", 8, 4, 2),
+        ("GrayscaleAlpha16", 16, 4, 2),
     ):
         alternate_header = header[:8] + bytes((depth, color_type)) + header[10:]
         alternate_prefix = good[:8] + chunk(b"IHDR", alternate_header)
         alternate_stride = 1 + 320 * channels * (depth // 8)
-        alternate_raw = (b"\\x00" * alternate_stride) * 390
+        alternate_raw = (bytes((0,)) * alternate_stride) * 390
         def alternate_frame(raw):
             return alternate_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
         assert accepted(alternate_frame(alternate_raw)), f"valid {label} rejected"
