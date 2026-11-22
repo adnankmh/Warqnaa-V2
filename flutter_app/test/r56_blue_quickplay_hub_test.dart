@@ -27,6 +27,17 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const ValueKey('warqnaa-blue-play-now')));
         expect(selected, 1);
+        final store = find.text(locale == 'ar' ? 'المتجر' : 'Store');
+        await tester.ensureVisible(store);
+        await tester.pumpAndSettle();
+        await tester.tap(store);
+        expect(selected, 0);
+        final challenges = find.text(locale == 'ar' ? 'التحديات' : 'Challenges');
+        await tester.ensureVisible(challenges);
+        await tester.pumpAndSettle();
+        await tester.tap(challenges);
+        expect(selected, 2);
+        expect(tester.takeException(), isNull);
       });
     }
   }
