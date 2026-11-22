@@ -89,6 +89,15 @@ def main():
     # A valid zlib member followed by a second member is not one PNG image stream.
     concatenated_zlib = good[:33] + chunk(b"IDAT", idat_body + zlib.compress(b"extra")) + good[-12:]
     assert not accepted(concatenated_zlib), "concatenated zlib members accepted"
+    # A CRC-correct IDAT may still contain a broken Adler-32 checksum.
+    # Rebuild the PNG chunk CRC so the validator must inspect the zlib trailer.
+    broken_adler = bytearray(idat_body)
+    broken_adler[-1] ^= 1
+    assert not accepted(good[:33] + chunk(b"IDAT", bytes(broken_adler)) + good[-12:]), "invalid Adler-32 accepted"
+    # A truncated compressed stream with a valid outer PNG CRC is incomplete,
+    # even when the decompressor can return a prefix of the image pixels.
+    truncated_stream = idat_body[:-2]
+    assert not accepted(good[:33] + chunk(b"IDAT", truncated_stream) + good[-12:]), "truncated zlib stream accepted"
     # Ancillary metadata must not bypass CRC checks even when the pixels are valid.
     metadata = bytearray(chunk(b"tEXt", b"note\x00valid"))
     metadata[-1] ^= 1
