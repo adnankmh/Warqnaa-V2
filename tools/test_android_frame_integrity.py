@@ -171,6 +171,7 @@ def main():
             return alternate_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
         assert accepted(alternate_frame(alternate_raw)), f"valid {label} rejected"
         assert not accepted(alternate_frame(alternate_raw[:-alternate_stride])), f"{label} missing row accepted"
+        assert not accepted(alternate_frame(alternate_raw + alternate_raw[:alternate_stride])), f"{label} extra row accepted"
         invalid_alternate = bytearray(alternate_raw)
         invalid_alternate[195 * alternate_stride] = 5
         assert not accepted(alternate_frame(invalid_alternate)), f"{label} illegal middle filter accepted"
@@ -179,6 +180,10 @@ def main():
         for row_index in range(390):
             adaptive_alternate[row_index * alternate_stride] = row_index % 5
         assert accepted(alternate_frame(adaptive_alternate)), f"{label} adaptive filters rejected"
+        for row_index in (0, 389):
+            invalid_edge = bytearray(adaptive_alternate)
+            invalid_edge[row_index * alternate_stride] = 5
+            assert not accepted(alternate_frame(invalid_edge)), f"{label} invalid edge filter on row {row_index} accepted"
     # CRC-correct and zlib-valid data can still be invalid PNG scanlines.
     rgb_stride = 320 * 3 + 1
     # Keep scanline fixtures above the independent screenshot-size threshold.
