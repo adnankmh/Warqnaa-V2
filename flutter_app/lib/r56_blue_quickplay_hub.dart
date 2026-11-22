@@ -78,6 +78,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             Semantics(
               button: true,
               label: ar ? 'ابدأ اللعب الآن' : 'Play now',
+              hint: ar ? 'يفتح قسم الألعاب' : 'Opens the games section',
               child: Material(
                 color: const Color(0xFFFFD46C),
                 borderRadius: BorderRadius.circular(14),
