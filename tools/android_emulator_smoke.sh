@@ -150,6 +150,14 @@ for FRAME_ATTEMPT in $(seq 1 30); do
 done
 if [[ "$FRAME_READY" != true ]]; then
   echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
+  if [[ -s "$EVIDENCE_DIR/frame-attempts.txt" ]]; then
+    echo "[DIAGNOSTIC] Capture-stage counts:" >&2
+    awk '{for (i=1;i<=NF;i++) if ($i ~ /^stage=/) count[$i]++}
+         END {for (stage in count) print "  " stage " " count[stage]}' \
+      "$EVIDENCE_DIR/frame-attempts.txt" >&2
+    echo "[DIAGNOSTIC] Last five attempts:" >&2
+    tail -n 5 "$EVIDENCE_DIR/frame-attempts.txt" >&2
+  fi
   exit 1
 fi
 
