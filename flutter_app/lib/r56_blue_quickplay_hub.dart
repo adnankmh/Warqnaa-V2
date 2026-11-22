@@ -53,8 +53,10 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
               child: Row(children: [
                 const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
                 const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
-                const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
-                const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
+                if (MediaQuery.sizeOf(context).width >= 360)
+                  const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
+                if (MediaQuery.sizeOf(context).width >= 360)
+                  const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
                 const SizedBox(width: 8),
                 Expanded(child: Text(
                   ar ? 'طاولتك بانتظارك' : 'Your table awaits',
@@ -95,8 +97,11 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             LayoutBuilder(builder: (context, bounds) {
-              final compact = bounds.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(1) > 1.2;
-              final width = compact ? (bounds.maxWidth - 9) / 2 : (bounds.maxWidth - 18) / 3;
+              final scale = MediaQuery.textScalerOf(context).scale(1);
+              final columns = bounds.maxWidth < 250 || scale > 1.6
+                  ? 1
+                  : bounds.maxWidth < 350 || scale > 1.2 ? 2 : 3;
+              final width = (bounds.maxWidth - (columns - 1) * 9) / columns;
               final destinations = <_WarqnaaBlueDestination>[
                 _WarqnaaBlueDestination(Icons.sports_esports_rounded, ar ? 'الألعاب' : 'Games',
                     ar ? 'ابدأ اللعب' : 'Start playing', () => onTab(1)),
