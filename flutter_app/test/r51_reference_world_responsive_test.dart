@@ -60,6 +60,7 @@ void main() {
           expect(find.byType(B307HomeDashboard), findsOneWidget);
           expect(find.byKey(const ValueKey('r35-sky-grand-tournament-banner')), findsOneWidget);
           final games = find.byKey(const ValueKey('r51-games-panel'));
+          await tester.scrollUntilVisible(games, 260, scrollable: find.byType(Scrollable).first);
           await tester.ensureVisible(games);
           await tester.pump();
           expect(find.byType(R51FeaturedGamesAndTournaments), findsOneWidget);
