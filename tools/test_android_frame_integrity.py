@@ -170,6 +170,21 @@ def main():
                 filtered[offset] = filter_type
             candidate = prefix + chunk(b"IDAT", zlib.compress(filtered, level=0)) + good[-12:]
             assert accepted(candidate), f"legal PNG filter {filter_type} rejected for {label}"
+    # Adaptive 8-bit PNG row filters are legal; corrupted filter bytes are not.
+    for label, prefix, raw, stride in (
+        ("RGB8", good[:33], raw_rgb, rgb_stride),
+        ("RGBA8", rgba_prefix, rgba_raw, rgba_stride),
+    ):
+        adaptive = bytearray(raw)
+        for row_index in range(390):
+            adaptive[row_index * stride] = row_index % 5
+        candidate = prefix + chunk(b"IDAT", zlib.compress(adaptive, level=0)) + good[-12:]
+        assert accepted(candidate), f"{label} adaptive row filters rejected"
+        for row_index in (0, 195, 389):
+            corrupted_filter = bytearray(adaptive)
+            corrupted_filter[row_index * stride] = 5
+            invalid = prefix + chunk(b"IDAT", zlib.compress(corrupted_filter, level=0)) + good[-12:]
+            assert not accepted(invalid), f"{label} invalid filter on row {row_index} accepted"
     # 16-bit Android PNG captures must meet the same complete-row and filter contracts.
     for label, color_type, channels in (("RGB16", 2, 3), ("RGBA16", 6, 4)):
         header16 = header[:8] + bytes((16, color_type)) + header[10:]
