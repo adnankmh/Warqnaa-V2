@@ -64,9 +64,38 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                 )),
               ]),
             ),
+            const SizedBox(height: 12),
+            Semantics(
+              button: true,
+              label: ar ? 'ابدأ اللعب الآن' : 'Play now',
+              child: Material(
+                color: const Color(0xFFFFD46C),
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  key: const ValueKey('warqnaa-blue-play-now'),
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => onTab(1),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        const Icon(Icons.play_arrow_rounded, color: Color(0xFF07396F)),
+                        const SizedBox(width: 8),
+                        Flexible(child: Text(
+                          ar ? 'العب الآن' : 'Play now',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Color(0xFF07396F), fontWeight: FontWeight.w900, fontSize: 15),
+                        )),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 14),
             LayoutBuilder(builder: (context, bounds) {
-              final compact = bounds.maxWidth < 350;
+              final compact = bounds.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(1) > 1.2;
               final width = compact ? (bounds.maxWidth - 9) / 2 : (bounds.maxWidth - 18) / 3;
               final destinations = <_WarqnaaBlueDestination>[
                 _WarqnaaBlueDestination(Icons.sports_esports_rounded, ar ? 'الألعاب' : 'Games',
