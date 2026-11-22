@@ -50,21 +50,29 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: const Color(0xFF77CFFF), width: 1),
               ),
-              child: Row(children: [
-                const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
-                const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
-                if (MediaQuery.sizeOf(context).width >= 360)
-                  const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
-                if (MediaQuery.sizeOf(context).width >= 360)
-                  const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
-                const SizedBox(width: 8),
-                Expanded(child: Text(
-                  ar ? 'طاولتك بانتظارك' : 'Your table awaits',
-                  textAlign: TextAlign.end,
-                  maxLines: 2,
-                  style: const TextStyle(color: Color(0xFFE6F8FF), fontSize: 12, fontWeight: FontWeight.w800),
-                )),
-              ]),
+              child: LayoutBuilder(builder: (context, preview) {
+                // Decide from actual panel width, not the device viewport.
+                // Nested layouts and split-screen windows can be much narrower.
+                final showAllSuits = preview.maxWidth >= 320 &&
+                    MediaQuery.textScalerOf(context).scale(1) <= 1.3;
+                return Row(children: [
+                  const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
+                  if (preview.maxWidth >= 190)
+                    const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
+                  if (showAllSuits)
+                    const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
+                  if (showAllSuits)
+                    const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(
+                    ar ? 'طاولتك بانتظارك' : 'Your table awaits',
+                    textAlign: TextAlign.end,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFFE6F8FF), fontSize: 12, fontWeight: FontWeight.w800),
+                  )),
+                ]);
+              }),
             ),
             const SizedBox(height: 12),
             Semantics(
