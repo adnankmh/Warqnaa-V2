@@ -41,6 +41,29 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                     style: const TextStyle(color: Color(0xFFCBF2FF), fontSize: 12, fontWeight: FontWeight.w600)),
               ])),
             ]),
+            const SizedBox(height: 12),
+            Container(
+              key: const ValueKey('warqnaa-blue-table-preview'),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+              decoration: BoxDecoration(
+                color: const Color(0xFF032B61),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFF77CFFF), width: 1),
+              ),
+              child: Row(children: [
+                const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
+                const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
+                const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
+                const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(
+                  ar ? 'طاولتك بانتظارك' : 'Your table awaits',
+                  textAlign: TextAlign.end,
+                  maxLines: 2,
+                  style: const TextStyle(color: Color(0xFFE6F8FF), fontSize: 12, fontWeight: FontWeight.w800),
+                )),
+              ]),
+            ),
             const SizedBox(height: 14),
             LayoutBuilder(builder: (context, bounds) {
               final compact = bounds.maxWidth < 350;
@@ -101,4 +124,30 @@ class _WarqnaaBlueDestination {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+}
+
+class _WarqnaaBlueSuit extends StatelessWidget {
+  const _WarqnaaBlueSuit({required this.symbol, required this.color});
+  final String symbol;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 5),
+      child: ExcludeSemantics(
+        child: Container(
+          width: 30,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF125BA0),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: const Color(0xFF91DFFF)),
+          ),
+          child: Text(symbol, style: TextStyle(fontSize: 22, color: color, fontWeight: FontWeight.w900)),
+        ),
+      ),
+    );
+  }
 }
