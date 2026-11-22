@@ -38,6 +38,8 @@ class R35ReferenceWorldDashboard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 28),
           children: <Widget>[
             R35ChampionBanner(controller: controller),
+            const SizedBox(height: 12),
+            WarqnaaBlueQuickPlayHub(controller: controller, onTab: onTab),
             const SizedBox(height: 13),
             R51FeaturedGamesAndTournaments(controller: controller, onTab: onTab),
             const SizedBox(height:12),
