@@ -5,10 +5,25 @@ APK=${1:?Usage: android_emulator_smoke.sh APK [EVIDENCE_DIR]}
 EVIDENCE_DIR=${2:-build/emulator-evidence}
 mkdir -p "$EVIDENCE_DIR"
 rm -f "$EVIDENCE_DIR/result.json" "$EVIDENCE_DIR/first-frame.png" \
-  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt"
+  "$EVIDENCE_DIR/frame-candidate.png" "$EVIDENCE_DIR/frame-attempts.txt" \
+  "$EVIDENCE_DIR/exit-frame.png" "$EVIDENCE_DIR/process-queries.txt" \
+  "$EVIDENCE_DIR/process-query.txt" "$EVIDENCE_DIR/process-query-error.txt" \
+  "$EVIDENCE_DIR/first-foreground-failure.txt" "$EVIDENCE_DIR/first-display-failure.txt" \
+  "$EVIDENCE_DIR/final-frame-timeout-state.txt" "$EVIDENCE_DIR/full-logcat.txt" \
+  "$EVIDENCE_DIR/app-logcat.txt" "$EVIDENCE_DIR/meminfo.txt" "$EVIDENCE_DIR/adb-diagnostics.txt" \
+  "$EVIDENCE_DIR/smoke-exit-status.txt" "$EVIDENCE_DIR/activity.txt" \
+  "$EVIDENCE_DIR/activity-top.txt" "$EVIDENCE_DIR/windows.txt" \
+  "$EVIDENCE_DIR/android-api.txt" "$EVIDENCE_DIR/install.txt" "$EVIDENCE_DIR/launch.txt"
 
 collect_evidence() {
-  adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
+  local smoke_status=$?
+  printf 'smoke_exit_status=%s\npackage=%s\npid=%s\n' "$smoke_status" "${PACKAGE:-unknown}" "${PID:-unknown}" > "$EVIDENCE_DIR/smoke-exit-status.txt"
+  if (( smoke_status != 0 )); then
+    echo "[FAIL] Android emulator smoke exited with status $smoke_status; inspect smoke-exit-status.txt and captured diagnostics." >&2
+  fi
+  if [[ ! -f "$EVIDENCE_DIR/full-logcat.txt" ]]; then
+    adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt" 2>&1 || true
+  fi
   adb shell dumpsys activity activities > "$EVIDENCE_DIR/activity.txt" 2>&1 || true
   adb shell dumpsys activity top > "$EVIDENCE_DIR/activity-top.txt" 2>&1 || true
   adb shell dumpsys window windows > "$EVIDENCE_DIR/windows.txt" 2>&1 || true
@@ -37,7 +52,14 @@ if [[ ! "$PACKAGE" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
   exit 1
 fi
 
-adb install --no-streaming -r "$APK" | tee "$EVIDENCE_DIR/install.txt"
+adb install --no-streaming -r "$APK" 2>&1 | tee "$EVIDENCE_DIR/install.txt"
+# Some adb wrappers return zero while printing "Failure [...]"; require the
+# explicit install acknowledgement before launching or accepting evidence.
+if ! grep -Fxq 'Success' "$EVIDENCE_DIR/install.txt" || grep -Eiq 'Failure|INSTALL_FAILED_|Error:' "$EVIDENCE_DIR/install.txt"; then
+  echo "[FAIL] Android package installation did not report Success." >&2
+  exit 1
+fi
+
 # Control the notification permission fixture on this isolated test device.
 # Android's permission activity otherwise races with the first-frame check.
 # Do not grant unrelated runtime permissions or change app permission logic.
@@ -47,7 +69,14 @@ if (( $(cat "$EVIDENCE_DIR/android-api.txt") >= 33 )); then
   NOTIFICATION_PERMISSION=pregranted_on_test_device
 fi
 adb shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 \
-  | tee "$EVIDENCE_DIR/launch.txt"
+  2>&1 | tee "$EVIDENCE_DIR/launch.txt"
+# ADB monkey can exit zero without launching an activity. Require its explicit
+# event acknowledgement and reject abort/error output before trusting frames.
+if ! grep -Eq "^Events injected: 1[[:space:]]*$" "$EVIDENCE_DIR/launch.txt" || \
+   grep -Eiq "aborted|failure|error|exception|no activities found" "$EVIDENCE_DIR/launch.txt"; then
+  echo "[FAIL] Android launcher did not acknowledge exactly one injected event." >&2
+  exit 1
+fi
 
 # Match the main process exactly; pidof may include auxiliary processes or
 # return an empty result during a transient adb failure. Keep raw evidence.
@@ -75,14 +104,38 @@ read_app_pid() {
 app_has_foreground() {
   local activities windows
   activities=$(adb shell dumpsys activity activities 2>/dev/null) || return 1
-  if ! grep -E '^[[:space:]]*(mResumedActivity|topResumedActivity|ResumedActivity)[:=]' <<< "$activities" \
-      | grep -F " $PACKAGE/" > /dev/null; then
+  # Android releases vary between mResumedActivity, topResumedActivity and
+  # ResumedActivity, with optional whitespace around the separator. Require
+  # the exact package/component token, not a substring of another package.
+  if ! printf '%s\n' "$activities" | awk -v component="$PACKAGE/" '
+    /^[[:space:]]*(mResumedActivity|topResumedActivity|ResumedActivity)[[:space:]]*[:=]/ {
+      if (index($0, component) > 0) {
+        prefix = substr($0, 1, index($0, component) - 1)
+        if (prefix ~ /[[:space:]}]$/) found = 1
+      }
+    }
+    END { exit !found }
+  '; then
     return 1
   fi
   windows=$(adb shell dumpsys window windows 2>/dev/null) || return 1
-  # The real activity window is named package/component.
-  printf '%s\n' "$activities" "$windows" | awk -v component="$PACKAGE/" '
-    $1 ~ /^mCurrentFocus=Window\{/ && $2 ~ /^u[0-9]+$/ && index($3, component) == 1 { focused = 1 }
+  # Android API 35 can expose mCurrentFocus in activity activities while
+  # dumpsys window windows omits it entirely (real emulator evidence
+  # 14717223348). Prefer the window dump when it has a focus record; only
+  # fall back when that record is absent, never when it points elsewhere.
+  if ! printf '%s\n' "$windows" | grep -Eq '^[[:space:]]*mCurrentFocus[[:space:]]*='; then
+    windows="$activities"
+  fi
+  # Focus may include an ActivityRecord token or extra window attributes.
+  # Anchor to mCurrentFocus and an exact package/component boundary.
+  printf '%s\n' "$windows" | awk -v component="$PACKAGE/" '
+    /^[[:space:]]*mCurrentFocus[[:space:]]*=/ {
+      pos = index($0, component)
+      if (pos > 0) {
+        prefix = substr($0, 1, pos - 1)
+        if (prefix ~ /[[:space:]}]$/) focused = 1
+      }
+    }
     END { exit !focused }
   '
 }
@@ -111,13 +164,111 @@ fi
 valid_frame() {
 python3 - "$1" <<'PY'
 from pathlib import Path
+import struct
 import sys
+import zlib
 
 image = Path(sys.argv[1])
 payload = image.read_bytes()
-if not payload.startswith(b"\x89PNG\r\n\x1a\n") or len(payload) < 10_000:
+signature = b"\x89PNG\r\n\x1a\n"
+if not payload.startswith(signature) or len(payload) < 10_000:
     raise SystemExit(1)
-print(f"[PASS] Captured first Android frame: {len(payload)} bytes")
+# PNG IHDR is the first chunk, with exactly 13 bytes of metadata.
+if len(payload) < 33 or payload[12:16] != b"IHDR" or struct.unpack(">I", payload[8:12])[0] != 13:
+    raise SystemExit(1)
+width, height = struct.unpack(">II", payload[16:24])
+bit_depth, color_type, compression, filter_method, interlace = payload[24:29]
+valid_depths = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (8, 16)}
+# The Android smoke evidence must be a portrait frame, not a rotated or cropped landscape capture.
+if not (1 <= width < height <= 16384):
+    raise SystemExit(1)
+if bit_depth not in valid_depths.get(color_type, ()) or compression != 0 or filter_method != 0 or interlace not in (0, 1):
+    raise SystemExit(1)
+if zlib.crc32(payload[12:29]) & 0xffffffff != struct.unpack(">I", payload[29:33])[0]:
+    raise SystemExit(1)
+# Validate every chunk boundary and CRC, not only IHDR. A corrupted IDAT
+# can otherwise masquerade as a successfully captured emulator frame.
+offset = 8
+saw_idat = False
+idat_bytes = 0
+compressed_idat = bytearray()
+saw_iend = False
+idat_closed = False
+saw_plte = False
+chunk_index = 0
+while offset < len(payload):
+    if offset + 12 > len(payload):
+        raise SystemExit(1)
+    size = struct.unpack(">I", payload[offset:offset + 4])[0]
+    end = offset + 12 + size
+    if end > len(payload):
+        raise SystemExit(1)
+    kind = payload[offset + 4:offset + 8]
+    body = payload[offset + 4:offset + 8 + size]
+    expected = struct.unpack(">I", payload[offset + 8 + size:end])[0]
+    if zlib.crc32(body) & 0xffffffff != expected:
+        raise SystemExit(1)
+    # PNG chunk types are ASCII letters; the third (reserved) letter must be uppercase.
+    if len(kind) != 4 or any(not (65 <= c <= 90 or 97 <= c <= 122) for c in kind) or kind[2] & 0x20:
+        raise SystemExit(1)
+    # IHDR must occur exactly once and first; IDAT must precede IEND.
+    if kind == b"IHDR" and chunk_index != 0:
+        raise SystemExit(1)
+    # Palette metadata is optional for RGB captures, but must be unique and
+    # precede pixel data. Reject impossible palette ordering.
+    if kind == b"PLTE":
+        if saw_plte or saw_idat or size == 0 or size % 3 or size > 768 or (color_type == 3 and size // 3 > (1 << bit_depth)):
+            raise SystemExit(1)
+        saw_plte = True
+    # Grayscale PNG forbids palettes, even when the palette CRC is valid.
+    if kind == b"PLTE" and color_type in (0, 4):
+        raise SystemExit(1)
+    # PNG requires consecutive IDAT chunks; a later IDAT is invalid.
+    if kind == b"IDAT":
+        if idat_closed:
+            raise SystemExit(1)
+        saw_idat = True
+        idat_bytes += size
+        compressed_idat.extend(payload[offset + 8:offset + 8 + size])
+    elif saw_idat:
+        idat_closed = True
+    # Unknown critical chunks cannot be interpreted safely.
+    if kind[0] & 0x20 == 0 and kind not in (b"IHDR", b"PLTE", b"IDAT", b"IEND"):
+        raise SystemExit(1)
+    if kind == b"IEND":
+        if not saw_idat:
+            raise SystemExit(1)
+        if size != 0 or end != len(payload):
+            raise SystemExit(1)
+        saw_iend = True
+    offset = end
+    chunk_index += 1
+if not (saw_idat and saw_iend and idat_bytes):
+    raise SystemExit(1)
+# Indexed PNGs require a palette. Their bit depth also limits the number
+# of palette entries; accepting an impossible palette yields false evidence.
+if color_type == 3 and not saw_plte:
+    raise SystemExit(1)
+# Chunk CRCs do not prove that IDAT contains a decodable zlib stream.
+# Bound decompression to avoid trusting attacker-controlled image dimensions.
+try:
+    decoder = zlib.decompressobj()
+    limit = min(128 * 1024 * 1024, width * height * 8 + height * 2)
+    decoded = decoder.decompress(bytes(compressed_idat), limit + 1)
+    if len(decoded) > limit or not decoder.eof or decoder.unused_data or decoder.unconsumed_tail:
+        raise SystemExit(1)
+    # Validate both 8-bit and 16-bit RGB/RGBA scanline boundaries.
+    # A CRC-correct zlib stream can still omit rows or contain invalid filters.
+    if interlace == 0:
+        channels = {0: 1, 2: 3, 4: 2, 6: 4}[color_type]
+        # Packed 1/2/4-bit indexed and grayscale rows round up to whole bytes.
+        # Every non-interlaced PNG color type needs exact row boundaries.
+        stride = (width * channels * bit_depth + 7) // 8 + 1
+        if len(decoded) != stride * height or any(decoded[row * stride] > 4 for row in range(height)):
+            raise SystemExit(1)
+except zlib.error:
+    raise SystemExit(1)
+print(f"[PASS] Captured first Android frame: {width}x{height}, {len(payload)} bytes")
 PY
 }
 
@@ -134,8 +285,25 @@ for FRAME_ATTEMPT in $(seq 1 30); do
   # an ambiguous timeout after a successful APK install.
   if ! app_has_foreground; then
     printf 'attempt=%s stage=foreground_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-foreground-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        printf '%s\n' '=== activity activities ===';
+        adb shell dumpsys activity activities;
+        printf '%s\n' '=== activity top ===';
+        adb shell dumpsys activity top;
+        printf '%s\n' '=== window windows ===';
+        adb shell dumpsys window windows;
+        printf '%s\n' '=== window policy ===';
+        adb shell dumpsys window policy;
+      } > "$EVIDENCE_DIR/first-foreground-failure.txt" 2>&1 || true
+    fi
   elif ! app_window_was_drawn; then
     printf 'attempt=%s stage=display_event_missing\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
+    if [[ ! -f "$EVIDENCE_DIR/first-display-failure.txt" ]]; then
+      { printf 'attempt=%s package=%s pid=%s\n' "$FRAME_ATTEMPT" "$PACKAGE" "$PID";
+        adb logcat -d -b all -s ActivityTaskManager:I;
+      } > "$EVIDENCE_DIR/first-display-failure.txt" 2>&1 || true
+    fi
   elif ! adb exec-out screencap -p > "$EVIDENCE_DIR/frame-candidate.png" 2>/dev/null; then
     printf 'attempt=%s stage=screencap_failed\n' "$FRAME_ATTEMPT" >> "$EVIDENCE_DIR/frame-attempts.txt"
   elif ! valid_frame "$EVIDENCE_DIR/frame-candidate.png"; then
@@ -150,6 +318,23 @@ for FRAME_ATTEMPT in $(seq 1 30); do
 done
 if [[ "$FRAME_READY" != true ]]; then
   echo "[FAIL] No valid screenshot of the foreground app after 30 capture attempts." >&2
+  echo "[FAIL] Frame gate summary:" >&2
+  sed -E 's/^attempt=[0-9]+ stage=//' "$EVIDENCE_DIR/frame-attempts.txt" | sort | uniq -c >&2 || true
+  # Preserve final focus/resume and ActivityTaskManager state for timeouts,
+  # even if the initial failing stage changed during the retry window.
+  { printf 'package=%s pid=%s attempts=%s\n' "$PACKAGE" "$PID" "$FRAME_ATTEMPT";
+    printf '%s\n' '=== activity activities ===';
+    adb shell dumpsys activity activities;
+    printf '%s\n' '=== activity top ===';
+    adb shell dumpsys activity top;
+    printf '%s\n' '=== window windows ===';
+    adb shell dumpsys window windows;
+    printf '%s\n' '=== window policy ===';
+    adb shell dumpsys window policy;
+    printf '%s\n' '=== ActivityTaskManager events ===';
+    adb logcat -d -b all -s ActivityTaskManager:I;
+  } > "$EVIDENCE_DIR/final-frame-timeout-state.txt" 2>&1 || true
+  echo "[FAIL] See frame-attempts.txt, final-frame-timeout-state.txt and frame-candidate.png in emulator evidence." >&2
   exit 1
 fi
 
@@ -173,10 +358,33 @@ if [[ "$FOREGROUND_READY" != true ]]; then
   exit 1
 fi
 
-# Refresh crash evidence after the final focus check.
-adb logcat --pid="$PID" -d > "$EVIDENCE_DIR/app-logcat.txt"
-adb logcat -d > "$EVIDENCE_DIR/full-logcat.txt"
-adb shell dumpsys meminfo "$PACKAGE" > "$EVIDENCE_DIR/meminfo.txt"
+# Keep only completed reads. Some devices briefly reject dumpsys or logcat
+# after drawing their first frame. Required crash evidence must still exist.
+read_diagnostic() {
+  local name=$1 attempt status
+  shift
+  for attempt in 1 2 3; do
+    if adb "$@" > "$EVIDENCE_DIR/$name.partial" 2>> "$EVIDENCE_DIR/adb-diagnostics.txt"; then
+      mv "$EVIDENCE_DIR/$name.partial" "$EVIDENCE_DIR/$name"
+      return 0
+    else
+      status=$?
+    fi
+    printf '%s attempt=%s adb_status=%s\n' "$name" "$attempt" "$status" >> "$EVIDENCE_DIR/adb-diagnostics.txt"
+    if [[ $attempt != 3 ]]; then sleep 1; fi
+  done
+  rm -f "$EVIDENCE_DIR/$name.partial"
+  return 1
+}
+
+if ! read_diagnostic app-logcat.txt logcat --pid="$PID" -d ||
+   ! read_diagnostic full-logcat.txt logcat -d; then
+  echo "[FAIL] Required Android crash logs unavailable. See adb-diagnostics.txt." >&2
+  exit 1
+fi
+if ! read_diagnostic meminfo.txt shell dumpsys meminfo "$PACKAGE"; then
+  echo "[WARN] Optional memory snapshot unavailable. See adb-diagnostics.txt." >&2
+fi
 if grep -E 'FATAL EXCEPTION|Fatal signal [0-9]+|ANR in ' "$EVIDENCE_DIR/app-logcat.txt"; then
   echo "[FAIL] Android reported a fatal exception, native crash or ANR." >&2
   exit 1

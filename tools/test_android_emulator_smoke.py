@@ -50,6 +50,8 @@ elif args[:3] == ['shell', 'pm', 'grant']:
     if mode == 'permission_error':
         sys.exit(1)
 elif args[:2] == ['shell', 'dumpsys']:
+    if args[2] == 'meminfo' and mode == 'meminfo_error':
+        sys.exit(255)
     if args[2:] == ['activity', 'activities']:
         focus_checks = root / 'focus-checks'
         focus_check = (int(focus_checks.read_text()) if focus_checks.exists() else 0) + 1
@@ -58,11 +60,31 @@ elif args[:2] == ['shell', 'dumpsys']:
         focus = app
         if mode == 'splash_then_app' and focus_check <= 2:
             focus = 'Splash Screen com.warqna.warqna_mobile'
-        if count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)):
+        if (mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2)))):
             focus = 'com.android.launcher/.MainActivity'
         print(f'topResumedActivity=ActivityRecord{{98a u0 {app} t8}}')
-        print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
+        if mode in ('activity_focus_only', 'activity_focus_other'):
+            focus_in_activity = (app if mode == 'activity_focus_only'
+                                 else 'com.android.launcher/.MainActivity')
+            print(f'mCurrentFocus=Window{{680ffdf u0 {focus_in_activity}}}')
+    if args[2:] == ['window', 'windows']:
+        focus_checks = root / 'focus-checks'
+        focus_check = int(focus_checks.read_text()) if focus_checks.exists() else 0
+        focus = 'com.warqna.warqna_mobile/.MainActivity'
+        if mode == 'splash_then_app' and focus_check <= 2:
+            focus = 'Splash Screen com.warqna.warqna_mobile'
+        if mode == 'foreground_missing' or (count > 0 and (mode == 'background' or (mode == 'transient_focus' and focus_check == 2))):
+            focus = 'com.android.launcher/.MainActivity'
+        if mode not in ('activity_focus_only', 'activity_focus_other'):
+            print(f'mCurrentFocus=Window{{680ffdf u0 {focus}}}')
 elif args and args[0] == 'logcat':
+    if '--pid=4242' in args and mode in ('log_retry', 'log_unavailable'):
+        probe = root / 'log-attempt'
+        n = (int(probe.read_text()) if probe.exists() else 0) + 1
+        probe.write_text(str(n))
+        if n == 1 or mode == 'log_unavailable':
+            print('incomplete diagnostic')
+            sys.exit(255)
     if 'ActivityTaskManager:I' in args:
         draw_checks = root / 'draw-checks'
         draw_check = (int(draw_checks.read_text()) if draw_checks.exists() else 0) + 1
@@ -73,8 +95,35 @@ elif args and args[0] == 'logcat':
         print('FATAL EXCEPTION: main')
     if mode == 'anr' and '--pid=4242' not in args and '-c' not in args:
         print('ANR in com.warqna.warqna_mobile')
+elif args and args[0] == 'shell' and 'monkey' in args:
+    if mode == 'launch_empty_zero':
+        pass
+    elif mode == 'launch_abort_zero':
+        print('** No activities found to run, monkey aborted.')
+    elif mode == 'launch_contradictory':
+        print('Events injected: 1')
+        print('Error: launch failed')
+    elif mode == 'launch_stderr_zero':
+        print('Events injected: 1')
+        print('SecurityException: launch denied', file=sys.stderr)
+    else:
+        print('Events injected: 1')
 elif args and args[0] == 'install':
-    print('Success')
+    if mode == 'install_failure_zero':
+        print('Failure [INSTALL_FAILED_INVALID_APK]')
+    elif mode == 'install_empty_zero':
+        pass
+    elif mode == 'install_contradictory':
+        print('Success')
+        print('Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE]')
+    elif mode == 'install_error_after_success':
+        print('Success')
+        print('Error: package manager rejected install')
+    elif mode == 'install_stderr_zero':
+        print('Success')
+        print('Failure [INSTALL_FAILED_INTERNAL_ERROR]', file=sys.stderr)
+    else:
+        print('Success')
 '''
 
 
@@ -83,9 +132,9 @@ def fixture_png():
         return (struct.pack('>I', len(payload)) + kind + payload
                 + struct.pack('>I', zlib.crc32(kind + payload)))
     rng = random.Random(81)
-    pixels = b''.join(b'\0' + rng.randbytes(300) for _ in range(100))
+    pixels = b''.join(b'\0' + rng.randbytes(300) for _ in range(120))
     return (b'\x89PNG\r\n\x1a\n'
-            + chunk(b'IHDR', struct.pack('>IIBBBBB', 100, 100, 8, 2, 0, 0, 0))
+            + chunk(b'IHDR', struct.pack('>IIBBBBB', 100, 120, 8, 2, 0, 0, 0))
             + chunk(b'IDAT', zlib.compress(pixels)) + chunk(b'IEND', b''))
 
 
@@ -110,7 +159,8 @@ class AndroidSmokeTest(unittest.TestCase):
         evidence = root / 'evidence'
         if stale_evidence:
             evidence.mkdir()
-            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt'):
+            for name in ('result.json', 'first-frame.png', 'frame-candidate.png', 'frame-attempts.txt',
+                         'smoke-exit-status.txt', 'activity.txt', 'android-api.txt', 'install.txt'):
                 (evidence / name).write_text('stale previous run')
         env = dict(os.environ, PATH=f'{bin_dir}:{os.environ["PATH"]}',
                    FAKE_ADB_ROOT=str(root), FAKE_ADB_MODE=mode)
@@ -119,6 +169,57 @@ class AndroidSmokeTest(unittest.TestCase):
             env=env, capture_output=True, text=True, timeout=30,
         )
         return result, root, evidence
+
+    def test_smoke_script_has_one_complete_install_gate_and_one_launch_flow(self):
+        script = (ROOT / 'tools/android_emulator_smoke.sh').read_text()
+        self.assertEqual(script.count('read_app_pid() {'), 1)
+        self.assertEqual(script.count('adb shell monkey -p "$PACKAGE"'), 1)
+        self.assertEqual(script.count('Android package installation did not report Success.'), 1)
+        self.assertIn("if ! grep -Fxq 'Success'", script)
+        self.assertIn("grep -Eiq 'Failure|INSTALL_FAILED_|Error:'", script)
+        self.assertLess(script.index('Android package installation did not report Success.'),
+                        script.index('adb shell monkey -p "$PACKAGE"'))
+
+    def test_launch_requires_explicit_event_acknowledgement(self):
+        for mode in ('launch_empty_zero', 'launch_abort_zero', 'launch_contradictory', 'launch_stderr_zero'):
+            with self.subTest(mode=mode):
+                result, root, evidence = self.run_smoke(mode)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('did not acknowledge exactly one injected event', result.stderr)
+                self.assertFalse((evidence / 'result.json').exists())
+
+    def test_foreground_timeout_preserves_separate_activity_and_window_diagnostics(self):
+        result, _, evidence = self.run_smoke('foreground_missing')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((evidence / 'result.json').exists())
+        first = (evidence / 'first-foreground-failure.txt').read_text()
+        final = (evidence / 'final-frame-timeout-state.txt').read_text()
+        for label in ('=== activity activities ===', '=== activity top ===',
+                      '=== window windows ===', '=== window policy ==='):
+            with self.subTest(label=label):
+                self.assertIn(label, first)
+                self.assertIn(label, final)
+        self.assertIn('=== ActivityTaskManager events ===', final)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+
+    def test_foreground_missing_fixture_reports_launcher_in_both_sources(self):
+        result, _, evidence = self.run_smoke('foreground_missing')
+        self.assertNotEqual(result.returncode, 0)
+        first = (evidence / 'first-foreground-failure.txt').read_text()
+        self.assertIn('mCurrentFocus=Window{680ffdf u0 com.android.launcher/.MainActivity}', first)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_api35_activity_focus_fallback_when_window_dump_omits_focus(self):
+        result, _, evidence = self.run_smoke('activity_focus_only')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
+
+    def test_activity_focus_fallback_rejects_other_package(self):
+        result, _, evidence = self.run_smoke('activity_focus_other')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('foreground_missing', (evidence / 'frame-attempts.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
 
     def test_delayed_frame_is_retried_and_tied_to_apk(self):
         result, root, evidence = self.run_smoke('delayed')
@@ -140,11 +241,93 @@ class AndroidSmokeTest(unittest.TestCase):
                          'attempt=1 stage=accepted\n')
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
 
+    def test_success_exit_diagnostics_are_from_current_run(self):
+        result, _, evidence = self.run_smoke('api32', stale_evidence=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        status = (evidence / 'smoke-exit-status.txt').read_text()
+        self.assertIn('smoke_exit_status=0', status)
+        self.assertIn('package=com.warqna.warqna_mobile', status)
+        self.assertIn('pid=4242', status)
+        self.assertNotIn('stale previous run', status)
+        self.assertNotIn('stale previous run', (evidence / 'activity.txt').read_text())
+
+    def test_failed_run_does_not_preserve_old_pass_or_diagnostics(self):
+        result, _, evidence = self.run_smoke('blank', stale_evidence=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((evidence / 'result.json').exists())
+        self.assertFalse((evidence / 'first-frame.png').exists())
+        status = (evidence / 'smoke-exit-status.txt').read_text()
+        self.assertIn('smoke_exit_status=', status)
+        self.assertNotIn('smoke_exit_status=0\\n', status)
+        self.assertNotIn('stale previous run', status)
+
+    def test_transient_log_failure_is_retried_without_partial_output(self):
+        result, root, evidence = self.run_smoke('log_retry')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((root / 'log-attempt').read_text(), '2')
+        self.assertNotIn('incomplete diagnostic', (evidence / 'app-logcat.txt').read_text())
+        self.assertIn('adb_status=255', (evidence / 'adb-diagnostics.txt').read_text())
+
+    def test_required_crash_log_failure_prevents_passing(self):
+        result, root, evidence = self.run_smoke('log_unavailable')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((root / 'log-attempt').read_text(), '3')
+        self.assertIn('crash logs unavailable', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_optional_meminfo_failure_keeps_valid_crash_and_frame_checks(self):
+        result, _, evidence = self.run_smoke('meminfo_error')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Optional memory snapshot unavailable', result.stderr)
+        self.assertTrue((evidence / 'app-logcat.txt').is_file())
+        self.assertTrue((evidence / 'full-logcat.txt').is_file())
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['status'], 'PASSED')
+
     def test_old_android_does_not_receive_unsupported_permission(self):
         result, root, evidence = self.run_smoke('api32')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse((root / 'permission-grant').exists())
         self.assertEqual(json.loads((evidence / 'result.json').read_text())['notification_permission'], 'not_required')
+
+    def test_install_failure_text_with_zero_exit_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_failure_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertIn('INSTALL_FAILED_INVALID_APK', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+        self.assertFalse((evidence / 'first-frame.png').exists())
+
+    def test_empty_install_output_with_zero_exit_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_empty_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_contradictory_install_success_and_failure_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_contradictory')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertIn('INSTALL_FAILED_UPDATE_INCOMPATIBLE', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_error_after_install_success_is_rejected(self):
+        result, _, evidence = self.run_smoke('install_error_after_success')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('installation did not report Success', result.stderr)
+        self.assertFalse((evidence / 'first-frame.png').exists())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_install_stderr_failure_cannot_hide_behind_stdout_success(self):
+        result, _, evidence = self.run_smoke('install_stderr_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('INSTALL_FAILED_INTERNAL_ERROR', (evidence / 'install.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
+
+    def test_launch_stderr_failure_is_preserved_and_rejected(self):
+        result, _, evidence = self.run_smoke('launch_stderr_zero')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('SecurityException', (evidence / 'launch.txt').read_text())
+        self.assertFalse((evidence / 'result.json').exists())
 
     def test_permission_setup_failure_stops_the_check(self):
         result, _, evidence = self.run_smoke('permission_error')
@@ -185,13 +368,19 @@ class AndroidSmokeTest(unittest.TestCase):
         result, root, evidence = self.run_smoke('splash_then_app')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         report = json.loads((evidence / 'result.json').read_text())
-        self.assertEqual(report['frame_capture_attempts'], 3)
+        self.assertEqual(report['frame_capture_attempts'], 2)
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=foreground_missing\nattempt=2 stage=accepted\n')
+        self.assertTrue((evidence / 'first-foreground-failure.txt').exists())
         self.assertEqual(int((root / 'captures').read_text()), 2)  # app frame and exit evidence
 
     def test_focus_alone_is_insufficient_while_android_splash_is_drawn(self):
         result, root, evidence = self.run_smoke('focus_before_draw')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 3)
+        self.assertEqual(json.loads((evidence / 'result.json').read_text())['frame_capture_attempts'], 2)
+        self.assertEqual((evidence / 'frame-attempts.txt').read_text(),
+                         'attempt=1 stage=display_event_missing\nattempt=2 stage=accepted\n')
+        self.assertTrue((evidence / 'first-display-failure.txt').exists())
         self.assertEqual(int((root / 'captures').read_text()), 2)
 
     def test_draw_event_in_main_logcat_buffer_is_accepted(self):
