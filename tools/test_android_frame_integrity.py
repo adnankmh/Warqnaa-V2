@@ -138,7 +138,18 @@ def main():
     indexed = good[:8] + chunk(b"IHDR", indexed_header) + good[33:]
     assert not accepted(indexed), "indexed PNG without required palette accepted"
     # A valid indexed palette is accepted; a palette larger than 2**bit_depth is not.
-    assert accepted(indexed[:33] + palette + indexed[33:]), "indexed PNG with palette rejected"
+    # The RGB IDAT payload cannot be reused for indexed color: an indexed8 row
+    # contains one byte per pixel, not three. Construct a real indexed stream.
+    indexed_stride = 1 + 320
+    indexed_raw = (b"\\x00" + b"\\x00" * 320) * 390
+    indexed_valid = (
+        indexed[:33] + palette
+        + chunk(b"IDAT", zlib.compress(indexed_raw, level=0))
+        + indexed[-12:]
+    )
+    assert accepted(indexed_valid), "indexed PNG with palette rejected"
+    # The original RGB scanlines must be rejected even with a valid palette.
+    assert not accepted(indexed[:33] + palette + indexed[33:]), "RGB-sized indexed scanlines accepted"
     indexed_one_bit = header[:8] + bytes((1, 3)) + header[10:]
     indexed_one_bit_png = good[:8] + chunk(b"IHDR", indexed_one_bit) + good[33:]
     oversized_palette = chunk(b"PLTE", bytes((0, 0, 255, 255, 255, 255, 0, 0, 0)))
