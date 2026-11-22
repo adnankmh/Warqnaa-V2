@@ -41,4 +41,30 @@ void main() {
       });
     }
   }
+
+  for (final locale in ['ar', 'en']) {
+    for (final width in [240.0, 320.0, 390.0]) {
+      testWidgets('R56 hub remains overflow-free with enlarged text $locale $width', (tester) async {
+        tester.view.physicalSize = Size(width, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(review.reviewApp(
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(1.7)),
+            child: Scaffold(body: SingleChildScrollView(
+              child: WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+            )),
+          ),
+          controller, GlobalKey(),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('warqnaa-blue-quickplay-hub')), findsOneWidget);
+        expect(find.byKey(const ValueKey('warqnaa-blue-play-now')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
 }
