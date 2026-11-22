@@ -68,6 +68,30 @@ void main() {
     }
   }
 
+  for (final locale in ['ar', 'en']) {
+    for (final panelWidth in [220.0, 280.0, 340.0]) {
+      testWidgets('R56 preview follows nested panel constraints $locale $panelWidth', (tester) async {
+        tester.view.physicalSize = const Size(800, 900);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(MaterialApp(
+          home: Scaffold(body: SingleChildScrollView(child: Center(
+            child: SizedBox(width: panelWidth, child: WarqnaaBlueQuickPlayHub(
+              controller: controller, onTab: (_) {},
+            )),
+          ))),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('warqnaa-blue-table-preview')), findsOneWidget);
+        expect(find.byKey(const ValueKey('warqnaa-blue-play-now')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   for (final brightness in [Brightness.light, Brightness.dark]) {
     testWidgets('R56 original blue gradient supports $brightness theme', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
