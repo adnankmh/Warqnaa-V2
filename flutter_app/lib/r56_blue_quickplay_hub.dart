@@ -25,7 +25,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                 ? const [Color(0xFF041B42), Color(0xFF074A9A), Color(0xFF0B3573)]
                 : const [Color(0xFF0659BA), Color(0xFF087ED2), Color(0xFF064589)],
           ),
-          border: Border.all(color: const Color(0xFF8CEAFF).withOpacity(.55), width: 1.3),
+          border: Border.all(color: const Color(0x8C8CEAFF), width: 1.3),
           boxShadow: const [BoxShadow(color: Color(0x33001A50), blurRadius: 18, offset: Offset(0, 8))],
         ),
         child: Padding(
@@ -63,7 +63,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
               ];
               return Wrap(spacing: 9, runSpacing: 9, children: destinations.map((destination) {
                 return SizedBox(width: width, child: Material(
-                  color: const Color(0xFF07396F).withOpacity(.82),
+                  color: const Color(0xD107396F),
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
