@@ -67,4 +67,29 @@ void main() {
       });
     }
   }
+
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    testWidgets('R56 original blue gradient supports $brightness theme', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = AppController()..localeCode = 'ar';
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(brightness: brightness),
+        home: Scaffold(body: SingleChildScrollView(child:
+          WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+        )),
+      ));
+      await tester.pumpAndSettle();
+      final panel = tester.widget<Container>(find.byKey(const ValueKey('warqnaa-blue-quickplay-hub')));
+      final decoration = panel.decoration! as BoxDecoration;
+      final colors = (decoration.gradient! as LinearGradient).colors;
+      expect(colors.length, 3);
+      expect(colors.first, brightness == Brightness.dark
+          ? const Color(0xFF041B42) : const Color(0xFF0659BA));
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
