@@ -186,6 +186,20 @@ def main():
         assert not accepted(frame16(bad16)), f"{label} invalid final filter accepted"
         # A CRC-correct, zlib-valid 16-bit capture with a partial final row is invalid.
         assert not accepted(frame16(raw16[:-1])), f"{label} partial final row accepted"
+        # Reject invalid filter bytes at the first and a middle scanline too;
+        # checking only the last row would miss partially corrupted captures.
+        for row_index in (0, 195):
+            invalid_middle = bytearray(raw16)
+            invalid_middle[row_index * stride16] = 5
+            assert not accepted(frame16(invalid_middle)), (
+                f"{label} illegal filter on row {row_index} accepted"
+            )
+        # Legal filters may vary by row in a single PNG; avoid rejecting real
+        # Android encoders that choose filters adaptively.
+        adaptive = bytearray(raw16)
+        for row_index in range(390):
+            adaptive[row_index * stride16] = row_index % 5
+        assert accepted(frame16(adaptive)), f"{label} mixed legal filters rejected"
         # Exercise every legal filter at 16-bit depth, including the final scanline.
         for filter_type in range(5):
             filtered16 = bytearray(raw16)
