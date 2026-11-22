@@ -90,7 +90,7 @@ def main():
     concatenated_zlib = good[:33] + chunk(b"IDAT", idat_body + zlib.compress(b"extra")) + good[-12:]
     assert not accepted(concatenated_zlib), "concatenated zlib members accepted"
     # Ancillary metadata must not bypass CRC checks even when the pixels are valid.
-    metadata = bytearray(chunk(b"tEXt", b"note\\x00valid"))
+    metadata = bytearray(chunk(b"tEXt", b"note\x00valid"))
     metadata[-1] ^= 1
     invalid_metadata = good[:33] + bytes(metadata) + good[33:]
     assert not accepted(invalid_metadata), "corrupt ancillary CRC accepted"
