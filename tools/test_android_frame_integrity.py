@@ -289,6 +289,32 @@ def main():
             for offset in range(0, len(filtered16), stride16):
                 filtered16[offset] = filter_type
             assert accepted(frame16(filtered16)), f"{label} legal filter {filter_type} rejected"
+    # Indexed8 PNG evidence must carry a palette and complete, legal scanlines.
+    indexed8_header = header[:9] + bytes((3,)) + header[10:]
+    indexed8_prefix = good[:8] + chunk(b"IHDR", indexed8_header) + palette
+    indexed8_stride = 321
+    indexed8_raw = (b"\x00" * indexed8_stride) * 390
+    def indexed8_frame(raw):
+        return indexed8_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
+    assert accepted(indexed8_frame(indexed8_raw)), "valid indexed8 screenshot rejected"
+    assert not accepted(indexed8_frame(indexed8_raw[:-indexed8_stride])), "indexed8 missing row accepted"
+    assert not accepted(indexed8_frame(indexed8_raw + indexed8_raw[:indexed8_stride])), "indexed8 extra row accepted"
+    assert not accepted(indexed8_frame(indexed8_raw[:-1])), "indexed8 partial row accepted"
+    adaptive_indexed = bytearray(indexed8_raw)
+    for row_index in range(390):
+        adaptive_indexed[row_index * indexed8_stride] = row_index % 5
+    assert accepted(indexed8_frame(adaptive_indexed)), "indexed8 adaptive filters rejected"
+    for row_index in (0, 195, 389):
+        invalid_indexed = bytearray(indexed8_raw)
+        invalid_indexed[row_index * indexed8_stride] = 5
+        assert not accepted(indexed8_frame(invalid_indexed)), f"indexed8 illegal filter on row {row_index} accepted"
+    # Grayscale8 also needs explicit first/last-row and extra/partial-row coverage.
+    for row_index in (0, 389):
+        invalid_gray_edge = bytearray(gray_raw)
+        invalid_gray_edge[row_index * 321] = 5
+        assert not accepted(gray_frame(invalid_gray_edge)), f"grayscale8 illegal edge filter on row {row_index} accepted"
+    assert not accepted(gray_frame(gray_raw + gray_raw[:321])), "grayscale8 extra row accepted"
+    assert not accepted(gray_frame(gray_raw[:-1])), "grayscale8 partial row accepted"
     print("PASS: PNG integrity, RGB/RGBA 8/16-bit scanlines, palette ordering, indexed/grayscale format and corruption fixtures")
 
 
