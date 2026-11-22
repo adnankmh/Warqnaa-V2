@@ -146,6 +146,16 @@ def main():
     grayscale_header = header[:9] + bytes((0,)) + header[10:]
     grayscale = good[:8] + chunk(b"IHDR", grayscale_header) + good[33:]
     assert not accepted(grayscale[:33] + palette + grayscale[33:]), "grayscale PNG with forbidden palette accepted"
+    # Grayscale Android captures need complete scanlines and legal row filters too.
+    gray_raw = (b"\\x00" + b"\\x00" * 320) * 390
+    gray_prefix = good[:8] + chunk(b"IHDR", grayscale_header)
+    def gray_frame(raw):
+        return gray_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
+    assert accepted(gray_frame(gray_raw)), "valid grayscale8 frame rejected"
+    assert not accepted(gray_frame(gray_raw[:-321])), "grayscale8 missing row accepted"
+    bad_gray = bytearray(gray_raw)
+    bad_gray[195 * 321] = 5
+    assert not accepted(gray_frame(bad_gray)), "grayscale8 illegal middle-row filter accepted"
     # CRC-correct and zlib-valid data can still be invalid PNG scanlines.
     rgb_stride = 320 * 3 + 1
     # Keep scanline fixtures above the independent screenshot-size threshold.
