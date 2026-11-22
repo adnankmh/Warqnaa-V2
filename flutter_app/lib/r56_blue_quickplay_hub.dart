@@ -106,9 +106,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             const SizedBox(height: 14),
             LayoutBuilder(builder: (context, bounds) {
               final scale = MediaQuery.textScalerOf(context).scale(1);
-              final columns = bounds.maxWidth < 250 || scale > 1.6
-                  ? 1
-                  : bounds.maxWidth < 350 || scale > 1.2 ? 2 : 3;
+              final columns = warqnaaBlueGridColumns(bounds.maxWidth, scale);
               final width = (bounds.maxWidth - (columns - 1) * 9) / columns;
               final destinations = <_WarqnaaBlueDestination>[
                 _WarqnaaBlueDestination(Icons.sports_esports_rounded, ar ? 'الألعاب' : 'Games',
@@ -192,4 +190,14 @@ class _WarqnaaBlueSuit extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Keep cards legible on split-screen phones and with accessibility text.
+int warqnaaBlueGridColumns(double width, double textScale) {
+  if (!width.isFinite || width <= 0 || !textScale.isFinite || textScale <= 0) {
+    return 1;
+  }
+  if (width < 250 || textScale > 1.6) return 1;
+  if (width < 350 || textScale > 1.2) return 2;
+  return 3;
 }
