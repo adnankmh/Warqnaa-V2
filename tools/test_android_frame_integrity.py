@@ -156,6 +156,28 @@ def main():
     bad_gray = bytearray(gray_raw)
     bad_gray[195 * 321] = 5
     assert not accepted(gray_frame(bad_gray)), "grayscale8 illegal middle-row filter accepted"
+    # Android evidence may also use 16-bit grayscale or 8-bit grayscale+alpha.
+    # Verify complete scanlines and filters for both supported PNG formats.
+    for label, depth, color_type, channels in (
+        ("Grayscale16", 16, 0, 1),
+        ("GrayscaleAlpha8", 8, 4, 2),
+    ):
+        alternate_header = header[:8] + bytes((depth, color_type)) + header[10:]
+        alternate_prefix = good[:8] + chunk(b"IHDR", alternate_header)
+        alternate_stride = 1 + 320 * channels * (depth // 8)
+        alternate_raw = (b"\\x00" * alternate_stride) * 390
+        def alternate_frame(raw):
+            return alternate_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
+        assert accepted(alternate_frame(alternate_raw)), f"valid {label} rejected"
+        assert not accepted(alternate_frame(alternate_raw[:-alternate_stride])), f"{label} missing row accepted"
+        invalid_alternate = bytearray(alternate_raw)
+        invalid_alternate[195 * alternate_stride] = 5
+        assert not accepted(alternate_frame(invalid_alternate)), f"{label} illegal middle filter accepted"
+        assert not accepted(alternate_frame(alternate_raw[:-1])), f"{label} partial row accepted"
+        adaptive_alternate = bytearray(alternate_raw)
+        for row_index in range(390):
+            adaptive_alternate[row_index * alternate_stride] = row_index % 5
+        assert accepted(alternate_frame(adaptive_alternate)), f"{label} adaptive filters rejected"
     # CRC-correct and zlib-valid data can still be invalid PNG scanlines.
     rgb_stride = 320 * 3 + 1
     # Keep scanline fixtures above the independent screenshot-size threshold.
