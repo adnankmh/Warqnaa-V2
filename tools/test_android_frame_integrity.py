@@ -308,6 +308,21 @@ def main():
         invalid_indexed = bytearray(indexed8_raw)
         invalid_indexed[row_index * indexed8_stride] = 5
         assert not accepted(indexed8_frame(invalid_indexed)), f"indexed8 illegal filter on row {row_index} accepted"
+    # Packed indexed screenshots use ceil(width * bit_depth / 8) bytes per row.
+    # Check valid frames and truncated rows for all legal packed depths.
+    for depth in (1, 2, 4):
+        packed_header = header[:8] + bytes((depth, 3)) + header[10:]
+        packed_prefix = good[:8] + chunk(b"IHDR", packed_header) + palette
+        packed_stride = 1 + (320 * depth + 7) // 8
+        packed_raw = bytes(packed_stride * 390)
+        def packed_frame(raw):
+            return packed_prefix + chunk(b"IDAT", zlib.compress(raw, level=0)) + good[-12:]
+        assert accepted(packed_frame(packed_raw)), f"valid indexed{depth} rejected"
+        assert not accepted(packed_frame(packed_raw[:-packed_stride])), f"indexed{depth} missing row accepted"
+        assert not accepted(packed_frame(packed_raw + packed_raw[:packed_stride])), f"indexed{depth} extra row accepted"
+        corrupt_filter = bytearray(packed_raw)
+        corrupt_filter[195 * packed_stride] = 5
+        assert not accepted(packed_frame(corrupt_filter)), f"indexed{depth} illegal filter accepted"
     # Grayscale8 also needs explicit first/last-row and extra/partial-row coverage.
     for row_index in (0, 389):
         invalid_gray_edge = bytearray(gray_raw)
