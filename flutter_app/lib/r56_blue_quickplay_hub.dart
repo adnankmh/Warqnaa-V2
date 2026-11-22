@@ -10,7 +10,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
   Widget build(BuildContext context) {
     final ar = controller.localeCode == 'ar';
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final foreground = Colors.white;
+    const foreground = Colors.white;
     return Semantics(
       container: true,
       label: ar ? 'بوابة اللعب السريع' : 'Quick play hub',
