@@ -86,6 +86,14 @@ def main():
     # A legitimate compressed stream followed by junk is not a single valid IDAT stream.
     trailing_stream = good[:33] + chunk(b"IDAT", idat_body + b"junk") + good[-12:]
     assert not accepted(trailing_stream), "trailing compressed stream bytes accepted"
+    # A valid zlib member followed by a second member is not one PNG image stream.
+    concatenated_zlib = good[:33] + chunk(b"IDAT", idat_body + zlib.compress(b"extra")) + good[-12:]
+    assert not accepted(concatenated_zlib), "concatenated zlib members accepted"
+    # Ancillary metadata must not bypass CRC checks even when the pixels are valid.
+    metadata = bytearray(chunk(b"tEXt", b"note\\x00valid"))
+    metadata[-1] ^= 1
+    invalid_metadata = good[:33] + bytes(metadata) + good[33:]
+    assert not accepted(invalid_metadata), "corrupt ancillary CRC accepted"
     # RGB screenshots may carry an optional palette before the pixel stream.
     palette = chunk(b"PLTE", bytes((0, 0, 255)))
     assert accepted(good[:33] + palette + good[33:]), "valid optional palette rejected"
