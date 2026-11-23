@@ -148,4 +148,54 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+  // Protect the original palette and text direction across both locales and themes.
+  for (final locale in ['ar', 'en']) {
+    for (final brightness in [Brightness.light, Brightness.dark]) {
+      for (final width in [320.0, 390.0]) {
+        testWidgets('R56 blue palette and direction $locale $brightness $width', (tester) async {
+          tester.view.physicalSize = Size(width, 844);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final controller = AppController()..localeCode = locale;
+          addTearDown(controller.dispose);
+          await tester.pumpWidget(MaterialApp(
+            locale: Locale(locale),
+            supportedLocales: const [Locale('ar'), Locale('en')],
+            theme: ThemeData(brightness: brightness),
+            home: Scaffold(body: SingleChildScrollView(child:
+              Directionality(
+                textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+                child: WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+              ),
+            )),
+          ));
+          await tester.pumpAndSettle();
+          final hub = find.byKey(const ValueKey('warqnaa-blue-quickplay-hub'));
+          expect(hub, findsOneWidget);
+          expect(Directionality.of(tester.element(hub)),
+              locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+          final decoration = tester.widget<Container>(hub).decoration! as BoxDecoration;
+          final gradient = decoration.gradient! as LinearGradient;
+          expect(gradient.colors.first, brightness == Brightness.dark
+              ? const Color(0xFF041B42) : const Color(0xFF0659BA));
+          expect(find.byKey(const ValueKey('warqnaa-blue-play-now')), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
+  }
+
+  test('R56 grid never grows when text scale increases', () {
+    for (final width in [220.0, 250.0, 320.0, 350.0, 430.0, 600.0]) {
+      var previous = 3;
+      for (final scale in [1.0, 1.2, 1.21, 1.6, 1.61, 2.0, 3.0]) {
+        final columns = warqnaaBlueGridColumns(width, scale);
+        expect(columns, inInclusiveRange(1, 3));
+        expect(columns, lessThanOrEqualTo(previous));
+        previous = columns;
+      }
+    }
+  }
+
 }
