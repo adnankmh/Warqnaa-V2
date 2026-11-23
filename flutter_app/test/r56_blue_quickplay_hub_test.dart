@@ -4,6 +4,21 @@ import 'package:warqna_mobile/main.dart';
 import 'r7_runtime_review_test.dart' as review;
 
 void main() {
+
+  test('R56 blue grid respects exact breakpoint and accessibility boundaries', () {
+    expect(warqnaaBlueGridColumns(249.9, 1), 1);
+    expect(warqnaaBlueGridColumns(250, 1), 2);
+    expect(warqnaaBlueGridColumns(349.9, 1), 2);
+    expect(warqnaaBlueGridColumns(350, 1), 3);
+    expect(warqnaaBlueGridColumns(600, 1.2), 3);
+    expect(warqnaaBlueGridColumns(600, 1.21), 2);
+    expect(warqnaaBlueGridColumns(600, 1.6), 2);
+    expect(warqnaaBlueGridColumns(600, 1.61), 1);
+    expect(warqnaaBlueGridColumns(double.nan, 1), 1);
+    expect(warqnaaBlueGridColumns(double.infinity, 1), 1);
+    expect(warqnaaBlueGridColumns(600, double.nan), 1);
+    expect(warqnaaBlueGridColumns(600, 0), 1);
+  });
   for (final locale in ['ar', 'en']) {
     for (final width in [320.0, 390.0, 600.0]) {
       testWidgets('R56 blue hub routes play and remains responsive $locale $width', (tester) async {
