@@ -307,6 +307,40 @@ void main() {
       }
     }
   });
+  // Verify the actual suit visibility contract, not just absence of exceptions.
+  // At high text scaling the decorative suit glyphs must not compete with copy.
+  for (final locale in ['ar', 'en']) {
+    for (final scale in [1.0, 3.0, 5.0]) {
+      testWidgets('R56 preview hides decorative suits as text grows $locale $scale', (tester) async {
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(MaterialApp(
+          home: Scaffold(body: SingleChildScrollView(child: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: Directionality(
+              textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+              child: WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+            ),
+          ))),
+        ));
+        await tester.pumpAndSettle();
+        final preview = find.byKey(const ValueKey('warqnaa-blue-table-preview'));
+        expect(preview, findsOneWidget);
+        final suits = find.descendant(
+          of: preview,
+          matching: find.textContaining(RegExp('[♠♥♣♦]')),
+        );
+        expect(suits, findsNWidgets(scale == 1.0 ? 4 : 0),
+            reason: 'At normal scale narrow previews show four suits; at 300%+ none');
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   // The decorative suits must yield space to the localized message at 500% text.
   for (final locale in ['ar', 'en']) {
     testWidgets('R56 preview prioritizes text at extreme scale $locale', (tester) async {
