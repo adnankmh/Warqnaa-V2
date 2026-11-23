@@ -341,6 +341,31 @@ void main() {
     }
   }
 
+  // Nested panels use their own constraints rather than the full device width.
+  for (final panelWidth in [160.0, 280.0, 390.0]) {
+    testWidgets('R56 preview suits follow nested panel width $panelWidth', (tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = AppController()..localeCode = 'en';
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: Center(
+          child: SizedBox(width: panelWidth, child:
+            WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {})),
+        ))),
+      ));
+      await tester.pumpAndSettle();
+      final suits = find.descendant(
+        of: find.byKey(const ValueKey('warqnaa-blue-table-preview')),
+        matching: find.textContaining(RegExp('[♠♥♣♦]')),
+      );
+      expect(suits, findsNWidgets(panelWidth == 160 ? 1 : panelWidth == 280 ? 2 : 4));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   // The decorative suits must yield space to the localized message at 500% text.
   for (final locale in ['ar', 'en']) {
     testWidgets('R56 preview prioritizes text at extreme scale $locale', (tester) async {
