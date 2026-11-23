@@ -53,18 +53,22 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
               child: LayoutBuilder(builder: (context, preview) {
                 // Decide from actual panel width, not the device viewport.
                 // Nested layouts and split-screen windows can be much narrower.
-                final showAllSuits = preview.maxWidth >= 320 &&
-                    MediaQuery.textScalerOf(context).scale(1) <= 1.3;
+                final textScale = MediaQuery.textScalerOf(context).scale(1);
+                // Reserve room for the translated table message at large text sizes.
+                // Decorative suits are progressively hidden before text can be squeezed.
+                final showAllSuits = preview.maxWidth >= 320 && textScale <= 1.3;
+                final showSecondSuit = preview.maxWidth >= 190 && textScale <= 2.0;
+                final showFirstSuit = preview.maxWidth >= 90 && textScale <= 3.0;
                 return Row(textDirection: Directionality.of(context), children: [
-                  if (preview.maxWidth >= 90)
+                  if (showFirstSuit)
                     const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
-                  if (preview.maxWidth >= 190)
+                  if (showSecondSuit)
                     const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
-                  if (preview.maxWidth >= 90) const SizedBox(width: 8),
+                  if (showFirstSuit) const SizedBox(width: 8),
                   Expanded(child: Text(
                     ar ? 'طاولتك بانتظارك' : 'Your table awaits',
                     textAlign: TextAlign.start,
