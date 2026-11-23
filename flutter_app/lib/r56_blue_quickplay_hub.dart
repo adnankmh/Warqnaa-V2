@@ -108,7 +108,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             LayoutBuilder(builder: (context, bounds) {
               final scale = MediaQuery.textScalerOf(context).scale(1);
               final columns = warqnaaBlueGridColumns(bounds.maxWidth, scale);
-              final width = math.max(0.0, (bounds.maxWidth - (columns - 1) * 9) / columns);
+              final width = (bounds.maxWidth - (columns - 1) * 9) / columns;
               final destinations = <_WarqnaaBlueDestination>[
                 _WarqnaaBlueDestination(Icons.sports_esports_rounded, ar ? 'الألعاب' : 'Games',
                     ar ? 'ابدأ اللعب' : 'Start playing', () => onTab(1)),
@@ -136,7 +136,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                       button: true,
                       label: '${destination.title}. ${destination.subtitle}',
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 112),
+                        constraints: const BoxConstraints(minHeight: 104),
                         child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(destination.icon, size: 29, color: const Color(0xFFFFD46C)),
