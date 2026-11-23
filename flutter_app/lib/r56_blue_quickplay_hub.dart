@@ -55,7 +55,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                 // Nested layouts and split-screen windows can be much narrower.
                 final showAllSuits = preview.maxWidth >= 320 &&
                     MediaQuery.textScalerOf(context).scale(1) <= 1.3;
-                return Row(children: [
+                return Row(textDirection: Directionality.of(context), children: [
                   const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
                   if (preview.maxWidth >= 190)
                     const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
@@ -66,7 +66,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(child: Text(
                     ar ? 'طاولتك بانتظارك' : 'Your table awaits',
-                    textAlign: TextAlign.end,
+                    textAlign: TextAlign.start,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Color(0xFFE6F8FF), fontSize: 12, fontWeight: FontWeight.w800),
@@ -78,6 +78,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             Semantics(
               button: true,
               label: ar ? 'ابدأ اللعب الآن' : 'Play now',
+              hint: ar ? 'يفتح قسم الألعاب' : 'Opens the games section',
               child: Material(
                 color: const Color(0xFFFFD46C),
                 borderRadius: BorderRadius.circular(14),
