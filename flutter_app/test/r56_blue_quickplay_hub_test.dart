@@ -267,4 +267,44 @@ void main() {
   });
 
 
+
+  // Regression: high text scaling must not break the blue hub in either theme.
+  for (final locale in ['ar', 'en']) {
+    for (final brightness in [Brightness.light, Brightness.dark]) {
+      testWidgets('R56 large text remains usable $locale $brightness', (tester) async {
+        tester.view.physicalSize = const Size(320, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final controller = AppController()..localeCode = locale;
+        addTearDown(controller.dispose);
+        await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          home: Scaffold(body: SingleChildScrollView(
+            child: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(3)),
+              child: Directionality(
+                textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+                child: WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+              ),
+            ),
+          )),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('warqnaa-blue-play-now')), findsOneWidget);
+        expect(find.byKey(const ValueKey('warqnaa-blue-table-preview')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  test('R56 column selection stays bounded around both breakpoints', () {
+    for (final scale in [1.0, 1.2, 1.21, 1.6, 1.61, 3.0]) {
+      for (final width in [249.99, 250.0, 250.01, 349.99, 350.0, 350.01]) {
+        final columns = warqnaaBlueGridColumns(width, scale);
+        expect(columns, inInclusiveRange(1, 3));
+        expect(columns, lessThanOrEqualTo(warqnaaBlueGridColumns(width + 0.01, scale)));
+      }
+    }
+  });
 }
