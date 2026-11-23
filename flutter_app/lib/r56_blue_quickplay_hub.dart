@@ -56,14 +56,15 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                 final showAllSuits = preview.maxWidth >= 320 &&
                     MediaQuery.textScalerOf(context).scale(1) <= 1.3;
                 return Row(textDirection: Directionality.of(context), children: [
-                  const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
+                  if (preview.maxWidth >= 90)
+                    const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
                   if (preview.maxWidth >= 190)
                     const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
-                  const SizedBox(width: 8),
+                  if (preview.maxWidth >= 90) const SizedBox(width: 8),
                   Expanded(child: Text(
                     ar ? 'طاولتك بانتظارك' : 'Your table awaits',
                     textAlign: TextAlign.start,
@@ -133,6 +134,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     onTap: destination.onTap,
                     child: Semantics(
+                      excludeSemantics: true,
                       button: true,
                       enabled: true,
                       label: '${destination.title}. ${destination.subtitle}',
