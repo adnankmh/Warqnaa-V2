@@ -136,6 +136,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                       button: true,
                       enabled: true,
                       label: '${destination.title}. ${destination.subtitle}',
+                      hint: ar ? 'اضغط لفتح الوجهة' : 'Activate to open destination',
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 104),
                         child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
