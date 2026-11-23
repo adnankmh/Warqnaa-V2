@@ -196,6 +196,11 @@ void main() {
         previous = columns;
       }
     }
-  }
+  });
 
+  test('R56 grid remains single-column at extreme accessibility scale', () {
+    for (final width in [220.0, 320.0, 390.0, 600.0]) {
+      expect(warqnaaBlueGridColumns(width, 3.0), 1);
+    }
+  });
 }
