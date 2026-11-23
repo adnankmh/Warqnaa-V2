@@ -334,8 +334,8 @@ void main() {
           of: preview,
           matching: find.textContaining(RegExp('[♠♥♣♦]')),
         );
-        expect(suits, findsNWidgets(scale == 1.0 ? 4 : 0),
-            reason: 'At normal scale narrow previews show four suits; at 300%+ none');
+        expect(suits, findsNWidgets(scale == 1.0 ? 4 : scale == 3.0 ? 1 : 0),
+            reason: 'At normal scale narrow previews show four suits; at 300% one and at 500% none');
         expect(tester.takeException(), isNull);
       });
     }
