@@ -221,7 +221,9 @@ void main() {
         controller, GlobalKey(),
       ));
       await tester.pumpAndSettle();
-      expect(find.bySemanticsLabel(locale == 'ar' ? 'ابدأ اللعب الآن' : 'Play now'), findsOneWidget);
+      // Flutter may merge the CTA label with its child text in one semantics node.
+      // Match the localized action within that node, not an exact merged label.
+      expect(find.bySemanticsLabel(RegExp(locale == 'ar' ? 'ابدأ اللعب الآن' : 'Play now')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
