@@ -208,7 +208,7 @@ void main() {
   for (final locale in ['ar', 'en']) {
     testWidgets('R56 play CTA exposes localized navigation semantics $locale', (tester) async {
       final semantics = tester.ensureSemantics();
-      addTearDown(semantics.dispose);
+      // Dispose before the test framework checks for leaked semantics handles.
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -223,8 +223,12 @@ void main() {
       await tester.pumpAndSettle();
       // Flutter may merge the CTA label with its child text in one semantics node.
       // Match the localized action within that node, not an exact merged label.
-      expect(find.bySemanticsLabel(RegExp(locale == 'ar' ? 'ابدأ اللعب الآن' : 'Play now')), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      try {
+        expect(find.bySemanticsLabel(RegExp(locale == 'ar' ? 'ابدأ اللعب الآن' : 'Play now')), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        semantics.dispose();
+      }
     });
   }
 
