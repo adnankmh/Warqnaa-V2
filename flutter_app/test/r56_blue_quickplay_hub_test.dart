@@ -160,8 +160,8 @@ void main() {
           final controller = AppController()..localeCode = locale;
           addTearDown(controller.dispose);
           await tester.pumpWidget(MaterialApp(
-            locale: Locale(locale),
-            supportedLocales: const [Locale('ar'), Locale('en')],
+            // The controller supplies localized copy; Directionality below tests
+            // the layout without advertising unsupported MaterialApp delegates.
             theme: ThemeData(brightness: brightness),
             home: Scaffold(body: SingleChildScrollView(child:
               Directionality(
