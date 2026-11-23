@@ -46,6 +46,19 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const ValueKey('warqnaa-blue-play-now')));
         expect(selected, 1);
+        // Both entry points must continue routing to the existing games tab.
+        final games = find.text(locale == 'ar' ? 'الألعاب' : 'Games');
+        await tester.ensureVisible(games);
+        await tester.pumpAndSettle();
+        selected = -1;
+        await tester.tap(games);
+        expect(selected, 1);
+        final rooms = find.text(locale == 'ar' ? 'الغرف' : 'Rooms');
+        await tester.ensureVisible(rooms);
+        await tester.pumpAndSettle();
+        selected = -1;
+        await tester.tap(rooms);
+        expect(selected, 1);
         final store = find.text(locale == 'ar' ? 'المتجر' : 'Store');
         await tester.ensureVisible(store);
         await tester.pumpAndSettle();
