@@ -53,17 +53,22 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
               child: LayoutBuilder(builder: (context, preview) {
                 // Decide from actual panel width, not the device viewport.
                 // Nested layouts and split-screen windows can be much narrower.
-                final showAllSuits = preview.maxWidth >= 320 &&
-                    MediaQuery.textScalerOf(context).scale(1) <= 1.3;
+                final textScale = MediaQuery.textScalerOf(context).scale(1);
+                // Reserve room for the translated table message at large text sizes.
+                // Decorative suits are progressively hidden before text can be squeezed.
+                final showAllSuits = preview.maxWidth >= 320 && textScale <= 1.3;
+                final showSecondSuit = preview.maxWidth >= 190 && textScale <= 2.0;
+                final showFirstSuit = preview.maxWidth >= 90 && textScale <= 3.0;
                 return Row(textDirection: Directionality.of(context), children: [
-                  const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
-                  if (preview.maxWidth >= 190)
+                  if (showFirstSuit)
+                    const _WarqnaaBlueSuit(symbol: '♠', color: Color(0xFFFFFFFF)),
+                  if (showSecondSuit)
                     const _WarqnaaBlueSuit(symbol: '♥', color: Color(0xFFFF8C98)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♣', color: Color(0xFFFFFFFF)),
                   if (showAllSuits)
                     const _WarqnaaBlueSuit(symbol: '♦', color: Color(0xFFFF8C98)),
-                  const SizedBox(width: 8),
+                  if (showFirstSuit) const SizedBox(width: 8),
                   Expanded(child: Text(
                     ar ? 'طاولتك بانتظارك' : 'Your table awaits',
                     textAlign: TextAlign.start,
@@ -108,7 +113,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
             LayoutBuilder(builder: (context, bounds) {
               final scale = MediaQuery.textScalerOf(context).scale(1);
               final columns = warqnaaBlueGridColumns(bounds.maxWidth, scale);
-              final width = (bounds.maxWidth - (columns - 1) * 9) / columns;
+              final width = math.max(0.0, (bounds.maxWidth - (columns - 1) * 9) / columns);
               final destinations = <_WarqnaaBlueDestination>[
                 _WarqnaaBlueDestination(Icons.sports_esports_rounded, ar ? 'الألعاب' : 'Games',
                     ar ? 'ابدأ اللعب' : 'Start playing', () => onTab(1)),
@@ -133,17 +138,20 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     onTap: destination.onTap,
                     child: Semantics(
+                      excludeSemantics: true,
                       button: true,
+                      enabled: true,
                       label: '${destination.title}. ${destination.subtitle}',
+                      hint: ar ? 'اضغط لفتح الوجهة' : 'Activate to open destination',
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 104),
+                        constraints: const BoxConstraints(minHeight: 112),
                         child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
                           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(destination.icon, size: 29, color: const Color(0xFFFFD46C)),
                             const SizedBox(height: 5),
-                            Text(destination.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                            Text(destination.title, maxLines: 2, overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center, style: TextStyle(color: foreground, fontWeight: FontWeight.w800, fontSize: 13)),
-                            Text(destination.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
+                            Text(destination.subtitle, maxLines: 3, overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFCCECFF), fontSize: 10)),
                           ])),
                       ),
