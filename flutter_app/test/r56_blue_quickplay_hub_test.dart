@@ -307,4 +307,29 @@ void main() {
       }
     }
   });
+  // The decorative suits must yield space to the localized message at 500% text.
+  for (final locale in ['ar', 'en']) {
+    testWidgets('R56 preview prioritizes text at extreme scale $locale', (tester) async {
+      tester.view.physicalSize = const Size(320, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = AppController()..localeCode = locale;
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: SingleChildScrollView(child: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(5)),
+          child: Directionality(
+            textDirection: locale == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+            child: WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}),
+          ),
+        ))),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('warqnaa-blue-table-preview')), findsOneWidget);
+      expect(find.text(locale == 'ar' ? 'طاولتك بانتظارك' : 'Your table awaits'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
 }
