@@ -134,6 +134,7 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                     onTap: destination.onTap,
                     child: Semantics(
                       button: true,
+                      enabled: true,
                       label: '${destination.title}. ${destination.subtitle}',
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(minHeight: 104),
@@ -141,9 +142,9 @@ class WarqnaaBlueQuickPlayHub extends StatelessWidget {
                           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(destination.icon, size: 29, color: const Color(0xFFFFD46C)),
                             const SizedBox(height: 5),
-                            Text(destination.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                            Text(destination.title, maxLines: 2, overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center, style: TextStyle(color: foreground, fontWeight: FontWeight.w800, fontSize: 13)),
-                            Text(destination.subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
+                            Text(destination.subtitle, maxLines: 3, overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFCCECFF), fontSize: 10)),
                           ])),
                       ),
