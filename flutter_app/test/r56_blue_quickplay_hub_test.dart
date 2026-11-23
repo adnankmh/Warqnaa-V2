@@ -62,11 +62,13 @@ void main() {
         final store = find.text(locale == 'ar' ? 'المتجر' : 'Store');
         await tester.ensureVisible(store);
         await tester.pumpAndSettle();
+        selected = -1;
         await tester.tap(store);
         expect(selected, 0);
         final challenges = find.text(locale == 'ar' ? 'التحديات' : 'Challenges');
         await tester.ensureVisible(challenges);
         await tester.pumpAndSettle();
+        selected = -1;
         await tester.tap(challenges);
         expect(selected, 2);
         expect(tester.takeException(), isNull);
@@ -151,7 +153,7 @@ void main() {
   // Protect the original palette and text direction across both locales and themes.
   for (final locale in ['ar', 'en']) {
     for (final brightness in [Brightness.light, Brightness.dark]) {
-      for (final width in [320.0, 390.0]) {
+      for (final width in [320.0, 390.0, 430.0, 600.0]) {
         testWidgets('R56 blue palette and direction $locale $brightness $width', (tester) async {
           tester.view.physicalSize = Size(width, 844);
           tester.view.devicePixelRatio = 1;
@@ -177,8 +179,9 @@ void main() {
               locale == 'ar' ? TextDirection.rtl : TextDirection.ltr);
           final decoration = tester.widget<Container>(hub).decoration! as BoxDecoration;
           final gradient = decoration.gradient! as LinearGradient;
-          expect(gradient.colors.first, brightness == Brightness.dark
-              ? const Color(0xFF041B42) : const Color(0xFF0659BA));
+          expect(gradient.colors, brightness == Brightness.dark
+              ? const [Color(0xFF041B42), Color(0xFF074A9A), Color(0xFF0B3573)]
+              : const [Color(0xFF0659BA), Color(0xFF087ED2), Color(0xFF064589)]);
           expect(find.byKey(const ValueKey('warqnaa-blue-play-now')), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
