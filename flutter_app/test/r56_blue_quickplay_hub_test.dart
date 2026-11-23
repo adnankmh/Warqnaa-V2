@@ -189,6 +189,15 @@ void main() {
     }
   }
 
+  test('R56 grid handles narrow and invalid panels without extra columns', () {
+    for (final width in [double.negativeInfinity, -10.0, 0.0, 1.0, 9.0, 100.0, 249.0]) {
+      expect(warqnaaBlueGridColumns(width, 1), 1);
+    }
+    for (final scale in [1.61, 2.0, 3.0, 5.0]) {
+      expect(warqnaaBlueGridColumns(600, scale), 1);
+    }
+  });
+
   test('R56 grid never grows when text scale increases', () {
     for (final width in [220.0, 250.0, 320.0, 350.0, 430.0, 600.0]) {
       var previous = 3;
