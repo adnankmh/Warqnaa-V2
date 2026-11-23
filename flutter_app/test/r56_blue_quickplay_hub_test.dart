@@ -103,7 +103,7 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
-    for (final panelWidth in [220.0, 280.0, 340.0]) {
+    for (final panelWidth in [160.0, 190.0, 220.0, 280.0, 340.0]) {
       testWidgets('R56 preview follows nested panel constraints $locale $panelWidth', (tester) async {
         tester.view.physicalSize = const Size(800, 900);
         tester.view.devicePixelRatio = 1;
