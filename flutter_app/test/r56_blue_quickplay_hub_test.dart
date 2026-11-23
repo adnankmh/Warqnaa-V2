@@ -244,4 +244,27 @@ void main() {
     });
   }
 
+  test('R56 grid columns never decrease as usable width grows', () {
+    for (final scale in [1.0, 1.2, 1.21, 1.6, 1.61, 2.0, 3.0]) {
+      var previous = 1;
+      for (final width in [1.0, 160.0, 249.9, 250.0, 320.0, 349.9, 350.0, 430.0, 600.0]) {
+        final columns = warqnaaBlueGridColumns(width, scale);
+        expect(columns, inInclusiveRange(1, 3));
+        expect(columns, greaterThanOrEqualTo(previous),
+            reason: 'Wider panels must not reduce columns at text scale $scale');
+        previous = columns;
+      }
+    }
+  });
+
+  test('R56 grid chooses one column for all invalid scale inputs', () {
+    for (final scale in [double.nan, double.infinity, double.negativeInfinity, -1.0, 0.0]) {
+      for (final width in [1.0, 250.0, 350.0, 600.0]) {
+        expect(warqnaaBlueGridColumns(width, scale), 1,
+            reason: 'Invalid text scale must fall back safely at width $width');
+      }
+    }
+  });
+
+
 }
