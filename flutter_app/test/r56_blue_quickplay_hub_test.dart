@@ -18,9 +18,13 @@ void main() {
     expect(warqnaaBlueGridColumns(double.infinity, 1), 1);
     expect(warqnaaBlueGridColumns(600, double.nan), 1);
     expect(warqnaaBlueGridColumns(600, 0), 1);
+    expect(warqnaaBlueGridColumns(-1, 1), 1);
+    expect(warqnaaBlueGridColumns(double.negativeInfinity, 1), 1);
+    expect(warqnaaBlueGridColumns(600, double.infinity), 1);
+    expect(warqnaaBlueGridColumns(600, -2), 1);
   });
   for (final locale in ['ar', 'en']) {
-    for (final width in [320.0, 390.0, 600.0]) {
+    for (final width in [320.0, 390.0, 430.0, 600.0]) {
       testWidgets('R56 blue hub routes play and remains responsive $locale $width', (tester) async {
         tester.view.physicalSize = Size(width, 844);
         tester.view.devicePixelRatio = 1;
@@ -58,7 +62,7 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
-    for (final width in [240.0, 320.0, 390.0]) {
+    for (final width in [240.0, 320.0, 390.0, 430.0]) {
       testWidgets('R56 hub remains overflow-free with enlarged text $locale $width', (tester) async {
         tester.view.physicalSize = Size(width, 844);
         tester.view.devicePixelRatio = 1;
