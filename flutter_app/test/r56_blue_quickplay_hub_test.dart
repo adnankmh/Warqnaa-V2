@@ -203,4 +203,27 @@ void main() {
       expect(warqnaaBlueGridColumns(width, 3.0), 1);
     }
   });
+
+  // Regression: screen-reader labels must describe both the action and destination.
+  for (final locale in ['ar', 'en']) {
+    testWidgets('R56 play CTA exposes localized navigation semantics $locale', (tester) async {
+      final semantics = tester.ensureSemantics();
+      addTearDown(semantics.dispose);
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = AppController()..localeCode = locale;
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(review.reviewApp(
+        Scaffold(body: SingleChildScrollView(child:
+          WarqnaaBlueQuickPlayHub(controller: controller, onTab: (_) {}))),
+        controller, GlobalKey(),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel(locale == 'ar' ? 'ابدأ اللعب الآن' : 'Play now'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
 }
