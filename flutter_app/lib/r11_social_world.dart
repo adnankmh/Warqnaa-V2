@@ -119,6 +119,32 @@ class R222SocialComposerOptions extends StatelessWidget {
   }
 }
 
+/// Filters only the records already returned by the social-world API.
+List<Map<String, dynamic>> r287DiscoverMatches(
+  List<Map<String, dynamic>> records, String query, {
+  required bool replays,
+  bool mostWatched = false,
+}) {
+  final terms = query.trim().toLowerCase().split(RegExp(r'\s+'))
+      .where((term) => term.isNotEmpty);
+  final keys = replays ? const ['game', 'room_code'] : const ['name', 'code', 'game'];
+  final matches = records.where((record) {
+    final searchable = keys.map((key) => record[key]?.toString() ?? '')
+        .join(' ').toLowerCase();
+    return terms.every(searchable.contains);
+  }).toList();
+  if (!mostWatched) return matches;
+  final key = replays ? 'views' : 'spectators';
+  int count(Map<String, dynamic> item) => int.tryParse(item[key]?.toString() ?? '') ?? 0;
+  // Preserve the server order on equal counts and never mutate its records.
+  final ranked = matches.asMap().entries.toList()
+    ..sort((a, b) {
+      final order = count(b.value).compareTo(count(a.value));
+      return order != 0 ? order : a.key.compareTo(b.key);
+    });
+  return ranked.map((entry) => entry.value).toList();
+}
+
 class R11SocialWorldPage extends StatefulWidget {
   const R11SocialWorldPage({super.key, required this.controller});
   final AppController controller;
@@ -132,6 +158,10 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
   bool loading = true;
   String? error;
   Timer? heartbeat;
+  final _liveSearch = TextEditingController();
+  final _replaySearch = TextEditingController();
+  bool _popularLive = false;
+  bool _popularReplays = false;
 
   bool get ar => widget.controller.localeCode == 'ar';
   Map<String, dynamic> get world => _r11Map(data['world']);
@@ -153,6 +183,8 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
   @override
   void dispose() {
     heartbeat?.cancel();
+    _liveSearch.dispose();
+    _replaySearch.dispose();
     super.dispose();
   }
 
@@ -384,17 +416,122 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
     }
   }
 
-  Widget _live(List<Map<String, dynamic>> rooms) => rooms.isEmpty
-      ? _empty(Icons.stadium_outlined, ar ? 'لا توجد مدرجات مفتوحة الآن.' : 'No open stands right now.')
-      : GridView.builder(padding: const EdgeInsets.fromLTRB(14, 12, 14, 100), gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.sizeOf(context).width > 900 ? 2 : 1, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: MediaQuery.sizeOf(context).width > 900 ? 1.8 : 1.62), itemCount: rooms.length, itemBuilder: (_, index) {
-          final room = rooms[index], players = _r11List(room['players']);
-          return _R11GlassCard(accent: _r11Mint, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Row(children: [_R11LiveDot(), SizedBox(width: 7), Text('LIVE • READ ONLY', style: TextStyle(color: _r11Mint, fontSize: 11, height: 1.2, fontWeight: FontWeight.w900, letterSpacing: .8))]),
-            const Spacer(), Text(room['name']?.toString() ?? room['code']?.toString() ?? 'Warqnaa', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),Text('${room['game'] ?? ''} • ${players.length} ${ar ? 'لاعبين' : 'players'} • ${room['spectators'] ?? 0} 👁', style: const TextStyle(color: Colors.white60, fontSize: 11.5, height: 1.25)),
-            const SizedBox(height: 10), Row(children: [for (final player in players.take(4)) Padding(padding: const EdgeInsetsDirectional.only(end: 4), child: _R11Avatar(url: player['avatar']?.toString(), label: player['name']?.toString() ?? '?', size: 34)), const Spacer(), FilledButton.tonalIcon(onPressed: () => _joinSpectator(room), icon: const Icon(Icons.stadium_outlined, size: 18), label: Text(ar ? 'شاهد' : 'Watch'))]),
-            const SizedBox(height: 5), Text(ar ? '🔒 لا أوراق، لا صوت، لا محادثة خاصة' : '🔒 No hands, voice or private chat', style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.25)),
+  Widget _discoveryList({
+    required List<Map<String, dynamic>> records,
+    required bool replays,
+    required Widget Function(Map<String, dynamic>) card,
+  }) {
+    final search = replays ? _replaySearch : _liveSearch;
+    final popular = replays ? _popularReplays : _popularLive;
+    final matches = r287DiscoverMatches(records, search.text,
+        replays: replays, mostWatched: popular);
+    final scheme = Theme.of(context).colorScheme;
+    return ListView.separated(
+      key: PageStorageKey(replays ? 'r287-replay-discovery' : 'r287-live-discovery'),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 100),
+      itemCount: matches.isEmpty ? 2 : matches.length + 1,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return _R11GlassCard(accent: B307SkyLuxury.sky, child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(replays ? (ar ? 'مكتبة المباريات' : 'Match library')
+                  : (ar ? 'مدرجات ورقنا' : 'Warqnaa stands'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: search,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  labelText: ar ? 'ابحث عن لعبة أو غرفة' : 'Find a game or room',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: search.text.isEmpty ? null : IconButton(
+                    tooltip: ar ? 'مسح البحث' : 'Clear search',
+                    onPressed: () => setState(search.clear),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(spacing: 8, runSpacing: 6, children: [
+                ChoiceChip(label: Text(ar ? 'الكل' : 'Default order'),
+                  selected: !popular, onSelected: (_) => setState(() {
+                    if (replays) { _popularReplays = false; } else { _popularLive = false; }
+                  })),
+                ChoiceChip(label: Text(ar ? 'الأكثر مشاهدة' : 'Most watched'),
+                  selected: popular, onSelected: (_) => setState(() {
+                    if (replays) { _popularReplays = true; } else { _popularLive = true; }
+                  })),
+              ]),
+              const SizedBox(height: 6),
+              Semantics(liveRegion: true, child: Text(
+                ar ? '${matches.length} من ${records.length} مباراة'
+                    : '${matches.length} of ${records.length} matches',
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              )),
+            ],
+          ));
+        }
+        if (matches.isEmpty) {
+          return _R11GlassCard(child: Column(children: [
+            Icon(replays ? Icons.replay_circle_filled_outlined : Icons.stadium_outlined,
+                size: 40, color: scheme.primary),
+            const SizedBox(height: 8),
+            Text(records.isEmpty
+                ? (replays ? (ar ? 'لا إعادات متاحة بعد.' : 'No replays available yet.')
+                    : (ar ? 'لا مدرجات مفتوحة الآن.' : 'No open stands right now.'))
+                : (ar ? 'لا توجد نتائج مطابقة.' : 'No matching results.'),
+                textAlign: TextAlign.center),
+            if (search.text.isNotEmpty)
+              TextButton(onPressed: () => setState(search.clear),
+                  child: Text(ar ? 'عرض الكل' : 'Show all')),
           ]));
-        });
+        }
+        return card(matches[index - 1]);
+      },
+    );
+  }
+
+  Widget _live(List<Map<String, dynamic>> rooms) => _discoveryList(
+    records: rooms,
+    replays: false,
+    card: (room) {
+      final players = _r11List(room['players']);
+      final scheme = Theme.of(context).colorScheme;
+      final name = room['name']?.toString() ?? room['code']?.toString() ?? 'Warqnaa';
+      return _R11GlassCard(accent: B307SkyLuxury.sky, child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            const _R11LiveDot(),
+            Text(ar ? 'مباشر • مشاهدة فقط' : 'LIVE • READ ONLY',
+                style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w900)),
+          ]),
+          const SizedBox(height: 10),
+          Text(name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 4),
+          Text('${room['game'] ?? ''} • ${players.length} ${ar ? 'لاعبين' : 'players'} • ${room['spectators'] ?? 0} ${ar ? 'مشاهد' : 'viewers'}',
+              style: TextStyle(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final player in players.take(4))
+              _R11Avatar(url: player['avatar']?.toString(),
+                  label: player['name']?.toString() ?? '?', size: 38),
+          ]),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            onPressed: (room['code']?.toString() ?? '').isEmpty ? null : () => _joinSpectator(room),
+            icon: const Icon(Icons.stadium_outlined),
+            label: Text(ar ? 'شاهد المباراة' : 'Watch match'),
+          ),
+          const SizedBox(height: 8),
+          Text(ar ? 'لا أوراق خاصة أو صوت أو محادثة خاصة' : 'No private hands, voice or private chat',
+              style: TextStyle(color: scheme.onSurfaceVariant)),
+        ],
+      ));
+    },
+  );
 
   Widget _events(List<Map<String, dynamic>> events) => events.isEmpty
       ? _empty(Icons.auto_awesome_outlined, ar ? 'لا فعاليات مجدولة بعد.' : 'No events scheduled yet.')
@@ -407,12 +544,46 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
           ]));
         });
 
-  Widget _replays(List<Map<String, dynamic>> replays) => replays.isEmpty
-      ? _empty(Icons.replay_circle_filled_outlined, ar ? 'ستظهر الإعادات بعد اكتمال المباريات.' : 'Replays appear after matches finish.')
-      : GridView.builder(padding: const EdgeInsets.fromLTRB(14, 12, 14, 100), gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.sizeOf(context).width > 900 ? 2 : 1, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 2.0), itemCount: replays.length, itemBuilder: (_, index) {
-          final replay = replays[index];
-          return InkWell(onTap: () => _openReplay(replay), borderRadius: BorderRadius.circular(22), child: _R11GlassCard(child: Row(children: [Container(width: 76, decoration: BoxDecoration(borderRadius: BorderRadius.circular(17), gradient: const RadialGradient(colors: [Color(0xFF1F7650), Color(0xFF092218)])), child: const Center(child: Icon(Icons.play_arrow_rounded, size: 38, color: _r11Gold))),const SizedBox(width: 12),Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Text('${replay['game'] ?? ''} • ${replay['room_code'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w900)),Text('${replay['frames_count'] ?? 0} frames • ${replay['views'] ?? 0} views', style: const TextStyle(color: Colors.white54, fontSize: 11, height: 1.2)),const SizedBox(height: 5),const Text('🛡️ Privacy-safe', style: TextStyle(color: _r11Mint, fontSize: 11, height: 1.2))]))])));
-        });
+  Widget _replays(List<Map<String, dynamic>> replays) => _discoveryList(
+    records: replays,
+    replays: true,
+    card: (replay) {
+      final scheme = Theme.of(context).colorScheme;
+      final canOpen = int.tryParse(replay['id']?.toString() ?? '') != null;
+      return _R11GlassCard(accent: B307SkyLuxury.sky, child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(
+            height: 86,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(17),
+              gradient: B307SkyLuxury.heroGradient,
+            ),
+            child: const Center(child: Icon(Icons.play_circle_outline_rounded,
+                size: 46, color: Colors.white)),
+          ),
+          const SizedBox(height: 12),
+          Text('${replay['game'] ?? ''} • ${replay['room_code'] ?? ''}',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 4),
+          Text('${replay['frames_count'] ?? 0} ${ar ? 'لقطة' : 'frames'} • ${replay['views'] ?? 0} ${ar ? 'مشاهدة' : 'views'}',
+              style: TextStyle(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 10),
+          FilledButton.tonalIcon(
+            onPressed: canOpen ? () => _openReplay(replay) : null,
+            icon: const Icon(Icons.replay_rounded),
+            label: Text(ar ? 'شاهد الإعادة' : 'Watch replay'),
+          ),
+          const SizedBox(height: 8),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.shield_outlined, size: 18, color: scheme.primary),
+            const SizedBox(width: 6),
+            Expanded(child: Text(ar ? 'إعادة تراعي الخصوصية' : 'Privacy-safe replay',
+              style: TextStyle(color: scheme.onSurfaceVariant))),
+          ]),
+        ],
+      ));
+    },
+  );
 
   Future<void> _toggleAttendance(Map<String, dynamic> event) async {
     final id = int.tryParse(event['id']?.toString() ?? '');

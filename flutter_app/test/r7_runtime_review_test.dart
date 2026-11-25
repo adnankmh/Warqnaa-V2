@@ -624,4 +624,110 @@ void main() {
     });
   }
 
+  // R290: feature-specific evidence, rather than substituting the collection
+  // landing page or the ordinary game table for the new interactive surfaces.
+  for (final locale in ['ar', 'en']) {
+    for (final theme in ['dark', 'light']) {
+      for (final size in [const Size(320, 640), const Size(390, 844)]) {
+        testWidgets('R290 integrated collection and public melds $locale $theme $size',
+            (tester) async {
+          SharedPreferences.setMockInitialValues({});
+          AppSounds.enabled = false;
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final ar = locale == 'ar';
+          final controller = AppController()
+            ..localeCode = locale
+            ..themeCode = theme
+            ..uiAccentHex = '#1565c0';
+          addTearDown(() {
+            controller.connectivityTimerV173?.cancel();
+            controller.dispose();
+          });
+          final dimensions = '${size.width.toInt()}x${size.height.toInt()}';
+          final tag = '$locale-r290-$theme-$dimensions';
+          final collectionKey = GlobalKey();
+          await tester.pumpWidget(reviewApp(
+            R43ReferenceCatalogPage(controller: controller, category: 'cards'),
+            controller, collectionKey));
+          await tester.pump();
+          final collection = find.byKey(const ValueKey('r286-collection-scroll'));
+          final search = find.byKey(const ValueKey('r286-collection-search'));
+          final scrollable = find.descendant(of: collection,
+            matching: find.byType(Scrollable)).first;
+          expect(collection, findsOneWidget);
+          if (reviewDirectory.isNotEmpty) {
+            await capture(tester, collectionKey, '$tag-collection');
+          }
+          await tester.scrollUntilVisible(search, 120, scrollable: scrollable);
+          await tester.enterText(search, 'R290-no-match-xyz');
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pump();
+          final empty = find.byKey(const ValueKey('r286-collection-empty'));
+          await tester.scrollUntilVisible(empty, 120, scrollable: scrollable);
+          expect(empty, findsOneWidget);
+          if (reviewDirectory.isNotEmpty) {
+            await capture(tester, collectionKey, '$tag-search-empty');
+          }
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+
+          final tableKey = GlobalKey();
+          final publicGroups = [
+            ['3H', '3S', '3D'], ['4H', '4S', '4D'],
+            ['5H', '5S', '5D'], ['6H', '6S', '6D'], ['7H', '7S', '7D'],
+          ];
+          final seen = <String>[];
+          var draws = 0;
+          await tester.pumpWidget(reviewApp(
+            Scaffold(body: Center(child: SizedBox(
+              width: size.width - 24, height: 360,
+              child: R44RummyTableOverlay(
+                state: {
+                  'melds': {'p1': publicGroups},
+                  'teams': {'teamA': ['p1']},
+                  'deck_count': 22, 'deck': ['PRIVATE_STOCK'],
+                  'discard': ['8S'],
+                },
+                players: [
+                  {'key': 'p1', 'name': ar ? 'لاعب ورقنا' : 'Warqnaa player',
+                    'hand': ['PRIVATE_HAND']},
+                ],
+                ar: ar, partnership: true,
+                cardLabel: (card) {
+                  seen.add(card);
+                  return card.replaceAll('H', '♥').replaceAll('S', '♠')
+                      .replaceAll('D', '♦');
+                },
+                onDrawDeck: () => draws++,
+                onDrawDiscard: () => draws++,
+              ),
+            ))), controller, tableKey));
+          await tester.pumpAndSettle();
+          final more = find.byKey(const ValueKey('r288-more-melds-p1'));
+          await tester.ensureVisible(more);
+          await tester.tap(more);
+          await tester.pumpAndSettle();
+          final list = find.byKey(const ValueKey('r288-public-meld-list'));
+          expect(list, findsOneWidget);
+          if (reviewDirectory.isNotEmpty) {
+            await capture(tester, tableKey, '$tag-public-meld-inspector');
+          }
+          final fifth = find.byKey(const ValueKey('r288-public-meld-4'));
+          await tester.scrollUntilVisible(fifth, 100,
+            scrollable: find.descendant(of: list, matching: find.byType(Scrollable)).first);
+          expect(fifth, findsOneWidget);
+          expect(seen, contains('7H'));
+          expect(seen, isNot(contains('PRIVATE_HAND')));
+          expect(seen, isNot(contains('PRIVATE_STOCK')));
+          expect(draws, 0);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+        });
+      }
+    }
+  }
+
 }
