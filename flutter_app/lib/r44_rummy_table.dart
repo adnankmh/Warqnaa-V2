@@ -251,8 +251,8 @@ class R44RummyTableOverlay extends StatelessWidget {
                 ),
               ),
             ),
-          if (groups.length > 4) Text('+${groups.length - 4}',
-            style: TextStyle(color: tint, fontSize: 11)),
+          if (groups.length > 4)
+            _moreGroups(id, ownerLabel, groups, tint),
         ]),
       ),
     );
@@ -331,13 +331,87 @@ class R44RummyTableOverlay extends StatelessWidget {
                     ),
                   ),
                 if (owners[ownerIndex].value.length > 4)
-                  Text('+${owners[ownerIndex].value.length - 4}',
-                    style: TextStyle(color: tint, fontSize: 11)),
+                  _moreGroups(owners[ownerIndex].key,
+                    ownerName(owners[ownerIndex].key),
+                    owners[ownerIndex].value, tint),
               ]),
             ),
           ],
         ]),
       ),
+    );
+  }
+
+  // Inspect only the already published, owner-scoped melds. This sheet
+  // never accesses hands, the stock, or any draw/meld mutation callback.
+  Widget _moreGroups(String owner, String name, List<List<String>> groups,
+      Color tint) => Builder(builder: (context) {
+    return TextButton(
+      key: ValueKey('r288-more-melds-$owner'),
+      style: TextButton.styleFrom(
+        foregroundColor: tint,
+        minimumSize: const Size(48, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+      ),
+      onPressed: () => _inspectGroups(context, name, groups),
+      child: Text(tr('عرض الكل (${groups.length})', 'View all (${groups.length})')),
+    );
+  });
+
+  void _inspectGroups(BuildContext context, String name, List<List<String>> groups) {
+    final snapshot = groups.map((group) => List<String>.unmodifiable(group))
+        .toList(growable: false);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final colors = R69PlaySurfaceColors.of(sheetContext);
+        return SafeArea(
+          child: FractionallySizedBox(
+            heightFactor: .72,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(name, style: Theme.of(sheetContext).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 4),
+                  Text(tr('${snapshot.length} مجموعات منشورة • للعرض فقط',
+                    '${snapshot.length} public melds • read only'),
+                    style: TextStyle(color: colors.onSurface)),
+                ]),
+              ),
+              Expanded(child: ListView.separated(
+                key: const ValueKey('r288-public-meld-list'),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                itemCount: snapshot.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (_, index) => Container(
+                  key: ValueKey('r288-public-meld-$index'),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.accent.withValues(alpha: .55)),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(tr('المجموعة ${index + 1} • ${snapshot[index].length} أوراق',
+                      'Meld ${index + 1} • ${snapshot[index].length} cards'),
+                      style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 5, runSpacing: 5, children: [
+                      for (final card in snapshot[index])
+                        PlayingCard(label: cardLabel(card), width: 36, height: 49),
+                    ]),
+                  ]),
+                ),
+              )),
+            ]),
+          ),
+        );
+      },
     );
   }
 
@@ -354,7 +428,10 @@ class R44RummyTableOverlay extends StatelessWidget {
   }) {
     return Semantics(
       button: onTap != null,
-      label: '$label $number',
+      // Incorporates the public discard semantics from draft #208.
+      label: card == null
+          ? '$label $number'
+          : '$label $number • ${tr('أعلى ورقة', 'Top card')} ${cardLabel(card)}',
       child: InkWell(
         key: key,
         onTap: onTap,
