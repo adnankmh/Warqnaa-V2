@@ -354,7 +354,11 @@ class R44RummyTableOverlay extends StatelessWidget {
   }) {
     return Semantics(
       button: onTap != null,
-      label: '$label $number',
+      // The top discard is public information; announce it to screen-reader
+      // users without exposing the hidden stock or opponents' hands.
+      label: card == null
+          ? '$label $number'
+          : '$label $number • ${tr('أعلى ورقة', 'Top card')} ${cardLabel(card)}',
       child: InkWell(
         key: key,
         onTap: onTap,
