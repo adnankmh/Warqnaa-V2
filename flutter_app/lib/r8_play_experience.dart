@@ -496,7 +496,7 @@ class R8TableSeat extends StatelessWidget {
                   color: remaining <= 3 ? Colors.redAccent : colors.accent,
                   backgroundColor: colors.onSurface.withValues(alpha: .16),
                   semanticsLabel: ar ? 'الوقت المتبقي' : 'Time remaining',
-                  semanticsValue: countdown,
+                  semanticsValue: '${(remaining / math.max(1, turnSeconds) * 100).round()}%',
                 )),
                 const SizedBox(width: 3),
                 Text('$remaining', key: const ValueKey('r289-turn-seconds'),
