@@ -31,8 +31,10 @@ def main() -> None:
     # Complete hand remains on-screen. R28 intentionally removes horizontal
     # hand scrolling and computes overlap from the actual visible viewport.
     require(hand_ui, "R28 invariant: the complete hand always stays inside the visible table", "full-hand viewport invariant")
-    require(hand_ui, "final usable = math.max(1.0, viewport - sidePadding * 2);", "responsive hand usable width")
-    require(hand_ui, "final step = count <= 1 ? 0.0 : math.min(width * .58, math.max(0.0, (usable - width) / (count - 1)));", "adaptive overlap")
+    require(hand_ui, "final usable = math.max(0.0, available - padding * 2);", "responsive hand usable width")
+    require(hand_ui, "final width = math.min(usable, math.min(preferred, math.max(36.0, budget)));", "bounded card width")
+    require(hand_ui, "r289HandGeometry(constraints.maxWidth, count, compact: compact)", "geometry used by actual hand widget")
+    require(hand_ui, "math.min(width * .58, math.max(0.0, (usable - width) / (count - 1)));", "adaptive overlap")
     require(hand_ui, "Align(alignment: Alignment.bottomCenter, child: cards)", "centered complete hand")
     hand_block = hand_ui[hand_ui.index("class R8CardHand"):hand_ui.index("class R8TableSeat")]
     forbid(hand_block, "SingleChildScrollView", "horizontal hand scrolling")
