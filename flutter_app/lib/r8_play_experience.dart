@@ -500,7 +500,7 @@ class R8TableSeat extends StatelessWidget {
                 )),
                 const SizedBox(width: 3),
                 Text('$remaining', key: const ValueKey('r289-turn-seconds'),
-                  style: TextStyle(color: colors.onSurface, fontSize: 9,
+                  style: TextStyle(color: colors.onSurface, fontSize: 11,
                     height: 1, fontWeight: FontWeight.w900)),
               ]),
             ],
