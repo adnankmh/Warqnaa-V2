@@ -346,6 +346,24 @@ class _R18DiscoveryShelf extends StatelessWidget {
   }
 }
 
+/// Visual geometry only: preserves card order and legal actions.
+({double padding, double width, double step, double span}) r289HandGeometry(
+    double viewport, int count, {bool compact = false}) {
+  final available = viewport.isFinite ? math.max(0.0, viewport) : 390.0;
+  final padding = math.min(available / 4, available < 360 ? 6.0 : 10.0);
+  final usable = math.max(0.0, available - padding * 2);
+  final preferred = compact
+      ? (available < 340 ? 46.0 : available > 900 ? 54.0 : 50.0)
+      : (available < 340 ? 52.0 : available > 900 ? 68.0 : available > 600 ? 64.0 : 58.0);
+  final reveal = compact ? 11.0 : 13.0;
+  final budget = count <= 1 ? usable : usable - reveal * (count - 1);
+  final width = math.min(usable, math.min(preferred, math.max(36.0, budget)));
+  final step = count <= 1 ? 0.0
+      : math.min(width * .58, math.max(0.0, (usable - width) / (count - 1)));
+  return (padding: padding, width: width, step: step,
+    span: count <= 0 ? 0.0 : math.min(usable, width + step * (count - 1)));
+}
+
 class R8CardHand extends StatelessWidget {
   const R8CardHand({super.key, required this.count, required this.cardBuilder, this.selectedIndex, this.compact = false});
   final int count;
@@ -360,18 +378,13 @@ class R8CardHand extends StatelessWidget {
       // R28 invariant: the complete hand always stays inside the visible table.
       // Hand/Banakil can reach 15–19 cards, so overlap adapts instead of
       // introducing horizontal scrolling or pushing edge cards off-screen.
-      final viewport = math.max(1.0, constraints.maxWidth);
-      final sidePadding = viewport < 360 ? 6.0 : 10.0;
-      final usable = math.max(1.0, viewport - sidePadding * 2);
-      final preferredWidth = compact
-          ? (viewport < 340 ? 46.0 : viewport > 900 ? 54.0 : 50.0)
-          : (viewport < 340 ? 52.0 : viewport > 900 ? 68.0 : viewport > 600 ? 64.0 : 58.0);
-      final minimumReveal = compact ? 11.0 : 13.0;
-      final widthBudget = count <= 1 ? usable : usable - minimumReveal * (count - 1);
-      final width = math.min(preferredWidth, math.max(36.0, widthBudget));
+      final geometry = r289HandGeometry(constraints.maxWidth, count, compact: compact);
+      final sidePadding = geometry.padding;
+      final width = geometry.width;
       final height = width * 1.48;
-      final step = count <= 1 ? 0.0 : math.min(width * .58, math.max(0.0, (usable - width) / (count - 1)));
-      final span = math.min(usable, width + step * (count - 1));
+      final step = geometry.step;
+      final span = geometry.span;
+      if (width == 0) return const SizedBox.shrink();
       final order = <int>[for (var i = 0; i < count; i++) i];
       final cards = SizedBox(
         width: span,
@@ -386,7 +399,10 @@ class R8CardHand extends StatelessWidget {
                 top: selectedIndex == index ? 0 : 12,
                 width: width,
                 height: height,
-                child: cardBuilder(index, width, height),
+                child: Semantics(
+                  selected: selectedIndex == index,
+                  child: cardBuilder(index, width, height),
+                ),
               ),
           ],
         ),
@@ -416,15 +432,21 @@ class R8TableSeat extends StatelessWidget {
     final seatWidth = compact ? (tight ? 72.0 : 80.0) : (tight ? 84.0 : 96.0);
     final avatarSize = compact ? (tight ? 27.0 : 31.0) : (tight ? 34.0 : 40.0);
     final radius = tight ? 13.0 : 16.0;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final remaining = seconds?.clamp(0, math.max(1, turnSeconds)).toInt();
+    final countdown = remaining == null ? '' :
+      (ar ? '$remaining ثانية' : '$remaining sec');
     return Semantics(
       label: '$name, $detail',
+      value: active ? (ar ? 'الدور الحالي $countdown' : 'Current turn $countdown') : null,
       button: true,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius),
         child: AnimatedContainer(
           key: ValueKey<String>('r30-seat-$name'),
-          duration: const Duration(milliseconds: 180),
+          duration: MediaQuery.of(context).disableAnimations
+              ? Duration.zero : const Duration(milliseconds: 180),
           width: seatWidth,
           padding: EdgeInsets.symmetric(horizontal: tight ? 3 : 5, vertical: tight ? 3 : 5),
           decoration: BoxDecoration(
@@ -464,15 +486,23 @@ class R8TableSeat extends StatelessWidget {
             const SizedBox(height: 3),
             Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: colors.onSurface, fontSize: tight ? 8.5 : (compact ? 9.5 : 11), fontWeight: FontWeight.w900)),
             Text(detail, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: tight ? 7.5 : (compact ? 8.2 : 9), color: colors.onSurface.withValues(alpha: .72))),
-            if (active && seconds != null) ...[
-              const SizedBox(height: 4),
-              LinearProgressIndicator(
-                value: (seconds! / math.max(1, turnSeconds)).clamp(0.0, 1.0),
-                minHeight: 3,
-                borderRadius: BorderRadius.circular(3),
-                color: seconds! <= 3 ? Colors.redAccent : B307SkyLuxury.goldSoft,
-                backgroundColor: colors.onSurface.withValues(alpha: .16),
-              ),
+            if (active && remaining != null) ...[
+              const SizedBox(height: 3),
+              Row(children: [
+                Expanded(child: LinearProgressIndicator(
+                  value: remaining / math.max(1, turnSeconds),
+                  minHeight: 3,
+                  borderRadius: BorderRadius.circular(3),
+                  color: remaining <= 3 ? Colors.redAccent : colors.accent,
+                  backgroundColor: colors.onSurface.withValues(alpha: .16),
+                  semanticsLabel: ar ? 'الوقت المتبقي' : 'Time remaining',
+                  semanticsValue: countdown,
+                )),
+                const SizedBox(width: 3),
+                Text('$remaining', key: const ValueKey('r289-turn-seconds'),
+                  style: TextStyle(color: colors.onSurface, fontSize: 9,
+                    height: 1, fontWeight: FontWeight.w900)),
+              ]),
             ],
           ]),
         ),
