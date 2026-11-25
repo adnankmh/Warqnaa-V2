@@ -573,6 +573,13 @@ class _R11SocialWorldPageState extends State<R11SocialWorldPage> with AutomaticK
             icon: const Icon(Icons.replay_rounded),
             label: Text(ar ? 'شاهد الإعادة' : 'Watch replay'),
           ),
+          const SizedBox(height: 8),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.shield_outlined, size: 18, color: scheme.primary),
+            const SizedBox(width: 6),
+            Expanded(child: Text(ar ? 'إعادة تراعي الخصوصية' : 'Privacy-safe replay',
+              style: TextStyle(color: scheme.onSurfaceVariant))),
+          ]),
         ],
       ));
     },
