@@ -1051,7 +1051,39 @@ class R43DestinationTile extends StatelessWidget {
 /// Reference-screen category browser. Renders actual inventory from the same
 /// store model and invokes its existing preview/checkout flow; no invented
 /// offers or prices are displayed. Works in both portrait and landscape.
-class R43ReferenceCatalogPage extends StatelessWidget {
+enum R286CollectionFilter { all, owned, available }
+enum R286CollectionSort { catalogue, priceLow, priceHigh }
+
+/// Local presentation filters only. Prices, visibility and entitlements continue
+/// to come from the existing controller; no purchase or inventory writes here.
+List<StoreProduct> r286FilterCollection({
+  required Iterable<StoreProduct> items,
+  required String query,
+  required R286CollectionFilter filter,
+  required R286CollectionSort sort,
+  required int Function(StoreProduct) quantity,
+  required int Function(StoreProduct) price,
+}) {
+  final needle = query.trim().toLowerCase();
+  final result = items.where((product) {
+    final owns = quantity(product) > 0;
+    if (filter == R286CollectionFilter.owned && !owns) return false;
+    if (filter == R286CollectionFilter.available && owns) return false;
+    return needle.isEmpty ||
+        product.nameAr.toLowerCase().contains(needle) ||
+        product.nameEn.toLowerCase().contains(needle);
+  }).toList();
+  if (sort != R286CollectionSort.catalogue) {
+    result.sort((a, b) {
+      final comparison = sort == R286CollectionSort.priceLow
+          ? price(a).compareTo(price(b)) : price(b).compareTo(price(a));
+      return comparison == 0 ? a.id.compareTo(b.id) : comparison;
+    });
+  }
+  return result;
+}
+
+class R43ReferenceCatalogPage extends StatefulWidget {
   const R43ReferenceCatalogPage({
     super.key,
     required this.controller,
@@ -1062,22 +1094,61 @@ class R43ReferenceCatalogPage extends StatelessWidget {
   final String category;
 
   @override
+  State<R43ReferenceCatalogPage> createState() => _R43ReferenceCatalogPageState();
+}
+
+class _R43ReferenceCatalogPageState extends State<R43ReferenceCatalogPage> {
+  final _search = TextEditingController();
+  R286CollectionFilter _filter = R286CollectionFilter.all;
+  R286CollectionSort _sort = R286CollectionSort.catalogue;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _resetFilters() {
+    setState(() {
+      _search.clear();
+      _filter = R286CollectionFilter.all;
+      _sort = R286CollectionSort.catalogue;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+    final category = widget.category;
     final ar = controller.localeCode == 'ar';
+    String tr(String a, String e) => ar ? a : e;
+    final colors = Theme.of(context).colorScheme;
     final title = switch (category) {
-      'cards' => ar ? 'خلفيات أوراق اللعب' : 'Card-back collection',
-      'boost' => ar ? 'معزز النقاط' : 'XP Boosters',
-      _ => ar ? 'الإيموجي وردود الفعل' : 'Emojis and reactions',
+      'cards' => tr('خلفيات أوراق اللعب', 'Card-back collection'),
+      'boost' => tr('معزز النقاط', 'XP Boosters'),
+      _ => tr('الإيموجي وردود الفعل', 'Emojis and reactions'),
     };
-    final description = ar
-        ? 'الأسعار والمقتنيات من المتجر الحقيقي، وتظهر لك التفاصيل قبل تأكيد الشراء.'
-        : 'Real store prices and items. Review each item before confirming a purchase.';
+    final icon = switch (category) {
+      'cards' => Icons.style_rounded,
+      'boost' => Icons.bolt_rounded,
+      _ => Icons.emoji_emotions_rounded,
+    };
+    String filterLabel(R286CollectionFilter value) => switch (value) {
+      R286CollectionFilter.all => tr('الكل', 'All'),
+      R286CollectionFilter.owned => tr('مقتنياتي', 'Owned'),
+      R286CollectionFilter.available => tr('غير مملوكة', 'Not owned'),
+    };
+    String sortLabel(R286CollectionSort value) => switch (value) {
+      R286CollectionSort.catalogue => tr('الترتيب الافتراضي', 'Catalogue order'),
+      R286CollectionSort.priceLow => tr('السعر: الأقل أولاً', 'Price: low to high'),
+      R286CollectionSort.priceHigh => tr('السعر: الأعلى أولاً', 'Price: high to low'),
+    };
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
         actions: <Widget>[
           IconButton(
-            tooltip: ar ? 'المحفظة' : 'Wallet',
+            tooltip: tr('المحفظة', 'Wallet'),
             onPressed: () => showWallet(context, controller),
             icon: const Icon(Icons.account_balance_wallet_rounded),
           ),
@@ -1086,103 +1157,237 @@ class R43ReferenceCatalogPage extends StatelessWidget {
       body: AnimatedBuilder(
         animation: controller,
         builder: (context, _) {
-          final items = controller.storeProductsR36.where((product) =>
+          final all = controller.storeProductsR36.where((product) =>
             product.category == category &&
             controller.isStoreProductVisible(product) &&
             !product.id.startsWith('table_reference_')
           ).toList(growable: false);
-          return LayoutBuilder(
-            builder: (context, bounds) {
-              final columns = bounds.maxWidth >= 1080
-                  ? 5
-                  : bounds.maxWidth >= 740
-                      ? 4
-                      : bounds.maxWidth >= 370
-                          ? 3
-                          : 2;
-              return Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1180),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                        child: R35ReferencePanel(
-                          title: title,
-                          icon: category == 'cards'
-                              ? Icons.style_rounded
-                              : category == 'boost'
-                                  ? Icons.bolt_rounded
-                                  : Icons.emoji_emotions_rounded,
-                          actionLabel: ar ? 'المتجر الكامل' : 'Full store',
-                          onAction: () => Navigator.push<void>(context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => StorePage(controller: controller),
-                            )),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(description,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  height: 1.4,
-                                  fontWeight: FontWeight.w700,
-                                )),
-                              const SizedBox(height: 6),
-                              Text(
-                                ar ? 'العناصر المتاحة: ${items.length}' : 'Available items: ${items.length}',
-                                style: const TextStyle(
-                                  color: R35ReferenceColors.paleGold,
-                                  fontWeight: FontWeight.w900,
-                                ),
+          int quantity(StoreProduct p) => controller.quantityForR36(p.id);
+          final ownedCount = all.where((p) => quantity(p) > 0).length;
+          final items = r286FilterCollection(
+            items: all, query: _search.text, filter: _filter, sort: _sort,
+            quantity: quantity, price: controller.priceFor,
+          );
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1180),
+              child: LayoutBuilder(builder: (context, bounds) {
+                final columns = ((bounds.maxWidth - 24) / 150)
+                    .floor().clamp(1, 5).toInt();
+                final textScale = MediaQuery.textScalerOf(context).scale(1);
+                final tileHeight = 214.0 + 64 * math.max(0.0, textScale - 1);
+                return CustomScrollView(
+                  key: const ValueKey('r286-collection-scroll'),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  slivers: <Widget>[
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                      sliver: SliverToBoxAdapter(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: AlignmentDirectional.topStart,
+                                end: AlignmentDirectional.bottomEnd,
+                                colors: [Color(0xff123c79), Color(0xff0759b4), Color(0xff147abf)],
                               ),
-                            ],
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(color: R35ReferenceColors.cyan.withValues(alpha: .55)),
+                            ),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Icon(icon, size: 30, color: const Color(0xffbfeaff)),
+                              const SizedBox(height: 8),
+                              Text(title, style: const TextStyle(color: Colors.white,
+                                fontWeight: FontWeight.w900, fontSize: 21)),
+                              const SizedBox(height: 6),
+                              Text(tr('اكتشف مقتنياتك وخصّص تجربتك على الطاولة.',
+                                'Discover your collection and personalize your table.'),
+                                style: const TextStyle(color: Color(0xffe1f3ff), height: 1.4)),
+                              const SizedBox(height: 12),
+                              Wrap(spacing: 12, runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center, children: [
+                                Text(tr('المقتنيات: $ownedCount من ${all.length}',
+                                  'Owned: $ownedCount of ${all.length}'),
+                                  key: const ValueKey('r286-collection-count'),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                                TextButton(
+                                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                                  onPressed: () => Navigator.push<void>(context, MaterialPageRoute<void>(
+                                    builder: (_) => StorePage(controller: controller))),
+                                  child: Text(tr('المتجر الكامل', 'Full store')),
+                                ),
+                              ]),
+                              if (all.isNotEmpty) LinearProgressIndicator(
+                                value: ownedCount / all.length,
+                                minHeight: 5,
+                                backgroundColor: Colors.white24,
+                                color: const Color(0xff99e6ff),
+                                borderRadius: BorderRadius.circular(5),
+                                semanticsLabel: tr('نسبة المقتنيات', 'Collection progress'),
+                              ),
+                            ]),
                           ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            key: const ValueKey('r286-collection-search'),
+                            controller: _search,
+                            onChanged: (_) => setState(() {}),
+                            textInputAction: TextInputAction.search,
+                            decoration: InputDecoration(
+                              labelText: tr('ابحث عن مقتنى', 'Search collection'),
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              suffixIcon: _search.text.isEmpty ? null : IconButton(
+                                tooltip: tr('مسح البحث', 'Clear search'),
+                                onPressed: () => setState(() => _search.clear()),
+                                icon: const Icon(Icons.close_rounded),
+                              ),
+                              filled: true,
+                              fillColor: colors.surfaceContainer,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(spacing: 8, runSpacing: 6, children: [
+                            for (final filter in R286CollectionFilter.values)
+                              ChoiceChip(
+                                key: ValueKey('r286-filter-${filter.name}'),
+                                label: Text(filterLabel(filter)),
+                                selected: _filter == filter,
+                                onSelected: (_) => setState(() => _filter = filter),
+                              ),
+                          ]),
+                          Wrap(spacing: 12, runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center, children: [
+                            Semantics(liveRegion: true, child: Text(
+                              tr('${items.length} نتيجة', '${items.length} results'),
+                              key: const ValueKey('r286-collection-results'),
+                              style: TextStyle(color: colors.onSurfaceVariant, fontWeight: FontWeight.w700),
+                            )),
+                            PopupMenuButton<R286CollectionSort>(
+                              key: const ValueKey('r286-collection-sort'),
+                              tooltip: tr('ترتيب المقتنيات', 'Sort collection'),
+                              initialValue: _sort,
+                              onSelected: (value) => setState(() => _sort = value),
+                              itemBuilder: (_) => [
+                                for (final value in R286CollectionSort.values)
+                                  PopupMenuItem(value: value, child: Text(sortLabel(value))),
+                              ],
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                                child: Text(sortLabel(_sort), style: TextStyle(color: colors.primary)),
+                              ),
+                            ),
+                          ]),
+                        ]),
+                      ),
+                    ),
+                    if (items.isEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(children: [
+                            Icon(Icons.search_off_rounded, size: 48, color: colors.onSurfaceVariant),
+                            const SizedBox(height: 10),
+                            Text(all.isEmpty
+                              ? tr('لا توجد مقتنيات في هذا القسم حالياً.', 'No items in this category yet.')
+                              : tr('لا توجد نتائج مطابقة.', 'No matching items.'),
+                              key: const ValueKey('r286-collection-empty'),
+                              textAlign: TextAlign.center),
+                            if (all.isNotEmpty) TextButton(
+                              onPressed: _resetFilters,
+                              child: Text(tr('عرض جميع المقتنيات', 'Show all items')),
+                            ),
+                          ]),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+                        sliver: SliverGrid(
+                          key: const ValueKey('r43-live-catalog-grid'),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: columns, mainAxisExtent: tileHeight,
+                            crossAxisSpacing: 10, mainAxisSpacing: 10,
+                          ),
+                          delegate: SliverChildBuilderDelegate((context, index) {
+                            final product = items[index];
+                            return _R286CollectionTile(
+                              key: ValueKey('r43-product-${product.id}'),
+                              product: product,
+                              controller: controller,
+                              quantity: quantity(product),
+                              onTap: () => showProductPreview(context, controller, product),
+                            );
+                          }, childCount: items.length),
                         ),
                       ),
-                      Expanded(
-                        child: items.isEmpty
-                            ? Center(child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Text(
-                                  ar
-                                      ? 'لا تتوفر مقتنيات في هذا القسم حاليًا. يمكنك العودة للمتجر للاطلاع على الأقسام الأخرى.'
-                                      : 'No items are currently available in this category. Browse the full store for more.',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ))
-                            : GridView.builder(
-                                key: const ValueKey('r43-live-catalog-grid'),
-                                padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                                itemCount: items.length,
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: columns,
-                                  mainAxisExtent: 185,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                ),
-                                itemBuilder: (context, index) => R35StoreTreasureTile(
-                                  key: ValueKey('r43-product-${items[index].id}'),
-                                  product: items[index],
-                                  controller: controller,
-                                  onTap: () => showProductPreview(context, controller, items[index]),
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                  ],
+                );
+              }),
+            ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _R286CollectionTile extends StatelessWidget {
+  const _R286CollectionTile({super.key, required this.product,
+    required this.controller, required this.quantity, required this.onTap});
+  final StoreProduct product;
+  final AppController controller;
+  final int quantity;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final ar = controller.localeCode == 'ar';
+    final owned = quantity > 0;
+    final status = owned ? (ar ? 'مملوك' : 'Owned') : (ar ? 'غير مملوك' : 'Not owned');
+    return Material(
+      color: scheme.surfaceContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: owned ? scheme.primary : scheme.outlineVariant)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(9),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xff103c79), Color(0xff0879ba)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  ),
+                ),
+                child: FittedBox(fit: BoxFit.scaleDown, child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(product.icon, style: const TextStyle(fontSize: 42)),
+                )),
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(product.name(controller.localeCode),
+              textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text(status, textAlign: TextAlign.center, maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: owned ? scheme.primary : scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700, fontSize: 11)),
+            const SizedBox(height: 4),
+            Text('🪙 ${formatNumber(controller.priceFor(product))}',
+              textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w900)),
+          ]),
+        ),
       ),
     );
   }
