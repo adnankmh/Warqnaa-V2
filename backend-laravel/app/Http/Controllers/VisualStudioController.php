@@ -6,7 +6,6 @@ use App\Models\{AdminAuditLog, SiteSetting};
 use App\Services\Platform\AdminAuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class VisualStudioController
 {
@@ -26,13 +25,13 @@ class VisualStudioController
             'ui_button_text'=>['نص الأزرار','Button text','#ffffff'],
             'ui_primary_bg'=>['التدرج الأساسي 1','Primary gradient 1','#facc15'],
             'ui_primary_bg2'=>['التدرج الأساسي 2','Primary gradient 2','#ec4899'],
-            'ui_button_height'=>['ارتفاع الأزرار','Button height',46,44,64],
-            'ui_button_radius'=>['حواف الأزرار','Button radius',16,0,32],
-            'ui_button_font'=>['خط الأزرار','Button font',14,12,20],
-            'ui_card_radius'=>['حواف البطاقات','Card radius',24,4,40],
-            'ui_card_padding'=>['حشو البطاقات','Card padding',18,8,32],
-            'ui_card_gap'=>['تباعد البطاقات','Card spacing',16,6,28],
-            'ui_page_padding'=>['هوامش الصفحة','Page padding',18,6,24],
+            'ui_button_height'=>['ارتفاع الأزرار','Button height',46,32,96],
+            'ui_button_radius'=>['حواف الأزرار','Button radius',16,0,44],
+            'ui_button_font'=>['خط الأزرار','Button font',14,10,24],
+            'ui_card_radius'=>['حواف البطاقات','Card radius',24,4,54],
+            'ui_card_padding'=>['حشو البطاقات','Card padding',18,8,44],
+            'ui_card_gap'=>['تباعد البطاقات','Card spacing',16,6,34],
+            'ui_page_padding'=>['هوامش الصفحة','Page padding',18,6,36],
         ];
     }
 
