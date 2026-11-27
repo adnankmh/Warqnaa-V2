@@ -260,6 +260,7 @@
             </div>
             <input id="chatSearch" class="chat-search" placeholder="{{ $t('ابحث باسم لاعب أو صديق','Search by player or friend name') }}" aria-label="{{ $t('البحث في الدردشة','Search chat') }}" oninput="chatSearchChanged(this.value)">
             <div class="emoji-palette" id="emojiPalette"></div>
+            @include('partials.chat-expressions')
             <div class="chat-body" id="chatBody"><p class="muted">{{ $t('اختر دردشة اللعبة أو صديقًا للبدء.','Choose game chat or a friend to begin.') }}</p></div>
             <form class="chat-send" onsubmit="sendChat(event)"><input id="chatInput" placeholder="{{ $t('اكتب رسالة واضغط Enter','Type a message and press Enter') }}" aria-label="{{ $t('نص الرسالة','Message text') }}"><button type="submit"><span data-i18n="send">{{ $t('إرسال','Send') }}</span></button></form>
         </aside>
