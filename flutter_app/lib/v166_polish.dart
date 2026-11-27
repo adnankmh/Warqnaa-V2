@@ -459,15 +459,16 @@ const List<(String, String, List<String>)> v166EmojiCategories = <(String,String
   ('sports','رياضة',['⚽','🏀','🏐','🎾','🏓','🥊','🏹','🏅','🏆','🥇','🥈','🥉','🎯','🚀','💪','👏']),
 ];
 
-Future<String?> showV166EmojiPicker(BuildContext context, AppController controller) async {
-  var selectedTab=0;
-  return showModalBottomSheet<String>(context:context,isScrollControlled:true,showDragHandle:true,builder:(sheetContext)=>StatefulBuilder(builder:(context,setState)=>SafeArea(child:SizedBox(height:420,child:Column(children:[
-    Padding(padding:const EdgeInsets.symmetric(horizontal:12),child:Row(children:[const Icon(Icons.emoji_emotions_rounded),const SizedBox(width:8),Expanded(child:Text(L.t(controller.localeCode,'emoji'),style:TextStyle(fontWeight:FontWeight.w900,fontSize:18*controller.uiChatScale)))])),
-    const SizedBox(height:8),
-    SizedBox(height:42,child:ListView.separated(scrollDirection:Axis.horizontal,padding:const EdgeInsets.symmetric(horizontal:10),itemCount:v166EmojiCategories.length,separatorBuilder:(_,__)=>const SizedBox(width:6),itemBuilder:(_,index)=>ChoiceChip(label:Text(v166EmojiCategoryLabel(controller.localeCode,index)),selected:selectedTab==index,onSelected:(_)=>setState(()=>selectedTab=index)))),
-    const Divider(),
-    Expanded(child:GridView.builder(padding:const EdgeInsets.all(12),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:6,crossAxisSpacing:8,mainAxisSpacing:8),itemCount:v166EmojiCategories[selectedTab].$3.length,itemBuilder:(_,index){final emoji=v166EmojiCategories[selectedTab].$3[index];return InkWell(borderRadius:BorderRadius.circular(16),onTap:(){AppSounds.fire('emoji');Navigator.pop(sheetContext,emoji);},child:Container(alignment:Alignment.center,decoration:BoxDecoration(color:Colors.white.withValues(alpha:.06),borderRadius:BorderRadius.circular(16),border:Border.all(color:Colors.white12)),child:Text(emoji,style:TextStyle(fontSize:34*controller.uiChatScale))));})),
-  ])))));
+Future<String?> showV166EmojiPicker(BuildContext context, AppController controller) {
+  return showChatExpressionsR291(
+    context,
+    locale:controller.localeCode,
+    soundEnabled:controller.soundEnabled,
+    groups:[
+      for(var i=0;i<v166EmojiCategories.length;i++)
+        (v166EmojiCategoryLabel(controller.localeCode,i),v166EmojiCategories[i].$3),
+    ],
+  );
 }
 
 Future<void> showPrivacyPolicyPage(BuildContext context, AppController controller) async {

@@ -29,6 +29,7 @@ import 'models/room_launch_options.dart';
 import 'r9_design_system.dart';
 import 'data/countries.dart';
 import 'premium_v149.dart';
+import 'chat_expressions_r291.dart';
 
 part 'premium_v151.dart';
 part 'production_v153.dart';
@@ -7806,7 +7807,12 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               Padding(
                 padding: const EdgeInsets.all(7),
                 child: Row(children: [
-                  IconButton.filledTonal(tooltip:'إيموجي',onPressed:()async{final emoji=await showV166EmojiPicker(context,widget.controller);if(emoji!=null){serverChatController.text=emoji;await _sendRoomMessage();}},icon:const Icon(Icons.emoji_emotions_rounded)),
+                  IconButton.filledTonal(tooltip:widget.controller.localeCode=='ar'?'التعبيرات':'Expressions',onPressed:()async{
+                    final emoji=await showV166EmojiPicker(context,widget.controller);
+                    if(!mounted || emoji==null)return;
+                    serverChatController.text=appendExpressionR291(serverChatController.text,emoji);
+                    serverChatController.selection=TextSelection.collapsed(offset:serverChatController.text.length);
+                  },icon:const Icon(Icons.emoji_emotions_rounded)),
                   const SizedBox(width:5),
                   Expanded(child: TextField(controller: serverChatController, onSubmitted: (_) => _sendRoomMessage(), style: TextStyle(fontSize:14*widget.controller.uiChatScale), decoration: const InputDecoration(hintText: 'اكتب رسالة...', isDense: true))),
                   const SizedBox(width: 5),
@@ -11334,7 +11340,12 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
           ),
         ),
         SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(9), child: Row(children: [
-          IconButton(onPressed: () => showToast(context, 'اختر إيموجي أو ملصقاً.'), icon: const Icon(Icons.emoji_emotions_outlined)),
+          IconButton(tooltip:widget.controller.localeCode=='ar'?'التعبيرات':'Expressions',onPressed: loading ? null : () async {
+            final emoji=await showV166EmojiPicker(context,widget.controller);
+            if(!mounted || emoji==null)return;
+            messageController.text=appendExpressionR291(messageController.text,emoji);
+            messageController.selection=TextSelection.collapsed(offset:messageController.text.length);
+          }, icon: const Icon(Icons.emoji_emotions_outlined)),
           Expanded(child: TextField(controller: messageController, onSubmitted: (_) => send(), decoration: const InputDecoration(hintText: 'اكتب رسالة...'))),
           const SizedBox(width: 6),
           IconButton.filled(onPressed: loading ? null : send, icon: const Icon(Icons.send_rounded)),
