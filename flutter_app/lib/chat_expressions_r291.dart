@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/app_sounds.dart';
+import 'services/phrase_speech_r292.dart';
 
 /// Text transport is deliberately unchanged; no new permissions or server API.
 const animatedExpressionsR291 = <String>[
@@ -28,6 +29,16 @@ const chatPhrasesR291 = <(String,String,String)>[
   ('😂','يا سلام','Wow'),
   ('🙌','هيا نلعب','Let us play'),
 ];
+
+/// Match only known catalog messages, never arbitrary player text.
+(String,String)? phraseForMessageR292(String message) {
+  final body=message.trim();
+  for(final (glyph,ar,en) in chatPhrasesR291){
+    if(body=='$glyph $ar')return (ar,'ar');
+    if(body=='$glyph $en')return (en,'en');
+  }
+  return null;
+}
 
 String appendExpressionR291(String draft,String expression) {
   final current=draft.trimRight();
@@ -91,7 +102,16 @@ class _ChatExpressionsR291State extends State<ChatExpressionsR291> {
               key:const ValueKey('r291-phrase-list'),padding:const EdgeInsets.symmetric(horizontal:12),
               itemCount:chatPhrasesR291.length,itemBuilder:(_,i){
                 final (glyph,a,b)=chatPhrasesR291[i];final text=ar?a:b;
-                return ListTile(key:ValueKey('r291-phrase-$i'),leading:Text(glyph,style:const TextStyle(fontSize:26)),title:Text(text),onTap:()=>pick('$glyph $text'));
+                return ListTile(
+                  key:ValueKey('r291-phrase-$i'),
+                  leading:Text(glyph,style:const TextStyle(fontSize:26)),
+                  title:Text(text),
+                  trailing:PhraseSpeakButtonR292(
+                    phrase:text,language:ar?'ar':'en',locale:widget.locale,
+                    soundEnabled:widget.soundEnabled,
+                  ),
+                  onTap:()=>pick('$glyph $text'),
+                );
               })
             : GridView.builder(
               key:ValueKey('r291-glyph-grid-$tab'),padding:const EdgeInsets.all(10),
@@ -132,4 +152,40 @@ class ExpressionMotionR291 extends StatelessWidget {
       },
     );
   }
+}
+
+
+/// A separate, explicit listening control; tapping it never sends a message.
+class PhraseSpeakButtonR292 extends StatefulWidget {
+  const PhraseSpeakButtonR292({super.key,required this.phrase,required this.language,required this.locale,required this.soundEnabled,this.play});
+  final String phrase,language,locale;
+  final bool soundEnabled;
+  final Future<bool> Function(String,String)? play;
+  @override
+  State<PhraseSpeakButtonR292> createState()=>_PhraseSpeakButtonR292State();
+}
+class _PhraseSpeakButtonR292State extends State<PhraseSpeakButtonR292>{
+  bool busy=false;
+  bool get ar=>widget.locale=='ar';
+  Future<void> listen()async{
+    if(busy||!widget.soundEnabled)return;
+    setState(()=>busy=true);
+    var ok=false;
+    try{
+      ok=await (widget.play??PhraseSpeechR292.play)(widget.phrase,widget.language);
+    }catch(_){}
+    if(!mounted)return;
+    setState(()=>busy=false);
+    if(!ok){
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+        content:Text(ar?'الصوت غير متاح الآن. تحقق من لغة النطق وإعدادات الصوت.':'Speech is unavailable. Check device voices and sound settings.'),
+      ));
+    }
+  }
+  @override
+  Widget build(BuildContext context)=>IconButton(
+    tooltip:!widget.soundEnabled?(ar?'الصوت مغلق':'Sound disabled'):(ar?'استمع إلى العبارة':'Listen to phrase'),
+    onPressed:widget.soundEnabled&&!busy?listen:null,
+    icon:Icon(!widget.soundEnabled?Icons.volume_off_outlined:Icons.volume_up_outlined),
+  );
 }

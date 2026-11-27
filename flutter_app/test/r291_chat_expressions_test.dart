@@ -10,6 +10,35 @@ void main(){
     final full=List.filled(500,'a').join();
     expect(appendExpressionR291(full,'👋'),full);
   });
+  test('R292 recognizes exact catalog phrases only',(){
+    expect(phraseForMessageR292('👋 السلام عليكم'),('السلام عليكم','ar'));
+    expect(phraseForMessageR292('⏩ Please hurry up'),('Please hurry up','en'));
+    expect(phraseForMessageR292('👋 السلام عليكم extra'),isNull);
+    expect(phraseForMessageR292('arbitrary chat'),isNull);
+  });
+
+  testWidgets('R292 playback is opt-in, and mute disables playback',(tester)async{
+    var calls=0;
+    Future<bool> play(String text,String lang)async{
+      calls++;
+      expect(text,'السلام عليكم');
+      expect(lang,'ar');
+      return true;
+    }
+    Widget app(bool enabled)=>MaterialApp(home:Scaffold(body:PhraseSpeakButtonR292(
+      phrase:'السلام عليكم',language:'ar',locale:'ar',soundEnabled:enabled,play:play,
+    )));
+    await tester.pumpWidget(app(false));
+    expect(tester.widget<IconButton>(find.byType(IconButton)).onPressed,isNull);
+    expect(calls,0);
+    await tester.pumpWidget(app(true));
+    expect(calls,0);
+    await tester.tap(find.byType(IconButton));
+    await tester.pumpAndSettle();
+    expect(calls,1);
+    expect(tester.takeException(),isNull);
+  });
+
   for(final locale in ['ar','en']){
     for(final brightness in Brightness.values){
       testWidgets('R291 picker 320 portrait $locale $brightness',(tester)async{
