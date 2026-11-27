@@ -50,6 +50,8 @@
     $localeCode = $english ? 'en' : 'ar';
     $fallbackLocale = $english ? 'ar' : 'en';
     $t = fn(string $ar, string $en) => $english ? $en : $ar;
+    $studioBrand = \App\Models\SiteSetting::getValue('studio_brand_'.$localeCode,'');
+    $studioStore = \App\Models\SiteSetting::getValue('studio_store_label_'.$localeCode,'');
     $currentUser = auth()->user();
     $currentProfile = $currentUser?->profile;
     $soundEnabled = $currentUser ? (($currentProfile?->sound_enabled !== false) ? '1' : '0') : '1';
@@ -105,11 +107,11 @@
     .game-table.premium-table,.game-table{min-height:var(--admin-table-height)!important;border-radius:@if($tableShape==='stadium')999px @elseif($tableShape==='square-soft')var(--admin-table-radius) @else var(--admin-table-radius) @endif!important;border-width:var(--admin-table-border)!important;border-color:var(--admin-table-border-color)!important;background:radial-gradient(circle at center,var(--admin-table-bg1),var(--admin-table-bg2) 72%)!important}.center-board{scale:calc(var(--admin-table-scale) / 100)!important}.hand-row .card,.card{width:var(--admin-play-card-w)!important;height:var(--admin-play-card-h)!important}.seat-profile img,.player-ring,.player-ring img{width:var(--admin-player-avatar)!important;height:var(--admin-player-avatar)!important}.chat-dock{width:var(--admin-chat-w)!important;height:var(--admin-chat-h)!important;border-radius:var(--admin-chat-radius)!important;font-size:var(--admin-chat-font)!important;background:linear-gradient(145deg,var(--admin-chat-bg),color-mix(in srgb,var(--admin-chat-bg),#000 28%))!important}.chat-head{background:linear-gradient(135deg,var(--admin-chat-head),color-mix(in srgb,var(--admin-chat-head),#000 34%))!important}.chat-tabs{gap:var(--admin-chat-gap)!important;padding:var(--admin-chat-gap)!important}.chat-tabs button,.chat-head button,.chat-send button{min-width:var(--admin-chat-btn-w)!important;min-height:var(--admin-chat-btn-h)!important;border-radius:var(--admin-chat-btn-radius)!important;background:var(--admin-chat-btn-bg)!important;color:var(--admin-chat-btn-text)!important}.chat-send input,.chat-search{min-height:var(--admin-chat-input-h)!important;background:var(--admin-chat-input-bg)!important}.chat-body .msg,.game-chat-msg{background:var(--admin-chat-message-bg)!important}.emoji-palette button,.quick-reactions-box-v132 button{font-size:var(--admin-chat-emoji)!important;min-width:calc(var(--admin-chat-emoji) + 18px)!important;min-height:calc(var(--admin-chat-emoji) + 18px)!important}.notification-drawer,.notification-drawer-v136{width:min(var(--admin-notif-w),calc(100vw - 24px))!important}.profile-modal,.profile-modal-card{width:min(var(--admin-profile-w),calc(100vw - 22px))!important;font-size:var(--admin-profile-font)!important}@if($animationLevel==='none')*,*:before,*:after{animation:none!important;transition:none!important}@elseif($animationLevel==='premium').btn:hover,button:hover,.game-card:hover,.store-card:hover{transform:translateY(-4px) scale(1.015)!important;filter:brightness(1.08)!important}@endif
     </style>
     <div class="topbar">
-        <a class="brand" href="{{ auth()->check() ? route('games') : route('home') }}">{{ $t('ورقنا زون','Warqnaa Zone') }}</a>
+        <a class="brand" href="{{ auth()->check() ? route('games') : route('home') }}">{{ $studioBrand !== '' ? $studioBrand : $t('ورقنا زون','Warqnaa Zone') }}</a>
         @auth
             <button type="button" class="nav-drop-btn games-top-only-v128" onclick="toggleTopPanel('gamesCurtain')" data-i18n="all_games" aria-haspopup="dialog">🎮 {{ $t('الألعاب','Games') }} ▾</button>
             <a href="{{ route('game.rules') }}" data-i18n="rules">{{ $t('قوانين الألعاب','Game rules') }}</a>
-            <a href="{{ route('store') }}" data-i18n="store">{{ $t('المتجر','Store') }}</a><a href="{{ route('rewards') }}">{{ $t('المكافآت','Rewards') }}</a>
+            <a href="{{ route('store') }}" @if($studioStore === '') data-i18n="store" @endif>{{ $studioStore !== '' ? $studioStore : $t('المتجر','Store') }}</a><a href="{{ route('rewards') }}">{{ $t('المكافآت','Rewards') }}</a>
             <a href="{{ route('social-world') }}">✦ {{ $t('العالم الاجتماعي','Social World') }}</a>
             <a href="{{ route('competitive') }}">♛ {{ $t('الساحة التنافسية','Competitive') }}</a>
             <a href="{{ route('clubs') }}" data-i18n="groups">{{ $t('المجموعات','Clubs') }}</a>

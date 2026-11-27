@@ -3,6 +3,7 @@
 @section('content')
 @php
   $ar=app()->getLocale()==='ar';
+  $studioCopy=fn($key,$fallback)=>(string)\App\Models\SiteSetting::getValue('studio_'.$key.'_'.($ar?'ar':'en'),'') ?: $fallback;
   $isAuthed=auth()->check();
   $currentUser=auth()->user();
   $keys=\App\Services\Games\GameCatalog::customerKeys();
@@ -12,12 +13,12 @@
 @endphp
 <div class="b304-home">
  <section class="b304-head">
-   <div><span class="b304-kicker">WARQNAA WORLD • R6.1</span><h1>{{ $ar?'العب. تواصل. اصنع مجلسك.':'Play. Connect. Make it yours.' }}</h1><p>{{ $ar?'ألعاب ورق اجتماعية، ملف شخصي حي، مجتمع متكامل، وكتالوج طاولات وظهور ورق متطابقة للهاتف والويب.':'Social card games, a living profile, a connected community, and matching table/card-back collections for mobile and web.' }}</p></div>
+   <div><span class="b304-kicker">WARQNAA WORLD • R6.1</span><h1>{{ $studioCopy('hero_title',$ar?'العب. تواصل. اصنع مجلسك.':'Play. Connect. Make it yours.') }}</h1><p>{{ $studioCopy('hero_subtitle',$ar?'ألعاب ورق اجتماعية، ملف شخصي حي، مجتمع متكامل، وكتالوج طاولات وظهور ورق متطابقة للهاتف والويب.':'Social card games, a living profile, a connected community, and matching table/card-back collections for mobile and web.') }}</p></div>
    <div class="b304-statbar"><span><b>{{ $rooms }}</b>{{ $ar?'غرفة نشطة':'live rooms' }}</span><span><b>{{ $events }}</b>{{ $ar?'منافسة':'competitions' }}</span><span><b>{{ count($keys) }}</b>{{ $ar?'محرك فعّال':'active engines' }}</span></div>
  </section>
  <section class="b304-actions">
   <a class="primary" href="{{ $isAuthed?route('competitive'):route('login') }}">🏆 {{ $ar?'المسابقات':'Competitions' }}</a>
-  <a href="{{ $isAuthed?route('store'):route('login') }}">🛍️ {{ $ar?'المتجر':'Store' }}</a>
+  <a href="{{ $isAuthed?route('store'):route('login') }}">🛍️ {{ $studioCopy('store_label',$ar?'المتجر':'Store') }}</a>
   <a href="{{ $isAuthed?route('rewards'):route('login') }}">🎁 {{ $ar?'الجوائز':'Rewards' }}</a>
   <a href="{{ $isAuthed?route('games'):route('register') }}">▶ {{ $ar?'كل الألعاب':'All games' }}</a>
  </section>

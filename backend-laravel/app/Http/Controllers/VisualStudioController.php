@@ -32,7 +32,20 @@ class VisualStudioController
             'ui_card_padding'=>['حشو البطاقات','Card padding',18,8,44],
             'ui_card_gap'=>['تباعد البطاقات','Card spacing',16,6,34],
             'ui_page_padding'=>['هوامش الصفحة','Page padding',18,6,36],
+            'studio_brand_ar'=>['اسم الموقع بالعربية','Brand (Arabic)','','text',60],
+            'studio_brand_en'=>['اسم الموقع بالإنجليزية','Brand (English)','','text',60],
+            'studio_hero_title_ar'=>['عنوان الرئيسية بالعربية','Home title (Arabic)','','text',120],
+            'studio_hero_title_en'=>['عنوان الرئيسية بالإنجليزية','Home title (English)','','text',120],
+            'studio_hero_subtitle_ar'=>['وصف الرئيسية بالعربية','Home subtitle (Arabic)','','text',240],
+            'studio_hero_subtitle_en'=>['وصف الرئيسية بالإنجليزية','Home subtitle (English)','','text',240],
+            'studio_store_label_ar'=>['اسم المتجر بالعربية','Store label (Arabic)','','text',40],
+            'studio_store_label_en'=>['اسم المتجر بالإنجليزية','Store label (English)','','text',40],
         ];
+    }
+
+    private static function isText(array $field): bool
+    {
+        return ($field[3] ?? null) === 'text';
     }
 
     private function guard(Request $request): void
@@ -70,9 +83,9 @@ class VisualStudioController
         $values = [];
         foreach (self::fields() as $key=>$field) {
             $value = $snapshot[$key]['value'] ?? $field[2];
-            $values[$key] = isset($field[3])
+            $values[$key] = self::isText($field) ? (string)$value : (isset($field[3])
                 ? (int)$value
-                : (preg_match('/^#[0-9a-fA-F]{6}$/',(string)$value) ? $value : $field[2]);
+                : (preg_match('/^#[0-9a-fA-F]{6}$/',(string)$value) ? $value : $field[2]));
         }
         return view('admin.visual-studio',[
             'fields'=>self::fields(),'values'=>$values,
@@ -85,18 +98,18 @@ class VisualStudioController
         $this->guard($request);
         $rules=['revision'=>'required|string|size:64','values'=>'required|array:'.implode(',',array_keys(self::fields()))];
         foreach (self::fields() as $key=>$field) {
-            $rules['values.'.$key] = isset($field[3])
+            $rules['values.'.$key] = self::isText($field) ? ['present','nullable','string','max:'.$field[4]] : (isset($field[3])
                 ? ['required','integer','between:'.$field[3].','.$field[4]]
-                : ['required','regex:/^#[0-9a-fA-F]{6}$/'];
+                : ['required','regex:/^#[0-9a-fA-F]{6}$/']);
         }
         $data=$request->validate($rules);
         return DB::transaction(function () use ($request,$audit,$data) {
             $before=$this->snapshot(true);
             abort_unless(hash_equals($this->revision($before),$data['revision']),409,'Design changed. Reload before publishing.');
             foreach(self::fields() as $key=>$field) {
-                $value=$data['values'][$key];
+                $value=$data['values'][$key] ?? '';
                 if ((string)($before[$key]['value'] ?? $field[2]) === (string)$value) continue;
-                SiteSetting::setValue($key,$value,isset($field[3])?'int':'string','designer',$before[$key]['label'] ?? $key);
+                SiteSetting::setValue($key,$value,isset($field[3]) && !self::isText($field)?'int':'string',self::isText($field)?'content':'designer',$before[$key]['label'] ?? $key);
             }
             $after=$this->snapshot();
             if ($before !== $after) $audit->record($request,self::ACTION,SiteSetting::class,$before,$after);
@@ -115,7 +128,7 @@ class VisualStudioController
             // Only undo the most recent studio operation, and never overwrite later external edits.
             abort_unless($entry->id === (int)$data['entry'] && $entry->after == $current,409);
             $previous=$entry->before;
-            abort_unless(is_array($previous) && array_keys($previous)===array_keys(self::fields()),409);
+            abort_unless(is_array($previous) && count($previous)===count(self::fields()) && !array_diff_key(self::fields(),$previous),409);
             foreach($previous as $key=>$row) {
                 if ($row===null) SiteSetting::where('key',$key)->delete();
                 else SiteSetting::updateOrCreate(['key'=>$key],$row);

@@ -10,7 +10,7 @@ $tr=fn($a,$b)=>$ar?$a:$b;
 .ws a{color:#a8ddff!important}.ws h1,.ws h2{color:#fff}.ws p{color:#bdd3ed}.ws-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
 .ws-panel{background:#102c50;border:1px solid #315b87;border-radius:16px;padding:16px;min-width:0}.ws-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:12px}
 .ws label{display:grid;gap:6px;min-width:0;color:#eaf4ff}.ws input[type=color]{width:100%;height:44px;padding:4px;background:#173c66;border:1px solid #7ba9d6;border-radius:8px}.ws input[type=range]{width:100%;accent-color:#60baff}
-.ws select{color:#fff;background:#173c66;border:1px solid #7ba9d6;padding:8px;border-radius:8px}.ws-actions{display:flex;flex-wrap:wrap;gap:8px;margin-block:12px}
+.ws input[type=text]{box-sizing:border-box;width:100%;min-height:44px;color:#fff;background:#173c66;border:1px solid #7ba9d6;padding:8px;border-radius:8px}.ws select{color:#fff;background:#173c66;border:1px solid #7ba9d6;padding:8px;border-radius:8px}.ws-actions{display:flex;flex-wrap:wrap;gap:8px;margin-block:12px}
 .ws button{background:#155495!important;color:#fff!important;border:1px solid #80bfff!important;min-height:44px!important;padding:8px 14px!important;border-radius:10px!important}
 .ws button:focus-visible,.ws input:focus-visible,.ws select:focus-visible,.ws a:focus-visible{outline:3px solid #a5e1ff;outline-offset:3px}
 .ws-preview{box-sizing:border-box;max-width:100%;margin:auto;overflow:hidden;background:linear-gradient(140deg,var(--ui_site_bg1),var(--ui_site_bg2));padding:var(--ui_page_padding);border-radius:18px;min-height:290px;color:white}
@@ -32,6 +32,7 @@ $tr=fn($a,$b)=>$ar?$a:$b;
 <h2>{{$tr('الألوان والأبعاد','Colors and dimensions')}}</h2>
 <div class="ws-fields">
 @foreach($fields as $key=>$field)
+@if(($field[3] ?? null)==='text') @continue @endif
 <label for="ws-{{$key}}">{{$field[$ar?0:1]}}
 @if(isset($field[3]))
 <input id="ws-{{$key}}" data-token="{{$key}}" type="range" name="values[{{$key}}]" min="{{$field[3]}}" max="{{$field[4]}}" value="{{max($field[3],min($field[4],(int)old('values.'.$key,$values[$key])))}}">
@@ -42,6 +43,17 @@ $tr=fn($a,$b)=>$ar?$a:$b;
 </label>
 @endforeach
 </div>
+<h2>{{$tr('محتوى الموقع والتنقل','Website copy and navigation')}}</h2>
+<p>{{$tr('اترك الحقل فارغًا لاستعادة النص الأصلي.','Leave a field empty to use the original copy.')}}</p>
+<div class="ws-fields">
+@foreach($fields as $key=>$field)
+@if(($field[3] ?? null)!=='text') @continue @endif
+<label for="ws-{{$key}}">{{$field[$ar?0:1]}}
+<input id="ws-{{$key}}" type="text" data-copy="{{$key}}" name="values[{{$key}}]" maxlength="{{$field[4]}}" dir="{{str_ends_with($key,'_ar')?'rtl':'ltr'}}" value="{{old('values.'.$key,$values[$key])}}">
+</label>
+@endforeach
+</div>
+<p id="ws-changes" role="status"></p>
 <div class="ws-actions">
 <button type="button" id="ws-blue">{{$tr('الهوية الزرقاء','Blue preset')}}</button>
 <button type="reset">{{$tr('إلغاء التعديلات','Discard changes')}}</button>
@@ -55,7 +67,9 @@ $tr=fn($a,$b)=>$ar?$a:$b;
 <label>{{$tr('الاتجاه','Direction')}}<select id="ws-dir"><option value="rtl" @selected($ar)>RTL</option><option value="ltr" @selected(!$ar)>LTR</option></select></label>
 </div>
 <div id="ws-preview" class="ws-preview">
-<div class="ws-demo-nav">WARQNAA • <span id="ws-nav-copy">{{$tr('الردهة','Lobby')}}</span></div>
+<div class="ws-demo-nav"><span id="ws-brand" data-ar="ورقنا زون" data-en="Warqnaa Zone"></span> • <span id="ws-nav-copy" data-ar="المتجر" data-en="Store"></span></div>
+<h3 id="ws-hero" data-ar="العب. تواصل. اصنع مجلسك." data-en="Play. Connect. Make it yours."></h3>
+<p id="ws-subtitle" data-ar="ألعاب ورق اجتماعية، ملف شخصي حي، مجتمع متكامل، وكتالوج طاولات وظهور ورق متطابقة للهاتف والويب." data-en="Social card games, a living profile, a connected community, and matching table/card-back collections for mobile and web."></p>
 <div class="ws-demo-panel">
 <div class="ws-demo-cards">
 @foreach([['الهاند','Hand'],['البناكل','Banakil'],['المتجر','Store'],['الغرف','Rooms']] as $pair)
@@ -83,11 +97,16 @@ $tr=fn($a,$b)=>$ar?$a:$b;
 (() => {
  const form=document.getElementById('ws-form'), preview=document.getElementById('ws-preview'), width=document.getElementById('ws-width'), dir=document.getElementById('ws-dir');
  const inputs=[...form.querySelectorAll('[data-token]')], status=document.getElementById('ws-contrast');
+ const copies=[...form.querySelectorAll('[data-copy]')], editable=[...inputs,...copies], original=editable.map(el=>el.value);
+ const copyTargets={'studio_brand':'ws-brand','studio_store_label':'ws-nav-copy','studio_hero_title':'ws-hero','studio_hero_subtitle':'ws-subtitle'};
  const preset={ui_site_bg1:'#103b70',ui_site_bg2:'#06152e',ui_panel_bg:'#102e52',ui_card_bg:'#174578',ui_nav_bg:'#09264a',ui_button_bg:'#155495',ui_button_text:'#ffffff',ui_primary_bg:'#14519a',ui_primary_bg2:'#123b76'};
  const luminance=h=>{const v=h.slice(1).match(/../g).map(s=>parseInt(s,16)/255).map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);return .2126*v[0]+.7152*v[1]+.0722*v[2];};
  const refresh=()=>{for(const el of inputs){preview.style.setProperty('--'+el.dataset.token,el.value+(el.type==='range'?'px':''));if(el.type==='range')el.nextElementSibling.textContent=el.value+' px';}
  preview.style.width=width.value+'px';preview.dir=dir.value;
  for(const el of preview.querySelectorAll('[data-ar]'))el.textContent=dir.value==='rtl'?el.dataset.ar:el.dataset.en;
+ for(const [key,id] of Object.entries(copyTargets)){const el=document.getElementById(id),suffix=dir.value==='rtl'?'ar':'en';el.textContent=form.elements['values['+key+'_'+suffix+']'].value.trim()||el.dataset[suffix];}
+ const changes=editable.filter((el,i)=>el.value!==original[i]).length;
+ document.getElementById('ws-changes').textContent=(@json($ar)?'حقول معدلة: ':'Changed fields: ')+changes;
  const a=luminance(form.elements['values[ui_button_bg]'].value),b=luminance(form.elements['values[ui_button_text]'].value),ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
  status.textContent=(@json($ar)?'تباين الزر النموذجي: ':'Sample button contrast: ')+ratio.toFixed(2)+':1 '+(ratio<4.5?(@json($ar)?'— يوصى برفع التباين':'— increase contrast'):'');
  };

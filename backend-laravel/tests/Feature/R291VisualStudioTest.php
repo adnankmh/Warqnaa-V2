@@ -23,7 +23,7 @@ class R291VisualStudioTest extends TestCase
         foreach(VisualStudioController::fields() as $key=>$field) {
             $row=SiteSetting::where('key',$key)->first();
             $snapshot[$key]=$row ? $row->only(['value','type','group','label']) : null;
-            $values[$key]=isset($field[3]) ? max($field[3],min($field[4],(int)($row?->value ?? $field[2]))) : ($row?->value ?? $field[2]);
+            $values[$key]=($field[3] ?? null)==='text' ? ($row?->value ?? '') : (isset($field[3]) ? max($field[3],min($field[4],(int)($row?->value ?? $field[2]))) : ($row?->value ?? $field[2]));
         }
         return ['revision'=>hash('sha256',json_encode($snapshot,JSON_THROW_ON_ERROR)),'values'=>$values];
     }
@@ -54,6 +54,23 @@ class R291VisualStudioTest extends TestCase
         $this->assertSame('#123456',SiteSetting::getValue('ui_button_bg'));
         $this->assertSame(321,SiteSetting::getValue('exit_penalty_xp'));
         $this->assertDatabaseHas('admin_audit_logs',['action'=>'admin.visual_studio.restore']);
+    }
+
+    public function test_bilingual_copy_is_published_escaped_and_restorable(): void
+    {
+        $this->actingAs($this->admin());
+        $payload=$this->payload();
+        $payload['values']['studio_brand_ar']='ورقنا الجديدة';
+        $payload['values']['studio_brand_en']='Warqnaa Studio';
+        $payload['values']['studio_hero_title_ar']='عنوان مخصص';
+        $payload['values']['studio_hero_title_en']='<script>custom-title</script>';
+        $this->post('/admin/visual-studio/publish',$payload)->assertRedirect(route('admin.visual-studio'));
+        $this->assertSame('ورقنا الجديدة',SiteSetting::getValue('studio_brand_ar'));
+        $this->assertSame('<script>custom-title</script>',SiteSetting::getValue('studio_hero_title_en'));
+        $this->get('/')->assertOk()->assertDontSee('<script>custom-title</script>',false);
+        $entry=AdminAuditLog::where('action','admin.visual_studio.publish')->firstOrFail();
+        $this->post('/admin/visual-studio/restore',['revision'=>$this->payload()['revision'],'entry'=>$entry->id])->assertRedirect();
+        $this->assertSame('',SiteSetting::getValue('studio_brand_ar',''));
     }
 
     public function test_unlisted_keys_invalid_colors_and_external_edits_are_rejected(): void
