@@ -9,8 +9,12 @@ class PhraseSpeechR292 {
   static bool _busy=false;
 
   static Future<bool> play(String phrase,String language) async {
-    if(!AppSounds.enabled||_busy||phrase.trim().isEmpty||
-        !const ['ar','en'].contains(language))return false;
+    if (!AppSounds.enabled ||
+        _busy ||
+        phrase.trim().isEmpty ||
+        !const ['ar', 'en'].contains(language)) {
+      return false;
+    }
     _busy=true;
     try{
       final engine=_engine??=FlutterTts();
