@@ -29,6 +29,7 @@ import 'models/room_launch_options.dart';
 import 'r9_design_system.dart';
 import 'data/countries.dart';
 import 'premium_v149.dart';
+import 'chat_expressions_r291.dart';
 
 part 'premium_v151.dart';
 part 'production_v153.dart';
@@ -7778,6 +7779,7 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                         itemBuilder: (_, index) {
                           final message = serverMessages[index];
                           final emojiOnly=!RegExp(r'[A-Za-z0-9\u0600-\u06FF]').hasMatch(message.body) && message.body.runes.length<=8;
+                          final spoken=phraseForMessageR292(message.body);
                           return Align(
                             alignment: gameChatMessageAlignmentR193(mine: message.mine),
                             child: InkWell(
@@ -7796,7 +7798,10 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
                                 margin: const EdgeInsets.only(bottom: 6),
                                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
                                 decoration: gameChatMessageDecorationR191(context, mine: message.mine),
-                                child: Text(emojiOnly?message.body:'${message.sender}: ${message.body}', style: TextStyle(fontSize: emojiOnly?31*widget.controller.uiChatScale:12.5*widget.controller.uiChatScale, height: 1.35, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500, color: gameChatMessageTextColorR191(context, mine: message.mine, mineColor: colorFromHex(widget.controller.selectedChatColor)))),
+                                child: Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[
+                                  Text(emojiOnly?message.body:'${message.sender}: ${message.body}', style: TextStyle(fontSize: emojiOnly?31*widget.controller.uiChatScale:12.5*widget.controller.uiChatScale, height: 1.35, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500, color: gameChatMessageTextColorR191(context, mine: message.mine, mineColor: colorFromHex(widget.controller.selectedChatColor)))),
+                                  if(spoken!=null)PhraseSpeakButtonR292(phrase:spoken.$1,language:spoken.$2,locale:widget.controller.localeCode,soundEnabled:widget.controller.soundEnabled),
+                                ]),
                               ),
                             ),
                           );
@@ -7806,7 +7811,12 @@ class _ServerEngineRoomPageState extends State<ServerEngineRoomPage> with Widget
               Padding(
                 padding: const EdgeInsets.all(7),
                 child: Row(children: [
-                  IconButton.filledTonal(tooltip:'إيموجي',onPressed:()async{final emoji=await showV166EmojiPicker(context,widget.controller);if(emoji!=null){serverChatController.text=emoji;await _sendRoomMessage();}},icon:const Icon(Icons.emoji_emotions_rounded)),
+                  IconButton.filledTonal(tooltip:widget.controller.localeCode=='ar'?'التعبيرات':'Expressions',onPressed:()async{
+                    final emoji=await showV166EmojiPicker(context,widget.controller);
+                    if(!mounted || emoji==null)return;
+                    serverChatController.text=appendExpressionR291(serverChatController.text,emoji);
+                    serverChatController.selection=TextSelection.collapsed(offset:serverChatController.text.length);
+                  },icon:const Icon(Icons.emoji_emotions_rounded)),
                   const SizedBox(width:5),
                   Expanded(child: TextField(controller: serverChatController, onSubmitted: (_) => _sendRoomMessage(), style: TextStyle(fontSize:14*widget.controller.uiChatScale), decoration: const InputDecoration(hintText: 'اكتب رسالة...', isDense: true))),
                   const SizedBox(width: 5),
@@ -11320,6 +11330,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
             itemCount: messages.length,
             itemBuilder: (_, index) {
               final message = messages[index];
+              final spoken=phraseForMessageR292(message.body);
               return Align(
                 alignment: privateChatMessageAlignmentR194(mine: message.mine),
                 child: Container(
@@ -11327,14 +11338,19 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.fromLTRB(12, 9, 12, 7),
                   decoration: BoxDecoration(color: message.mine ? Theme.of(context).colorScheme.primary.withValues(alpha: .18) : Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: privateChatMessageBorderRadiusR194(mine: message.mine)),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), const SizedBox(height: 3), Text(message.time, style: privateChatMetadataTextStyleR195(context, highlighted: false))]),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(message.body, style: TextStyle(height: 1.45, color: message.mine ? colorFromHex(widget.controller.selectedChatColor) : Theme.of(context).colorScheme.onSurface, fontWeight: message.mine ? FontWeight.w800 : FontWeight.w500)), if(spoken!=null)PhraseSpeakButtonR292(phrase:spoken.$1,language:spoken.$2,locale:widget.controller.localeCode,soundEnabled:widget.controller.soundEnabled), const SizedBox(height: 3), Text(message.time, style: privateChatMetadataTextStyleR195(context, highlighted: false))]),
                 ),
               );
             },
           ),
         ),
         SafeArea(top: false, child: Padding(padding: const EdgeInsets.all(9), child: Row(children: [
-          IconButton(onPressed: () => showToast(context, 'اختر إيموجي أو ملصقاً.'), icon: const Icon(Icons.emoji_emotions_outlined)),
+          IconButton(tooltip:widget.controller.localeCode=='ar'?'التعبيرات':'Expressions',onPressed: loading ? null : () async {
+            final emoji=await showV166EmojiPicker(context,widget.controller);
+            if(!mounted || emoji==null)return;
+            messageController.text=appendExpressionR291(messageController.text,emoji);
+            messageController.selection=TextSelection.collapsed(offset:messageController.text.length);
+          }, icon: const Icon(Icons.emoji_emotions_outlined)),
           Expanded(child: TextField(controller: messageController, onSubmitted: (_) => send(), decoration: const InputDecoration(hintText: 'اكتب رسالة...'))),
           const SizedBox(width: 6),
           IconButton.filled(onPressed: loading ? null : send, icon: const Icon(Icons.send_rounded)),

@@ -1,0 +1,22 @@
+.wq-expressions{padding:6px 8px;border:1px solid #416d99;border-radius:12px;background:#0c294b;color:#eaf5ff;min-width:0}
+.wq-expressions summary{cursor:pointer;font-weight:700;padding:8px;overflow-wrap:anywhere}
+.wq-exp-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.wq-expressions button,.wq-exp-message-play{color:#fff!important;background:#155495!important;border:1px solid #75b7ef!important;border-radius:10px!important;min-height:44px!important;cursor:pointer}
+.wq-expressions button[aria-pressed=true]{outline:2px solid #9bdeff;outline-offset:-3px}
+.wq-exp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:5px;max-height:200px;overflow:auto;padding:5px}
+.wq-exp-grid:has(.wq-exp-phrase){grid-template-columns:minmax(0,1fr)}
+.wq-exp-emoji{padding:5px!important;font-size:26px!important}
+.wq-exp-phrase{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px}
+.wq-exp-insert{white-space:normal;overflow-wrap:anywhere;text-align:start;padding:5px!important}
+.wq-exp-play,.wq-exp-message-play{padding:4px!important;min-width:44px!important}
+.wq-exp-hint{font-size:12px;color:#c4dcf5;margin:5px 0}
+.wq-expressions button:focus-visible,.wq-expressions summary:focus-visible,.wq-exp-message-play:focus-visible{outline:3px solid #b3e5ff;outline-offset:2px}
+.wq-motion{display:inline-block;transform-origin:center}
+.wq-exp-emoji:hover .wq-motion,.wq-exp-emoji:focus-visible .wq-motion,.wq-received-emoji{animation-duration:.65s;animation-iteration-count:2;animation-timing-function:ease-in-out}
+.wq-motion-bounce{animation-name:wq-exp-bounce}.wq-motion-shake{animation-name:wq-exp-shake}.wq-motion-pulse{animation-name:wq-exp-pulse}.wq-motion-wave{animation-name:wq-exp-wave}.wq-motion-spin{animation-name:wq-exp-spin}
+@keyframes wq-exp-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes wq-exp-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes wq-exp-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.23)}}
+@keyframes wq-exp-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-18deg)}75%{transform:rotate(18deg)}}
+@keyframes wq-exp-spin{0%,100%{transform:rotate(0)}50%{transform:rotate(180deg)}}
+@media(prefers-reduced-motion:reduce){.wq-motion{animation:none!important}}

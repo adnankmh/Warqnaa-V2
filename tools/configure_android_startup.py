@@ -80,6 +80,22 @@ def ensure_feature(root: ET.Element, name: str, required: bool) -> None:
     root.insert(index, node)
 
 
+def ensure_tts_query(root: ET.Element) -> None:
+    # Android 11+ package visibility for the installed speech engine.
+    # This adds no runtime permission and preserves existing intent queries.
+    action_name = "android.intent.action.TTS_SERVICE"
+    queries = root.find("queries")
+    if queries is None:
+        queries = ET.Element("queries")
+        application = root.find("application")
+        root.insert(list(root).index(application) if application is not None else len(root), queries)
+    if any(action.get(A + "name") == action_name
+           for intent in queries.findall("intent") for action in intent.findall("action")):
+        return
+    intent = ET.SubElement(queries, "intent")
+    ET.SubElement(intent, "action", {A + "name": action_name})
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
@@ -99,6 +115,7 @@ def main() -> None:
         ensure_permission(root, name, max_sdk)
     for name, required in FEATURES:
         ensure_feature(root, name, required)
+    ensure_tts_query(root)
 
     application.set(A + "label", "Warqnaa")
     application.set(A + "hardwareAccelerated", "true")

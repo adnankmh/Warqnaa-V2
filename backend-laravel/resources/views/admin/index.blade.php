@@ -65,6 +65,9 @@ $selectDesignerFields=[
 ];
 $designerBooleans=['single_activity_lock_enabled'=>'منع اللاعب من الاشتراك بأكثر من لعبة/مسابقة/نادي بنفس الوقت','room_owner_password_invites'=>'إرسال كلمة سر الغرفة الخاصة مع دعوات الأصدقاء','pasha_kick_dropdown_enabled'=>'إظهار الطرد لصاحب الغرفة مع باشا كقائمة منسدلة','exit_penalty_dropdown_enabled'=>'إظهار خصم XP عند الخروج كقائمة منسدلة','autoplay_timeout_enabled'=>'تشغيل الكمبيوتر تلقائيًا عند انتهاء عداد الدور','admin_live_preview_enabled'=>'تفعيل المعاينة المباشرة في لوحة الإدارة'];
 @endphp
+@if(auth()->user()?->hasAdminPermission('site_design'))
+<a class="btn primary" href="{{route('admin.visual-studio')}}">{{app()->getLocale()==='ar'?'استوديو التصميم المرئي والنشر':'Visual design & publication studio'}}</a>
+@endif
 <section class="r9-admin-command">
  <div>
   <span class="r9-eyebrow">WARQNAA COMMAND CENTER</span>
